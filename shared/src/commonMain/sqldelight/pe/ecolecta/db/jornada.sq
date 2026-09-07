@@ -1,0 +1,37 @@
+CREATE TABLE jornada (
+    id TEXT NOT NULL PRIMARY KEY,
+    usuario_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    vehiculo_id TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    abierta_en INTEGER NOT NULL,
+    cerrada_en INTEGER,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING'
+);
+
+insertar:
+INSERT INTO jornada(id, usuario_id, zona_id, vehiculo_id, fecha, abierta_en, cerrada_en, sync_state)
+VALUES (:id, :usuario_id, :zona_id, :vehiculo_id, :fecha, :abierta_en, NULL, :sync_state);
+
+cerrar:
+UPDATE jornada SET cerrada_en = :cerrada_en WHERE id = :id;
+
+selectTodas:
+SELECT * FROM jornada ORDER BY abierta_en DESC;
+
+selectPorId:
+SELECT * FROM jornada WHERE id = :id;
+
+selectPorUsuarioYFecha:
+SELECT * FROM jornada WHERE usuario_id = :usuario_id AND fecha = :fecha;
+
+selectConFiltros:
+SELECT * FROM jornada
+WHERE (:fecha IS NULL OR fecha = :fecha)
+  AND (:usuario_id IS NULL OR usuario_id = :usuario_id)
+  AND (:zona_id IS NULL OR zona_id = :zona_id)
+  AND (:vehiculo_id IS NULL OR vehiculo_id = :vehiculo_id)
+ORDER BY abierta_en DESC;
+
+contarAbiertas:
+SELECT COUNT(*) FROM jornada WHERE cerrada_en IS NULL;

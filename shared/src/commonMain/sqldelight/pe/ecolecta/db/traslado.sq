@@ -1,0 +1,30 @@
+CREATE TABLE traslado_zona (
+    id TEXT NOT NULL PRIMARY KEY,
+    proveedor_id TEXT NOT NULL,
+    zona_origen_id TEXT NOT NULL,
+    zona_destino_id TEXT NOT NULL,
+    motivo TEXT,
+    autorizado_por TEXT,
+    estado TEXT NOT NULL DEFAULT 'PENDIENTE',
+    creado_en INTEGER NOT NULL,
+    sync_state TEXT NOT NULL DEFAULT 'SYNCED'
+);
+
+insertar:
+INSERT INTO traslado_zona(id, proveedor_id, zona_origen_id, zona_destino_id, motivo, autorizado_por, estado, creado_en, sync_state)
+VALUES (:id, :proveedor_id, :zona_origen_id, :zona_destino_id, :motivo, NULL, 'PENDIENTE', :creado_en, :sync_state);
+
+autorizar:
+UPDATE traslado_zona SET estado = 'AUTORIZADO', autorizado_por = :autorizado_por WHERE id = :id;
+
+rechazar:
+UPDATE traslado_zona SET estado = 'RECHAZADO', autorizado_por = :autorizado_por WHERE id = :id;
+
+selectTodos:
+SELECT * FROM traslado_zona ORDER BY creado_en DESC;
+
+selectPendientes:
+SELECT * FROM traslado_zona WHERE estado = 'PENDIENTE' ORDER BY creado_en DESC;
+
+selectPorId:
+SELECT * FROM traslado_zona WHERE id = :id;

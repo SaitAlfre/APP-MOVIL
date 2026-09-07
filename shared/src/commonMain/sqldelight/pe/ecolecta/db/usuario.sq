@@ -1,0 +1,49 @@
+CREATE TABLE usuario (
+    id TEXT NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    nombres TEXT NOT NULL,
+    dni TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,
+    pin_salt TEXT NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1,
+    updated_at INTEGER NOT NULL,
+    intentos_fallidos INTEGER NOT NULL DEFAULT 0,
+    bloqueado_hasta INTEGER
+);
+
+insertar:
+INSERT INTO usuario(id, username, nombres, dni, pin_hash, pin_salt, activo, updated_at, intentos_fallidos, bloqueado_hasta)
+VALUES (:id, :username, :nombres, :dni, :pin_hash, :pin_salt, :activo, :updated_at, 0, NULL);
+
+actualizar:
+UPDATE usuario SET nombres = :nombres, dni = :dni, activo = :activo, updated_at = :updated_at WHERE id = :id;
+
+actualizarPin:
+UPDATE usuario SET pin_hash = :pin_hash, pin_salt = :pin_salt, updated_at = :updated_at WHERE id = :id;
+
+desactivar:
+UPDATE usuario SET activo = 0, updated_at = :updated_at WHERE id = :id;
+
+selectTodos:
+SELECT * FROM usuario ORDER BY nombres ASC;
+
+selectPorId:
+SELECT * FROM usuario WHERE id = :id;
+
+selectPorUsername:
+SELECT * FROM usuario WHERE username = :username;
+
+existeUsername:
+SELECT COUNT(*) FROM usuario WHERE username = :username AND id != :idExcluido;
+
+existeDni:
+SELECT COUNT(*) FROM usuario WHERE dni = :dni AND id != :idExcluido;
+
+registrarIntentoFallido:
+UPDATE usuario SET intentos_fallidos = intentos_fallidos + 1, updated_at = :updated_at WHERE id = :id;
+
+bloquear:
+UPDATE usuario SET bloqueado_hasta = :bloqueado_hasta, updated_at = :updated_at WHERE id = :id;
+
+resetIntentos:
+UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, updated_at = :updated_at WHERE id = :id;

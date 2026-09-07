@@ -1,0 +1,25 @@
+CREATE TABLE usuario_rol (
+    usuario_id TEXT NOT NULL,
+    rol TEXT NOT NULL,
+    PRIMARY KEY (usuario_id, rol)
+);
+
+insertar:
+INSERT OR IGNORE INTO usuario_rol(usuario_id, rol) VALUES (:usuario_id, :rol);
+
+eliminar:
+DELETE FROM usuario_rol WHERE usuario_id = :usuario_id AND rol = :rol;
+
+eliminarTodosDe:
+DELETE FROM usuario_rol WHERE usuario_id = :usuario_id;
+
+selectPorUsuario:
+SELECT rol FROM usuario_rol WHERE usuario_id = :usuario_id;
+
+selectUsuariosPorRol:
+SELECT usuario_id FROM usuario_rol WHERE rol = :rol;
+
+contarUsuariosConRol:
+SELECT COUNT(*) FROM usuario_rol
+INNER JOIN usuario ON usuario.id = usuario_rol.usuario_id
+WHERE usuario_rol.rol = :rol AND usuario.activo = 1;

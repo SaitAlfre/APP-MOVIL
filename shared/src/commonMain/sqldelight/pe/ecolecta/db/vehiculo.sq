@@ -1,0 +1,27 @@
+CREATE TABLE vehiculo (
+    id TEXT NOT NULL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    placa TEXT NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1
+);
+
+insertar:
+INSERT INTO vehiculo(id, nombre, placa, activo) VALUES (:id, :nombre, :placa, :activo);
+
+actualizar:
+UPDATE vehiculo SET nombre = :nombre, placa = :placa, activo = :activo WHERE id = :id;
+
+desactivar:
+UPDATE vehiculo SET activo = 0 WHERE id = :id;
+
+selectTodos:
+SELECT * FROM vehiculo ORDER BY nombre ASC;
+
+selectActivos:
+SELECT * FROM vehiculo WHERE activo = 1 ORDER BY nombre ASC;
+
+selectPorId:
+SELECT * FROM vehiculo WHERE id = :id;
+
+existePlaca:
+SELECT COUNT(*) FROM vehiculo WHERE placa = :placa AND id != :idExcluido;

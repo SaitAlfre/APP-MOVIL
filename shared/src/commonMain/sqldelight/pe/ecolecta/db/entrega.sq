@@ -1,0 +1,87 @@
+CREATE TABLE entrega (
+    id TEXT NOT NULL PRIMARY KEY,
+    jornada_id TEXT NOT NULL,
+    proveedor_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    vehiculo_id TEXT NOT NULL,
+    litros REAL NOT NULL,
+    tachos INTEGER NOT NULL DEFAULT 1,
+    observaciones TEXT,
+    registrado_en INTEGER NOT NULL,
+    device_id TEXT NOT NULL,
+    lote_id TEXT,
+    anulada INTEGER NOT NULL DEFAULT 0,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING',
+    sync_error TEXT,
+    intentos INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL,
+    litros_servidor REAL,
+    tachos_servidor REAL,
+    motivo_conflicto TEXT
+);
+
+insertar:
+INSERT INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_id, litros, tachos, observaciones,
+    registrado_en, device_id, lote_id, anulada, sync_state, sync_error, intentos, updated_at,
+    litros_servidor, tachos_servidor, motivo_conflicto)
+VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :vehiculo_id, :litros, :tachos, :observaciones,
+    :registrado_en, :device_id, :lote_id, 0, :sync_state, NULL, 0, :updated_at, NULL, NULL, NULL);
+
+corregir:
+UPDATE entrega SET litros = :litros, tachos = :tachos, observaciones = :observaciones, updated_at = :updated_at
+WHERE id = :id;
+
+anular:
+UPDATE entrega SET anulada = 1, updated_at = :updated_at WHERE id = :id;
+
+marcarConflicto:
+UPDATE entrega SET sync_state = 'CONFLICT', litros_servidor = :litros_servidor, tachos_servidor = :tachos_servidor,
+    motivo_conflicto = :motivo_conflicto, updated_at = :updated_at
+WHERE id = :id;
+
+resolverConflicto:
+UPDATE entrega SET litros = :litros, tachos = :tachos, sync_state = :sync_state,
+    litros_servidor = NULL, tachos_servidor = NULL, motivo_conflicto = NULL, updated_at = :updated_at
+WHERE id = :id;
+
+selectPorId:
+SELECT * FROM entrega WHERE id = :id;
+
+selectPorJornada:
+SELECT * FROM entrega WHERE jornada_id = :jornada_id ORDER BY registrado_en ASC;
+
+selectPorProveedor:
+SELECT * FROM entrega WHERE proveedor_id = :proveedor_id ORDER BY registrado_en DESC;
+
+selectPorProveedorPaginado:
+SELECT * FROM entrega WHERE proveedor_id = :proveedor_id ORDER BY registrado_en DESC LIMIT :limite OFFSET :desplazamiento;
+
+selectConflictos:
+SELECT * FROM entrega WHERE sync_state = 'CONFLICT' ORDER BY registrado_en DESC;
+
+selectConFiltros:
+SELECT * FROM entrega
+WHERE (:jornada_id IS NULL OR jornada_id = :jornada_id)
+  AND (:proveedor_id IS NULL OR proveedor_id = :proveedor_id)
+  AND (:usuario_id IS NULL OR usuario_id = :usuario_id)
+  AND (:zona_id IS NULL OR zona_id = :zona_id)
+  AND (:vehiculo_id IS NULL OR vehiculo_id = :vehiculo_id)
+  AND (:sync_state IS NULL OR sync_state = :sync_state)
+  AND (:lote_id IS NULL OR lote_id = :lote_id)
+ORDER BY registrado_en DESC;
+
+sumaLitrosEntreFechas:
+SELECT COALESCE(SUM(litros), 0.0) FROM entrega WHERE anulada = 0 AND registrado_en >= :desde AND registrado_en < :hasta;
+
+contarEntregasEntreFechas:
+SELECT COUNT(*) FROM entrega WHERE anulada = 0 AND registrado_en >= :desde AND registrado_en < :hasta;
+
+contarPendientes:
+SELECT COUNT(*) FROM entrega WHERE sync_state = 'PENDING';
+
+contarError:
+SELECT COUNT(*) FROM entrega WHERE sync_state = 'ERROR';
+
+contarConflicto:
+SELECT COUNT(*) FROM entrega WHERE sync_state = 'CONFLICT';

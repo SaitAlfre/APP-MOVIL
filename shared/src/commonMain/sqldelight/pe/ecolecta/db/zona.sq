@@ -1,0 +1,32 @@
+CREATE TABLE zona (
+    id TEXT NOT NULL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1
+);
+
+INSERT INTO zona(id, nombre, activo) VALUES
+    ('zona-faon-markapajo', 'FAON-MARKAPAJO', 1),
+    ('zona-moro-viejo-pancha', 'MORO VIEJO-PANCHA', 1),
+    ('zona-collana-yasin-huan', 'COLLANA I-YASIN-HUAN', 1),
+    ('zona-planta-collana-ii', 'PLANTA-COLLANA II', 1);
+
+insertar:
+INSERT INTO zona(id, nombre, activo) VALUES (:id, :nombre, :activo);
+
+actualizar:
+UPDATE zona SET nombre = :nombre, activo = :activo WHERE id = :id;
+
+desactivar:
+UPDATE zona SET activo = 0 WHERE id = :id;
+
+selectTodas:
+SELECT * FROM zona ORDER BY nombre ASC;
+
+selectActivas:
+SELECT * FROM zona WHERE activo = 1 ORDER BY nombre ASC;
+
+selectPorId:
+SELECT * FROM zona WHERE id = :id;
+
+contarProveedoresEnZona:
+SELECT COUNT(*) FROM proveedor WHERE zona_id = :id AND estado != 'RETIRADO';

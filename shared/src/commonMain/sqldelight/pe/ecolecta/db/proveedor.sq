@@ -1,0 +1,55 @@
+CREATE TABLE proveedor (
+    id TEXT NOT NULL PRIMARY KEY,
+    codigo TEXT NOT NULL UNIQUE,
+    nombres TEXT NOT NULL,
+    dni TEXT NOT NULL,
+    telefono TEXT,
+    direccion TEXT,
+    zona_id TEXT NOT NULL,
+    tachos INTEGER NOT NULL DEFAULT 1,
+    capacidad_tacho_l REAL NOT NULL DEFAULT 40.0,
+    estado TEXT NOT NULL DEFAULT 'ACTIVO',
+    updated_at INTEGER NOT NULL,
+    sync_state TEXT NOT NULL DEFAULT 'SYNCED',
+    -- Vincula la cuenta con rol PROVEEDOR que puede autenticarse y consultar este registro (§5).
+    usuario_id TEXT
+);
+
+insertar:
+INSERT INTO proveedor(id, codigo, nombres, dni, telefono, direccion, zona_id, tachos, capacidad_tacho_l, estado, updated_at, sync_state)
+VALUES (:id, :codigo, :nombres, :dni, :telefono, :direccion, :zona_id, :tachos, :capacidad_tacho_l, :estado, :updated_at, :sync_state);
+
+actualizar:
+UPDATE proveedor SET nombres = :nombres, dni = :dni, telefono = :telefono, direccion = :direccion,
+    zona_id = :zona_id, tachos = :tachos, capacidad_tacho_l = :capacidad_tacho_l, updated_at = :updated_at
+WHERE id = :id;
+
+cambiarEstado:
+UPDATE proveedor SET estado = :estado, updated_at = :updated_at WHERE id = :id;
+
+selectTodos:
+SELECT * FROM proveedor ORDER BY nombres ASC;
+
+selectPorId:
+SELECT * FROM proveedor WHERE id = :id;
+
+selectPorZona:
+SELECT * FROM proveedor WHERE zona_id = :zona_id ORDER BY nombres ASC;
+
+selectActivosPorZona:
+SELECT * FROM proveedor WHERE zona_id = :zona_id AND estado = 'ACTIVO' ORDER BY nombres ASC;
+
+existeCodigo:
+SELECT COUNT(*) FROM proveedor WHERE codigo = :codigo AND id != :idExcluido;
+
+existeDni:
+SELECT COUNT(*) FROM proveedor WHERE dni = :dni AND id != :idExcluido;
+
+contarActivos:
+SELECT COUNT(*) FROM proveedor WHERE estado = 'ACTIVO';
+
+vincularUsuario:
+UPDATE proveedor SET usuario_id = :usuario_id WHERE id = :id;
+
+selectPorUsuarioId:
+SELECT * FROM proveedor WHERE usuario_id = :usuario_id;

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Primer plano del ícono adaptativo de Ecolecta: gota de leche + hoja, en crema sobre el
+     fondo verde de ic_launcher_background. Mismo trazo que EcolectaLogo (Compose), para que el
+     ícono de la app, el Splash y el Login compartan una sola identidad visual. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FDF8F0"
+        android:pathData="M54,24 C65.78,42.7 73.38,48.12 73,58 A19,19 0 1,1 35,58 C34.62,48.12 42.22,42.7 54,24 Z" />
+    <group
+        android:name="hoja"
+        android:pivotX="57"
+        android:pivotY="23"
+        android:rotation="-34">
+        <path
+            android:fillColor="#FDF8F0"
+            android:pathData="M45.2,23 C53.5,16.9 60.5,16.9 68.8,23 C60.5,29.1 53.5,29.1 45.2,23 Z" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#2E7D46"
+            android:strokeWidth="1.1"
+            android:pathData="M47.8,23 L66.2,23" />
+    </group>
+</vector>

@@ -1,0 +1,37 @@
+package pe.ecolecta.presentation.admin.jornadas
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import pe.ecolecta.domain.usecase.jornada.ListarJornadasUseCase
+import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
+import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
+import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+
+class JornadasViewModel(
+    private val listarJornadasUseCase: ListarJornadasUseCase,
+    private val listarUsuariosUseCase: ListarUsuariosUseCase,
+    private val listarZonasUseCase: ListarZonasUseCase,
+    private val listarVehiculosUseCase: ListarVehiculosUseCase,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(JornadasUiState())
+    val uiState: StateFlow<JornadasUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val jornadas = listarJornadasUseCase()
+            _uiState.update { it.copy(cargando = false, jornadas = jornadas) }
+        }
+        viewModelScope.launch { listarUsuariosUseCase().collect { lista -> _uiState.update { it.copy(usuarios = lista) } } }
+        viewModelScope.launch { listarZonasUseCase().collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
+        viewModelScope.launch { listarVehiculosUseCase().collect { lista -> _uiState.update { it.copy(vehiculos = lista) } } }
+    }
+
+    fun filtrarPorZona(zonaId: String?) {
+        _uiState.update { it.copy(filtroZonaId = zonaId) }
+    }
+}

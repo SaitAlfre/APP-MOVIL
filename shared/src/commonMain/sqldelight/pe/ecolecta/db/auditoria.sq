@@ -1,0 +1,30 @@
+CREATE TABLE auditoria (
+    id TEXT NOT NULL PRIMARY KEY,
+    entidad TEXT NOT NULL,
+    entidad_id TEXT NOT NULL,
+    accion TEXT NOT NULL,
+    valor_antes TEXT,
+    valor_despues TEXT,
+    motivo TEXT,
+    usuario_id TEXT NOT NULL,
+    ocurrido_en INTEGER NOT NULL,
+    device_id TEXT NOT NULL,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING'
+);
+
+insertar:
+INSERT INTO auditoria(id, entidad, entidad_id, accion, valor_antes, valor_despues, motivo, usuario_id, ocurrido_en, device_id, sync_state)
+VALUES (:id, :entidad, :entidad_id, :accion, :valor_antes, :valor_despues, :motivo, :usuario_id, :ocurrido_en, :device_id, :sync_state);
+
+selectTodas:
+SELECT * FROM auditoria ORDER BY ocurrido_en DESC;
+
+selectPorEntidad:
+SELECT * FROM auditoria WHERE entidad = :entidad AND entidad_id = :entidad_id ORDER BY ocurrido_en DESC;
+
+selectConFiltros:
+SELECT * FROM auditoria
+WHERE (:usuario_id IS NULL OR usuario_id = :usuario_id)
+  AND (:entidad IS NULL OR entidad = :entidad)
+  AND (:accion IS NULL OR accion = :accion)
+ORDER BY ocurrido_en DESC;

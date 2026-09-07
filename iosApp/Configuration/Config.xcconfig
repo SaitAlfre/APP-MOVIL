@@ -1,0 +1,7 @@
+TEAM_ID=
+
+PRODUCT_NAME=IngresosGastos
+PRODUCT_BUNDLE_IDENTIFIER=com.tuempresa.ingresosgastos.IngresosGastos$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
