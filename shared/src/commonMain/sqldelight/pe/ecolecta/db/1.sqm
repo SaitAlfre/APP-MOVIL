@@ -1,0 +1,36 @@
+-- Version 1 may already contain these caches from a fresh installation.
+-- Preserve existing data while also upgrading installations without the caches.
+CREATE TABLE IF NOT EXISTS ubicacion_acopiador_local (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    jornada_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lng REAL NOT NULL,
+    precision_m REAL NOT NULL,
+    capturada_en INTEGER NOT NULL,
+    publicada INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS ruta_proveedor_cache (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    zona_id TEXT NOT NULL,
+    zona_nombre TEXT NOT NULL,
+    acopiador_id TEXT NOT NULL,
+    acopiador_nombre TEXT NOT NULL,
+    vehiculo_id TEXT NOT NULL,
+    vehiculo_nombre TEXT NOT NULL,
+    jornada_id TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lng REAL NOT NULL,
+    precision_m REAL NOT NULL,
+    capturada_en INTEGER NOT NULL,
+    jornada_abierta INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS auditoria_entidad_idx ON auditoria(entidad, entidad_id);
+CREATE INDEX IF NOT EXISTS entrega_proveedor_id_idx ON entrega(proveedor_id);
+CREATE INDEX IF NOT EXISTS entrega_jornada_id_idx ON entrega(jornada_id);
+CREATE INDEX IF NOT EXISTS entrega_zona_id_idx ON entrega(zona_id);
+CREATE INDEX IF NOT EXISTS entrega_sync_state_idx ON entrega(sync_state);
+CREATE INDEX IF NOT EXISTS proveedor_zona_id_idx ON proveedor(zona_id);

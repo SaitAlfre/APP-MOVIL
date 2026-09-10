@@ -23,8 +23,9 @@ class RegistroEntregaViewModel(
     private val registrarEntregaUseCase: RegistrarEntregaUseCase,
     private val corregirEntregaUseCase: CorregirEntregaUseCase,
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
+    proveedorIdPreseleccionado: String? = null,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(RegistroEntregaUiState())
+    private val _uiState = MutableStateFlow(RegistroEntregaUiState(proveedorId = proveedorIdPreseleccionado.orEmpty()))
     val uiState: StateFlow<RegistroEntregaUiState> = _uiState.asStateFlow()
 
     private var jornada: Jornada? = null
@@ -50,21 +51,27 @@ class RegistroEntregaViewModel(
 
     fun guardar(omitirChequeoDuplicado: Boolean = false) {
         val estado = _uiState.value
+        if (estado.cargando) return
         val j = jornada ?: return
         val uId = usuarioId ?: return
         val litros = estado.litros.toDoubleOrNull() ?: return
         val tachos = estado.tachos.toIntOrNull() ?: return
 
+        // cargando se marca aquí, ANTES de la corrutina y de cualquier consulta async: si se marcara
+        // recién después del chequeo de duplicado (que es una consulta suspend), un doble-tap podría
+        // disparar dos veces guardar() antes de que la primera consulta resuelva, y ambas pasarían el
+        // chequeo de duplicado (ninguna ve la entrega de la otra todavía) => dos entregas duplicadas.
+        _uiState.update { it.copy(cargando = true, error = null) }
+
         viewModelScope.launch {
             if (!omitirChequeoDuplicado) {
                 val existentes = listarEntregasUseCase(jornadaId = j.id, proveedorId = estado.proveedorId).filterNot { it.anulada }
                 if (existentes.isNotEmpty()) {
-                    _uiState.update { it.copy(entregaDuplicada = EntregaExistente(existentes.first(), litros, tachos)) }
+                    _uiState.update { it.copy(cargando = false, entregaDuplicada = EntregaExistente(existentes.first(), litros, tachos)) }
                     return@launch
                 }
             }
 
-            _uiState.update { it.copy(cargando = true, error = null) }
             registrarEntregaUseCase(
                 jornadaId = j.id,
                 proveedorId = estado.proveedorId,
@@ -84,7 +91,9 @@ class RegistroEntregaViewModel(
     }
 
     fun sumarADuplicada() {
-        val duplicada = _uiState.value.entregaDuplicada ?: return
+        val estado = _uiState.value
+        if (estado.cargando) return
+        val duplicada = estado.entregaDuplicada ?: return
         val uId = usuarioId ?: return
 
         viewModelScope.launch {

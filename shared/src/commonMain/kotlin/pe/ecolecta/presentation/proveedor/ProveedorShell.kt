@@ -15,6 +15,8 @@ import pe.ecolecta.presentation.proveedor.home.ProveedorHomeScreen
 import pe.ecolecta.presentation.proveedor.nav.PestanaProveedor
 import pe.ecolecta.presentation.proveedor.nav.ProveedorBottomNav
 import pe.ecolecta.presentation.proveedor.perfil.PerfilProveedorScreen
+import pe.ecolecta.presentation.proveedor.qr.MiQrProveedorScreen
+import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioScreen
 
 @Composable
 fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
@@ -44,6 +46,8 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
                     )
                     DetalleEntregaProveedorScreen(id = pantalla.id)
                 }
+                Pantalla.ProveedorMiRuta -> MiRutaAcopioScreen()
+                Pantalla.ProveedorMiQr -> MiQrProveedorScreen()
                 Pantalla.ProveedorPerfil -> PerfilProveedorScreen()
                 else -> ProveedorHomeScreen()
             }
@@ -53,6 +57,8 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
 
 private fun pestanaDe(pantalla: Pantalla): PestanaProveedor = when (pantalla) {
     Pantalla.ProveedorEntregas -> PestanaProveedor.ENTREGAS
+    Pantalla.ProveedorMiRuta -> PestanaProveedor.MI_RUTA
+    Pantalla.ProveedorMiQr -> PestanaProveedor.MI_QR
     Pantalla.ProveedorPerfil -> PestanaProveedor.PERFIL
     else -> PestanaProveedor.INICIO
 }

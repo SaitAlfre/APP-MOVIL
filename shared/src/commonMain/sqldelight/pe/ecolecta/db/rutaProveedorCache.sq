@@ -1,0 +1,31 @@
+-- Caché local del PROVEEDOR: última ruta/ubicación del acopiador recibida del backend (no historial).
+-- Permite mostrar "Última ubicación conocida" cuando la pantalla se abre sin conexión.
+CREATE TABLE ruta_proveedor_cache (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    zona_id TEXT NOT NULL,
+    zona_nombre TEXT NOT NULL,
+    acopiador_id TEXT NOT NULL,
+    acopiador_nombre TEXT NOT NULL,
+    vehiculo_id TEXT NOT NULL,
+    vehiculo_nombre TEXT NOT NULL,
+    jornada_id TEXT NOT NULL,
+    jornada_abierta_en INTEGER NOT NULL DEFAULT 0,
+    fecha TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lng REAL NOT NULL,
+    precision_m REAL NOT NULL,
+    capturada_en INTEGER NOT NULL,
+    secuencia_en INTEGER NOT NULL DEFAULT 0,
+    seguimiento_activo INTEGER NOT NULL DEFAULT 1,
+    jornada_abierta INTEGER NOT NULL
+);
+
+guardar:
+INSERT OR REPLACE INTO ruta_proveedor_cache(usuario_id, zona_id, zona_nombre, acopiador_id, acopiador_nombre, vehiculo_id, vehiculo_nombre, jornada_id, jornada_abierta_en, fecha, lat, lng, precision_m, capturada_en, secuencia_en, seguimiento_activo, jornada_abierta)
+VALUES (:usuario_id, :zona_id, :zona_nombre, :acopiador_id, :acopiador_nombre, :vehiculo_id, :vehiculo_nombre, :jornada_id, :jornada_abierta_en, :fecha, :lat, :lng, :precision_m, :capturada_en, :secuencia_en, :seguimiento_activo, :jornada_abierta);
+
+selectPorUsuario:
+SELECT * FROM ruta_proveedor_cache WHERE usuario_id = :usuario_id;
+
+eliminar:
+DELETE FROM ruta_proveedor_cache WHERE usuario_id = :usuario_id;

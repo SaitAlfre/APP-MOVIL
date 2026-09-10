@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -95,7 +95,7 @@ fun AdminShell(
                             },
                             actions = {
                                 IconButton(onClick = onCerrarSesion) {
-                                    Icon(Icons.Filled.Logout, contentDescription = "Cerrar sesión", tint = Colores.peligro)
+                                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión", tint = Colores.peligro)
                                 }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Colores.surface, titleContentColor = Colores.textPrimary),

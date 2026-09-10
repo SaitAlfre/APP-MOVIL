@@ -39,6 +39,7 @@ class ZonaFormViewModel(
 
     private fun guardar() {
         val estado = _uiState.value
+        if (estado.cargando) return
         viewModelScope.launch {
             _uiState.update { it.copy(cargando = true, error = null) }
             val resultado = if (id == null) crearZonaUseCase(estado.nombre, estado.activo).map { }

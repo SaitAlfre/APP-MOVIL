@@ -28,6 +28,14 @@ class SqlDelightJornadaRepository(
         db.jornadaQueries.selectPorUsuarioYFecha(usuario_id = usuarioId, fecha = fecha.toString()).executeAsOneOrNull()?.aDominio()
     }
 
+    override suspend fun obtenerAbiertaPorZona(zonaId: String): Jornada? = withContext(dispatcher) {
+        db.jornadaQueries.selectAbiertaPorZona(zona_id = zonaId).executeAsOneOrNull()?.aDominio()
+    }
+
+    override suspend fun obtenerAbiertaPorUsuario(usuarioId: String): Jornada? = withContext(dispatcher) {
+        db.jornadaQueries.selectAbiertaPorUsuario(usuario_id = usuarioId).executeAsOneOrNull()?.aDominio()
+    }
+
     override suspend fun insertar(jornada: Jornada) = withContext(dispatcher) {
         db.jornadaQueries.insertar(
             id = jornada.id,

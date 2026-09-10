@@ -6,6 +6,7 @@ import pe.ecolecta.domain.fake.FakeDeviceIdProvider
 import pe.ecolecta.domain.fake.FakeEntregaRepository
 import pe.ecolecta.domain.fake.FakeProveedorRepository
 import pe.ecolecta.domain.fake.FakeReloj
+import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.usecase.entrega.ItemLote
 import pe.ecolecta.domain.usecase.entrega.RegistrarLoteUseCase
@@ -19,13 +20,32 @@ class RegistrarLoteUseCaseTest {
     private val entregaRepository = FakeEntregaRepository()
     private val useCase = RegistrarLoteUseCase(entregaRepository, proveedorRepository, FakeReloj(), FakeDeviceIdProvider())
 
-    private suspend fun sembrarProveedor(id: String, capacidadTachoL: Double = 40.0): Proveedor {
+    private suspend fun sembrarProveedor(
+        id: String,
+        capacidadTachoL: Double = 40.0,
+        estado: EstadoProveedor = EstadoProveedor.ACTIVO,
+    ): Proveedor {
         val proveedor = Proveedor.crear(
             id = id, codigo = "PRV-$id", nombres = "Proveedor $id", dni = "1000000$id",
-            telefono = null, direccion = null, zonaId = "z1", tachos = 1, capacidadTachoL = capacidadTachoL, updatedAt = 0L,
+            telefono = null, direccion = null, zonaId = "z1", tachos = 1, capacidadTachoL = capacidadTachoL,
+            estado = estado, updatedAt = 0L,
         ).getOrThrow()
         proveedorRepository.insertar(proveedor)
         return proveedor
+    }
+
+    @Test
+    fun `si un proveedor del lote no esta activo no se guarda ninguna entrega del lote`() = runTest {
+        sembrarProveedor("a")
+        sembrarProveedor("b", estado = EstadoProveedor.SUSPENDIDO)
+
+        val resultado = useCase(
+            "j1", "u1", "z1", "v1",
+            listOf(ItemLote("a", 20.0, 1), ItemLote("b", 18.0, 1)),
+        )
+
+        assertIs<EntregaInvalidaException.ProveedorNoActivo>(resultado.exceptionOrNull())
+        assertTrue(entregaRepository.filtrar(jornadaId = "j1").isEmpty(), "el lote debe ser todo o nada")
     }
 
     @Test

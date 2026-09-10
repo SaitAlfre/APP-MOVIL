@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.jornada.AbrirJornadaUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
@@ -41,6 +42,7 @@ class SeleccionZonaVehiculoViewModel(
 
     fun abrirJornada() {
         val estado = _uiState.value
+        if (estado.cargando) return
         val zonaId = estado.zonaId ?: return
         val vehiculoId = estado.vehiculoId ?: return
 
@@ -53,7 +55,15 @@ class SeleccionZonaVehiculoViewModel(
             }
             abrirJornadaUseCase(usuario.id, zonaId, vehiculoId).fold(
                 onSuccess = { _uiState.update { it.copy(cargando = false, jornadaAbierta = true) } },
-                onFailure = { error -> _uiState.update { it.copy(cargando = false, error = error.message) } },
+                onFailure = { error ->
+                    val mensaje = if (error is ZonaOcupadaException) {
+                        val nombreZona = estado.zonas.firstOrNull { it.id == zonaId }?.nombre ?: "seleccionada"
+                        "La zona $nombreZona ya tiene un acopiador con una jornada abierta. Elige otra zona o coordina con él."
+                    } else {
+                        error.message
+                    }
+                    _uiState.update { it.copy(cargando = false, error = mensaje) }
+                },
             )
         }
     }

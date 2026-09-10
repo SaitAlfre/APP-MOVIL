@@ -1,0 +1,25 @@
+-- Caché local del ACOPIADOR: solo la última posición válida capturada (no historial). Sirve para
+-- conservarla con su fecha cuando el dispositivo está sin conexión y para saber si ya se publicó.
+CREATE TABLE ubicacion_acopiador_local (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    jornada_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lng REAL NOT NULL,
+    precision_m REAL NOT NULL,
+    capturada_en INTEGER NOT NULL,
+    publicada INTEGER NOT NULL DEFAULT 0
+);
+
+guardar:
+INSERT OR REPLACE INTO ubicacion_acopiador_local(usuario_id, jornada_id, zona_id, lat, lng, precision_m, capturada_en, publicada)
+VALUES (:usuario_id, :jornada_id, :zona_id, :lat, :lng, :precision_m, :capturada_en, :publicada);
+
+marcarPublicada:
+UPDATE ubicacion_acopiador_local SET publicada = 1 WHERE usuario_id = :usuario_id;
+
+selectPorUsuario:
+SELECT * FROM ubicacion_acopiador_local WHERE usuario_id = :usuario_id;
+
+eliminar:
+DELETE FROM ubicacion_acopiador_local WHERE usuario_id = :usuario_id;

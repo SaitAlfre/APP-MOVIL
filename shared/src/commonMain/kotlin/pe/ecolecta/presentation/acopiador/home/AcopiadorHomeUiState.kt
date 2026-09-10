@@ -1,6 +1,7 @@
 package pe.ecolecta.presentation.acopiador.home
 
 import pe.ecolecta.domain.model.Entrega
+import pe.ecolecta.domain.model.EstadoSeguimiento
 import pe.ecolecta.domain.model.Proveedor
 
 data class AcopiadorHomeUiState(
@@ -10,6 +11,9 @@ data class AcopiadorHomeUiState(
     val pendientesSync: Int = 0,
     val ultimasEntregas: List<Entrega> = emptyList(),
     val proveedores: List<Proveedor> = emptyList(),
+    val jornadaAbierta: Boolean = false,
+    val estadoSeguimiento: EstadoSeguimiento = EstadoSeguimiento.INACTIVO,
+    val mostrarAvisoPermisoDenegado: Boolean = false,
 ) {
     fun nombreProveedor(id: String): String = proveedores.firstOrNull { it.id == id }?.nombres ?: id
 }

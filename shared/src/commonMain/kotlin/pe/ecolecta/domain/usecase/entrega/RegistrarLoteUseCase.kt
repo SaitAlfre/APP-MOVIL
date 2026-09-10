@@ -6,6 +6,7 @@ import pe.ecolecta.domain.EntregaInvalidaException
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.Auditoria
 import pe.ecolecta.domain.model.Entrega
+import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.domain.nuevoId
 import pe.ecolecta.domain.repository.EntregaRepository
@@ -39,6 +40,9 @@ class RegistrarLoteUseCase(
         for (item in items) {
             val proveedor = proveedorRepository.obtenerPorId(item.proveedorId)
                 ?: return Result.failure(IllegalStateException("Proveedor no encontrado"))
+            if (proveedor.estado != EstadoProveedor.ACTIVO) {
+                return Result.failure(EntregaInvalidaException.ProveedorNoActivo(proveedor.estado))
+            }
             if (item.litros > proveedor.capacidadTotalL) {
                 return Result.failure(EntregaInvalidaException.SuperaCapacidad(proveedor.capacidadTotalL))
             }

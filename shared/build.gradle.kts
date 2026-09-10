@@ -16,7 +16,10 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
 
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
+            // JVM 17: dev.gitlive:firebase-firestore/auth 2.7.0 traen funciones inline compiladas con
+            // bytecode JVM 17, que no se puede inlinear en un target menor (solo afecta Android/JVM,
+            // no el compilador de Kotlin/Native de iOS).
+            jvmTarget = JvmTarget.JVM_17
         }
         androidResources {
             enable = true
@@ -43,10 +46,16 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
             implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.print)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.koin.core)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.play.services.location)
+            // Firebase (GitLive) solo aquí: nunca en commonMain/iosMain, para no requerir Xcode
+            // ni linkear los SDK nativos de Firebase en esta demo (ver plan del Grupo 5).
+            implementation(libs.firebase.firestore)
+            implementation(libs.firebase.auth)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -69,6 +78,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentNegotiation)
             implementation(libs.ktor.serialization.kotlinxJson)
+            implementation(libs.qr.kit)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

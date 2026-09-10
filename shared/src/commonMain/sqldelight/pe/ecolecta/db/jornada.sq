@@ -35,3 +35,12 @@ ORDER BY abierta_en DESC;
 
 contarAbiertas:
 SELECT COUNT(*) FROM jornada WHERE cerrada_en IS NULL;
+
+selectAbiertaPorZona:
+SELECT * FROM jornada WHERE zona_id = :zona_id AND cerrada_en IS NULL LIMIT 1;
+
+-- ORDER BY abierta_en ASC: si por algún motivo hubiera más de una jornada abierta para el mismo
+-- usuario (no debería ocurrir en operación normal, ver ReanudarJornadaSiExisteUseCase), se retoma
+-- siempre la más antigua primero, nunca una elegida arbitrariamente.
+selectAbiertaPorUsuario:
+SELECT * FROM jornada WHERE usuario_id = :usuario_id AND cerrada_en IS NULL ORDER BY abierta_en ASC LIMIT 1;

@@ -18,11 +18,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -37,12 +40,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.DivisorSutil
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun PerfilScreen(viewModel: PerfilViewModel = koinViewModel()) {
@@ -79,6 +84,36 @@ fun PerfilScreen(viewModel: PerfilViewModel = koinViewModel()) {
             Dato("Pendientes por sincronizar", estado.pendientesSync.toString(), Icons.Filled.CloudUpload)
         }
 
+        Tarjeta {
+            Text("VINCULACIÓN REMOTA (para configurar en Firebase Console)", style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
+            Spacer(Modifier.height(Espaciado.s))
+            Dato("ID de acopiador (local)", estado.usuarioIdLocal, Icons.Filled.Fingerprint)
+            DivisorSutil(Modifier.padding(vertical = Espaciado.s))
+            Dato("ID de dispositivo (Firebase)", estado.uidFirebase ?: "No disponible en esta plataforma", Icons.Filled.Fingerprint)
+        }
+
+        if (estado.jornadaAbierta) {
+            OutlinedButton(
+                onClick = viewModel::solicitarCierreJornada,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = MaterialTheme.shapes.medium,
+                enabled = !estado.cerrandoJornada,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Colores.advertencia),
+            ) {
+                if (estado.cerrandoJornada) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Colores.advertencia, strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Filled.EventBusy, contentDescription = null, modifier = Modifier.size(20.dp))
+                }
+                Spacer(Modifier.width(Espaciado.xs))
+                Text(if (estado.cerrandoJornada) "Cerrando jornada…" else "Cerrar jornada")
+            }
+            val errorCierreJornada = estado.errorCierreJornada
+            if (errorCierreJornada != null) {
+                Banner(mensaje = errorCierreJornada, tipo = TipoBanner.ERROR)
+            }
+        }
+
         OutlinedButton(
             onClick = viewModel::solicitarCierreSesion,
             modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -91,6 +126,22 @@ fun PerfilScreen(viewModel: PerfilViewModel = koinViewModel()) {
         }
 
         Spacer(Modifier.height(Espaciado.l))
+    }
+
+    if (estado.mostrarConfirmacionCierreJornada) {
+        AlertDialog(
+            onDismissRequest = viewModel::cancelarCierreJornada,
+            shape = MaterialTheme.shapes.large,
+            title = { Text("¿Cerrar la jornada?") },
+            text = {
+                Text(
+                    "Se finalizará tu jornada de hoy y se detendrá el seguimiento de ubicación. " +
+                        "Tus entregas y los pendientes por sincronizar no se pierden.",
+                )
+            },
+            confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Cerrar jornada", color = Colores.advertencia) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelarCierreJornada) { Text("Cancelar") } },
+        )
     }
 
     if (estado.mostrarConfirmacionCierre) {

@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Place
@@ -79,7 +79,7 @@ fun AdminNavigationRail(
             NavigationRailItem(
                 selected = false,
                 onClick = onCerrarSesion,
-                icon = { Icon(Icons.Filled.Logout, contentDescription = "Cerrar sesión", tint = Colores.peligro) },
+                icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión", tint = Colores.peligro) },
                 label = { Text("Salir", color = Colores.peligro, style = MaterialTheme.typography.labelSmall) },
             )
         }
@@ -119,7 +119,7 @@ fun AdminDrawerContenido(
         HorizontalDivider(Modifier.padding(vertical = Espaciado.s), color = Colores.borde)
         NavigationDrawerItem(
             label = { Text("Cerrar sesión", color = Colores.peligro) },
-            icon = { Icon(Icons.Filled.Logout, contentDescription = null, tint = Colores.peligro) },
+            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = Colores.peligro) },
             selected = false,
             onClick = onCerrarSesion,
             modifier = Modifier.padding(horizontal = Espaciado.s),

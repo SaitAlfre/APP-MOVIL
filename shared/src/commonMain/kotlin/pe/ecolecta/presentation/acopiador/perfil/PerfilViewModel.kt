@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
+import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
@@ -22,6 +24,8 @@ class PerfilViewModel(
     private val listarVehiculosUseCase: ListarVehiculosUseCase,
     private val obtenerColaSyncUseCase: ObtenerColaSyncUseCase,
     private val cerrarSesionUseCase: CerrarSesionUseCase,
+    private val cerrarJornadaUseCase: CerrarJornadaUseCase,
+    private val obtenerIdentidadRemotaUseCase: ObtenerIdentidadRemotaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
@@ -42,8 +46,14 @@ class PerfilViewModel(
                     zonaActual = jornada?.let { j -> zonas.firstOrNull { z -> z.id == j.zonaId }?.nombre } ?: "—",
                     vehiculoActual = jornada?.let { j -> vehiculos.firstOrNull { v -> v.id == j.vehiculoId }?.nombre } ?: "—",
                     pendientesSync = resumen.pendientes,
+                    jornadaId = jornada?.id,
+                    jornadaAbierta = jornada?.estaAbierta == true,
+                    usuarioIdLocal = sesion.usuario.id,
                 )
             }
+
+            val uid = obtenerIdentidadRemotaUseCase()
+            _uiState.update { it.copy(uidFirebase = uid) }
         }
     }
 
@@ -68,4 +78,40 @@ class PerfilViewModel(
             _uiState.update { it.copy(sesionCerrada = true) }
         }
     }
+
+    /** A diferencia del cierre de sesión, siempre pide confirmación (haya o no pendientes por sincronizar). */
+    fun solicitarCierreJornada() {
+        if (_uiState.value.jornadaId == null) return
+        _uiState.update { it.copy(mostrarConfirmacionCierreJornada = true) }
+    }
+
+    fun confirmarCierreJornada() {
+        val jornadaId = _uiState.value.jornadaId ?: return
+        _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false, cerrandoJornada = true, errorCierreJornada = null) }
+        viewModelScope.launch {
+            cerrarJornadaUseCase(jornadaId).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(
+                            cerrandoJornada = false,
+                            jornadaAbierta = false,
+                            jornadaId = null,
+                            zonaActual = "—",
+                            vehiculoActual = "—",
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    // La jornada sigue abierta: el use case no la marca cerrada si esto falla.
+                    _uiState.update {
+                        it.copy(cerrandoJornada = false, errorCierreJornada = error.message ?: "No se pudo cerrar la jornada.")
+                    }
+                },
+            )
+        }
+    }
+
+    fun cancelarCierreJornada() = _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false) }
+
+    fun descartarErrorCierreJornada() = _uiState.update { it.copy(errorCierreJornada = null) }
 }

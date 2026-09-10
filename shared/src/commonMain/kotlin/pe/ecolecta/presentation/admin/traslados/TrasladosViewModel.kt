@@ -28,6 +28,7 @@ class TrasladosViewModel(
     val uiState: StateFlow<TrasladosUiState> = _uiState.asStateFlow()
 
     private var usuarioActualId: String? = null
+    private var accionEnCurso = false
 
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
@@ -47,24 +48,33 @@ class TrasladosViewModel(
     }
 
     fun crear(proveedorId: String, zonaDestinoId: String, motivo: String) {
+        if (accionEnCurso) return
+        accionEnCurso = true
         viewModelScope.launch {
             crearTrasladoUseCase(proveedorId, zonaDestinoId, motivo)
                 .onSuccess { _uiState.update { it.copy(mostrarDialogoCrear = false) } }
                 .onFailure { error -> _uiState.update { it.copy(error = error.message) } }
+            accionEnCurso = false
         }
     }
 
     fun autorizar(id: String) {
         val adminId = usuarioActualId ?: return
+        if (accionEnCurso) return
+        accionEnCurso = true
         viewModelScope.launch {
             autorizarTrasladoUseCase(id, adminId).onFailure { error -> _uiState.update { it.copy(error = error.message) } }
+            accionEnCurso = false
         }
     }
 
     fun rechazar(id: String, motivo: String) {
         val adminId = usuarioActualId ?: return
+        if (accionEnCurso) return
+        accionEnCurso = true
         viewModelScope.launch {
             rechazarTrasladoUseCase(id, adminId, motivo).onFailure { error -> _uiState.update { it.copy(error = error.message) } }
+            accionEnCurso = false
         }
     }
 }

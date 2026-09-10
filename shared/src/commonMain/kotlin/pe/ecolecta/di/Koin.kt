@@ -12,23 +12,31 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.data.remote.crearHttpClient
 import pe.ecolecta.data.repository.SqlDelightAuditoriaRepository
 import pe.ecolecta.data.repository.SqlDelightEntregaRepository
+import pe.ecolecta.data.repository.SqlDelightAvisoRemotoPendienteRepository
 import pe.ecolecta.data.repository.SqlDelightJornadaRepository
 import pe.ecolecta.data.repository.SqlDelightProveedorRepository
+import pe.ecolecta.data.repository.SqlDelightRutaProveedorCacheRepository
 import pe.ecolecta.data.repository.SqlDelightTrasladoRepository
+import pe.ecolecta.data.repository.SqlDelightUbicacionAcopiadorLocalRepository
 import pe.ecolecta.data.repository.SqlDelightUsuarioRepository
 import pe.ecolecta.data.repository.SqlDelightVehiculoRepository
 import pe.ecolecta.data.repository.SqlDelightZonaRepository
+import pe.ecolecta.data.security.InMemoryEstadoSeguimientoRepository
 import pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository
 import pe.ecolecta.data.security.InMemorySesionRepository
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.RelojSistema
 import pe.ecolecta.domain.repository.AuditoriaRepository
+import pe.ecolecta.domain.repository.AvisoRemotoPendienteRepository
 import pe.ecolecta.domain.repository.EntregaRepository
+import pe.ecolecta.domain.repository.EstadoSeguimientoRepository
 import pe.ecolecta.domain.repository.JornadaEnCursoRepository
 import pe.ecolecta.domain.repository.JornadaRepository
 import pe.ecolecta.domain.repository.ProveedorRepository
+import pe.ecolecta.domain.repository.RutaProveedorCacheRepository
 import pe.ecolecta.domain.repository.SesionRepository
 import pe.ecolecta.domain.repository.TrasladoRepository
+import pe.ecolecta.domain.repository.UbicacionAcopiadorLocalRepository
 import pe.ecolecta.domain.repository.UsuarioRepository
 import pe.ecolecta.domain.repository.VehiculoRepository
 import pe.ecolecta.domain.repository.ZonaRepository
@@ -58,6 +66,7 @@ import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ReanudarJornadaSiExisteUseCase
 import pe.ecolecta.domain.usecase.proveedor.ActualizarProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.CrearProveedorUseCase
+import pe.ecolecta.domain.usecase.proveedor.EscanearQrProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.FiltrarMisEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarMisEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
@@ -69,9 +78,22 @@ import pe.ecolecta.domain.usecase.proveedor.ObtenerHistorialProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorAsociadoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
+import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaAcopioUseCase
+import pe.ecolecta.domain.usecase.proveedor.GuardarRutaCacheUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerResumenEntregasUseCase
+import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaCacheUseCase
 import pe.ecolecta.domain.usecase.proveedor.RetirarProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.SincronizarDatosProveedorUseCase
+import pe.ecolecta.domain.usecase.seguimiento.DetenerSeguimientoUseCase
+import pe.ecolecta.domain.usecase.seguimiento.GuardarUbicacionLocalUseCase
+import pe.ecolecta.domain.usecase.seguimiento.IniciarSeguimientoUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerContextoPublicacionRutaUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerEstadoSeguimientoUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerUbicacionLocalUseCase
+import pe.ecolecta.domain.usecase.seguimiento.PublicarEstadoRemotoUseCase
+import pe.ecolecta.domain.usecase.seguimiento.PublicarUbicacionRemotaUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ReintentarAvisoPendienteUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.traslado.AutorizarTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.CrearTrasladoUseCase
@@ -115,12 +137,15 @@ import pe.ecolecta.presentation.acopiador.home.AcopiadorHomeViewModel
 import pe.ecolecta.presentation.acopiador.lote.LoteViewModel
 import pe.ecolecta.presentation.acopiador.onboarding.SeleccionZonaVehiculoViewModel
 import pe.ecolecta.presentation.acopiador.perfil.PerfilViewModel
+import pe.ecolecta.presentation.acopiador.qr.EscanearQrViewModel
 import pe.ecolecta.presentation.acopiador.registro.RegistroEntregaViewModel
 import pe.ecolecta.presentation.acopiador.sincronizacion.SincronizacionViewModel
 import pe.ecolecta.presentation.proveedor.detalle.DetalleEntregaProveedorViewModel
 import pe.ecolecta.presentation.proveedor.entregas.MisEntregasViewModel
 import pe.ecolecta.presentation.proveedor.home.ProveedorHomeViewModel
 import pe.ecolecta.presentation.proveedor.perfil.PerfilProveedorViewModel
+import pe.ecolecta.presentation.proveedor.qr.MiQrProveedorViewModel
+import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioViewModel
 import pe.ecolecta.presentation.auth.LoginViewModel
 import pe.ecolecta.presentation.auth.SeleccionRolViewModel
 
@@ -140,6 +165,12 @@ val dataModule = module {
     single<AuditoriaRepository> { SqlDelightAuditoriaRepository(get(), Dispatchers.Default) }
     single<SesionRepository> { InMemorySesionRepository() }
     single<JornadaEnCursoRepository> { InMemoryJornadaEnCursoRepository() }
+    single<UbicacionAcopiadorLocalRepository> { SqlDelightUbicacionAcopiadorLocalRepository(get(), Dispatchers.Default) }
+    single<RutaProveedorCacheRepository> { SqlDelightRutaProveedorCacheRepository(get(), Dispatchers.Default) }
+    single<EstadoSeguimientoRepository> { InMemoryEstadoSeguimientoRepository() }
+    single<AvisoRemotoPendienteRepository> { SqlDelightAvisoRemotoPendienteRepository(get(), Dispatchers.Default) }
+    // RutaAcopioRepository e IdentidadRemotaProvider se registran por plataforma (EcolectaApp.kt /
+    // KoinIOS.kt): Firebase es Android-only en esta versión, nunca en el módulo común.
 }
 
 val domainModule = module {
@@ -148,7 +179,7 @@ val domainModule = module {
 
     factory { LoginOfflineUseCase(get(), get(), get(), get(), get()) }
     factory { SeleccionarRolUseCase(get()) }
-    factory { CerrarSesionUseCase(get()) }
+    factory { CerrarSesionUseCase(get(), get(), get()) }
     factory { ObtenerSesionUseCase(get()) }
 
     factory { CrearUsuarioUseCase(get(), get(), get()) }
@@ -179,6 +210,7 @@ val domainModule = module {
     factory { ActualizarProveedorUseCase(get(), get()) }
     factory { RetirarProveedorUseCase(get(), get()) }
 
+    factory { EscanearQrProveedorUseCase(get()) }
     factory { ObtenerProveedorAsociadoUseCase(get()) }
     factory { LoginProveedorUseCase(get(), get(), get()) }
     factory { ObtenerPerfilProveedorUseCase(get()) }
@@ -189,6 +221,8 @@ val domainModule = module {
     factory { ObtenerHistorialProveedorUseCase(get()) }
     factory { ObtenerEstadoSincronizacionUseCase(get()) }
     factory { SincronizarDatosProveedorUseCase() }
+    factory { GuardarRutaCacheUseCase(get()) }
+    factory { ObtenerRutaCacheUseCase(get()) }
 
     factory { CrearTrasladoUseCase(get(), get(), get()) }
     factory { ListarTrasladosUseCase(get()) }
@@ -199,8 +233,8 @@ val domainModule = module {
     factory { ObtenerJornadaUseCase(get()) }
     factory { ObtenerJornadaEnCursoUseCase(get()) }
     factory { AbrirJornadaUseCase(get(), get(), get()) }
-    factory { CerrarJornadaUseCase(get(), get(), get()) }
-    factory { ReanudarJornadaSiExisteUseCase(get(), get(), get()) }
+    factory { CerrarJornadaUseCase(get(), get(), get(), get(), get(), get()) }
+    factory { ReanudarJornadaSiExisteUseCase(get(), get()) }
 
     factory { ListarEntregasUseCase(get()) }
     factory { ObservarEntregasDeJornadaUseCase(get()) }
@@ -218,6 +252,18 @@ val domainModule = module {
 
     factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get()) }
     factory { ObtenerColaSyncUseCase(get()) }
+
+    factory { GuardarUbicacionLocalUseCase(get()) }
+    factory { ObtenerUbicacionLocalUseCase(get()) }
+    factory { IniciarSeguimientoUseCase(get(), get(), get(), get()) }
+    factory { DetenerSeguimientoUseCase(get(), get(), get()) }
+    factory { ObtenerEstadoSeguimientoUseCase(get()) }
+    factory { ObtenerRutaAcopioUseCase(get(), get(), get(), get()) }
+    factory { ObtenerContextoPublicacionRutaUseCase(get(), get(), get(), get()) }
+    factory { PublicarUbicacionRemotaUseCase(get(), get()) }
+    factory { PublicarEstadoRemotoUseCase(get(), get(), get()) }
+    factory { ReintentarAvisoPendienteUseCase(get(), get()) }
+    factory { ObtenerIdentidadRemotaUseCase(get()) }
 }
 
 val presentationModule = module {
@@ -334,10 +380,13 @@ val presentationModule = module {
             obtenerSesionUseCase = get(),
             corregirEntregaUseCase = get(),
             anularEntregaUseCase = get(),
+            iniciarSeguimientoUseCase = get(),
+            detenerSeguimientoUseCase = get(),
+            obtenerEstadoSeguimientoUseCase = get(),
         )
     }
 
-    viewModel {
+    viewModel { (proveedorIdPreseleccionado: String?) ->
         RegistroEntregaViewModel(
             obtenerJornadaEnCursoUseCase = get(),
             listarProveedoresPorZonaUseCase = get(),
@@ -345,6 +394,15 @@ val presentationModule = module {
             registrarEntregaUseCase = get(),
             corregirEntregaUseCase = get(),
             obtenerSesionUseCase = get(),
+            proveedorIdPreseleccionado = proveedorIdPreseleccionado,
+        )
+    }
+
+    viewModel {
+        EscanearQrViewModel(
+            escanearQrProveedorUseCase = get(),
+            obtenerJornadaEnCursoUseCase = get(),
+            listarZonasUseCase = get(),
         )
     }
 
@@ -367,6 +425,8 @@ val presentationModule = module {
             listarVehiculosUseCase = get(),
             obtenerColaSyncUseCase = get(),
             cerrarSesionUseCase = get(),
+            cerrarJornadaUseCase = get(),
+            obtenerIdentidadRemotaUseCase = get(),
         )
     }
 
@@ -410,6 +470,22 @@ val presentationModule = module {
             obtenerEstadoSincronizacionUseCase = get(),
             sincronizarDatosProveedorUseCase = get(),
             cerrarSesionUseCase = get(),
+            obtenerIdentidadRemotaUseCase = get(),
+        )
+    }
+
+    viewModel {
+        MiQrProveedorViewModel(
+            obtenerSesionUseCase = get(),
+            obtenerPerfilProveedorUseCase = get(),
+            listarZonasUseCase = get(),
+        )
+    }
+
+    viewModel {
+        MiRutaAcopioViewModel(
+            obtenerRutaAcopioUseCase = get(),
+            reloj = get(),
         )
     }
 }

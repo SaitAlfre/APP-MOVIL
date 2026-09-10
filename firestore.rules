@@ -1,0 +1,67 @@
+rules_version = '2';
+
+// Reglas de demostración académica para Ecolecta Huata (Grupo 5). NO son un mecanismo de seguridad de
+// producción: la autenticación es anónima (un uid estable por dispositivo, sin verificar identidad
+// real) y solo sirve para que estas reglas sepan a qué usuario/zona local corresponde cada uid.
+//
+// Vinculación manual: `acopiador_links/{uid}` y `proveedor_links/{uid}` se crean A MANO desde Firebase
+// Console (ver la guía de configuración) — la app nunca tiene permiso de leerlos ni escribirlos, así
+// que no puede reclamar un usuario ajeno ni cambiar su propia zona. Sin Cloud Functions ni plan Blaze.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /acopiador_links/{uid} {
+      allow read, write: if false;
+    }
+    match /proveedor_links/{uid} {
+      allow read, write: if false;
+    }
+
+    // rutas_activas/{zonaId}: última ubicación/estado del acopiador de una zona (un documento por
+    // zona, se sobrescribe — no hay historial).
+    match /rutas_activas/{zonaId} {
+      // El PROVEEDOR solo puede leer la zona que su propio vínculo (creado a mano) le asigna — el
+      // zonaId de la petición nunca se usa para autorizar, solo para comparar contra ese vínculo.
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/proveedor_links/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/proveedor_links/$(request.auth.uid)).data.zonaId == zonaId;
+
+      // Primera escritura de una zona: el ACOPIADOR debe (a) ser quien dice ser — su propio
+      // acopiadorId, nunca el de otro usuario — y (b) estar autorizado para ESTA zona por su vínculo
+      // administrado (acopiador_links/{uid}.zonaId, no editable por el cliente — igual que
+      // proveedor_links ya exige para leer). Ninguna de las dos cosas por sí sola alcanza.
+      allow create: if request.auth != null &&
+        exists(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.usuarioId == request.resource.data.acopiadorId &&
+        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.zonaId == zonaId &&
+        request.resource.data.zonaId == zonaId;
+
+      // Actualización: misma identidad+autorización de zona que create (nunca "el mismo dueño de
+      // antes" — un relevo legítimo a otro acopiador vinculado a esta zona debe poder tomarla), MÁS
+      // la protección contra escrituras atrasadas. jornadaAbiertaEn y secuenciaEn son un "reloj
+      // lógico": una jornada más vieja que la ya guardada, o un evento más viejo dentro de la misma
+      // jornada, se rechaza siempre — así una publicación en cola desde antes de "detener
+      // seguimiento" o de cerrar una jornada nunca puede reactivar el seguimiento ni sobrescribir los
+      // datos de una jornada más nueva, sin importar cuándo llegue al servidor NI quién la escriba.
+      // Una jornadaAbiertaEn mayor nunca sustituye, por sí sola, la autorización de zona de arriba.
+      allow update: if request.auth != null &&
+        exists(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.usuarioId == request.resource.data.acopiadorId &&
+        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.zonaId == zonaId &&
+        request.resource.data.zonaId == zonaId &&
+        (
+          request.resource.data.jornadaAbiertaEn > resource.data.jornadaAbiertaEn ||
+          (
+            request.resource.data.jornadaAbiertaEn == resource.data.jornadaAbiertaEn &&
+            request.resource.data.secuenciaEn >= resource.data.secuenciaEn
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

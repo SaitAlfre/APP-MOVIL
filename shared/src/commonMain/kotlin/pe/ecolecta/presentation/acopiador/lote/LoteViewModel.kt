@@ -53,6 +53,7 @@ class LoteViewModel(
 
     fun guardar() {
         val estado = _uiState.value
+        if (estado.cargando) return
         val j = jornada ?: return
         val uId = usuarioId ?: return
         val items = estado.filas.map { ItemLote(it.proveedorId, it.litros.toDouble(), it.tachos.toInt()) }

@@ -13,6 +13,7 @@ import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerEstadoSincronizacionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.SincronizarDatosProveedorUseCase
+import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 
 class PerfilProveedorViewModel(
@@ -22,6 +23,7 @@ class PerfilProveedorViewModel(
     private val obtenerEstadoSincronizacionUseCase: ObtenerEstadoSincronizacionUseCase,
     private val sincronizarDatosProveedorUseCase: SincronizarDatosProveedorUseCase,
     private val cerrarSesionUseCase: CerrarSesionUseCase,
+    private val obtenerIdentidadRemotaUseCase: ObtenerIdentidadRemotaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilProveedorUiState())
     val uiState: StateFlow<PerfilProveedorUiState> = _uiState.asStateFlow()
@@ -39,8 +41,12 @@ class PerfilProveedorViewModel(
                     proveedor = proveedor,
                     nombreZona = zonas.firstOrNull { z -> z.id == proveedor.zonaId }?.nombre ?: proveedor.zonaId,
                     resumenSync = resumenSync,
+                    usuarioIdLocal = usuario.id,
                 )
             }
+
+            val uid = obtenerIdentidadRemotaUseCase()
+            _uiState.update { it.copy(uidFirebase = uid) }
         }
     }
 

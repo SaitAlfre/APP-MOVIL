@@ -6,6 +6,7 @@ import pe.ecolecta.domain.fake.FakeDeviceIdProvider
 import pe.ecolecta.domain.fake.FakeEntregaRepository
 import pe.ecolecta.domain.fake.FakeProveedorRepository
 import pe.ecolecta.domain.fake.FakeReloj
+import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.usecase.entrega.RegistrarEntregaUseCase
@@ -19,13 +20,38 @@ class RegistrarEntregaUseCaseTest {
     private val entregaRepository = FakeEntregaRepository()
     private val useCase = RegistrarEntregaUseCase(entregaRepository, proveedorRepository, FakeReloj(), FakeDeviceIdProvider())
 
-    private suspend fun sembrarProveedor(tachos: Int = 2, capacidadTachoL: Double = 40.0): Proveedor {
+    private suspend fun sembrarProveedor(
+        tachos: Int = 2,
+        capacidadTachoL: Double = 40.0,
+        estado: EstadoProveedor = EstadoProveedor.ACTIVO,
+    ): Proveedor {
         val proveedor = Proveedor.crear(
             id = "p1", codigo = "PRV-001", nombres = "Mario Quispe", dni = "10000001",
-            telefono = null, direccion = null, zonaId = "z1", tachos = tachos, capacidadTachoL = capacidadTachoL, updatedAt = 0L,
+            telefono = null, direccion = null, zonaId = "z1", tachos = tachos, capacidadTachoL = capacidadTachoL,
+            estado = estado, updatedAt = 0L,
         ).getOrThrow()
         proveedorRepository.insertar(proveedor)
         return proveedor
+    }
+
+    @Test
+    fun `bloquea si el proveedor esta suspendido`() = runTest {
+        sembrarProveedor(estado = EstadoProveedor.SUSPENDIDO)
+
+        val resultado = useCase("j1", "p1", "u1", "z1", "v1", litros = 20.0, tachos = 1, observaciones = null)
+
+        assertTrue(resultado.isFailure)
+        assertIs<EntregaInvalidaException.ProveedorNoActivo>(resultado.exceptionOrNull())
+    }
+
+    @Test
+    fun `bloquea si el proveedor esta retirado`() = runTest {
+        sembrarProveedor(estado = EstadoProveedor.RETIRADO)
+
+        val resultado = useCase("j1", "p1", "u1", "z1", "v1", litros = 20.0, tachos = 1, observaciones = null)
+
+        assertTrue(resultado.isFailure)
+        assertIs<EntregaInvalidaException.ProveedorNoActivo>(resultado.exceptionOrNull())
     }
 
     @Test

@@ -12,6 +12,9 @@ CREATE TABLE auditoria (
     sync_state TEXT NOT NULL DEFAULT 'PENDING'
 );
 
+-- selectPorEntidad filtra siempre por (entidad, entidad_id); sin índice es table scan completo.
+CREATE INDEX auditoria_entidad_idx ON auditoria(entidad, entidad_id);
+
 insertar:
 INSERT INTO auditoria(id, entidad, entidad_id, accion, valor_antes, valor_despues, motivo, usuario_id, ocurrido_en, device_id, sync_state)
 VALUES (:id, :entidad, :entidad_id, :accion, :valor_antes, :valor_despues, :motivo, :usuario_id, :ocurrido_en, :device_id, :sync_state);

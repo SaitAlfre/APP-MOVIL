@@ -4,5 +4,11 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Ecolecta Huata usa la cámara para escanear el código QR del proveedor durante el acopio.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ecolecta Huata puede acceder a tus fotos para leer un código QR guardado como imagen.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ecolecta Huata guarda el QR del proveedor en tus fotos cuando lo descargas.</string>
 </dict>
 </plist>

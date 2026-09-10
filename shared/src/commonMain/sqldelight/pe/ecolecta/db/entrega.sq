@@ -21,6 +21,13 @@ CREATE TABLE entrega (
     motivo_conflicto TEXT
 );
 
+-- Columnas usadas en WHERE por selectPorProveedor(Paginado)/selectPorJornada/selectConFiltros/contar*;
+-- sin estos índices SQLite hace un table scan completo en cada consulta (§rendimiento).
+CREATE INDEX entrega_proveedor_id_idx ON entrega(proveedor_id);
+CREATE INDEX entrega_jornada_id_idx ON entrega(jornada_id);
+CREATE INDEX entrega_zona_id_idx ON entrega(zona_id);
+CREATE INDEX entrega_sync_state_idx ON entrega(sync_state);
+
 insertar:
 INSERT INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_id, litros, tachos, observaciones,
     registrado_en, device_id, lote_id, anulada, sync_state, sync_error, intentos, updated_at,

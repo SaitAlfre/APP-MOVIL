@@ -23,6 +23,7 @@ class ConflictosViewModel(
     val uiState: StateFlow<ConflictosUiState> = _uiState.asStateFlow()
 
     private var usuarioActualId: String? = null
+    private var resolviendo = false
 
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
@@ -36,6 +37,11 @@ class ConflictosViewModel(
 
     fun resolver(entregaId: String, origen: OrigenValorConflicto, motivo: String) {
         val usuarioId = usuarioActualId ?: return
-        viewModelScope.launch { resolverConflictoUseCase(entregaId, origen, motivo, usuarioId) }
+        if (resolviendo) return
+        resolviendo = true
+        viewModelScope.launch {
+            resolverConflictoUseCase(entregaId, origen, motivo, usuarioId)
+            resolviendo = false
+        }
     }
 }

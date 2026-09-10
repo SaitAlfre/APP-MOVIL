@@ -67,6 +67,7 @@ class ProveedorFormViewModel(
 
     private fun guardar() {
         val estado = _uiState.value
+        if (estado.cargando) return
         val tachos = estado.tachos.toIntOrNull() ?: return
         val capacidad = estado.capacidadTachoL.toDoubleOrNull() ?: return
 

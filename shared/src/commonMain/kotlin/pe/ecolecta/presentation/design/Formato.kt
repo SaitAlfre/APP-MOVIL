@@ -26,3 +26,14 @@ fun formatearFecha(epochMs: Long): String {
     val ldt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault())
     return "${ldt.day.toString().padStart(2, '0')}/${ldt.monthNumber.toString().padStart(2, '0')}/${ldt.year}"
 }
+
+/** "hace X min/h/d" a partir de un instante pasado — nunca presenta una posición antigua como si fuera reciente. */
+fun formatearAntiguedad(epochMs: Long, ahoraMs: Long): String {
+    val segundos = ((ahoraMs - epochMs) / 1000).coerceAtLeast(0)
+    return when {
+        segundos < 60 -> "hace instantes"
+        segundos < 3600 -> "hace ${segundos / 60} min"
+        segundos < 86_400 -> "hace ${segundos / 3600} h"
+        else -> "hace ${segundos / 86_400} d"
+    }
+}

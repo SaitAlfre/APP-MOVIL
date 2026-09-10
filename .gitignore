@@ -19,3 +19,6 @@ captures
 node_modules/
 .claude/
 .agents/
+
+# Credenciales de Firebase: nunca se suben al repositorio.
+androidApp/google-services.json

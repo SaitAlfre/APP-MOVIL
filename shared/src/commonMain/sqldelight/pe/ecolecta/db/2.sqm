@@ -1,0 +1,17 @@
+-- Grupo 5: seguimiento remoto (Firestore). Conserva la migración anterior (1.sqm) y todos los datos
+-- existentes — solo agrega la tabla de avisos pendientes y las 3 columnas nuevas de "reloj lógico"
+-- (jornada_abierta_en, secuencia_en, seguimiento_activo) usadas para distinguir detener/cerrar/antiguo
+-- y para que el proveedor sepa si el seguimiento remoto está activo.
+CREATE TABLE aviso_remoto_pendiente (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    zona_id TEXT NOT NULL,
+    jornada_id TEXT NOT NULL,
+    jornada_abierta_en INTEGER NOT NULL,
+    secuencia_en INTEGER NOT NULL,
+    jornada_abierta INTEGER,
+    creado_en INTEGER NOT NULL
+);
+
+ALTER TABLE ruta_proveedor_cache ADD COLUMN jornada_abierta_en INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE ruta_proveedor_cache ADD COLUMN secuencia_en INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE ruta_proveedor_cache ADD COLUMN seguimiento_activo INTEGER NOT NULL DEFAULT 1;

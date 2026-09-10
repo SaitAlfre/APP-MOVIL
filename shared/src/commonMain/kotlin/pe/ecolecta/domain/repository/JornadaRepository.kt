@@ -8,6 +8,8 @@ interface JornadaRepository {
     fun observarTodas(): Flow<List<Jornada>>
     suspend fun obtenerPorId(id: String): Jornada?
     suspend fun obtenerPorUsuarioYFecha(usuarioId: String, fecha: LocalDate): Jornada?
+    suspend fun obtenerAbiertaPorZona(zonaId: String): Jornada?
+    suspend fun obtenerAbiertaPorUsuario(usuarioId: String): Jornada?
     suspend fun filtrar(fecha: LocalDate?, usuarioId: String?, zonaId: String?, vehiculoId: String?): List<Jornada>
     suspend fun contarAbiertas(): Long
     suspend fun insertar(jornada: Jornada)

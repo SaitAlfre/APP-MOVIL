@@ -15,6 +15,10 @@ CREATE TABLE proveedor (
     usuario_id TEXT
 );
 
+-- selectPorZona/selectActivosPorZona corren en cada apertura de jornada y en cada pantalla de
+-- registro de entrega/lote del ACOPIADOR; sin índice es table scan completo en cada una.
+CREATE INDEX proveedor_zona_id_idx ON proveedor(zona_id);
+
 insertar:
 INSERT INTO proveedor(id, codigo, nombres, dni, telefono, direccion, zona_id, tachos, capacidad_tacho_l, estado, updated_at, sync_state)
 VALUES (:id, :codigo, :nombres, :dni, :telefono, :direccion, :zona_id, :tachos, :capacidad_tacho_l, :estado, :updated_at, :sync_state);

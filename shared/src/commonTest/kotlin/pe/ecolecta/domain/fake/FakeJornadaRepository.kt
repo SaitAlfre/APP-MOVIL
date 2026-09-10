@@ -9,6 +9,7 @@ import pe.ecolecta.domain.repository.JornadaRepository
 
 class FakeJornadaRepository : JornadaRepository {
     private val jornadas = MutableStateFlow<List<Jornada>>(emptyList())
+    var fallarAlCerrar: Boolean = false
 
     override fun observarTodas(): Flow<List<Jornada>> = jornadas.asStateFlow()
 
@@ -16,6 +17,12 @@ class FakeJornadaRepository : JornadaRepository {
 
     override suspend fun obtenerPorUsuarioYFecha(usuarioId: String, fecha: LocalDate): Jornada? =
         jornadas.value.firstOrNull { it.usuarioId == usuarioId && it.fecha == fecha }
+
+    override suspend fun obtenerAbiertaPorZona(zonaId: String): Jornada? =
+        jornadas.value.firstOrNull { it.zonaId == zonaId && it.estaAbierta }
+
+    override suspend fun obtenerAbiertaPorUsuario(usuarioId: String): Jornada? =
+        jornadas.value.filter { it.usuarioId == usuarioId && it.estaAbierta }.minByOrNull { it.abiertaEn }
 
     override suspend fun filtrar(fecha: LocalDate?, usuarioId: String?, zonaId: String?, vehiculoId: String?): List<Jornada> =
         jornadas.value.filter { j ->
@@ -32,6 +39,7 @@ class FakeJornadaRepository : JornadaRepository {
     }
 
     override suspend fun cerrar(id: String, cerradaEn: Long) {
+        if (fallarAlCerrar) error("Fallo simulado al cerrar la jornada.")
         jornadas.value = jornadas.value.map { if (it.id == id) it.copy(cerradaEn = cerradaEn) else it }
     }
 }

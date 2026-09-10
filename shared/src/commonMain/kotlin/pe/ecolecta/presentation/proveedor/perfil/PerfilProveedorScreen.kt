@@ -68,6 +68,12 @@ fun PerfilProveedorScreen(viewModel: PerfilProveedorViewModel = koinViewModel())
                 }
 
                 Tarjeta {
+                    Text("VINCULACIÓN REMOTA (para configurar en Firebase Console)", color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
+                    Dato("ID de proveedor-usuario (local)", estado.usuarioIdLocal)
+                    Dato("ID de dispositivo (Firebase)", estado.uidFirebase ?: "No disponible en esta plataforma", ultimo = true)
+                }
+
+                Tarjeta {
                     Text("ESTADO DE SINCRONIZACIÓN", color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
                     Row(
                         Modifier.fillMaxWidth().padding(top = Espaciado.s),

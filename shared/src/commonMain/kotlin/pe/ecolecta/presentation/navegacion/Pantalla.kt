@@ -9,6 +9,7 @@ sealed interface Pantalla {
     data object AcopiadorSeleccionZonaVehiculo : Pantalla
     data object AcopiadorHome : Pantalla
     data object AcopiadorRegistroEntrega : Pantalla
+    data object AcopiadorEscanearQr : Pantalla
     data object AcopiadorLote : Pantalla
     data object AcopiadorSincronizacion : Pantalla
     data object AcopiadorPerfil : Pantalla
@@ -16,6 +17,8 @@ sealed interface Pantalla {
     data object ProveedorHome : Pantalla
     data object ProveedorEntregas : Pantalla
     data class ProveedorEntregaDetalle(val id: String) : Pantalla
+    data object ProveedorMiRuta : Pantalla
+    data object ProveedorMiQr : Pantalla
     data object ProveedorPerfil : Pantalla
 
     data object AdminDashboard : Pantalla
