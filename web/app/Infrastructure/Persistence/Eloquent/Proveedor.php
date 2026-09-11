@@ -29,7 +29,8 @@ class Proveedor extends Model
         'tachos',
         'capacidad_tacho_l',
         'estado',
-        'creado_por_admin_id',
+        'creado_por_usuario_id',
+        'usuario_id',
     ];
 
     protected function casts(): array
@@ -45,8 +46,13 @@ class Proveedor extends Model
         return $this->belongsTo(Zona::class, 'zona_id');
     }
 
-    public function creadoPorAdmin(): BelongsTo
+    public function creadoPor(): BelongsTo
     {
-        return $this->belongsTo(AdminUser::class, 'creado_por_admin_id');
+        return $this->belongsTo(Usuario::class, 'creado_por_usuario_id');
+    }
+
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 }

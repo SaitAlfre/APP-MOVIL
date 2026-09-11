@@ -24,6 +24,16 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
         return $usuario !== null ? $this->aDominio($usuario) : null;
     }
 
+    public function conRol(Rol $rol): array
+    {
+        return UsuarioEloquent::query()
+            ->whereJsonContains('roles', $rol->value)
+            ->orderBy('nombres')
+            ->get()
+            ->map(fn (UsuarioEloquent $u) => $this->aDominio($u))
+            ->all();
+    }
+
     public function guardar(UsuarioDominio $usuario): UsuarioDominio
     {
         $registro = $usuario->id !== null

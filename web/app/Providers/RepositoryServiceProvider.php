@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Domain\Auditoria\AuditoriaRepositoryInterface;
-use App\Domain\Auth\AdminAuthenticatorInterface;
 use App\Domain\Auth\OperadorAuthenticatorInterface;
 use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Domain\Jornadas\JornadaRepositoryInterface;
@@ -12,7 +11,6 @@ use App\Domain\Seguimiento\SeguimientoRepositoryInterface;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
 use App\Domain\Vehiculos\VehiculoRepositoryInterface;
 use App\Domain\Zonas\ZonaRepositoryInterface;
-use App\Infrastructure\Auth\LaravelAdminAuthenticator;
 use App\Infrastructure\Auth\LaravelOperadorAuthenticator;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentAuditoriaRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentEntregaRepository;
@@ -30,7 +28,6 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         $this->app->bind(ProveedorRepositoryInterface::class, EloquentProveedorRepository::class);
         $this->app->bind(ZonaRepositoryInterface::class, EloquentZonaRepository::class);
-        $this->app->bind(AdminAuthenticatorInterface::class, LaravelAdminAuthenticator::class);
 
         $this->app->bind(UsuarioRepositoryInterface::class, EloquentUsuarioRepository::class);
         $this->app->bind(VehiculoRepositoryInterface::class, EloquentVehiculoRepository::class);

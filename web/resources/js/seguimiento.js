@@ -41,8 +41,8 @@ export function iniciarSeguimiento() {
 
     const actualizarBoton = () => {
         boton.textContent = activo ? 'Detener seguimiento' : 'Iniciar seguimiento';
-        boton.classList.toggle('bg-red-600', activo);
-        boton.classList.toggle('bg-green-700', !activo);
+        boton.classList.toggle('bg-eh-red', activo);
+        boton.classList.toggle('bg-eh-primary', !activo);
     };
 
     const enviarPosicion = (posicion) => {

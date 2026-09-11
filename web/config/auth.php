@@ -1,6 +1,5 @@
 <?php
 
-use App\Infrastructure\Persistence\Eloquent\AdminUser;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Models\User;
 
@@ -18,7 +17,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'admin'),
+        'guard' => env('AUTH_GUARD', 'operador'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -43,11 +42,6 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
-        ],
-
-        'admin' => [
-            'driver' => 'session',
-            'provider' => 'admin_users',
         ],
 
         'operador' => [
@@ -83,11 +77,6 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
-
-        'admin_users' => [
-            'driver' => 'eloquent',
-            'model' => AdminUser::class,
-        ],
 
         'usuarios' => [
             'driver' => 'eloquent',

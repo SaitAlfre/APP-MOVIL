@@ -14,7 +14,7 @@ final class CrearProveedorUseCase
         private readonly ZonaRepositoryInterface $zonas,
     ) {}
 
-    public function ejecutar(DatosProveedor $datos, ?int $creadoPorAdminId): Proveedor
+    public function ejecutar(DatosProveedor $datos, ?int $creadoPorUsuarioId): Proveedor
     {
         if ($this->zonas->buscarPorId($datos->zonaId) === null) {
             throw ProveedorInvalidoException::zonaInexistente();
@@ -37,7 +37,7 @@ final class CrearProveedorUseCase
             zonaId: $datos->zonaId,
             tachos: $datos->tachos,
             capacidadTachoL: $datos->capacidadTachoL,
-            creadoPorAdminId: $creadoPorAdminId,
+            creadoPorUsuarioId: $creadoPorUsuarioId,
         );
 
         return $this->proveedores->guardar($proveedor);

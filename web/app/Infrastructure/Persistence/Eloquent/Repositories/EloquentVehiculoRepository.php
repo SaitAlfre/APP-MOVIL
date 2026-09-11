@@ -18,6 +18,15 @@ final class EloquentVehiculoRepository implements VehiculoRepositoryInterface
             ->all();
     }
 
+    public function todos(): array
+    {
+        return VehiculoEloquent::query()
+            ->orderBy('nombre')
+            ->get()
+            ->map(fn (VehiculoEloquent $v) => $this->aDominio($v))
+            ->all();
+    }
+
     public function buscarPorId(int $id): ?VehiculoDominio
     {
         $vehiculo = VehiculoEloquent::query()->find($id);

@@ -17,5 +17,7 @@ interface ProveedorRepositoryInterface
     /** @return list<Proveedor> */
     public function activosPorZona(int $zonaId): array;
 
+    public function buscarPorUsuarioId(int $usuarioId): ?Proveedor;
+
     public function guardar(Proveedor $proveedor): Proveedor;
 }

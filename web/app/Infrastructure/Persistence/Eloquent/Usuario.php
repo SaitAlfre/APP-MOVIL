@@ -53,4 +53,9 @@ class Usuario extends Authenticatable
     {
         return 'pin_hash';
     }
+
+    public function tieneRol(string $rol): bool
+    {
+        return in_array($rol, $this->roles ?? [], true);
+    }
 }

@@ -50,6 +50,13 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             ->all();
     }
 
+    public function buscarPorUsuarioId(int $usuarioId): ?ProveedorDominio
+    {
+        $proveedor = ProveedorEloquent::query()->where('usuario_id', $usuarioId)->first();
+
+        return $proveedor !== null ? $this->aDominio($proveedor) : null;
+    }
+
     public function guardar(ProveedorDominio $proveedor): ProveedorDominio
     {
         $registro = $proveedor->id !== null
@@ -66,7 +73,8 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             'tachos' => $proveedor->tachos,
             'capacidad_tacho_l' => $proveedor->capacidadTachoL,
             'estado' => $proveedor->estado,
-            'creado_por_admin_id' => $proveedor->creadoPorAdminId,
+            'creado_por_usuario_id' => $proveedor->creadoPorUsuarioId,
+            'usuario_id' => $proveedor->usuarioId,
         ]);
         $registro->save();
 
@@ -86,7 +94,8 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             tachos: $proveedor->tachos,
             capacidadTachoL: (float) $proveedor->capacidad_tacho_l,
             estado: $proveedor->estado,
-            creadoPorAdminId: $proveedor->creado_por_admin_id,
+            creadoPorUsuarioId: $proveedor->creado_por_usuario_id,
+            usuarioId: $proveedor->usuario_id,
         );
     }
 }

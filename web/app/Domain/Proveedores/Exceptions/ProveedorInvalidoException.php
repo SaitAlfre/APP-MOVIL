@@ -45,4 +45,14 @@ final class ProveedorInvalidoException extends DomainException
     {
         return new self('La zona seleccionada no existe.');
     }
+
+    public static function usuarioSinRolProveedor(): self
+    {
+        return new self('El usuario seleccionado no tiene el rol PROVEEDOR.');
+    }
+
+    public static function usuarioYaVinculado(): self
+    {
+        return new self('Ese usuario ya está vinculado a otro proveedor.');
+    }
 }

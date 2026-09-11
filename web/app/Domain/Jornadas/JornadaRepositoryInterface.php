@@ -2,8 +2,12 @@
 
 namespace App\Domain\Jornadas;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 interface JornadaRepositoryInterface
 {
+    public function paginarTodas(int $porPagina = 20): LengthAwarePaginator;
+
     public function buscarPorId(int $id): ?Jornada;
 
     public function obtenerAbiertaPorUsuarioYFecha(int $usuarioId, \DateTimeImmutable $fecha): ?Jornada;

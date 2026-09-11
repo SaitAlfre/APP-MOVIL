@@ -6,9 +6,18 @@ use App\Domain\Jornadas\Jornada as JornadaDominio;
 use App\Domain\Jornadas\JornadaRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Jornada as JornadaEloquent;
 use DateTimeImmutable;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class EloquentJornadaRepository implements JornadaRepositoryInterface
 {
+    public function paginarTodas(int $porPagina = 20): LengthAwarePaginator
+    {
+        return JornadaEloquent::query()
+            ->orderByDesc('abierta_en')
+            ->paginate($porPagina)
+            ->through(fn (JornadaEloquent $jornada) => $this->aDominio($jornada));
+    }
+
     public function buscarPorId(int $id): ?JornadaDominio
     {
         $jornada = JornadaEloquent::query()->find($id);

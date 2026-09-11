@@ -6,4 +6,74 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-eh-bg: var(--eh-bg);
+    --color-eh-surface: var(--eh-surface);
+    --color-eh-surface-alt: var(--eh-surface-alt);
+    --color-eh-border: var(--eh-border);
+    --color-eh-text: var(--eh-text);
+    --color-eh-text-muted: var(--eh-text-muted);
+    --color-eh-primary: var(--eh-primary);
+    --color-eh-primary-dark: var(--eh-primary-dark);
+    --color-eh-primary-soft: var(--eh-primary-soft);
+    --color-eh-blue: var(--eh-blue);
+    --color-eh-blue-soft: var(--eh-blue-soft);
+    --color-eh-gold: var(--eh-gold);
+    --color-eh-gold-soft: var(--eh-gold-soft);
+    --color-eh-gold-ink: var(--eh-gold-ink);
+    --color-eh-red: var(--eh-red);
+    --color-eh-red-soft: var(--eh-red-soft);
+    --color-eh-table-head: var(--eh-table-head);
+    --color-eh-stripe: var(--eh-stripe);
+}
+
+/*
+ * EcolectaHuata design tokens. Light is the default palette; `.dark` on <html>
+ * overrides the same variable names so every `eh-*` utility stays correct in both.
+ */
+:root {
+    --eh-bg: #f7f6f1;
+    --eh-surface: #ffffff;
+    --eh-surface-alt: #f1efe6;
+    --eh-border: #e3e1d6;
+    --eh-text: #26352d;
+    --eh-text-muted: #6b7a6e;
+    --eh-primary: #2e7d46;
+    --eh-primary-dark: #245f37;
+    --eh-primary-soft: #e7f1e9;
+    --eh-blue: #2563eb;
+    --eh-blue-soft: #e7eefd;
+    --eh-gold: #c9971f;
+    --eh-gold-soft: #faf0d8;
+    --eh-gold-ink: #3a2e0a;
+    --eh-red: #b3423a;
+    --eh-red-soft: #fbeae8;
+    --eh-table-head: #eff6f0;
+    --eh-stripe: #fafaf7;
+}
+
+.dark {
+    --eh-bg: #1b211d;
+    --eh-surface: #222a24;
+    --eh-surface-alt: #26302a;
+    --eh-border: #33403a;
+    --eh-text: #ecead2;
+    --eh-text-muted: #9aaa9e;
+    --eh-primary: #4caf6e;
+    --eh-primary-dark: #3c9059;
+    --eh-primary-soft: #283a2d;
+    --eh-blue: #6e97f2;
+    --eh-blue-soft: #242c3c;
+    --eh-gold: #e0b84a;
+    --eh-gold-soft: #3a3120;
+    --eh-gold-ink: #2a2107;
+    --eh-red: #e1746b;
+    --eh-red-soft: #3a2523;
+    --eh-table-head: #26322a;
+    --eh-stripe: #20281f;
+}
+
+body {
+    background-color: var(--eh-bg);
+    color: var(--eh-text);
 }

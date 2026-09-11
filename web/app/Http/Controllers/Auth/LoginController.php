@@ -7,19 +7,19 @@ use App\Application\Auth\CerrarSesionOperadorUseCase;
 use App\Domain\Auth\Exceptions\CuentaBloqueadaException;
 use App\Domain\Auth\Exceptions\CuentaInactivaException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginOperadorRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class OperadorLoginController extends Controller
+class LoginController extends Controller
 {
     public function mostrar(): View
     {
-        return view('auth.operador-login');
+        return view('auth.login');
     }
 
-    public function iniciarSesion(LoginOperadorRequest $request, AutenticarOperadorUseCase $autenticar): RedirectResponse
+    public function iniciarSesion(LoginRequest $request, AutenticarOperadorUseCase $autenticar): RedirectResponse
     {
         try {
             $autenticado = $autenticar->ejecutar(
@@ -36,7 +36,15 @@ class OperadorLoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('acopiador.home'));
+        $usuario = auth('operador')->user();
+        $destino = match (true) {
+            $usuario->tieneRol('admin') => route('admin.proveedores.index'),
+            $usuario->tieneRol('acopiador') => route('acopiador.home'),
+            $usuario->tieneRol('proveedor') => route('proveedor.panel'),
+            default => route('login'),
+        };
+
+        return redirect()->intended($destino);
     }
 
     public function cerrarSesion(Request $request, CerrarSesionOperadorUseCase $cerrarSesion): RedirectResponse
@@ -46,6 +54,6 @@ class OperadorLoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('acopiador.login');
+        return redirect()->route('login');
     }
 }

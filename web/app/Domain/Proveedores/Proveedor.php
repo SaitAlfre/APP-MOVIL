@@ -17,7 +17,8 @@ final class Proveedor
         public readonly int $tachos,
         public readonly float $capacidadTachoL,
         public readonly EstadoProveedor $estado,
-        public readonly ?int $creadoPorAdminId,
+        public readonly ?int $creadoPorUsuarioId,
+        public readonly ?int $usuarioId,
     ) {}
 
     public static function crear(
@@ -29,7 +30,7 @@ final class Proveedor
         int $zonaId,
         int $tachos,
         float $capacidadTachoL,
-        ?int $creadoPorAdminId = null,
+        ?int $creadoPorUsuarioId = null,
         EstadoProveedor $estado = EstadoProveedor::Activo,
     ): self {
         self::validar($codigo, $nombres, $dni, $tachos, $capacidadTachoL);
@@ -45,7 +46,8 @@ final class Proveedor
             tachos: $tachos,
             capacidadTachoL: $capacidadTachoL,
             estado: $estado,
-            creadoPorAdminId: $creadoPorAdminId,
+            creadoPorUsuarioId: $creadoPorUsuarioId,
+            usuarioId: null,
         );
     }
 
@@ -60,7 +62,8 @@ final class Proveedor
         int $tachos,
         float $capacidadTachoL,
         EstadoProveedor $estado,
-        ?int $creadoPorAdminId,
+        ?int $creadoPorUsuarioId,
+        ?int $usuarioId,
     ): self {
         return new self(
             id: $id,
@@ -73,7 +76,8 @@ final class Proveedor
             tachos: $tachos,
             capacidadTachoL: $capacidadTachoL,
             estado: $estado,
-            creadoPorAdminId: $creadoPorAdminId,
+            creadoPorUsuarioId: $creadoPorUsuarioId,
+            usuarioId: $usuarioId,
         );
     }
 
@@ -100,7 +104,8 @@ final class Proveedor
             tachos: $tachos,
             capacidadTachoL: $capacidadTachoL,
             estado: $this->estado,
-            creadoPorAdminId: $this->creadoPorAdminId,
+            creadoPorUsuarioId: $this->creadoPorUsuarioId,
+            usuarioId: $this->usuarioId,
         );
     }
 
@@ -117,7 +122,44 @@ final class Proveedor
             tachos: $this->tachos,
             capacidadTachoL: $this->capacidadTachoL,
             estado: $estado,
-            creadoPorAdminId: $this->creadoPorAdminId,
+            creadoPorUsuarioId: $this->creadoPorUsuarioId,
+            usuarioId: $this->usuarioId,
+        );
+    }
+
+    public function vincularUsuario(int $usuarioId): self
+    {
+        return new self(
+            id: $this->id,
+            codigo: $this->codigo,
+            nombres: $this->nombres,
+            dni: $this->dni,
+            telefono: $this->telefono,
+            direccion: $this->direccion,
+            zonaId: $this->zonaId,
+            tachos: $this->tachos,
+            capacidadTachoL: $this->capacidadTachoL,
+            estado: $this->estado,
+            creadoPorUsuarioId: $this->creadoPorUsuarioId,
+            usuarioId: $usuarioId,
+        );
+    }
+
+    public function desvincularUsuario(): self
+    {
+        return new self(
+            id: $this->id,
+            codigo: $this->codigo,
+            nombres: $this->nombres,
+            dni: $this->dni,
+            telefono: $this->telefono,
+            direccion: $this->direccion,
+            zonaId: $this->zonaId,
+            tachos: $this->tachos,
+            capacidadTachoL: $this->capacidadTachoL,
+            estado: $this->estado,
+            creadoPorUsuarioId: $this->creadoPorUsuarioId,
+            usuarioId: null,
         );
     }
 

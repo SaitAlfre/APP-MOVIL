@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Infrastructure\Persistence\Eloquent\AdminUser;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -12,10 +12,10 @@ class ProveedorManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function comoAdmin(): AdminUser
+    private function comoAdmin(): Usuario
     {
-        $admin = AdminUser::factory()->create();
-        $this->actingAs($admin, 'admin');
+        $admin = Usuario::factory()->create(['roles' => ['admin']]);
+        $this->actingAs($admin, 'operador');
 
         return $admin;
     }
@@ -41,7 +41,7 @@ class ProveedorManagementTest extends TestCase
             'codigo' => 'PRV-001',
             'dni' => '12345678',
             'zona_id' => $zona->id,
-            'creado_por_admin_id' => $admin->id,
+            'creado_por_usuario_id' => $admin->id,
             'estado' => 'activo',
         ]);
     }
@@ -123,10 +123,30 @@ class ProveedorManagementTest extends TestCase
         ]);
     }
 
+    public function test_un_admin_puede_ver_el_codigo_qr_de_un_proveedor(): void
+    {
+        $this->comoAdmin();
+        $proveedor = Proveedor::factory()->create();
+
+        $response = $this->get("/admin/proveedores/{$proveedor->id}/qr");
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'image/png');
+    }
+
     public function test_un_visitante_no_autenticado_no_puede_gestionar_proveedores(): void
     {
         $response = $this->get('/admin/proveedores');
 
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
+    }
+
+    public function test_un_acopiador_no_puede_gestionar_proveedores(): void
+    {
+        $acopiador = Usuario::factory()->create(['roles' => ['acopiador']]);
+
+        $response = $this->actingAs($acopiador, 'operador')->get('/admin/proveedores');
+
+        $response->assertForbidden();
     }
 }
