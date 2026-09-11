@@ -33,7 +33,7 @@ class ReanudarJornadaSiExisteUseCaseTest {
     )
 
     @Test
-    fun `sin ninguna jornada, no hay nada que retomar`() = runTest {
+    fun `sin ninguna jornada no hay nada que retomar`() = runTest {
         assertNull(useCase("u1"))
     }
 
@@ -45,7 +45,7 @@ class ReanudarJornadaSiExisteUseCaseTest {
     }
 
     @Test
-    fun `jornada abierta de un dia anterior tambien se retoma (cambio de dia)`() = runTest {
+    fun `jornada abierta de un dia anterior tambien se retoma - cambio de dia`() = runTest {
         val deAyer = jornada(id = "j-ayer", fecha = LocalDate(2026, 1, 14))
         jornadaRepository.insertar(deAyer)
         assertEquals(deAyer, useCase("u1"))
@@ -64,7 +64,7 @@ class ReanudarJornadaSiExisteUseCaseTest {
     }
 
     @Test
-    fun `si hay varias abiertas del mismo usuario, se retoma la mas antigua primero`() = runTest {
+    fun `si hay varias abiertas del mismo usuario se retoma la mas antigua primero`() = runTest {
         val masVieja = jornada(id = "j-vieja", abiertaEn = 100L)
         val masNueva = jornada(id = "j-nueva", abiertaEn = 200L)
         jornadaRepository.insertar(masNueva)

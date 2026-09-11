@@ -74,6 +74,7 @@ fun LoginScreen(
                     etiqueta = "PIN (4 dígitos)",
                     iconoInicial = Icons.Filled.Lock,
                     error = estado.error,
+                    esPin = true,
                 )
 
                 BotonPrimario(

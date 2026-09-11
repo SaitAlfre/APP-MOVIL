@@ -68,12 +68,12 @@ class ObtenerRutaAcopioUseCaseTest {
     )
 
     @Test
-    fun `sin sesion, sin ruta asignada`() = runTest {
+    fun `sin sesion sin ruta asignada`() = runTest {
         assertIs<EstadoRutaAcopio.SinRutaAsignada>(useCase().first())
     }
 
     @Test
-    fun `sin datos remotos todavia (nunca hubo jornada en la zona), jornada no iniciada`() = runTest {
+    fun `sin datos remotos todavia - nunca hubo jornada en la zona - jornada no iniciada`() = runTest {
         sembrarSesionProveedor()
         rutaAcopioRepository.emitir(EventoRuta.SinDatos)
         assertIs<EstadoRutaAcopio.JornadaNoIniciada>(useCase().first())

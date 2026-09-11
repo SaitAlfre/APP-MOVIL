@@ -39,7 +39,7 @@ class CerrarJornadaUseCaseTest {
     )
 
     @Test
-    fun `cerrar una jornada abierta la marca cerrada, limpia la jornada en curso y detiene el seguimiento`() = runTest {
+    fun `cerrar una jornada abierta la marca cerrada limpia la jornada en curso y detiene el seguimiento`() = runTest {
         val jornada = abrirJornadaUseCase("u1", "zona-1", "vehiculo-1").getOrThrow()
         estadoSeguimientoRepository.actualizar(EstadoSeguimiento.ACTIVO)
 
@@ -68,7 +68,7 @@ class CerrarJornadaUseCaseTest {
     }
 
     @Test
-    fun `si la publicacion remota falla, el cierre local no se revierte y queda un aviso pendiente`() = runTest {
+    fun `si la publicacion remota falla el cierre local no se revierte y queda un aviso pendiente`() = runTest {
         val jornada = abrirJornadaUseCase("u1", "zona-1", "vehiculo-1").getOrThrow()
         rutaAcopioRepository.fallarPublicaciones = true
 
@@ -82,7 +82,7 @@ class CerrarJornadaUseCaseTest {
     }
 
     @Test
-    fun `si falla el cierre en el repositorio, la jornada sigue abierta y no se detiene el seguimiento`() = runTest {
+    fun `si falla el cierre en el repositorio la jornada sigue abierta y no se detiene el seguimiento`() = runTest {
         val jornada = abrirJornadaUseCase("u1", "zona-1", "vehiculo-1").getOrThrow()
         estadoSeguimientoRepository.actualizar(EstadoSeguimiento.ACTIVO)
         jornadaRepository.fallarAlCerrar = true

@@ -108,12 +108,14 @@ fun UsuarioFormScreen(
                             estado.pin,
                             { if (it.length <= 4 && it.all(Char::isDigit)) viewModel.onEvent(UsuarioFormUiEvent.PinCambia(it)) },
                             "PIN (4 dígitos)",
+                            esPin = true,
                         )
                         CampoTexto(
                             estado.confirmacionPin,
                             { if (it.length <= 4 && it.all(Char::isDigit)) viewModel.onEvent(UsuarioFormUiEvent.ConfirmacionPinCambia(it)) },
                             "Confirmar PIN",
                             error = estado.error,
+                            esPin = true,
                         )
                     }
                 }

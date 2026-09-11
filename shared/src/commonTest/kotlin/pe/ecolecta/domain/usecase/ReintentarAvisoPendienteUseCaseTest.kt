@@ -16,7 +16,7 @@ class ReintentarAvisoPendienteUseCaseTest {
     private val useCase = ReintentarAvisoPendienteUseCase(avisoRemotoPendienteRepository, rutaAcopioRepository)
 
     @Test
-    fun `sin aviso pendiente, no publica nada`() = runTest {
+    fun `sin aviso pendiente no publica nada`() = runTest {
         useCase("u1")
 
         assertNull(rutaAcopioRepository.ultimoEstadoPublicado)

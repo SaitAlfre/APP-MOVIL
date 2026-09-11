@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -46,8 +48,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
 
 /**
  * Encabezado estándar de sección/pantalla: título con jerarquía tipográfica clara y una acción
@@ -118,7 +124,11 @@ fun CampoTexto(
     soloLectura: Boolean = false,
     iconoInicial: ImageVector? = null,
     ayuda: String? = null,
+    esPin: Boolean = false,
 ) {
+    // Estado propio del campo: cada CampoTexto oculta su PIN de forma independiente y siempre vuelve
+    // a ocultarlo si el campo se recompone limpio (nunca se filtra a otros campos ni queda "pegado").
+    var pinVisible by remember { mutableStateOf(false) }
     Column(modifier) {
         OutlinedTextField(
             value = valor,
@@ -130,6 +140,20 @@ fun CampoTexto(
             singleLine = true,
             shape = MaterialTheme.shapes.small,
             leadingIcon = iconoInicial?.let { { Icon(it, contentDescription = null) } },
+            visualTransformation = if (esPin && !pinVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            keyboardOptions = if (esPin) KeyboardOptions(keyboardType = KeyboardType.NumberPassword) else KeyboardOptions.Default,
+            trailingIcon = if (esPin) {
+                {
+                    IconButton(onClick = { pinVisible = !pinVisible }) {
+                        Icon(
+                            imageVector = if (pinVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (pinVisible) "Ocultar PIN" else "Mostrar PIN",
+                        )
+                    }
+                }
+            } else {
+                null
+            },
             supportingText = when {
                 error != null -> ({ Text(error, color = Colores.peligro) })
                 ayuda != null -> ({ Text(ayuda, color = Colores.textSecundario) })

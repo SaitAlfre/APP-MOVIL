@@ -28,12 +28,12 @@ class EventoUbicacionTest {
     }
 
     @Test
-    fun `senal perdida (proveedor del sistema desactivado) marca Sin señal GPS`() {
+    fun `senal perdida - proveedor del sistema desactivado - marca Sin señal GPS`() {
         assertEquals(EstadoSeguimiento.SIN_SENAL, EventoUbicacion.SenalPerdida.aEstadoSeguimiento())
     }
 
     @Test
-    fun `senal recuperada marca Buscando ubicacion, no Activo directamente`() {
+    fun `senal recuperada marca Buscando ubicacion y no Activo directamente`() {
         assertEquals(EstadoSeguimiento.BUSCANDO, EventoUbicacion.SenalRecuperada.aEstadoSeguimiento())
     }
 

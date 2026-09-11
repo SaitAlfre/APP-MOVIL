@@ -49,7 +49,7 @@ class EscanearQrProveedorUseCaseTest {
     }
 
     @Test
-    fun `resuelve el proveedor sin importar su estado, para poder mostrarlo y bloquear despues`() = runTest {
+    fun `resuelve el proveedor sin importar su estado para poder mostrarlo y bloquear despues`() = runTest {
         val proveedor = insertarProveedor("2", estado = EstadoProveedor.SUSPENDIDO)
 
         val resultado = useCase(generarQrProveedor(proveedor.id))

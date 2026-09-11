@@ -26,12 +26,14 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.presentation.design.BarraSuperior
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.CampoTexto
 import pe.ecolecta.presentation.design.ChipSeleccionable
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun ProveedorFormScreen(
@@ -118,6 +120,36 @@ fun ProveedorFormScreen(
                                     viewModel.onEvent(ProveedorFormUiEvent.EstadoCambia(valor))
                                 }
                             }
+                        }
+                    }
+                }
+
+                Tarjeta {
+                    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                        Text("Cuenta de acceso (rol PROVEEDOR)", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
+                        Text(
+                            "Vincula el usuario con el que este proveedor inicia sesión para ver su perfil y sus entregas.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Colores.textSecundario,
+                        )
+                        if (estado.usuariosProveedor.isEmpty()) {
+                            Text(
+                                "No hay usuarios con rol PROVEEDOR creados todavía. Créalo primero en Usuarios.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Colores.textSecundario,
+                            )
+                        } else {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                                items(estado.usuariosProveedor, key = { it.id }) { usuario ->
+                                    ChipSeleccionable(usuario.username, usuario.id == estado.usuarioIdVinculado) {
+                                        viewModel.onEvent(ProveedorFormUiEvent.VincularUsuario(usuario.id))
+                                    }
+                                }
+                            }
+                        }
+                        val errorVinculacion = estado.errorVinculacion
+                        if (errorVinculacion != null) {
+                            Banner(errorVinculacion, TipoBanner.ERROR)
                         }
                     }
                 }

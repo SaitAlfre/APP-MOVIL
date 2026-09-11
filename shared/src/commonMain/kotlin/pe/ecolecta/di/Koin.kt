@@ -84,6 +84,7 @@ import pe.ecolecta.domain.usecase.proveedor.ObtenerResumenEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaCacheUseCase
 import pe.ecolecta.domain.usecase.proveedor.RetirarProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.SincronizarDatosProveedorUseCase
+import pe.ecolecta.domain.usecase.proveedor.VincularUsuarioProveedorUseCase
 import pe.ecolecta.domain.usecase.seguimiento.DetenerSeguimientoUseCase
 import pe.ecolecta.domain.usecase.seguimiento.GuardarUbicacionLocalUseCase
 import pe.ecolecta.domain.usecase.seguimiento.IniciarSeguimientoUseCase
@@ -209,6 +210,7 @@ val domainModule = module {
     factory { ObtenerProveedorUseCase(get()) }
     factory { ActualizarProveedorUseCase(get(), get()) }
     factory { RetirarProveedorUseCase(get(), get()) }
+    factory { VincularUsuarioProveedorUseCase(get(), get()) }
 
     factory { EscanearQrProveedorUseCase(get()) }
     factory { ObtenerProveedorAsociadoUseCase(get()) }
@@ -307,6 +309,8 @@ val presentationModule = module {
             crearProveedorUseCase = get(),
             actualizarProveedorUseCase = get(),
             listarZonasUseCase = get(),
+            listarUsuariosUseCase = get(),
+            vincularUsuarioProveedorUseCase = get(),
         )
     }
 

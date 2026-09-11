@@ -1,6 +1,7 @@
 package pe.ecolecta.presentation.admin.proveedores
 
 import pe.ecolecta.domain.model.EstadoProveedor
+import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.model.Zona
 
 data class ProveedorFormUiState(
@@ -18,6 +19,10 @@ data class ProveedorFormUiState(
     val cargando: Boolean = false,
     val error: String? = null,
     val guardadoExitoso: Boolean = false,
+    val usuariosProveedor: List<Usuario> = emptyList(),
+    val usuarioIdVinculado: String? = null,
+    val vinculandoUsuario: Boolean = false,
+    val errorVinculacion: String? = null,
 ) {
     val puedeGuardar: Boolean
         get() = codigo.isNotBlank() && nombres.isNotBlank() && dni.isNotBlank() && zonaId.isNotBlank() &&
@@ -34,5 +39,6 @@ sealed interface ProveedorFormUiEvent {
     data class TachosCambia(val valor: String) : ProveedorFormUiEvent
     data class CapacidadCambia(val valor: String) : ProveedorFormUiEvent
     data class EstadoCambia(val valor: EstadoProveedor) : ProveedorFormUiEvent
+    data class VincularUsuario(val usuarioId: String) : ProveedorFormUiEvent
     data object Guardar : ProveedorFormUiEvent
 }

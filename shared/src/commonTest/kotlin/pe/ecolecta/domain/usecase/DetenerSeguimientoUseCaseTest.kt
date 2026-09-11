@@ -43,7 +43,7 @@ class DetenerSeguimientoUseCaseTest {
     }
 
     @Test
-    fun `si la publicacion remota falla, queda un aviso pendiente sin jornadaAbierta`() = runTest {
+    fun `si la publicacion remota falla queda un aviso pendiente sin jornadaAbierta`() = runTest {
         rutaAcopioRepository.fallarPublicaciones = true
 
         useCase(usuarioId = "u1", zonaId = "zona-1", jornadaId = "j1", jornadaAbiertaEn = 123L)

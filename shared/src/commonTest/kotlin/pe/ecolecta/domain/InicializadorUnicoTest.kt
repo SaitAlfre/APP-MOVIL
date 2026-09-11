@@ -37,7 +37,7 @@ class InicializadorUnicoTest {
     }
 
     @Test
-    fun `si ya existe el recurso, nunca llama a inicializar`() = runTest {
+    fun `si ya existe el recurso nunca llama a inicializar`() = runTest {
         var vecesInicializado = 0
         val inicializador = InicializadorUnico(
             obtenerExistente = { "uid-ya-existente" },

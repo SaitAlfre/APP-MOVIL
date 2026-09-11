@@ -7,9 +7,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.usecase.proveedor.ActualizarProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.CrearProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
+import pe.ecolecta.domain.usecase.proveedor.VincularUsuarioProveedorUseCase
+import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 
 class ProveedorFormViewModel(
@@ -18,6 +21,8 @@ class ProveedorFormViewModel(
     private val crearProveedorUseCase: CrearProveedorUseCase,
     private val actualizarProveedorUseCase: ActualizarProveedorUseCase,
     private val listarZonasUseCase: ListarZonasUseCase,
+    private val listarUsuariosUseCase: ListarUsuariosUseCase,
+    private val vincularUsuarioProveedorUseCase: VincularUsuarioProveedorUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProveedorFormUiState(esEdicion = id != null))
     val uiState: StateFlow<ProveedorFormUiState> = _uiState.asStateFlow()
@@ -44,7 +49,13 @@ class ProveedorFormViewModel(
                         tachos = proveedor.tachos.toString(),
                         capacidadTachoL = proveedor.capacidadTachoL.toString(),
                         estado = proveedor.estado,
+                        usuarioIdVinculado = proveedor.usuarioId,
                     )
+                }
+            }
+            viewModelScope.launch {
+                listarUsuariosUseCase().collect { usuarios ->
+                    _uiState.update { it.copy(usuariosProveedor = usuarios.filter { u -> Rol.PROVEEDOR in u.roles }) }
                 }
             }
         }
@@ -61,7 +72,20 @@ class ProveedorFormViewModel(
             is ProveedorFormUiEvent.TachosCambia -> _uiState.update { it.copy(tachos = evento.valor) }
             is ProveedorFormUiEvent.CapacidadCambia -> _uiState.update { it.copy(capacidadTachoL = evento.valor) }
             is ProveedorFormUiEvent.EstadoCambia -> _uiState.update { it.copy(estado = evento.valor) }
+            is ProveedorFormUiEvent.VincularUsuario -> vincularUsuario(evento.usuarioId)
             ProveedorFormUiEvent.Guardar -> guardar()
+        }
+    }
+
+    private fun vincularUsuario(usuarioId: String) {
+        val proveedorId = id ?: return
+        if (_uiState.value.vinculandoUsuario) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(vinculandoUsuario = true, errorVinculacion = null) }
+            vincularUsuarioProveedorUseCase(proveedorId, usuarioId).fold(
+                onSuccess = { _uiState.update { it.copy(vinculandoUsuario = false, usuarioIdVinculado = usuarioId) } },
+                onFailure = { error -> _uiState.update { it.copy(vinculandoUsuario = false, errorVinculacion = error.message) } },
+            )
         }
     }
 
