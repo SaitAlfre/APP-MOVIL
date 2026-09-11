@@ -11,4 +11,8 @@ interface VehiculoRepositoryInterface
     public function todos(): array;
 
     public function buscarPorId(int $id): ?Vehiculo;
+
+    public function buscarPorPlaca(string $placa): ?Vehiculo;
+
+    public function guardar(Vehiculo $vehiculo): Vehiculo;
 }

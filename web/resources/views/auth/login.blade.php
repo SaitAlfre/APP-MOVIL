@@ -35,7 +35,7 @@
                     <div>
                         <label for="username" class="mb-1.5 block text-[13px] font-semibold text-eh-text">Código, usuario o DNI</label>
                         <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus
-                            placeholder="Ej. acopiador1"
+                            placeholder="Ej. admin"
                             class="block h-12 w-full rounded-xl border border-eh-border bg-eh-bg px-4 text-[14.5px] text-eh-text focus:border-eh-primary focus:ring-eh-primary">
                     </div>
 

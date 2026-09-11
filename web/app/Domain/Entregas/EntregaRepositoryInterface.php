@@ -21,14 +21,18 @@ interface EntregaRepositoryInterface
     /** @return array{litros: float, entregas: int} */
     public function resumenDelDia(int $jornadaId): array;
 
-    public function registrar(Entrega $entrega, Auditoria $auditoria): Entrega;
+    /** @return list<Entrega> */
+    public function sinControlCalidad(int $limite = 30): array;
 
-    /**
-     * @param  list<Entrega>  $entregas
-     * @param  list<Auditoria>  $auditorias
-     * @return list<Entrega>
-     */
-    public function registrarLote(array $entregas, array $auditorias): array;
+    public function litrosPorProveedorEnRango(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): float;
+
+    /** @return array{litros: float, entregas: int} */
+    public function resumenPorRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array;
+
+    /** @return list<array{zona_id: int, litros: float}> */
+    public function litrosPorZonaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array;
+
+    public function registrar(Entrega $entrega, Auditoria $auditoria): Entrega;
 
     public function corregir(int $id, float $litros, int $tachos, ?string $observaciones, DateTimeImmutable $ahora, Auditoria $auditoria): void;
 

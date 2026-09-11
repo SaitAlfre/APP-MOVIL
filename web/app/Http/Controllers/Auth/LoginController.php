@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** El panel web es exclusivo para administradores: acopiadores y proveedores solo operan desde la app móvil. */
 class LoginController extends Controller
 {
     public function mostrar(): View
@@ -19,7 +20,7 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function iniciarSesion(LoginRequest $request, AutenticarOperadorUseCase $autenticar): RedirectResponse
+    public function iniciarSesion(LoginRequest $request, AutenticarOperadorUseCase $autenticar, CerrarSesionOperadorUseCase $cerrarSesion): RedirectResponse
     {
         try {
             $autenticado = $autenticar->ejecutar(
@@ -34,17 +35,15 @@ class LoginController extends Controller
             return back()->withErrors(['username' => 'El usuario o el PIN no son correctos.'])->onlyInput('username');
         }
 
+        if (! auth('operador')->user()->tieneRol('admin')) {
+            $cerrarSesion->ejecutar();
+
+            return back()->withErrors(['username' => 'Este panel es solo para administradores.'])->onlyInput('username');
+        }
+
         $request->session()->regenerate();
 
-        $usuario = auth('operador')->user();
-        $destino = match (true) {
-            $usuario->tieneRol('admin') => route('admin.proveedores.index'),
-            $usuario->tieneRol('acopiador') => route('acopiador.home'),
-            $usuario->tieneRol('proveedor') => route('proveedor.panel'),
-            default => route('login'),
-        };
-
-        return redirect()->intended($destino);
+        return redirect()->intended(route('admin.proveedores.index'));
     }
 
     public function cerrarSesion(Request $request, CerrarSesionOperadorUseCase $cerrarSesion): RedirectResponse

@@ -34,9 +34,31 @@ final class EloquentZonaRepository implements ZonaRepositoryInterface
         return $zona !== null ? $this->aDominio($zona) : null;
     }
 
+    public function buscarPorNombre(string $nombre): ?ZonaDominio
+    {
+        $zona = ZonaEloquent::query()->where('nombre', $nombre)->first();
+
+        return $zona !== null ? $this->aDominio($zona) : null;
+    }
+
+    public function guardar(ZonaDominio $zona): ZonaDominio
+    {
+        $registro = $zona->id !== null
+            ? ZonaEloquent::query()->findOrFail($zona->id)
+            : new ZonaEloquent;
+
+        $registro->fill([
+            'nombre' => $zona->nombre,
+            'activo' => $zona->activo,
+        ]);
+        $registro->save();
+
+        return $this->aDominio($registro->refresh());
+    }
+
     private function aDominio(ZonaEloquent $zona): ZonaDominio
     {
-        return new ZonaDominio(
+        return ZonaDominio::reconstruir(
             id: $zona->id,
             nombre: $zona->nombre,
             activo: $zona->activo,

@@ -3,9 +3,14 @@
 @section('titulo', 'Acopiadores')
 
 @section('contenido')
-    <div class="mb-6">
-        <h1 class="text-[22px] font-bold text-eh-text">Acopiadores</h1>
-        <p class="mt-0.5 text-[13.5px] text-eh-text-muted">Jornadas y actividad reciente de los acopiadores</p>
+    <div class="mb-6 flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-[22px] font-bold text-eh-text">Acopiadores</h1>
+            <p class="mt-0.5 text-[13.5px] text-eh-text-muted">Jornadas y entregas registradas en nombre de los acopiadores</p>
+        </div>
+        <a href="{{ route('admin.acopiadores.jornadas.create') }}" class="flex h-11 items-center rounded-xl bg-eh-primary px-4 text-sm font-semibold text-white hover:bg-eh-primary-dark">
+            Nueva jornada
+        </a>
     </div>
 
     <div class="overflow-hidden rounded-2xl border border-eh-border bg-eh-surface shadow-sm">
@@ -19,8 +24,8 @@
                     <th class="px-3 py-3">Fecha</th>
                     <th class="px-3 py-3 text-right">Litros</th>
                     <th class="px-3 py-3 text-right">Entregas</th>
-                    <th class="px-3 py-3">Seguimiento</th>
-                    <th class="px-5 py-3">Estado</th>
+                    <th class="px-3 py-3">Estado</th>
+                    <th class="px-5 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,20 +40,14 @@
                         <td class="px-3 py-3">
                             <span @class([
                                 'rounded-full px-2.5 py-1 text-[11px] font-semibold',
-                                'bg-eh-primary-soft text-eh-primary' => $fila['jornada']->seguimientoActivo,
-                                'bg-eh-surface-alt text-eh-text-muted' => ! $fila['jornada']->seguimientoActivo,
-                            ])>
-                                {{ $fila['jornada']->seguimientoActivo ? 'Activo' : 'Inactivo' }}
-                            </span>
-                        </td>
-                        <td class="px-5 py-3">
-                            <span @class([
-                                'rounded-full px-2.5 py-1 text-[11px] font-semibold',
                                 'bg-eh-blue-soft text-eh-blue' => $fila['jornada']->estaAbierta(),
                                 'bg-eh-surface-alt text-eh-text-muted' => ! $fila['jornada']->estaAbierta(),
                             ])>
                                 {{ $fila['jornada']->estaAbierta() ? 'Jornada abierta' : 'Jornada cerrada' }}
                             </span>
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            <a href="{{ route('admin.acopiadores.jornadas.show', $fila['jornada']->id) }}" class="text-[12px] font-semibold text-eh-primary">Ver</a>
                         </td>
                     </tr>
                 @empty
@@ -59,7 +58,7 @@
                                     <svg class="size-5 text-eh-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="12" height="9" rx="1.4"/><path d="M14.5 10h4l3 3v3h-7z"/></svg>
                                 </span>
                                 <p class="text-[13.5px] font-semibold text-eh-text">Aún no hay jornadas registradas</p>
-                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Aparecerán aquí cuando un acopiador abra su primera jornada.</p>
+                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Regístralas con el botón "Nueva jornada".</p>
                             </div>
                         </td>
                     </tr>

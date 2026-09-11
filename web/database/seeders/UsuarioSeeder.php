@@ -31,6 +31,8 @@ class UsuarioSeeder extends Seeder
             ['nombres' => 'Administrador Ecolecta', 'dni' => '00000000', 'pin_hash' => $admin['pin'], 'activo' => true, 'roles' => ['admin']],
         );
 
+        // Sin acceso al panel web (LoginController lo restringe a rol admin): existen solo como
+        // referencia de datos para jornadas/entregas registradas por el administrador y para vincular proveedores.
         Usuario::query()->firstOrCreate(
             ['username' => $acopiador['username']],
             ['nombres' => 'Acopiador de Prueba', 'dni' => '87654321', 'pin_hash' => $acopiador['pin'], 'activo' => true, 'roles' => ['acopiador']],
@@ -41,8 +43,8 @@ class UsuarioSeeder extends Seeder
             ['nombres' => 'Proveedor de Prueba', 'dni' => '11223344', 'pin_hash' => $proveedor['pin'], 'activo' => true, 'roles' => ['proveedor']],
         );
 
-        $this->command?->info("Admin de desarrollo: {$admin['username']} / PIN {$admin['pin']}");
-        $this->command?->info("Acopiador de desarrollo: {$acopiador['username']} / PIN {$acopiador['pin']}");
-        $this->command?->info("Proveedor de desarrollo: {$proveedor['username']} / PIN {$proveedor['pin']}");
+        $this->command?->info("Admin de desarrollo (acceso al panel web): {$admin['username']} / PIN {$admin['pin']}");
+        $this->command?->info("Acopiador de prueba (sin acceso web, solo datos): {$acopiador['username']}");
+        $this->command?->info("Proveedor de prueba (sin acceso web, solo datos): {$proveedor['username']}");
     }
 }

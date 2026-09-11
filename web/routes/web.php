@@ -1,19 +1,18 @@
 <?php
 
-use App\Http\Controllers\Acopiador\EntregaController;
-use App\Http\Controllers\Acopiador\HomeController;
-use App\Http\Controllers\Acopiador\JornadaController;
-use App\Http\Controllers\Acopiador\LoteController;
-use App\Http\Controllers\Acopiador\OnboardingController;
-use App\Http\Controllers\Acopiador\QrController;
-use App\Http\Controllers\Acopiador\SeguimientoController;
 use App\Http\Controllers\Admin\AuditoriaController;
+use App\Http\Controllers\Admin\CalidadController;
 use App\Http\Controllers\Admin\JornadaController as AdminJornadaController;
+use App\Http\Controllers\Admin\JornadaEntregaController;
+use App\Http\Controllers\Admin\LiquidacionController;
+use App\Http\Controllers\Admin\ProduccionController;
 use App\Http\Controllers\Admin\ProveedorController;
 use App\Http\Controllers\Admin\ProveedorQrController;
+use App\Http\Controllers\Admin\ReporteController;
+use App\Http\Controllers\Admin\VehiculoController;
+use App\Http\Controllers\Admin\ZonaController;
 use App\Http\Controllers\Admin\ZonaVehiculoController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Proveedor\PanelController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -38,54 +37,42 @@ Route::middleware('auth:operador')->group(function () {
         Route::post('proveedores/{proveedor}/desvincular', [ProveedorController::class, 'desvincularUsuario'])->name('proveedores.desvincular');
 
         Route::get('acopiadores', [AdminJornadaController::class, 'index'])->name('acopiadores.index');
+        Route::get('acopiadores/jornadas/nueva', [AdminJornadaController::class, 'create'])->name('acopiadores.jornadas.create');
+        Route::post('acopiadores/jornadas', [AdminJornadaController::class, 'store'])->name('acopiadores.jornadas.store');
+        Route::get('acopiadores/jornadas/{jornada}', [AdminJornadaController::class, 'show'])->name('acopiadores.jornadas.show');
+        Route::patch('acopiadores/jornadas/{jornada}/cerrar', [AdminJornadaController::class, 'cerrar'])->name('acopiadores.jornadas.cerrar');
+
+        Route::post('acopiadores/jornadas/{jornada}/entregas', [JornadaEntregaController::class, 'store'])->name('acopiadores.entregas.store');
+        Route::post('acopiadores/entregas/sumar', [JornadaEntregaController::class, 'sumar'])->name('acopiadores.entregas.sumar');
+        Route::post('acopiadores/entregas/{entrega}/anular', [JornadaEntregaController::class, 'anular'])->name('acopiadores.entregas.anular');
+
         Route::get('zonas-vehiculos', [ZonaVehiculoController::class, 'index'])->name('zonas-vehiculos.index');
+        Route::get('zonas/nueva', [ZonaController::class, 'create'])->name('zonas.create');
+        Route::post('zonas', [ZonaController::class, 'store'])->name('zonas.store');
+        Route::get('zonas/{zona}/editar', [ZonaController::class, 'edit'])->name('zonas.edit');
+        Route::put('zonas/{zona}', [ZonaController::class, 'update'])->name('zonas.update');
+        Route::patch('zonas/{zona}/estado', [ZonaController::class, 'cambiarEstado'])->name('zonas.estado');
+        Route::get('vehiculos/nuevo', [VehiculoController::class, 'create'])->name('vehiculos.create');
+        Route::post('vehiculos', [VehiculoController::class, 'store'])->name('vehiculos.store');
+        Route::get('vehiculos/{vehiculo}/editar', [VehiculoController::class, 'edit'])->name('vehiculos.edit');
+        Route::put('vehiculos/{vehiculo}', [VehiculoController::class, 'update'])->name('vehiculos.update');
+        Route::patch('vehiculos/{vehiculo}/estado', [VehiculoController::class, 'cambiarEstado'])->name('vehiculos.estado');
+
+        Route::get('calidad', [CalidadController::class, 'index'])->name('calidad.index');
+        Route::get('calidad/nuevo', [CalidadController::class, 'create'])->name('calidad.create');
+        Route::post('calidad', [CalidadController::class, 'store'])->name('calidad.store');
+
+        Route::get('produccion', [ProduccionController::class, 'index'])->name('produccion.index');
+        Route::get('produccion/nuevo', [ProduccionController::class, 'create'])->name('produccion.create');
+        Route::post('produccion', [ProduccionController::class, 'store'])->name('produccion.store');
+        Route::patch('produccion/{lote}/cerrar', [ProduccionController::class, 'cerrar'])->name('produccion.cerrar');
+
+        Route::get('liquidaciones', [LiquidacionController::class, 'index'])->name('liquidaciones.index');
+        Route::get('liquidaciones/nueva', [LiquidacionController::class, 'create'])->name('liquidaciones.create');
+        Route::post('liquidaciones', [LiquidacionController::class, 'store'])->name('liquidaciones.store');
+        Route::patch('liquidaciones/{liquidacion}/pagar', [LiquidacionController::class, 'marcarPagada'])->name('liquidaciones.pagar');
+
         Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
-
-        Route::view('calidad', 'admin.placeholder', [
-            'titulo' => 'Calidad',
-            'descripcion' => 'El control de calidad de las entregas todavía no está definido en el sistema.',
-        ])->name('calidad.index');
-        Route::view('liquidaciones', 'admin.placeholder', [
-            'titulo' => 'Liquidaciones',
-            'descripcion' => 'El cálculo de liquidaciones a proveedores todavía no está definido en el sistema.',
-        ])->name('liquidaciones.index');
-        Route::view('produccion', 'admin.placeholder', [
-            'titulo' => 'Producción',
-            'descripcion' => 'Los lotes de producción en planta todavía no están definidos en el sistema.',
-        ])->name('produccion.index');
-        Route::view('reportes', 'admin.placeholder', [
-            'titulo' => 'Reportes',
-            'descripcion' => 'Los reportes consolidados todavía no están definidos en el sistema.',
-        ])->name('reportes.index');
-    });
-
-    Route::prefix('proveedor')->name('proveedor.')->middleware('rol:proveedor')->group(function () {
-        Route::get('panel', [PanelController::class, 'index'])->name('panel');
-        Route::get('qr', [PanelController::class, 'qr'])->name('qr');
-    });
-
-    Route::prefix('acopiador')->name('acopiador.')->middleware('rol:acopiador')->group(function () {
-        Route::get('onboarding', [OnboardingController::class, 'mostrar'])->name('onboarding');
-        Route::post('onboarding', [OnboardingController::class, 'abrir'])->name('onboarding.store');
-
-        Route::middleware('jornada.abierta')->group(function () {
-            Route::get('inicio', [HomeController::class, 'index'])->name('home');
-
-            Route::get('entregas/nueva', [EntregaController::class, 'create'])->name('entregas.create');
-            Route::post('entregas', [EntregaController::class, 'store'])->name('entregas.store');
-            Route::post('entregas/sumar', [EntregaController::class, 'sumar'])->name('entregas.sumar');
-            Route::post('entregas/{entrega}/anular', [EntregaController::class, 'anular'])->name('entregas.anular');
-
-            Route::get('lote', [LoteController::class, 'create'])->name('lote.create');
-            Route::post('lote', [LoteController::class, 'store'])->name('lote.store');
-
-            Route::post('qr/resolver', [QrController::class, 'resolver'])->name('qr.resolver');
-
-            Route::post('seguimiento/activar', [SeguimientoController::class, 'activar'])->name('seguimiento.activar');
-            Route::post('seguimiento/desactivar', [SeguimientoController::class, 'desactivar'])->name('seguimiento.desactivar');
-            Route::post('seguimiento/posicion', [SeguimientoController::class, 'registrarPosicion'])->name('seguimiento.posicion');
-
-            Route::post('jornada/cerrar', [JornadaController::class, 'cerrar'])->name('jornada.cerrar');
-        });
+        Route::get('reportes', [ReporteController::class, 'index'])->name('reportes.index');
     });
 });

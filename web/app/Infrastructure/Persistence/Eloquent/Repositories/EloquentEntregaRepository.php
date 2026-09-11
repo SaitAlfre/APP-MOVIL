@@ -71,6 +71,56 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
         ];
     }
 
+    public function sinControlCalidad(int $limite = 30): array
+    {
+        return EntregaEloquent::query()
+            ->where('anulada', false)
+            ->whereNotIn('id', function ($query) {
+                $query->select('entrega_id')->from('controles_calidad');
+            })
+            ->orderByDesc('registrado_en')
+            ->limit($limite)
+            ->get()
+            ->map(fn (EntregaEloquent $e) => $this->aDominio($e))
+            ->all();
+    }
+
+    public function litrosPorProveedorEnRango(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): float
+    {
+        return (float) EntregaEloquent::query()
+            ->where('proveedor_id', $proveedorId)
+            ->where('anulada', false)
+            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->sum('litros');
+    }
+
+    public function resumenPorRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array
+    {
+        $fila = EntregaEloquent::query()
+            ->where('anulada', false)
+            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->selectRaw('COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
+            ->first();
+
+        return [
+            'litros' => (float) $fila->litros,
+            'entregas' => (int) $fila->entregas,
+        ];
+    }
+
+    public function litrosPorZonaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array
+    {
+        return EntregaEloquent::query()
+            ->where('anulada', false)
+            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->selectRaw('zona_id, COALESCE(SUM(litros), 0) as litros')
+            ->groupBy('zona_id')
+            ->orderByDesc('litros')
+            ->get()
+            ->map(fn ($fila) => ['zona_id' => (int) $fila->zona_id, 'litros' => (float) $fila->litros])
+            ->all();
+    }
+
     public function registrar(EntregaDominio $entrega, AuditoriaDominio $auditoria): EntregaDominio
     {
         return DB::transaction(function () use ($entrega, $auditoria) {
@@ -89,34 +139,6 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
             ));
 
             return $this->aDominio($registro);
-        });
-    }
-
-    public function registrarLote(array $entregas, array $auditorias): array
-    {
-        return DB::transaction(function () use ($entregas, $auditorias) {
-            $resultado = [];
-
-            foreach ($entregas as $indice => $entrega) {
-                $registro = $this->crearRegistro($entrega);
-                $auditoria = $auditorias[$indice];
-
-                $this->auditorias->registrar(new AuditoriaDominio(
-                    id: null,
-                    entidad: $auditoria->entidad,
-                    entidadId: $registro->id,
-                    accion: $auditoria->accion,
-                    valorAntes: $auditoria->valorAntes,
-                    valorDespues: $auditoria->valorDespues,
-                    motivo: $auditoria->motivo,
-                    usuarioId: $auditoria->usuarioId,
-                    ocurridoEn: $auditoria->ocurridoEn,
-                ));
-
-                $resultado[] = $this->aDominio($registro);
-            }
-
-            return $resultado;
         });
     }
 

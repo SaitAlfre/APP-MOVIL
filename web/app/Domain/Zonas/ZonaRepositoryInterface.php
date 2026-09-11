@@ -11,4 +11,8 @@ interface ZonaRepositoryInterface
     public function todas(): array;
 
     public function buscarPorId(int $id): ?Zona;
+
+    public function buscarPorNombre(string $nombre): ?Zona;
+
+    public function guardar(Zona $zona): Zona;
 }

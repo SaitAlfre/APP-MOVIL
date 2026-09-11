@@ -34,9 +34,32 @@ final class EloquentVehiculoRepository implements VehiculoRepositoryInterface
         return $vehiculo !== null ? $this->aDominio($vehiculo) : null;
     }
 
+    public function buscarPorPlaca(string $placa): ?VehiculoDominio
+    {
+        $vehiculo = VehiculoEloquent::query()->where('placa', $placa)->first();
+
+        return $vehiculo !== null ? $this->aDominio($vehiculo) : null;
+    }
+
+    public function guardar(VehiculoDominio $vehiculo): VehiculoDominio
+    {
+        $registro = $vehiculo->id !== null
+            ? VehiculoEloquent::query()->findOrFail($vehiculo->id)
+            : new VehiculoEloquent;
+
+        $registro->fill([
+            'nombre' => $vehiculo->nombre,
+            'placa' => $vehiculo->placa,
+            'activo' => $vehiculo->activo,
+        ]);
+        $registro->save();
+
+        return $this->aDominio($registro->refresh());
+    }
+
     private function aDominio(VehiculoEloquent $vehiculo): VehiculoDominio
     {
-        return new VehiculoDominio(
+        return VehiculoDominio::reconstruir(
             id: $vehiculo->id,
             nombre: $vehiculo->nombre,
             placa: $vehiculo->placa,

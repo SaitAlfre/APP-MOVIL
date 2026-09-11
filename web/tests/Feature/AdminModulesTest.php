@@ -75,12 +75,12 @@ class AdminModulesTest extends TestCase
         $response->assertSee('Registro duplicado');
     }
 
-    public function test_las_secciones_pendientes_responden_con_un_estado_vacio(): void
+    public function test_las_secciones_de_calidad_liquidaciones_produccion_y_reportes_responden_correctamente(): void
     {
         $this->comoAdmin();
 
         foreach (['calidad', 'liquidaciones', 'produccion', 'reportes'] as $seccion) {
-            $this->get("/admin/{$seccion}")->assertOk()->assertSee('Todavía no hay información aquí');
+            $this->get("/admin/{$seccion}")->assertOk();
         }
     }
 

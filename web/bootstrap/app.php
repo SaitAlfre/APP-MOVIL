@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureJornadaAbierta;
 use App\Http\Middleware\EnsureRol;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,15 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function () {
             $usuario = auth('operador')->user();
 
-            return match (true) {
-                $usuario?->tieneRol('admin') => '/admin/proveedores',
-                $usuario?->tieneRol('acopiador') => '/acopiador/inicio',
-                $usuario?->tieneRol('proveedor') => '/proveedor/panel',
-                default => '/login',
-            };
+            return $usuario?->tieneRol('admin') ? '/admin/proveedores' : '/login';
         });
         $middleware->alias([
-            'jornada.abierta' => EnsureJornadaAbierta::class,
             'rol' => EnsureRol::class,
         ]);
     })
