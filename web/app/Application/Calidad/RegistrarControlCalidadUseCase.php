@@ -2,6 +2,7 @@
 
 namespace App\Application\Calidad;
 
+use App\Application\Inventario\RegistrarEntradaDesdeEntregaUseCase;
 use App\Domain\Calidad\ControlCalidad;
 use App\Domain\Calidad\ControlCalidadRepositoryInterface;
 use App\Domain\Calidad\EstadoCalidad;
@@ -15,6 +16,7 @@ final class RegistrarControlCalidadUseCase
     public function __construct(
         private readonly ControlCalidadRepositoryInterface $controles,
         private readonly EntregaRepositoryInterface $entregas,
+        private readonly RegistrarEntradaDesdeEntregaUseCase $registrarEntradaDesdeEntrega,
     ) {}
 
     public function ejecutar(
@@ -33,6 +35,8 @@ final class RegistrarControlCalidadUseCase
             throw ControlCalidadInvalidoException::entregaYaEvaluada();
         }
 
+        $evaluadoEn = new DateTimeImmutable;
+
         $control = ControlCalidad::crear(
             entregaId: $entregaId,
             usuarioId: $usuarioId,
@@ -40,9 +44,17 @@ final class RegistrarControlCalidadUseCase
             temperaturaC: $temperaturaC,
             acidez: $acidez,
             observaciones: $observaciones,
-            evaluadoEn: new DateTimeImmutable,
+            evaluadoEn: $evaluadoEn,
         );
 
-        return $this->controles->guardar($control);
+        $control = $this->controles->guardar($control);
+
+        // La leche pendiente o rechazada nunca queda disponible para fabricar: solo
+        // aprobada/observada generan una entrada de inventario.
+        if ($resultado !== EstadoCalidad::Rechazado) {
+            $this->registrarEntradaDesdeEntrega->ejecutar($entregaId, $usuarioId, $evaluadoEn);
+        }
+
+        return $control;
     }
 }

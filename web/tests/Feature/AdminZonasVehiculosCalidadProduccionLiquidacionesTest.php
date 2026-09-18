@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
-use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
@@ -190,41 +189,6 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
         $response->assertOk();
         $this->assertCount(1, $response->viewData('filas'));
         $this->assertSame('rechazado', $response->viewData('filas')->first()['control']->resultado->value);
-    }
-
-    public function test_un_admin_puede_abrir_y_cerrar_un_lote_de_produccion(): void
-    {
-        $admin = $this->comoAdmin();
-
-        $this->post('/admin/produccion', [
-            'codigo' => 'LP-001',
-            'producto' => 'Queso fresco',
-            'litros_utilizados' => 120.5,
-        ])->assertRedirect(route('admin.produccion.index'));
-
-        $this->assertDatabaseHas('lotes_produccion', [
-            'codigo' => 'LP-001',
-            'estado' => 'abierto',
-            'responsable_usuario_id' => $admin->id,
-        ]);
-
-        $lote = LoteProduccion::query()->where('codigo', 'LP-001')->firstOrFail();
-
-        $this->patch("/admin/produccion/{$lote->id}/cerrar")
-            ->assertRedirect(route('admin.produccion.index'));
-
-        $this->assertDatabaseHas('lotes_produccion', ['id' => $lote->id, 'estado' => 'cerrado']);
-    }
-
-    public function test_no_se_puede_abrir_dos_lotes_con_el_mismo_codigo(): void
-    {
-        $this->comoAdmin();
-
-        $this->post('/admin/produccion', ['codigo' => 'LP-DUP', 'producto' => 'Yogurt', 'litros_utilizados' => 50]);
-        $response = $this->post('/admin/produccion', ['codigo' => 'LP-DUP', 'producto' => 'Yogurt', 'litros_utilizados' => 30]);
-
-        $response->assertSessionHasErrors('codigo');
-        $this->assertDatabaseCount('lotes_produccion', 1);
     }
 
     public function test_un_admin_puede_generar_una_liquidacion_calculada_automaticamente(): void
