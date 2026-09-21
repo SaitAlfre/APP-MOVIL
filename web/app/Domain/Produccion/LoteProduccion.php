@@ -7,56 +7,54 @@ use DateTimeImmutable;
 
 final class LoteProduccion
 {
+    /** @param array<int, array<string, mixed>> $origenAcopio */
     private function __construct(
         public readonly ?int $id,
-        public readonly string $codigo,
+        public readonly ?string $codigo,
         public readonly int $productoId,
-        public readonly int $recetaId,
-        public readonly float $cantidadPlanificada,
-        public readonly ?float $cantidadObtenida,
-        public readonly string $unidad,
+        public readonly DateTimeImmutable $fecha,
+        public readonly float $litrosPorUnidadSnapshot,
+        public readonly float $litrosAsignados,
+        public readonly ?float $litrosUsados,
+        public readonly ?float $litrosMermaProceso,
+        public readonly ?float $litrosSobrantes,
+        public readonly int $unidadesEstimadas,
+        public readonly ?int $unidadesProducidas,
         public readonly EstadoLoteProduccion $estado,
-        public readonly int $responsableUsuarioId,
-        public readonly DateTimeImmutable $fechaPlanificada,
-        public readonly ?string $observaciones,
-        public readonly DateTimeImmutable $creadoEn,
+        public readonly array $origenAcopio,
+        public readonly int $responsableId,
         public readonly ?DateTimeImmutable $iniciadoEn,
         public readonly ?DateTimeImmutable $finalizadoEn,
         public readonly ?DateTimeImmutable $canceladoEn,
         public readonly ?string $motivoCancelacion,
     ) {}
 
+    /** @param array<int, array<string, mixed>> $origenAcopio Desglose informativo del acopio del día (leche fungible: no se reparte físicamente por lote). */
     public static function crear(
-        string $codigo,
         int $productoId,
-        int $recetaId,
-        float $cantidadPlanificada,
-        string $unidad,
-        int $responsableUsuarioId,
-        DateTimeImmutable $fechaPlanificada,
-        ?string $observaciones,
+        DateTimeImmutable $fecha,
+        float $litrosPorUnidadSnapshot,
+        float $litrosAsignados,
+        array $origenAcopio,
+        int $responsableId,
     ): self {
-        if (trim($codigo) === '') {
-            throw LoteProduccionInvalidoException::codigoVacio();
-        }
-
-        if ($cantidadPlanificada <= 0.0) {
-            throw LoteProduccionInvalidoException::cantidadInvalida();
-        }
+        self::validarAsignacion($litrosAsignados);
 
         return new self(
             id: null,
-            codigo: trim($codigo),
+            codigo: null,
             productoId: $productoId,
-            recetaId: $recetaId,
-            cantidadPlanificada: $cantidadPlanificada,
-            cantidadObtenida: null,
-            unidad: $unidad,
+            fecha: $fecha,
+            litrosPorUnidadSnapshot: $litrosPorUnidadSnapshot,
+            litrosAsignados: $litrosAsignados,
+            litrosUsados: null,
+            litrosMermaProceso: null,
+            litrosSobrantes: null,
+            unidadesEstimadas: (int) floor($litrosAsignados / $litrosPorUnidadSnapshot),
+            unidadesProducidas: null,
             estado: EstadoLoteProduccion::Borrador,
-            responsableUsuarioId: $responsableUsuarioId,
-            fechaPlanificada: $fechaPlanificada,
-            observaciones: $observaciones !== null && trim($observaciones) !== '' ? trim($observaciones) : null,
-            creadoEn: new DateTimeImmutable,
+            origenAcopio: $origenAcopio,
+            responsableId: $responsableId,
             iniciadoEn: null,
             finalizadoEn: null,
             canceladoEn: null,
@@ -64,35 +62,33 @@ final class LoteProduccion
         );
     }
 
+    /** @param array<int, array<string, mixed>> $origenAcopio */
     public static function reconstruir(
         int $id,
         string $codigo,
         int $productoId,
-        int $recetaId,
-        float $cantidadPlanificada,
-        ?float $cantidadObtenida,
-        string $unidad,
+        DateTimeImmutable $fecha,
+        float $litrosPorUnidadSnapshot,
+        float $litrosAsignados,
+        ?float $litrosUsados,
+        ?float $litrosMermaProceso,
+        ?float $litrosSobrantes,
+        int $unidadesEstimadas,
+        ?int $unidadesProducidas,
         EstadoLoteProduccion $estado,
-        int $responsableUsuarioId,
-        DateTimeImmutable $fechaPlanificada,
-        ?string $observaciones,
-        DateTimeImmutable $creadoEn,
+        array $origenAcopio,
+        int $responsableId,
         ?DateTimeImmutable $iniciadoEn,
         ?DateTimeImmutable $finalizadoEn,
         ?DateTimeImmutable $canceladoEn,
         ?string $motivoCancelacion,
     ): self {
-        return new self($id, $codigo, $productoId, $recetaId, $cantidadPlanificada, $cantidadObtenida, $unidad, $estado, $responsableUsuarioId, $fechaPlanificada, $observaciones, $creadoEn, $iniciadoEn, $finalizadoEn, $canceladoEn, $motivoCancelacion);
+        return new self($id, $codigo, $productoId, $fecha, $litrosPorUnidadSnapshot, $litrosAsignados, $litrosUsados, $litrosMermaProceso, $litrosSobrantes, $unidadesEstimadas, $unidadesProducidas, $estado, $origenAcopio, $responsableId, $iniciadoEn, $finalizadoEn, $canceladoEn, $motivoCancelacion);
     }
 
     public function puedeIniciar(): bool
     {
         return $this->estado === EstadoLoteProduccion::Borrador;
-    }
-
-    public function puedeRegistrarConsumo(): bool
-    {
-        return $this->estado === EstadoLoteProduccion::EnProceso;
     }
 
     public function puedeFinalizar(): bool
@@ -103,5 +99,23 @@ final class LoteProduccion
     public function puedeCancelar(): bool
     {
         return in_array($this->estado, [EstadoLoteProduccion::Borrador, EstadoLoteProduccion::EnProceso], true);
+    }
+
+    public static function validarAsignacion(float $litrosAsignados): void
+    {
+        if ($litrosAsignados <= 0.0) {
+            throw LoteProduccionInvalidoException::litrosAsignadosInvalidos();
+        }
+    }
+
+    public static function validarFinalizacion(float $litrosAsignados, float $litrosUsados, float $litrosMermaProceso): void
+    {
+        if ($litrosUsados < 0.0 || $litrosMermaProceso < 0.0) {
+            throw LoteProduccionInvalidoException::litrosUsadosInvalidos();
+        }
+
+        if (round($litrosUsados + $litrosMermaProceso, 3) > round($litrosAsignados, 3) + 0.001) {
+            throw LoteProduccionInvalidoException::consumoSuperaAsignado($litrosAsignados);
+        }
     }
 }

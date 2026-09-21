@@ -8,6 +8,7 @@ data class ProveedorFormUiState(
     val esEdicion: Boolean = false,
     val codigo: String = "",
     val nombres: String = "",
+    val dueno: String = "",
     val dni: String = "",
     val telefono: String = "",
     val direccion: String = "",
@@ -32,6 +33,7 @@ data class ProveedorFormUiState(
 sealed interface ProveedorFormUiEvent {
     data class CodigoCambia(val valor: String) : ProveedorFormUiEvent
     data class NombresCambia(val valor: String) : ProveedorFormUiEvent
+    data class DuenoCambia(val valor: String) : ProveedorFormUiEvent
     data class DniCambia(val valor: String) : ProveedorFormUiEvent
     data class TelefonoCambia(val valor: String) : ProveedorFormUiEvent
     data class DireccionCambia(val valor: String) : ProveedorFormUiEvent

@@ -11,6 +11,7 @@ data class ProveedoresUiState(
     val filtroTexto: String = "",
     val filtroZonaId: String? = null,
     val filtroEstado: EstadoProveedor? = null,
+    val error: String? = null,
 ) {
     val proveedoresFiltrados: List<Proveedor>
         get() = proveedores.filter { p ->

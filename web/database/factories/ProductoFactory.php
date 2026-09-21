@@ -20,9 +20,10 @@ class ProductoFactory extends Factory
             'unidad_produccion' => 'unidad',
             'contenido_por_unidad' => 1,
             'unidad_contenido' => 'kg',
+            'litros_por_unidad' => 10,
+            'otros_insumos' => null,
             'existencia' => 0,
             'activo' => true,
-            'receta_activa_id' => null,
         ];
     }
 }

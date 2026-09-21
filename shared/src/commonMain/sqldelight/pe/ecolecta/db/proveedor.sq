@@ -12,7 +12,8 @@ CREATE TABLE proveedor (
     updated_at INTEGER NOT NULL,
     sync_state TEXT NOT NULL DEFAULT 'SYNCED',
     -- Vincula la cuenta con rol PROVEEDOR que puede autenticarse y consultar este registro (§5).
-    usuario_id TEXT
+    usuario_id TEXT,
+    dueno TEXT
 );
 
 -- selectPorZona/selectActivosPorZona corren en cada apertura de jornada y en cada pantalla de
@@ -57,3 +58,9 @@ UPDATE proveedor SET usuario_id = :usuario_id WHERE id = :id;
 
 selectPorUsuarioId:
 SELECT * FROM proveedor WHERE usuario_id = :usuario_id;
+
+actualizarEjemplo:
+UPDATE proveedor SET nombres = :nombres, dueno = :dueno WHERE id = :id AND nombres = :nombreAnterior;
+
+actualizarResponsable:
+UPDATE proveedor SET dueno = :dueno WHERE id = :id;

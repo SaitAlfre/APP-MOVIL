@@ -38,6 +38,7 @@ import pe.ecolecta.presentation.navegacion.SeccionAdmin
 
 private fun iconoDeSeccion(seccion: SeccionAdmin): ImageVector = when (seccion) {
     SeccionAdmin.DASHBOARD -> Icons.Filled.Dashboard
+    SeccionAdmin.CALIDAD -> Icons.Filled.Opacity
     SeccionAdmin.USUARIOS -> Icons.Filled.Group
     SeccionAdmin.ZONAS -> Icons.Filled.Place
     SeccionAdmin.VEHICULOS -> Icons.Filled.LocalShipping
@@ -93,14 +94,21 @@ fun AdminDrawerContenido(
     onSeleccionar: (SeccionAdmin) -> Unit,
     onCerrarSesion: () -> Unit,
 ) {
-    ModalDrawerSheet(drawerContainerColor = Colores.surface) {
+    ModalDrawerSheet(drawerContainerColor = Colores.surface, modifier = Modifier.verticalScroll(rememberScrollState())) {
         Text(
             "ECOLECTA HUATA",
             color = Colores.brandText,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.l),
         )
-        SeccionAdmin.entries.forEach { seccion ->
+        val grupos = listOf(
+            "Supervisión" to listOf(SeccionAdmin.DASHBOARD, SeccionAdmin.CALIDAD, SeccionAdmin.PROVEEDORES),
+            "Acopio" to listOf(SeccionAdmin.JORNADAS, SeccionAdmin.ENTREGAS, SeccionAdmin.CONFLICTOS, SeccionAdmin.TRASLADOS),
+            "Administración" to listOf(SeccionAdmin.USUARIOS, SeccionAdmin.ZONAS, SeccionAdmin.VEHICULOS, SeccionAdmin.AUDITORIA),
+        )
+        grupos.forEach { (titulo, secciones) ->
+        Text(titulo, modifier = Modifier.padding(Espaciado.m), style = MaterialTheme.typography.labelLarge, color = Colores.textSecundario)
+        secciones.forEach { seccion ->
             NavigationDrawerItem(
                 label = { Text(seccion.etiqueta) },
                 icon = { Icon(iconoDeSeccion(seccion), contentDescription = null) },
@@ -115,6 +123,7 @@ fun AdminDrawerContenido(
                 ),
                 modifier = Modifier.padding(horizontal = Espaciado.s, vertical = Espaciado.xxs),
             )
+        }
         }
         HorizontalDivider(Modifier.padding(vertical = Espaciado.s), color = Colores.borde)
         NavigationDrawerItem(

@@ -9,6 +9,7 @@ data class EntregasUiState(
     val entregas: List<Entrega> = emptyList(),
     val proveedores: List<Proveedor> = emptyList(),
     val filtroSyncState: SyncState? = null,
+    val error: String? = null,
 ) {
     val entregasFiltradas: List<Entrega>
         get() = entregas.filter { filtroSyncState == null || it.syncState == filtroSyncState }

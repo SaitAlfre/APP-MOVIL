@@ -3,13 +3,16 @@ package pe.ecolecta.presentation.proveedor.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +23,7 @@ import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.presentation.design.Banner
-import pe.ecolecta.presentation.design.ChipEstado
+import pe.ecolecta.presentation.design.ChipSync
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
@@ -29,15 +32,27 @@ import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TarjetaEstadistica
 import pe.ecolecta.presentation.design.TipoBanner
-import pe.ecolecta.presentation.design.formatearFechaHora
 import pe.ecolecta.presentation.design.formatearLitros
+import pe.ecolecta.presentation.proveedor.FilaEntrega
 
 @Composable
-fun ProveedorHomeScreen(viewModel: ProveedorHomeViewModel = koinViewModel()) {
+fun ProveedorHomeScreen(
+    alVerMiRuta: () -> Unit,
+    viewModel: ProveedorHomeViewModel = koinViewModel(),
+) {
     val estado by viewModel.uiState.collectAsState()
 
     if (estado.cargando) {
         IndicadorCarga(mensaje = "Cargando tu información…")
+        return
+    }
+
+    if (estado.error != null) {
+        EstadoVacio(
+            titulo = "No se pudo cargar tu información",
+            descripcion = estado.error.orEmpty(),
+            icono = Icons.Filled.ErrorOutline,
+        )
         return
     }
 
@@ -50,10 +65,13 @@ fun ProveedorHomeScreen(viewModel: ProveedorHomeViewModel = koinViewModel()) {
             }
 
             TarjetaEstadistica(
-                etiqueta = "LITROS DE HOY · ${estado.entregasHoy} entrega(s)",
+                etiqueta = "LITROS DE HOY · ${estado.entregasHoy} ${if (estado.entregasHoy == 1) "entrega" else "entregas"}",
                 valor = formatearLitros(estado.litrosHoy),
                 icono = Icons.Filled.WaterDrop,
                 color = Colores.brand,
+                colorValor = Colores.brandText,
+                iconoEnLinea = true,
+                estiloValor = MaterialTheme.typography.headlineLarge,
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
@@ -62,13 +80,15 @@ fun ProveedorHomeScreen(viewModel: ProveedorHomeViewModel = koinViewModel()) {
                     valor = formatearLitros(estado.litrosSemana),
                     icono = Icons.Filled.WaterDrop,
                     color = Colores.info,
+                    iconoEnLinea = true,
                     modifier = Modifier.weight(1f),
                 )
                 TarjetaEstadistica(
-                    etiqueta = "Entregas esta semana",
+                    etiqueta = "Entregas semana",
                     valor = estado.entregasSemana.toString(),
-                    icono = Icons.Filled.Inventory2,
+                    icono = Icons.AutoMirrored.Filled.ReceiptLong,
                     color = Colores.secundario,
+                    iconoEnLinea = true,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -76,8 +96,8 @@ fun ProveedorHomeScreen(viewModel: ProveedorHomeViewModel = koinViewModel()) {
             Text(
                 "Últimas entregas",
                 color = Colores.textPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = Espaciado.s),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = Espaciado.xs),
             )
 
             if (estado.sinEntregas) {
@@ -88,21 +108,28 @@ fun ProveedorHomeScreen(viewModel: ProveedorHomeViewModel = koinViewModel()) {
                 )
             } else {
                 estado.ultimasEntregas.forEach { entrega ->
-                    Tarjeta {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Text(formatearLitros(entrega.litros), color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
-                                Text(formatearFechaHora(entrega.registradoEn), color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
-                            }
-                            ChipEstado(
-                                if (entrega.anulada) "ANULADA" else entrega.syncState.name,
-                                if (entrega.anulada) Colores.peligro else Colores.info,
-                            )
-                        }
-                    }
+                    FilaEntrega(entrega)
                 }
             }
+
+            TarjetaSiguienteAcopio(alVerMiRuta)
+
+            Spacer(Modifier.height(Espaciado.l))
         }
+    }
+}
+
+/**
+ * Cierre de la pantalla de inicio: recuerda al proveedor que puede seguir al acopiador en vivo y
+ * lleva directo a esa pestaña, que de otro modo solo se descubre explorando la barra inferior.
+ */
+@Composable
+private fun TarjetaSiguienteAcopio(alVerMiRuta: () -> Unit) {
+    Tarjeta(onClick = alVerMiRuta) {
+        Text("Tu siguiente acopio", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(Espaciado.xxs))
+        Text("Sigue la ruta del acopiador", color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
+        Text("para conocer su ubicación.", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

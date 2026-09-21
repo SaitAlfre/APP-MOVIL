@@ -21,11 +21,13 @@ class ActualizarProveedorUseCase(
         tachos: Int,
         capacidadTachoL: Double,
         estado: EstadoProveedor,
+        dueno: String? = null,
     ): Result<Unit> {
         if (proveedorRepository.existeDni(dni.trim(), id)) {
             return Result.failure(ProveedorInvalidoException.DniDuplicado)
         }
 
+        val anterior = proveedorRepository.obtenerPorId(id)
         val proveedor = Proveedor.crear(
             id = id,
             codigo = codigoActual,
@@ -38,7 +40,10 @@ class ActualizarProveedorUseCase(
             capacidadTachoL = capacidadTachoL,
             estado = estado,
             updatedAt = reloj.ahora().toEpochMilliseconds(),
-        ).getOrElse { return Result.failure(it) }
+        ).getOrElse { return Result.failure(it) }.copy(
+            dueno = if (dueno == null) anterior?.dueno else dueno.trim().ifBlank { null },
+            usuarioId = anterior?.usuarioId,
+        )
 
         return runCatching { proveedorRepository.actualizar(proveedor) }
     }

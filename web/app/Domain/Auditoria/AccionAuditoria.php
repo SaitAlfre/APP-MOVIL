@@ -11,4 +11,7 @@ enum AccionAuditoria: string
     case Anular = 'anular';
     case Autorizar = 'autorizar';
     case Rechazar = 'rechazar';
+    case IniciarSesion = 'iniciar_sesion';
+    case CerrarSesion = 'cerrar_sesion';
+    case AccesoFallido = 'acceso_fallido';
 }

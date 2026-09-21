@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Domain\Usuarios\Rol;
 use Database\Factories\UsuarioFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -27,6 +28,10 @@ class Usuario extends Authenticatable
         'roles',
         'intentos_fallidos',
         'bloqueado_hasta',
+        'bloqueado_manualmente',
+        'motivo_bloqueo',
+        'bloqueado_por',
+        'bloqueado_manual_en',
     ];
 
     protected $hidden = [
@@ -40,6 +45,8 @@ class Usuario extends Authenticatable
             'activo' => 'boolean',
             'roles' => 'array',
             'bloqueado_hasta' => 'datetime',
+            'bloqueado_manualmente' => 'boolean',
+            'bloqueado_manual_en' => 'datetime',
             'pin_hash' => 'hashed',
         ];
     }
@@ -57,5 +64,34 @@ class Usuario extends Authenticatable
     public function tieneRol(string $rol): bool
     {
         return in_array($rol, $this->roles ?? [], true);
+    }
+
+    /** Bloqueado automático (intentos fallidos) o manual (con motivo): cualquiera de los dos impide el acceso. */
+    public function estaBloqueada(): bool
+    {
+        return $this->bloqueado_manualmente || ($this->bloqueado_hasta !== null && $this->bloqueado_hasta->isFuture());
+    }
+
+    public function accesoWeb(): bool
+    {
+        if (! $this->activo || $this->estaBloqueada()) {
+            return false;
+        }
+
+        foreach ($this->roles ?? [] as $rolValor) {
+            if (Rol::tryFrom($rolValor)?->accesoWeb()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Para mostrar u ocultar enlaces de navegación; el control real está en la matriz `permiso:` de las rutas. */
+    public function puede(string $modulo, string $accion = 'ver'): bool
+    {
+        $rolesPermitidos = config("permisos.{$modulo}.{$accion}", []);
+
+        return collect($this->roles ?? [])->intersect($rolesPermitidos)->isNotEmpty();
     }
 }

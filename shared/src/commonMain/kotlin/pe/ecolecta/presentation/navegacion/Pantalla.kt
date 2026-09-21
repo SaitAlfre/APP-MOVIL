@@ -8,7 +8,10 @@ sealed interface Pantalla {
 
     data object AcopiadorSeleccionZonaVehiculo : Pantalla
     data object AcopiadorHome : Pantalla
-    data object AcopiadorRegistroEntrega : Pantalla
+    data object AcopiadorLista : Pantalla
+
+    /** [proveedorId] llega desde la lista del día, para no volver a elegir a quien ya se seleccionó. */
+    data class AcopiadorRegistroEntrega(val proveedorId: String? = null) : Pantalla
     data object AcopiadorEscanearQr : Pantalla
     data object AcopiadorLote : Pantalla
     data object AcopiadorSincronizacion : Pantalla
@@ -21,6 +24,9 @@ sealed interface Pantalla {
     data object ProveedorMiQr : Pantalla
     data object ProveedorPerfil : Pantalla
 
+    data object CalidadInicio : Pantalla
+    data object CalidadNuevo : Pantalla
+
     data object AdminDashboard : Pantalla
     data object AdminUsuarios : Pantalla
     data class AdminUsuarioForm(val id: String? = null) : Pantalla
@@ -29,18 +35,21 @@ sealed interface Pantalla {
     data object AdminVehiculos : Pantalla
     data class AdminVehiculoForm(val id: String? = null) : Pantalla
     data object AdminProveedores : Pantalla
+    data class AdminProveedorDetalle(val id: String) : Pantalla
+    data class AdminCalidad(val proveedorId: String? = null) : Pantalla
     data class AdminProveedorForm(val id: String? = null) : Pantalla
     data object AdminTraslados : Pantalla
     data object AdminJornadas : Pantalla
     data class AdminJornadaDetalle(val id: String) : Pantalla
     data object AdminEntregas : Pantalla
-    data class AdminEntregaDetalle(val id: String) : Pantalla
+    data class AdminEntregaDetalle(val id: String, val proveedorOrigenId: String? = null) : Pantalla
     data object AdminConflictos : Pantalla
     data object AdminAuditoria : Pantalla
 }
 
 enum class SeccionAdmin(val pantalla: Pantalla, val etiqueta: String) {
-    DASHBOARD(Pantalla.AdminDashboard, "Dashboard"),
+    DASHBOARD(Pantalla.AdminDashboard, "Inicio"),
+    CALIDAD(Pantalla.AdminCalidad(), "Calidad"),
     USUARIOS(Pantalla.AdminUsuarios, "Usuarios"),
     ZONAS(Pantalla.AdminZonas, "Zonas"),
     VEHICULOS(Pantalla.AdminVehiculos, "Vehículos"),

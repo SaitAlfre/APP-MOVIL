@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.domain.usecase.entrega.ObservarEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class EntregasViewModel(
     private val observarEntregasUseCase: ObservarEntregasUseCase,
@@ -20,10 +21,13 @@ class EntregasViewModel(
 
     init {
         viewModelScope.launch {
-            observarEntregasUseCase().collect { entregas -> _uiState.update { it.copy(cargando = false, entregas = entregas) } }
+            cargaSegura {
+                observarEntregasUseCase().collect { entregas -> _uiState.update { it.copy(cargando = false, entregas = entregas) } }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar las entregas.") } }
         }
         viewModelScope.launch {
-            listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } }
+            cargaSegura { listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
     }
 

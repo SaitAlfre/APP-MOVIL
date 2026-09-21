@@ -48,6 +48,7 @@ class SqlDelightProveedorRepository(
     }
 
     override suspend fun insertar(proveedor: Proveedor) = withContext(dispatcher) {
+        db.transaction {
         db.proveedorQueries.insertar(
             id = proveedor.id,
             codigo = proveedor.codigo,
@@ -62,10 +63,13 @@ class SqlDelightProveedorRepository(
             updated_at = proveedor.updatedAt,
             sync_state = proveedor.syncState.name,
         )
+        db.proveedorQueries.actualizarResponsable(proveedor.dueno, proveedor.id)
+        }
         Unit
     }
 
     override suspend fun actualizar(proveedor: Proveedor) = withContext(dispatcher) {
+        db.transaction {
         db.proveedorQueries.actualizar(
             nombres = proveedor.nombres,
             dni = proveedor.dni,
@@ -77,6 +81,9 @@ class SqlDelightProveedorRepository(
             updated_at = proveedor.updatedAt,
             id = proveedor.id,
         )
+        db.proveedorQueries.actualizarResponsable(proveedor.dueno, proveedor.id)
+        db.proveedorQueries.cambiarEstado(proveedor.estado.name, proveedor.updatedAt, proveedor.id)
+        }
         Unit
     }
 

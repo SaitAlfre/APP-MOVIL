@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +36,7 @@ import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
+import pe.ecolecta.presentation.design.Dato
 import pe.ecolecta.presentation.design.DivisorSutil
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
@@ -51,6 +53,10 @@ fun MiRutaAcopioScreen(viewModel: MiRutaAcopioViewModel = koinViewModel()) {
 
     if (estado.cargando) {
         IndicadorCarga(mensaje = "Cargando tu ruta…")
+        return
+    }
+    if (estado.error != null) {
+        EstadoVacio(titulo = "No se pudo cargar tu ruta", descripcion = estado.error.orEmpty(), icono = Icons.Filled.CloudOff)
         return
     }
 
@@ -137,30 +143,39 @@ private fun ContenidoDisponible(disponible: EstadoRutaAcopio.Disponible, ahoraMs
             }
         }
 
-        MapaEstatico(
-            lat = ubicacion.lat,
-            lng = ubicacion.lng,
-            centrarEn = centrarEn,
-            modifier = Modifier.fillMaxWidth().height(280.dp),
-        )
+        // El mapa y la marca de tiempo van dentro del mismo recuadro: mirar el punto sin leer
+        // cuándo se capturó es justo el error que hay que evitar en un seguimiento en vivo.
+        Surface(shape = MaterialTheme.shapes.medium, color = Colores.surfaceAlta, modifier = Modifier.fillMaxWidth()) {
+            Column {
+                MapaEstatico(
+                    lat = ubicacion.lat,
+                    lng = ubicacion.lng,
+                    centrarEn = centrarEn,
+                    modifier = Modifier.fillMaxWidth().height(240.dp),
+                )
+                Text(
+                    "Última ubicación · ${formatearAntiguedad(ubicacion.capturadaEn, ahoraMs)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Colores.textSecundario,
+                    modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.s),
+                )
+            }
+        }
 
         BotonSecundario(texto = "Centrar en el acopiador", onClick = { centrarEn++ }, icono = Icons.Filled.MyLocation)
 
         Tarjeta {
             Dato("Hora de captura", formatearFechaHora(ubicacion.capturadaEn))
             DivisorSutil(Modifier.padding(vertical = Espaciado.s))
-            Dato("Antigüedad", if (esVivo) "En vivo" else formatearAntiguedad(ubicacion.capturadaEn, ahoraMs))
-            DivisorSutil(Modifier.padding(vertical = Espaciado.s))
-            Dato("Precisión", "±${ubicacion.precisionM.toInt()} m")
+            Dato(
+                "Antigüedad",
+                buildString {
+                    append(if (esVivo) "En vivo" else formatearAntiguedad(ubicacion.capturadaEn, ahoraMs))
+                    append(" · precisión ±${ubicacion.precisionM.toInt()} m")
+                },
+                ultimo = true,
+            )
         }
-    }
-}
-
-@Composable
-private fun Dato(etiqueta: String, valor: String) {
-    Column {
-        Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
-        Text(valor, style = MaterialTheme.typography.bodyLarge, color = Colores.textPrimary)
     }
 }
 

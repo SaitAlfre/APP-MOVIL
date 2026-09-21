@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,27 +25,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.rememberGraphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonSecundario
-import pe.ecolecta.presentation.design.ChipEstado
-import pe.ecolecta.presentation.design.Colores
+import pe.ecolecta.presentation.cargaSegura
+import pe.ecolecta.presentation.design.Dato
 import pe.ecolecta.presentation.design.EcolectaLogo
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
+import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.PaletaClara
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
-import pe.ecolecta.presentation.design.formatearLitros
 import pe.ecolecta.presentation.qr.ExportadorQr
+import pe.ecolecta.presentation.qr.rememberSolicitadorPermisoAlmacenamiento
 import qrgenerator.qrkitpainter.rememberQrKitPainter
 import qrgenerator.shareQrCodeImage
 
@@ -61,6 +56,10 @@ fun MiQrProveedorScreen(viewModel: MiQrProveedorViewModel = koinViewModel()) {
         IndicadorCarga(mensaje = "Cargando tu QR…")
         return
     }
+    if (estado.error != null) {
+        EstadoVacio(titulo = "No se pudo cargar tu QR", descripcion = estado.error.orEmpty())
+        return
+    }
     val proveedor = estado.proveedor ?: return
 
     val exportadorQr = koinInject<ExportadorQr>()
@@ -70,6 +69,32 @@ fun MiQrProveedorScreen(viewModel: MiQrProveedorViewModel = koinViewModel()) {
     var mensaje by remember { mutableStateOf<Pair<String, TipoBanner>?>(null) }
 
     fun nombreArchivo() = "qr-ecolecta-${proveedor.codigo}"
+
+    fun guardarEnGaleria() {
+        scope.launch {
+            mensaje = null
+            try {
+                cargaSegura {
+                    val bitmap = graphicsLayer.toImageBitmap()
+                    exportadorQr.guardarEnGaleria(bitmap, nombreArchivo()).getOrThrow()
+                }.fold(
+                    onSuccess = { mensaje = "QR guardado en tu galería." to TipoBanner.EXITO },
+                    onFailure = { error -> mensaje = "No se pudo guardar el QR: ${error.message}" to TipoBanner.ERROR },
+                )
+            } finally {
+                exportando = false
+            }
+        }
+    }
+
+    val solicitarPermisoAlmacenamiento = rememberSolicitadorPermisoAlmacenamiento(onResultado = { concedido ->
+        if (concedido) {
+            guardarEnGaleria()
+        } else {
+            exportando = false
+            mensaje = "Se necesita permiso de almacenamiento para guardar el QR en tu galería." to TipoBanner.ADVERTENCIA
+        }
+    })
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         EncabezadoSeccion("Mi QR", subtitulo = "Muéstraselo al acopiador, o descárgalo e imprímelo para llevarlo contigo")
@@ -91,62 +116,58 @@ fun MiQrProveedorScreen(viewModel: MiQrProveedorViewModel = koinViewModel()) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 AccionQr(
                     texto = "Descargar",
-                    icono = Icons.Filled.FileDownload,
+                    habilitado = !exportando,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        exportando = true
+                        mensaje = null
+                        solicitarPermisoAlmacenamiento()
+                    },
+                )
+                AccionQr(
+                    texto = "Imprimir",
                     habilitado = !exportando,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         scope.launch {
                             exportando = true
                             mensaje = null
-                            val bitmap = graphicsLayer.toImageBitmap()
-                            exportadorQr.guardarEnGaleria(bitmap, nombreArchivo()).fold(
-                                onSuccess = { mensaje = "QR guardado en tu galería." to TipoBanner.EXITO },
-                                onFailure = { error -> mensaje = "No se pudo guardar el QR: ${error.message}" to TipoBanner.ERROR },
-                            )
-                            exportando = false
-                        }
-                    },
-                )
-                AccionQr(
-                    texto = "Imprimir",
-                    icono = Icons.Filled.Print,
-                    habilitado = !exportando,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        scope.launch {
-                            exportando = true
-                            val bitmap = graphicsLayer.toImageBitmap()
-                            exportadorQr.imprimir(bitmap, "QR ${proveedor.codigo}")
-                            exportando = false
+                            try {
+                                cargaSegura {
+                                    val bitmap = graphicsLayer.toImageBitmap()
+                                    exportadorQr.imprimir(bitmap, "QR ${proveedor.codigo}")
+                                }.onFailure { error -> mensaje = "No se pudo imprimir el QR: ${error.message}" to TipoBanner.ERROR }
+                            } finally {
+                                exportando = false
+                            }
                         }
                     },
                 )
                 AccionQr(
                     texto = "Compartir",
-                    icono = Icons.Filled.Share,
                     habilitado = !exportando,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         scope.launch {
                             exportando = true
-                            val bitmap = graphicsLayer.toImageBitmap()
-                            shareQrCodeImage(bitmap, nombreArchivo())
-                            exportando = false
+                            mensaje = null
+                            try {
+                                cargaSegura {
+                                    val bitmap = graphicsLayer.toImageBitmap()
+                                    shareQrCodeImage(bitmap, nombreArchivo())
+                                }.onFailure { error -> mensaje = "No se pudo compartir el QR: ${error.message}" to TipoBanner.ERROR }
+                            } finally {
+                                exportando = false
+                            }
                         }
                     },
                 )
             }
 
             Tarjeta {
-                FilaDato("Código", proveedor.codigo)
-                FilaDato("Nombre", proveedor.nombres)
-                FilaDato("Zona", estado.nombreZona)
-                Row(Modifier.fillMaxWidth().padding(bottom = Espaciado.xs), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Estado", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
-                    ChipEstado(proveedor.estado.name, colorDeEstado(proveedor.estado))
-                }
-                FilaDato("Cantidad de tachos", proveedor.tachos.toString())
-                FilaDato("Capacidad por tacho", formatearLitros(proveedor.capacidadTachoL), ultimo = true)
+                Dato("Código", proveedor.codigo)
+                Dato("Nombre", proveedor.nombres)
+                Dato("Zona", "${estado.nombreZona} · ${proveedor.tachos} tachos", ultimo = true)
             }
         }
     }
@@ -191,25 +212,10 @@ private fun TarjetaQrImprimible(proveedor: Proveedor, contenidoQr: String) {
     }
 }
 
+/** Las tres acciones comparten el ancho de la pantalla, así que van sin ícono para que el texto quepa entero. */
 @Composable
-private fun AccionQr(texto: String, icono: ImageVector, habilitado: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    BotonSecundario(texto = texto, onClick = onClick, modifier = modifier, habilitado = habilitado, icono = icono)
+private fun AccionQr(texto: String, habilitado: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    BotonSecundario(texto = texto, onClick = onClick, modifier = modifier, habilitado = habilitado)
 }
 
-@Composable
-private fun colorDeEstado(estado: EstadoProveedor) = when (estado) {
-    EstadoProveedor.ACTIVO -> Colores.exito
-    EstadoProveedor.SUSPENDIDO -> Colores.advertencia
-    EstadoProveedor.RETIRADO -> Colores.peligro
-}
 
-@Composable
-private fun FilaDato(etiqueta: String, valor: String, ultimo: Boolean = false) {
-    Row(
-        Modifier.fillMaxWidth().padding(bottom = if (ultimo) 0.dp else Espaciado.xs),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
-        Text(valor, color = Colores.textPrimary, style = MaterialTheme.typography.bodyMedium)
-    }
-}

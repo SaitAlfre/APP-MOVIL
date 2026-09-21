@@ -17,6 +17,7 @@ import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarMisEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ProveedorHomeViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
@@ -29,35 +30,37 @@ class ProveedorHomeViewModel(
 
     init {
         viewModelScope.launch {
-            val usuario = obtenerSesionUseCase().first()?.usuario ?: return@launch
-            val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@launch
+            cargaSegura {
+                val usuario = obtenerSesionUseCase().first()?.usuario ?: return@cargaSegura
+                val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@cargaSegura
 
-            val zona = TimeZone.currentSystemDefault()
-            val hoy = reloj.hoy()
-            val inicioHoy = hoy.atStartOfDayIn(zona).toEpochMilliseconds()
-            val finHoy = hoy.plus(DatePeriod(days = 1)).atStartOfDayIn(zona).toEpochMilliseconds()
-            val inicioSemana = hoy.minus(DatePeriod(days = 6)).atStartOfDayIn(zona).toEpochMilliseconds()
+                val zona = TimeZone.currentSystemDefault()
+                val hoy = reloj.hoy()
+                val inicioHoy = hoy.atStartOfDayIn(zona).toEpochMilliseconds()
+                val finHoy = hoy.plus(DatePeriod(days = 1)).atStartOfDayIn(zona).toEpochMilliseconds()
+                val inicioSemana = hoy.minus(DatePeriod(days = 6)).atStartOfDayIn(zona).toEpochMilliseconds()
 
-            listarMisEntregasUseCase(proveedor.id).collect { entregas ->
-                val vigentes = entregas.filterNot { it.anulada }
-                val deHoy = vigentes.filter { it.registradoEn in inicioHoy until finHoy }
-                val deLaSemana = vigentes.filter { it.registradoEn >= inicioSemana }
+                listarMisEntregasUseCase(proveedor.id).collect { entregas ->
+                    val vigentes = entregas.filterNot { it.anulada }
+                    val deHoy = vigentes.filter { it.registradoEn in inicioHoy until finHoy }
+                    val deLaSemana = vigentes.filter { it.registradoEn >= inicioSemana }
 
-                _uiState.update {
-                    it.copy(
-                        cargando = false,
-                        nombreProveedor = proveedor.nombres,
-                        codigoProveedor = proveedor.codigo,
-                        estadoProveedor = proveedor.estado,
-                        litrosHoy = deHoy.sumOf { e -> e.litros },
-                        entregasHoy = deHoy.size,
-                        litrosSemana = deLaSemana.sumOf { e -> e.litros },
-                        entregasSemana = deLaSemana.size,
-                        ultimasEntregas = entregas.sortedByDescending { e -> e.registradoEn }.take(5),
-                        sinEntregas = entregas.isEmpty(),
-                    )
+                    _uiState.update {
+                        it.copy(
+                            cargando = false,
+                            nombreProveedor = proveedor.nombres,
+                            codigoProveedor = proveedor.codigo,
+                            estadoProveedor = proveedor.estado,
+                            litrosHoy = deHoy.sumOf { e -> e.litros },
+                            entregasHoy = deHoy.size,
+                            litrosSemana = deLaSemana.sumOf { e -> e.litros },
+                            entregasSemana = deLaSemana.size,
+                            ultimasEntregas = entregas.sortedByDescending { e -> e.registradoEn }.take(5),
+                            sinEntregas = entregas.isEmpty(),
+                        )
+                    }
                 }
-            }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu información.") } }
         }
     }
 }

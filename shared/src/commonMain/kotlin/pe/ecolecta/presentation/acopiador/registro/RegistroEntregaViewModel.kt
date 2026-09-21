@@ -118,4 +118,11 @@ class RegistroEntregaViewModel(
     }
 
     fun cerrarAvisoDuplicado() = _uiState.update { it.copy(entregaDuplicada = null) }
+
+    /**
+     * Consume el evento de "guardado exitoso" para que no se vuelva a disparar la navegación
+     * automática la próxima vez que esta pantalla (o el mismo ViewModel reutilizado por la sesión)
+     * vuelva a componerse.
+     */
+    fun confirmarNavegacion() = _uiState.update { it.copy(guardadoExitoso = false, advertenciaDesviacion = false) }
 }

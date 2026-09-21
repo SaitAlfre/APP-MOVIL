@@ -12,6 +12,7 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.repository.UsuarioRepository
+import pe.ecolecta.domain.security.ParHashPin
 
 class SqlDelightUsuarioRepository(
     private val db: EcolectaDatabase,
@@ -64,6 +65,26 @@ class SqlDelightUsuarioRepository(
     override suspend fun actualizarPin(id: String, pinHash: String, pinSalt: String, updatedAt: Long) = withContext(dispatcher) {
         db.usuarioQueries.actualizarPin(pin_hash = pinHash, pin_salt = pinSalt, updated_at = updatedAt, id = id)
         Unit
+    }
+
+    override suspend fun actualizarCompleto(
+        id: String,
+        nombres: String,
+        dni: String,
+        activo: Boolean,
+        rolesAgregados: List<Rol>,
+        rolesQuitados: List<Rol>,
+        nuevoPin: ParHashPin?,
+        updatedAt: Long,
+    ) = withContext(dispatcher) {
+        db.usuarioQueries.transaction {
+            db.usuarioQueries.actualizar(nombres = nombres, dni = dni, activo = if (activo) 1 else 0, updated_at = updatedAt, id = id)
+            rolesAgregados.forEach { rol -> db.usuarioRolQueries.insertar(usuario_id = id, rol = rol.name) }
+            rolesQuitados.forEach { rol -> db.usuarioRolQueries.eliminar(usuario_id = id, rol = rol.name) }
+            if (nuevoPin != null) {
+                db.usuarioQueries.actualizarPin(pin_hash = nuevoPin.hash, pin_salt = nuevoPin.salt, updated_at = updatedAt, id = id)
+            }
+        }
     }
 
     override suspend fun desactivar(id: String, updatedAt: Long) = withContext(dispatcher) {

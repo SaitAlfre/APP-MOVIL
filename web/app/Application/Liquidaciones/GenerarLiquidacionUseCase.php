@@ -6,6 +6,8 @@ use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Domain\Liquidaciones\Liquidacion;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Liquidacion as LiquidacionEloquent;
+use App\Infrastructure\Persistence\Eloquent\Sancion;
 use DateTimeImmutable;
 use RuntimeException;
 
@@ -35,6 +37,22 @@ final class GenerarLiquidacionUseCase
             generadaEn: new DateTimeImmutable,
         );
 
-        return $this->liquidaciones->guardar($liquidacion);
+        $guardada = $this->liquidaciones->guardar($liquidacion);
+        $sanciones = Sancion::where('proveedor_id', $proveedorId)
+            ->where('estado', 'aprobada')
+            ->whereNull('aplicada_liquidacion_id')
+            ->lockForUpdate()
+            ->get();
+        $descuento = min((float) $sanciones->sum('descuento'), $guardada->montoTotal);
+
+        if ($descuento > 0 && $guardada->id !== null) {
+            LiquidacionEloquent::whereKey($guardada->id)->update([
+                'descuento_sanciones' => $descuento,
+                'monto_total' => round($guardada->montoTotal - $descuento, 2),
+            ]);
+            Sancion::whereKey($sanciones->pluck('id')->all())->update(['aplicada_liquidacion_id' => $guardada->id]);
+        }
+
+        return $this->liquidaciones->buscarPorId($guardada->id) ?? $guardada;
     }
 }

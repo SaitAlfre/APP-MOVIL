@@ -7,13 +7,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import pe.ecolecta.domain.usecase.jornada.ListarJornadasUseCase
+import pe.ecolecta.domain.usecase.jornada.ObservarJornadasUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class JornadasViewModel(
-    private val listarJornadasUseCase: ListarJornadasUseCase,
+    private val observarJornadasUseCase: ObservarJornadasUseCase,
     private val listarUsuariosUseCase: ListarUsuariosUseCase,
     private val listarZonasUseCase: ListarZonasUseCase,
     private val listarVehiculosUseCase: ListarVehiculosUseCase,
@@ -23,12 +24,21 @@ class JornadasViewModel(
 
     init {
         viewModelScope.launch {
-            val jornadas = listarJornadasUseCase()
-            _uiState.update { it.copy(cargando = false, jornadas = jornadas) }
+            cargaSegura { observarJornadasUseCase().collect { jornadas -> _uiState.update { it.copy(cargando = false, jornadas = jornadas) } } }
+                .onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar las jornadas.") } }
         }
-        viewModelScope.launch { listarUsuariosUseCase().collect { lista -> _uiState.update { it.copy(usuarios = lista) } } }
-        viewModelScope.launch { listarZonasUseCase().collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
-        viewModelScope.launch { listarVehiculosUseCase().collect { lista -> _uiState.update { it.copy(vehiculos = lista) } } }
+        viewModelScope.launch {
+            cargaSegura { listarUsuariosUseCase().collect { lista -> _uiState.update { it.copy(usuarios = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
+        }
+        viewModelScope.launch {
+            cargaSegura { listarZonasUseCase().collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
+        }
+        viewModelScope.launch {
+            cargaSegura { listarVehiculosUseCase().collect { lista -> _uiState.update { it.copy(vehiculos = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
+        }
     }
 
     fun filtrarPorZona(zonaId: String?) {

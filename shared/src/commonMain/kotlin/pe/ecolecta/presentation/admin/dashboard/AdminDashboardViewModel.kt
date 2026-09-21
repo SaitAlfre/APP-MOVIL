@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.dashboard.ObtenerResumenAdminUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class AdminDashboardViewModel(
     private val obtenerResumenAdminUseCase: ObtenerResumenAdminUseCase,
@@ -21,9 +22,11 @@ class AdminDashboardViewModel(
 
     fun cargar() {
         viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true) }
-            val resumen = obtenerResumenAdminUseCase()
-            _uiState.update { it.copy(cargando = false, resumen = resumen) }
+            _uiState.update { it.copy(cargando = true, error = null) }
+            cargaSegura { obtenerResumenAdminUseCase() }.fold(
+                onSuccess = { resumen -> _uiState.update { it.copy(cargando = false, resumen = resumen) } },
+                onFailure = { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar el resumen.") } },
+            )
         }
     }
 }

@@ -12,6 +12,7 @@ import pe.ecolecta.domain.usecase.entrega.AnularEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.CorregirEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ObtenerEntregaUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class EntregaDetalleViewModel(
     private val entregaId: String,
@@ -33,15 +34,25 @@ class EntregaDetalleViewModel(
 
     private fun cargar() {
         viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true) }
-            val entrega = obtenerEntregaUseCase(entregaId)
-            val proveedor = entrega?.let { obtenerProveedorUseCase(it.proveedorId) }
-            _uiState.update { it.copy(cargando = false, entrega = entrega, proveedorNombre = proveedor?.nombres.orEmpty()) }
+            _uiState.update { it.copy(cargando = true, error = null) }
+            cargaSegura {
+                val entrega = obtenerEntregaUseCase(entregaId)
+                val proveedor = entrega?.let { obtenerProveedorUseCase(it.proveedorId) }
+                entrega to proveedor
+            }.fold(
+                onSuccess = { (entrega, proveedor) ->
+                    _uiState.update { it.copy(cargando = false, entrega = entrega, proveedorNombre = proveedor?.nombres.orEmpty()) }
+                },
+                onFailure = { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar la entrega.") } },
+            )
         }
     }
 
     fun corregir(litros: Double, tachos: Int, motivo: String) {
-        val usuarioId = usuarioActualId ?: return
+        val usuarioId = usuarioActualId ?: run {
+            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            return
+        }
         val observaciones = _uiState.value.entrega?.observaciones
         viewModelScope.launch {
             corregirEntregaUseCase(entregaId, litros, tachos, observaciones, motivo, usuarioId).fold(
@@ -52,7 +63,10 @@ class EntregaDetalleViewModel(
     }
 
     fun anular(motivo: String) {
-        val usuarioId = usuarioActualId ?: return
+        val usuarioId = usuarioActualId ?: run {
+            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            return
+        }
         viewModelScope.launch {
             anularEntregaUseCase(entregaId, motivo, usuarioId).fold(
                 onSuccess = { cargar() },

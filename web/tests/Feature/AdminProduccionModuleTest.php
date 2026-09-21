@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Application\Produccion\ObtenerSaldoProduccionUseCase;
+use App\Domain\Calidad\EstadoCalidad;
+use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
-use App\Infrastructure\Persistence\Eloquent\Insumo;
-use App\Infrastructure\Persistence\Eloquent\LoteInsumo;
+use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Producto;
-use App\Infrastructure\Persistence\Eloquent\Receta;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
+use App\Infrastructure\Persistence\Eloquent\Vehiculo;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,494 +27,284 @@ class AdminProduccionModuleTest extends TestCase
         return $admin;
     }
 
-    private function crearInsumo(string $nombre, string $unidad): Insumo
+    /** Queso fresco: 10 L de leche por unidad. */
+    private function crearReceta(): Producto
     {
-        return Insumo::factory()->create(['nombre' => $nombre, 'unidad' => $unidad]);
-    }
-
-    /** Crea el producto "Queso fresco" con una receta activa (10 quesos = 100 L leche + 20 ml cuajo + 200 g sal). */
-    private function crearProductoConRecetaActiva(): array
-    {
-        $leche = Insumo::query()->where('nombre', 'Leche')->firstOrFail();
-        $cuajo = $this->crearInsumo('Cuajo', 'ml');
-        $sal = $this->crearInsumo('Sal', 'kg');
-
         $this->post('/admin/produccion/productos', [
             'nombre' => 'Queso fresco',
             'presentacion' => '1 kg',
             'unidad_produccion' => 'unidad',
-            'contenido_por_unidad' => 1,
-            'unidad_contenido' => 'kg',
+            'litros_por_unidad' => 10,
+            'otros_insumos' => 'Cuajo 2 mL, Sal 20 g',
         ])->assertRedirect(route('admin.produccion.productos.index'));
 
-        $producto = Producto::query()->where('nombre', 'Queso fresco')->firstOrFail();
-
-        $this->post('/admin/produccion/recetas', [
-            'producto_id' => $producto->id,
-            'nombre' => 'Receta base',
-            'rendimiento_base' => 10,
-            'rendimiento_unidad' => 'unidad',
-            'ingredientes' => [
-                ['insumo_id' => $leche->id, 'cantidad' => 100, 'unidad' => 'L'],
-                ['insumo_id' => $cuajo->id, 'cantidad' => 20, 'unidad' => 'ml'],
-                ['insumo_id' => $sal->id, 'cantidad' => 200, 'unidad' => 'g'],
-            ],
-        ])->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $producto->id]));
-
-        $receta = Receta::query()->where('producto_id', $producto->id)->firstOrFail();
-
-        $this->patch("/admin/produccion/recetas/{$receta->id}/activar")
-            ->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $producto->id]));
-
-        return compact('producto', 'receta', 'leche', 'cuajo', 'sal');
+        return Producto::query()->where('nombre', 'Queso fresco')->firstOrFail();
     }
 
-    // --- Inventario: entradas, catálogo, historial ---
+    private function registrarEntregaEvaluada(Vehiculo $vehiculo, float $litros, EstadoCalidad $resultado, string $fecha): Entrega
+    {
+        // La jornada comparte vehículo con la entrega (igual que en el flujo real, donde la
+        // entrega hereda el vehiculo_id de su jornada): necesario para que la merma registrada
+        // en Recepción (atada a jornada_id) se agregue bajo el mismo vehículo que el acopio.
+        $jornada = Jornada::factory()->create(['vehiculo_id' => $vehiculo->id, 'fecha' => $fecha]);
 
-    public function test_un_admin_puede_crear_un_insumo_y_registrar_entradas_del_mismo_insumo(): void
+        $entrega = Entrega::factory()->create([
+            'jornada_id' => $jornada->id,
+            'vehiculo_id' => $vehiculo->id,
+            'litros' => $litros,
+            'registrado_en' => $fecha.' 08:00:00',
+            'anulada' => false,
+        ]);
+
+        ControlCalidad::query()->create([
+            'entrega_id' => $entrega->id,
+            'usuario_id' => $entrega->usuario_id,
+            'resultado' => $resultado->value,
+            'temperatura_c' => null,
+            'acidez' => null,
+            'observaciones' => null,
+            'evaluado_en' => now(),
+        ]);
+
+        return $entrega;
+    }
+
+    // --- Acopio del día ---
+
+    public function test_el_acopio_del_dia_agrupa_litros_aprobados_por_vehiculo_real_y_excluye_rechazados(): void
     {
         $this->comoAdmin();
-        $sal = $this->crearInsumo('Sal', 'kg');
+        $hoy = now()->toDateString();
 
-        $this->post('/admin/produccion/inventario/entradas', [
-            'insumo_id' => $sal->id,
-            'cantidad' => 10,
-            'unidad' => 'kg',
-            'fecha' => now()->toDateString(),
-        ])->assertRedirect(route('admin.produccion.inventario.index'));
+        $vehiculo1 = Vehiculo::factory()->create(['nombre' => 'Camioneta Norte']);
+        $vehiculo2 = Vehiculo::factory()->create(['nombre' => 'Camioneta Sur']);
 
-        $this->post('/admin/produccion/inventario/entradas', [
-            'insumo_id' => $sal->id,
-            'cantidad' => 5,
-            'unidad' => 'kg',
-            'fecha' => now()->toDateString(),
-        ])->assertRedirect(route('admin.produccion.inventario.index'));
+        $this->registrarEntregaEvaluada($vehiculo1, 60, EstadoCalidad::Aprobado, $hoy);
+        $this->registrarEntregaEvaluada($vehiculo2, 40, EstadoCalidad::Observado, $hoy);
+        $this->registrarEntregaEvaluada($vehiculo2, 999, EstadoCalidad::Rechazado, $hoy);
 
-        // Dos entradas del mismo insumo, no dos insumos "Sal" distintos.
-        $this->assertDatabaseCount('insumos', $this->countInsumosIncludingLeche());
-        $this->assertDatabaseCount('entradas_insumo', 2);
-        $this->assertEquals(15.0, (float) $sal->refresh()->existencia);
+        $response = $this->get('/admin/produccion');
 
-        $response = $this->get("/admin/produccion/inventario/insumos/{$sal->id}");
         $response->assertOk();
-        $response->assertSee('Sal');
+        $response->assertSee('Camioneta Norte');
+        $response->assertSee('Camioneta Sur');
+        $response->assertSee('100.0 L');
+        $response->assertViewHas('acopio', fn ($acopio) => $acopio->litrosTotal() === 100.0);
     }
 
-    private function countInsumosIncludingLeche(): int
-    {
-        return Insumo::query()->count();
-    }
+    // --- Recetas (productos) ---
 
-    public function test_no_se_puede_registrar_una_entrada_con_cantidad_invalida(): void
-    {
-        $this->comoAdmin();
-        $sal = $this->crearInsumo('Sal', 'kg');
-
-        $response = $this->post('/admin/produccion/inventario/entradas', [
-            'insumo_id' => $sal->id,
-            'cantidad' => 0,
-            'unidad' => 'kg',
-            'fecha' => now()->toDateString(),
-        ]);
-
-        $response->assertSessionHasErrors('cantidad');
-        $this->assertDatabaseCount('entradas_insumo', 0);
-    }
-
-    public function test_un_admin_puede_registrar_un_ajuste_de_inventario_con_motivo(): void
-    {
-        $admin = $this->comoAdmin();
-        $sal = $this->crearInsumo('Sal', 'kg');
-        $sal->update(['existencia' => 10]);
-
-        $this->post("/admin/produccion/inventario/insumos/{$sal->id}/ajuste", [
-            'delta' => -2,
-            'motivo' => 'Merma por derrame',
-        ])->assertRedirect(route('admin.produccion.inventario.insumos.show', $sal->id));
-
-        $this->assertEquals(8.0, (float) $sal->refresh()->existencia);
-        $this->assertDatabaseHas('movimientos_insumo', [
-            'insumo_id' => $sal->id,
-            'tipo' => 'ajuste',
-            'motivo' => 'Merma por derrame',
-            'usuario_id' => $admin->id,
-        ]);
-    }
-
-    public function test_no_se_puede_ajustar_inventario_sin_motivo(): void
-    {
-        $this->comoAdmin();
-        $sal = $this->crearInsumo('Sal', 'kg');
-
-        $response = $this->post("/admin/produccion/inventario/insumos/{$sal->id}/ajuste", ['delta' => 5, 'motivo' => '']);
-
-        $response->assertSessionHasErrors('motivo');
-    }
-
-    // --- Integración Calidad -> Inventario (leche) ---
-
-    public function test_una_entrega_aprobada_por_calidad_genera_una_sola_entrada_de_leche(): void
-    {
-        $this->comoAdmin();
-        $leche = Insumo::query()->where('nombre', 'Leche')->firstOrFail();
-        $entrega = Entrega::factory()->create(['litros' => 45.5]);
-
-        $this->post('/admin/calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'aprobado',
-        ])->assertRedirect(route('admin.calidad.index'));
-
-        $this->assertEquals(45.5, (float) $leche->refresh()->existencia);
-        $this->assertDatabaseCount('entradas_insumo', 1);
-        $this->assertDatabaseHas('entradas_insumo', ['insumo_id' => $leche->id, 'entrega_id' => $entrega->id, 'cantidad' => 45.5]);
-    }
-
-    public function test_una_entrega_rechazada_no_incrementa_la_disponibilidad_de_leche(): void
-    {
-        $this->comoAdmin();
-        $leche = Insumo::query()->where('nombre', 'Leche')->firstOrFail();
-        $entrega = Entrega::factory()->create(['litros' => 30]);
-
-        $this->post('/admin/calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'rechazado',
-        ])->assertRedirect(route('admin.calidad.index'));
-
-        $this->assertEquals(0.0, (float) $leche->refresh()->existencia);
-        $this->assertDatabaseCount('entradas_insumo', 0);
-    }
-
-    public function test_la_leche_sin_evaluar_por_calidad_no_esta_disponible_para_fabricar(): void
-    {
-        $this->comoAdmin();
-        $leche = Insumo::query()->where('nombre', 'Leche')->firstOrFail();
-        Entrega::factory()->create(['litros' => 999]);
-
-        $this->assertEquals(0.0, (float) $leche->refresh()->existencia);
-        $this->assertDatabaseCount('entradas_insumo', 0);
-    }
-
-    // --- Productos y recetas ---
-
-    public function test_un_producto_sin_receta_activa_no_puede_fabricarse(): void
+    public function test_una_receta_requiere_litros_por_unidad_mayor_a_cero(): void
     {
         $this->comoAdmin();
 
-        $this->post('/admin/produccion/productos', [
-            'nombre' => 'Yogurt natural',
-            'presentacion' => '1 L',
+        $response = $this->post('/admin/produccion/productos', [
+            'nombre' => 'Queso sin receta',
+            'presentacion' => '1 kg',
             'unidad_produccion' => 'unidad',
-        ])->assertRedirect(route('admin.produccion.productos.index'));
-
-        $producto = Producto::query()->where('nombre', 'Yogurt natural')->firstOrFail();
-        $this->assertNull($producto->receta_activa_id);
-
-        $response = $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-001',
-            'producto_id' => $producto->id,
-            'cantidad_planificada' => 5,
-            'fecha_planificada' => now()->toDateString(),
+            'litros_por_unidad' => 0,
         ]);
 
-        $response->assertSessionHasErrors('codigo');
+        $response->assertSessionHasErrors('litros_por_unidad');
+        $this->assertDatabaseCount('productos', 0);
+    }
+
+    // --- Creación de lotes y saldo compartido del día ---
+
+    /** La recepción vive en su propia sección (ver AdminRecepcionModuleTest); aquí se valida que el lote use el saldo neto de la merma registrada allí y que una asignación bloquee corregirla. */
+    public function test_la_recepcion_descuenta_merma_y_el_lote_de_produccion_usa_el_saldo(): void
+    {
+        $this->comoAdmin();
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
+        $vehiculo = Vehiculo::factory()->create(['placa' => 'ABC-777']);
+        $entrega = $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
+        $entrega->jornada->usuario->update(['nombres' => 'Juan Acopiador']);
+
+        $this->get('/admin/produccion')->assertSee('Juan Acopiador')->assertSee('ABC-777');
+
+        $datosRecepcion = ['llegada_en' => now()->format('Y-m-d\TH:i'), 'litros_medidos' => 95, 'motivo_diferencia' => 'Derrame durante el traslado'];
+        $this->post(route('admin.recepcion.llegada.store', $entrega->jornada_id), $datosRecepcion)->assertSessionHasNoErrors();
+        $this->assertEquals(100, $entrega->refresh()->litros);
+        $this->get('/admin/produccion')->assertViewHas('acopio', fn ($acopio) => $acopio->litrosTotal() === 95.0);
+
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 95])
+            ->assertRedirect(route('admin.produccion.historial.index'));
+        $lote = LoteProduccion::query()->firstOrFail();
+        $this->assertSame('borrador', $lote->estado);
+        $this->assertSame(9, $lote->unidades_estimadas);
+
+        // Con una asignación activa ese día, la recepción ya no puede corregirse.
+        $this->post(route('admin.recepcion.llegada.store', $entrega->jornada_id), $datosRecepcion)->assertSessionHasErrors('litros_medidos');
+
+        $this->patch(route('admin.produccion.lotes.iniciar', $lote->id))->assertSessionHasNoErrors();
+        $this->post(route('admin.produccion.lotes.finalizar', $lote->id), ['litros_usados' => 90])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('lotes_produccion', [
+            'id' => $lote->id, 'estado' => 'finalizado', 'unidades_producidas' => 9, 'litros_usados' => 90, 'litros_sobrantes' => 5,
+        ]);
+        $this->assertEquals(9.0, (float) $producto->refresh()->existencia);
+        $this->assertDatabaseHas('movimientos_producto', ['producto_id' => $producto->id, 'tipo' => 'produccion', 'cantidad' => 9]);
+        $this->get('/admin/produccion/historial')->assertSee('Derrame durante el traslado')->assertSee('Juan Acopiador');
+    }
+
+    public function test_no_se_puede_asignar_un_lote_con_mas_litros_que_el_saldo_disponible(): void
+    {
+        $this->comoAdmin();
+        $producto = $this->crearReceta();
+        $vehiculo = Vehiculo::factory()->create(['activo' => false]);
+        $hoy = now()->toDateString();
+        $entrega = $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
+        $this->get('/admin/produccion')->assertViewHas('acopio', fn ($acopio) => $acopio->litrosTotal() === 100.0);
+
+        $this->post(route('admin.recepcion.llegada.store', $entrega->jornada_id), [
+            'llegada_en' => now()->format('Y-m-d\TH:i'), 'litros_medidos' => 0, 'motivo_diferencia' => 'Pérdida total del contenido',
+        ])->assertSessionHasNoErrors();
+
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 50])
+            ->assertSessionHasErrors('litros_asignados');
         $this->assertDatabaseCount('lotes_produccion', 0);
     }
 
-    public function test_activar_una_receta_archiva_la_version_activa_anterior(): void
+    /** Criterio de aceptación de Fase 2: con 500 L disponibles, asignar 300 + 150 deja 50 L disponibles y un tercer intento de 100 L falla. */
+    public function test_se_pueden_crear_varios_lotes_de_productos_distintos_el_mismo_dia_repartiendo_el_saldo(): void
     {
         $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
+        $quesoFresco = $this->crearReceta();
+        $yogurt = Producto::factory()->create(['nombre' => 'Yogurt', 'litros_por_unidad' => 5, 'activo' => true]);
+        $hoy = now()->toDateString();
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 500, EstadoCalidad::Aprobado, $hoy);
 
-        $this->post('/admin/produccion/recetas', [
-            'producto_id' => $datos['producto']->id,
-            'nombre' => 'Receta ajustada',
-            'rendimiento_base' => 12,
-            'rendimiento_unidad' => 'unidad',
-            'ingredientes' => [
-                ['insumo_id' => $datos['leche']->id, 'cantidad' => 110, 'unidad' => 'L'],
-            ],
-        ])->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $datos['producto']->id]));
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $quesoFresco->id, 'litros_asignados' => 300])
+            ->assertSessionHasNoErrors();
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $yogurt->id, 'litros_asignados' => 150])
+            ->assertSessionHasNoErrors();
 
-        $nuevaVersion = Receta::query()->where('producto_id', $datos['producto']->id)->where('version', 2)->firstOrFail();
+        $this->assertDatabaseCount('lotes_produccion', 2);
 
-        $this->patch("/admin/produccion/recetas/{$nuevaVersion->id}/activar")
-            ->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $datos['producto']->id]));
+        $saldo = app(ObtenerSaldoProduccionUseCase::class)->ejecutar(new DateTimeImmutable($hoy));
+        $this->assertEquals(50.0, $saldo->litrosDisponibles());
 
-        $this->assertDatabaseHas('recetas', ['id' => $datos['receta']->id, 'estado' => 'archivada']);
-        $this->assertDatabaseHas('recetas', ['id' => $nuevaVersion->id, 'estado' => 'activa']);
-        $this->assertDatabaseHas('productos', ['id' => $datos['producto']->id, 'receta_activa_id' => $nuevaVersion->id]);
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $quesoFresco->id, 'litros_asignados' => 100])
+            ->assertSessionHasErrors('litros_asignados');
+        $this->assertDatabaseCount('lotes_produccion', 2);
     }
 
-    public function test_editar_una_receta_en_borrador_sin_uso_la_actualiza_en_sitio(): void
+    public function test_cancelar_un_lote_libera_su_reserva_de_litros(): void
     {
         $this->comoAdmin();
-        $leche = Insumo::query()->where('nombre', 'Leche')->firstOrFail();
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
 
-        $this->post('/admin/produccion/productos', [
-            'nombre' => 'Mantequilla',
-            'presentacion' => '250 g',
-            'unidad_produccion' => 'unidad',
-        ]);
-        $producto = Producto::query()->where('nombre', 'Mantequilla')->firstOrFail();
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 100])
+            ->assertSessionHasNoErrors();
+        $lote = LoteProduccion::query()->firstOrFail();
 
-        $this->post('/admin/produccion/recetas', [
+        $this->post(route('admin.produccion.lotes.cancelar', $lote->id), ['motivo' => 'Se dañó el equipo'])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('lotes_produccion', ['id' => $lote->id, 'estado' => 'cancelado']);
+
+        // Al no contar más contra el saldo, se puede volver a asignar el mismo día.
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 100])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('lotes_produccion', 2);
+    }
+
+    public function test_transiciones_de_estado_invalidas_se_rechazan(): void
+    {
+        $this->comoAdmin();
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
+
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 100]);
+        $lote = LoteProduccion::query()->firstOrFail();
+
+        // No se puede finalizar directo desde borrador.
+        $this->post(route('admin.produccion.lotes.finalizar', $lote->id), ['litros_usados' => 90])->assertSessionHasErrors('litros_usados');
+
+        $this->patch(route('admin.produccion.lotes.iniciar', $lote->id))->assertSessionHasNoErrors();
+        $this->post(route('admin.produccion.lotes.finalizar', $lote->id), ['litros_usados' => 100])->assertSessionHasNoErrors();
+
+        // Un lote finalizado no puede iniciarse ni cancelarse de nuevo.
+        $this->patch(route('admin.produccion.lotes.iniciar', $lote->id))->assertSessionHasErrors('estado');
+        $this->post(route('admin.produccion.lotes.cancelar', $lote->id), ['motivo' => 'tarde'])->assertSessionHasErrors('motivo');
+    }
+
+    public function test_finalizar_no_permite_que_usado_mas_merma_de_proceso_superen_lo_asignado(): void
+    {
+        $this->comoAdmin();
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
+
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 100]);
+        $lote = LoteProduccion::query()->firstOrFail();
+        $this->patch(route('admin.produccion.lotes.iniciar', $lote->id));
+
+        $this->post(route('admin.produccion.lotes.finalizar', $lote->id), [
+            'litros_usados' => 90, 'litros_merma_proceso' => 20,
+        ])->assertSessionHasErrors('litros_usados');
+
+        $this->assertDatabaseHas('lotes_produccion', ['id' => $lote->id, 'estado' => 'en_proceso']);
+    }
+
+    // --- Producción ---
+
+    public function test_calcula_las_unidades_estimadas_segun_los_litros_asignados(): void
+    {
+        $this->comoAdmin();
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
+
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
+
+        $response = $this->get('/admin/produccion/producir?'.http_build_query([
+            'fecha' => $hoy,
             'producto_id' => $producto->id,
-            'nombre' => 'Receta borrador',
-            'rendimiento_base' => 5,
-            'rendimiento_unidad' => 'unidad',
-            'ingredientes' => [['insumo_id' => $leche->id, 'cantidad' => 20, 'unidad' => 'L']],
-        ]);
-        $receta = Receta::query()->where('producto_id', $producto->id)->firstOrFail();
-
-        $this->put("/admin/produccion/recetas/{$receta->id}", [
-            'nombre' => 'Receta borrador editada',
-            'rendimiento_base' => 6,
-            'rendimiento_unidad' => 'unidad',
-            'ingredientes' => [['insumo_id' => $leche->id, 'cantidad' => 25, 'unidad' => 'L']],
-        ])->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $producto->id]));
-
-        $this->assertDatabaseCount('recetas', 1);
-        $this->assertDatabaseHas('recetas', ['id' => $receta->id, 'nombre' => 'Receta borrador editada', 'version' => 1]);
-    }
-
-    public function test_editar_una_receta_ya_usada_en_un_lote_crea_una_nueva_version_sin_alterar_el_lote_historico(): void
-    {
-        $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos);
-
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-HIST',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 10,
-            'fecha_planificada' => now()->toDateString(),
-        ]);
-        $lote = LoteProduccion::query()->where('codigo', 'LP-HIST')->firstOrFail();
-        $this->assertEquals($datos['receta']->id, $lote->receta_id);
-
-        // La receta ya fue usada por este lote: editarla debe crear una v2, sin tocar la v1.
-        $this->put("/admin/produccion/recetas/{$datos['receta']->id}", [
-            'nombre' => 'Receta base modificada',
-            'rendimiento_base' => 10,
-            'rendimiento_unidad' => 'unidad',
-            'ingredientes' => [['insumo_id' => $datos['leche']->id, 'cantidad' => 999, 'unidad' => 'L']],
-        ])->assertRedirect(route('admin.produccion.recetas.index', ['producto_id' => $datos['producto']->id]));
-
-        $this->assertDatabaseHas('recetas', ['id' => $datos['receta']->id, 'nombre' => 'Receta base', 'version' => 1]);
-        $this->assertDatabaseHas('recetas', ['producto_id' => $datos['producto']->id, 'version' => 2, 'nombre' => 'Receta base modificada']);
-        $lote->refresh();
-        $this->assertEquals($datos['receta']->id, $lote->receta_id);
-    }
-
-    // --- Flujo completo de producción ---
-
-    private function abastecerParaVeinteQuesos(array $datos, bool $cuajoSuficiente = true): void
-    {
-        // Leche llega vía Calidad (200 L exactos para 20 quesos).
-        $entrega = Entrega::factory()->create(['litros' => 200]);
-        $this->post('/admin/calidad', ['entrega_id' => $entrega->id, 'resultado' => 'aprobado']);
-
-        $this->post('/admin/produccion/inventario/entradas', [
-            'insumo_id' => $datos['cuajo']->id,
-            'cantidad' => $cuajoSuficiente ? 50 : 30,
-            'unidad' => 'ml',
-            'fecha' => now()->toDateString(),
-        ]);
-
-        $this->post('/admin/produccion/inventario/entradas', [
-            'insumo_id' => $datos['sal']->id,
-            'cantidad' => 1,
-            'unidad' => 'kg',
-            'fecha' => now()->toDateString(),
-        ]);
-    }
-
-    public function test_calcula_la_necesidad_de_materiales_segun_la_receta_y_la_cantidad_planificada(): void
-    {
-        $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-
-        $response = $this->get('/admin/produccion/lotes/nuevo?'.http_build_query([
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 20,
+            'litros_asignados' => 100,
         ]));
 
         $response->assertOk();
-        // 100 L leche / 10 * 20 = 200 L; 20 ml cuajo / 10 * 20 = 40 ml; 200 g sal / 10 * 20 = 400 g = 0.4 kg.
-        $response->assertSee('200.000');
-        $response->assertSee('40.000');
-        $response->assertSee('0.400');
+        // 100 L / 10 L por unidad = 10 unidades exactas.
+        $response->assertSee('10');
     }
 
-    public function test_no_se_puede_iniciar_un_lote_sin_disponibilidad_suficiente_y_no_reserva_nada(): void
-    {
-        $admin = $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos, cuajoSuficiente: false); // solo 30 ml de cuajo, faltan 40
-
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-002',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 20,
-            'fecha_planificada' => now()->toDateString(),
-        ]);
-        $lote = LoteProduccion::query()->where('codigo', 'LP-002')->firstOrFail();
-
-        $response = $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar");
-        $response->assertSessionHasErrors('lote');
-
-        $lote->refresh();
-        $this->assertSame('borrador', $lote->estado->value);
-        // Ningún insumo quedó parcialmente reservado (todo o nada).
-        $this->assertEquals(0.0, (float) $datos['leche']->refresh()->reservado);
-        $this->assertEquals(0.0, (float) $datos['sal']->refresh()->reservado);
-        $this->assertEquals(0.0, (float) $datos['cuajo']->refresh()->reservado);
-    }
-
-    public function test_flujo_completo_iniciar_consumir_y_finalizar_con_cantidad_distinta_a_la_planificada(): void
-    {
-        $admin = $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos);
-
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-003',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 20,
-            'fecha_planificada' => now()->toDateString(),
-            'observaciones' => 'Lote de prueba',
-        ])->assertRedirect();
-
-        $lote = LoteProduccion::query()->where('codigo', 'LP-003')->firstOrFail();
-
-        // Iniciar reserva los materiales.
-        $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar")->assertRedirect(route('admin.produccion.lotes.show', $lote->id));
-        $lote->refresh();
-        $this->assertSame('en_proceso', $lote->estado->value);
-        $this->assertEquals(200.0, (float) $datos['leche']->refresh()->reservado);
-        $this->assertEquals(40.0, (float) $datos['cuajo']->refresh()->reservado);
-        $this->assertEquals(0.4, round((float) $datos['sal']->refresh()->reservado, 3));
-
-        // Reintentar iniciar el mismo lote no debe duplicar la reserva.
-        $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar")->assertSessionHasErrors('lote');
-        $this->assertEquals(200.0, (float) $datos['leche']->refresh()->reservado);
-
-        // Consumo parcial: leche 150 de 200, cuajo 40 de 40, sal aún no informada.
-        $this->post("/admin/produccion/lotes/{$lote->id}/consumo", [
-            'consumo' => [$datos['leche']->id => 150, $datos['cuajo']->id => 40],
-        ])->assertRedirect(route('admin.produccion.lotes.show', $lote->id));
-
-        $this->assertEquals(50.0, (float) $datos['leche']->refresh()->existencia); // 200 - 150
-        $this->assertEquals(50.0, (float) $datos['leche']->refresh()->reservado); // 200 - 150
-        $this->assertEquals(10.0, (float) $datos['cuajo']->refresh()->existencia); // 50 - 40
-        $this->assertEquals(0.0, (float) $datos['cuajo']->refresh()->reservado);
-
-        // Reenviar el mismo consumo (reintento de red) no debe duplicar el descuento.
-        $this->post("/admin/produccion/lotes/{$lote->id}/consumo", [
-            'consumo' => [$datos['leche']->id => 150],
-        ]);
-        $this->assertEquals(50.0, (float) $datos['leche']->refresh()->existencia);
-
-        // Finalizar con 19 en vez de 20: sólo entran 19 al inventario y sobra de leche se libera.
-        $this->patch("/admin/produccion/lotes/{$lote->id}/finalizar", [
-            'cantidad_obtenida' => 19,
-            'consumo' => [$datos['sal']->id => 0.4],
-        ])->assertRedirect(route('admin.produccion.lotes.show', $lote->id));
-
-        $lote->refresh();
-        $this->assertSame('finalizado', $lote->estado->value);
-        $this->assertEquals(19.0, (float) $lote->cantidad_obtenida);
-        $this->assertEquals(19.0, (float) $datos['producto']->refresh()->existencia);
-        $this->assertDatabaseHas('movimientos_producto', ['producto_id' => $datos['producto']->id, 'tipo' => 'produccion', 'cantidad' => 19]);
-
-        // La leche reservada y no consumida (50 L) se liberó, no se devolvió a existencia extra.
-        $this->assertEquals(0.0, (float) $datos['leche']->refresh()->reservado);
-        $this->assertEquals(50.0, (float) $datos['leche']->refresh()->existencia);
-        $this->assertEquals(0.6, round((float) $datos['sal']->refresh()->existencia, 3));
-    }
-
-    public function test_no_se_puede_finalizar_sin_informar_el_consumo_de_todos_los_insumos(): void
+    public function test_no_se_puede_producir_sin_acopios_pendientes(): void
     {
         $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos);
 
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-004',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 10,
-            'fecha_planificada' => now()->toDateString(),
-        ]);
-        $lote = LoteProduccion::query()->where('codigo', 'LP-004')->firstOrFail();
-        $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar");
+        $response = $this->get('/admin/produccion/producir');
 
-        $response = $this->patch("/admin/produccion/lotes/{$lote->id}/finalizar", ['cantidad_obtenida' => 10]);
-
-        $response->assertSessionHasErrors('cantidad_obtenida');
-        $this->assertSame('en_proceso', $lote->refresh()->estado->value);
-        $this->assertDatabaseCount('movimientos_producto', 0);
+        $response->assertOk();
+        $response->assertSee('No hay acopios pendientes de producir');
     }
 
-    public function test_cancelar_un_lote_en_proceso_libera_solo_lo_no_consumido_y_conserva_el_historial(): void
+    public function test_el_historial_muestra_los_kpis_y_el_lote_registrado(): void
     {
         $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos);
+        $producto = $this->crearReceta();
+        $hoy = now()->toDateString();
 
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-005',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 10,
-            'fecha_planificada' => now()->toDateString(),
-        ]);
-        $lote = LoteProduccion::query()->where('codigo', 'LP-005')->firstOrFail();
-        $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar");
+        $vehiculo = Vehiculo::factory()->create();
+        $this->registrarEntregaEvaluada($vehiculo, 100, EstadoCalidad::Aprobado, $hoy);
 
-        // Consume parte de la leche antes de cancelar.
-        $this->post("/admin/produccion/lotes/{$lote->id}/consumo", ['consumo' => [$datos['leche']->id => 60]]);
+        $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 100]);
+        $lote = LoteProduccion::query()->firstOrFail();
+        $this->patch(route('admin.produccion.lotes.iniciar', $lote->id));
+        $this->post(route('admin.produccion.lotes.finalizar', $lote->id), ['litros_usados' => 100]);
 
-        $this->patch("/admin/produccion/lotes/{$lote->id}/cancelar", ['motivo' => 'Falla en el equipo'])
-            ->assertRedirect(route('admin.produccion.lotes.show', $lote->id));
+        $response = $this->get('/admin/produccion/historial');
 
-        $lote->refresh();
-        $this->assertSame('cancelado', $lote->estado->value);
-        $this->assertSame('Falla en el equipo', $lote->motivo_cancelacion);
-
-        // Reservado 100 L, consumido 60 L -> se liberan sólo los 40 L restantes.
-        $this->assertEquals(0.0, (float) $datos['leche']->refresh()->reservado);
-        $this->assertEquals(140.0, (float) $datos['leche']->refresh()->existencia); // 200 - 60 consumidos
-
-        $detalle = LoteInsumo::query()->where('lote_produccion_id', $lote->id)->where('insumo_id', $datos['leche']->id)->firstOrFail();
-        $this->assertEquals(60.0, (float) $detalle->cantidad_consumida);
-    }
-
-    public function test_no_se_puede_cancelar_un_lote_ya_finalizado(): void
-    {
-        $this->comoAdmin();
-        $datos = $this->crearProductoConRecetaActiva();
-        $this->abastecerParaVeinteQuesos($datos);
-
-        $this->post('/admin/produccion/lotes', [
-            'codigo' => 'LP-006',
-            'producto_id' => $datos['producto']->id,
-            'cantidad_planificada' => 5,
-            'fecha_planificada' => now()->toDateString(),
-        ]);
-        $lote = LoteProduccion::query()->where('codigo', 'LP-006')->firstOrFail();
-        $this->patch("/admin/produccion/lotes/{$lote->id}/iniciar");
-        $this->patch("/admin/produccion/lotes/{$lote->id}/finalizar", [
-            'cantidad_obtenida' => 5,
-            'consumo' => [
-                $datos['leche']->id => 50,
-                $datos['cuajo']->id => 10,
-                $datos['sal']->id => 0.1,
-            ],
-        ]);
-
-        $response = $this->patch("/admin/produccion/lotes/{$lote->id}/cancelar", ['motivo' => 'Ya no aplica']);
-
-        $response->assertSessionHasErrors('motivo');
-        $this->assertSame('finalizado', $lote->refresh()->estado->value);
+        $response->assertOk();
+        $response->assertSee('Queso fresco');
+        $this->assertDatabaseCount('lotes_produccion', 1);
+        $this->assertSame(10, LoteProduccion::query()->firstOrFail()->unidades_producidas);
     }
 
     // --- Permisos ---
@@ -522,9 +315,9 @@ class AdminProduccionModuleTest extends TestCase
         $this->actingAs($proveedor, 'operador');
 
         $this->get('/admin/produccion')->assertForbidden();
-        $this->get('/admin/produccion/inventario')->assertForbidden();
+        $this->get('/admin/produccion/producir')->assertForbidden();
+        $this->get('/admin/produccion/historial')->assertForbidden();
         $this->get('/admin/produccion/productos')->assertForbidden();
-        $this->get('/admin/produccion/recetas')->assertForbidden();
-        $this->get('/admin/produccion/lotes')->assertForbidden();
+        $this->post('/admin/produccion/producir', [])->assertForbidden();
     }
 }

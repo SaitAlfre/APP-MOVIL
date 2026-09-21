@@ -66,6 +66,17 @@ class SeguimientoUbicadorService : Service(), KoinComponent {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand: action=${intent?.action}")
+
+        // Android exige llamar startForeground() dentro de los primeros segundos de creado el
+        // servicio (arrancó vía startForegroundService()) o el sistema mata el proceso con
+        // ForegroundServiceDidNotStartInTimeException. Se llama primero que cualquier otra cosa —
+        // antes de validar el Intent — para cubrir cualquier caller, incluso uno con extras faltantes
+        // o inválidos, que de otro modo retornaría sin haberlo llamado nunca.
+        if (!iniciarForegroundMinimo()) {
+            scope.launch { finalizarConError(IllegalStateException("No se pudo iniciar el servicio en primer plano.")) }
+            return START_NOT_STICKY
+        }
+
         if (intent?.action == ACCION_DETENER) {
             detener()
             return START_NOT_STICKY
@@ -83,25 +94,27 @@ class SeguimientoUbicadorService : Service(), KoinComponent {
         return START_NOT_STICKY
     }
 
+    /** @return false si startForeground() falló y el servicio no puede continuar. */
+    private fun iniciarForegroundMinimo(): Boolean = try {
+        crearCanalNotificacion()
+        val notificacion = construirNotificacion()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICACION_ID, notificacion, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+        } else {
+            startForeground(NOTIFICACION_ID, notificacion)
+        }
+        Log.d(TAG, "startForeground OK")
+        true
+    } catch (error: Exception) {
+        Log.e(TAG, "startForeground falló: el servicio no puede continuar", error)
+        false
+    }
+
     private fun iniciar(usuarioId: String, jornadaId: String, zonaId: String) {
         Log.d(TAG, "iniciar: usuarioId=$usuarioId jornadaId=$jornadaId zonaId=$zonaId")
         capturaJob?.cancel()
         publicacionJob?.cancel()
         contextoActual = null
-        try {
-            crearCanalNotificacion()
-            val notificacion = construirNotificacion()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICACION_ID, notificacion, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-            } else {
-                startForeground(NOTIFICACION_ID, notificacion)
-            }
-            Log.d(TAG, "startForeground OK")
-        } catch (error: Exception) {
-            Log.e(TAG, "startForeground falló: el servicio no puede continuar", error)
-            scope.launch { finalizarConError(error) }
-            return
-        }
 
         capturaJob = locationProvider.observarUbicacion()
             .onEach { evento ->

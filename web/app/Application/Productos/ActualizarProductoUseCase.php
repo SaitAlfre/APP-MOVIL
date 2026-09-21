@@ -19,6 +19,8 @@ final class ActualizarProductoUseCase
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
+        float $litrosPorUnidad,
+        ?string $otrosInsumos,
     ): Producto {
         $producto = $this->productos->buscarPorId($id);
 
@@ -26,6 +28,6 @@ final class ActualizarProductoUseCase
             throw ProductoInvalidoException::noExiste();
         }
 
-        return $this->productos->guardar($producto->conDatosActualizados($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $unidadContenido));
+        return $this->productos->guardar($producto->conDatosActualizados($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $unidadContenido, $litrosPorUnidad, $otrosInsumos));
     }
 }

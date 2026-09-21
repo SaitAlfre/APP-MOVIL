@@ -40,7 +40,7 @@ fun ProveedorFormScreen(
     id: String?,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
-    viewModel: ProveedorFormViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: ProveedorFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
 
@@ -61,9 +61,10 @@ fun ProveedorFormScreen(
                     CampoTexto(
                         estado.nombres,
                         { viewModel.onEvent(ProveedorFormUiEvent.NombresCambia(it)) },
-                        "Nombres",
+                        "Nombre del proveedor o finca",
                         iconoInicial = Icons.Filled.Person,
                     )
+                    CampoTexto(estado.dueno, { viewModel.onEvent(ProveedorFormUiEvent.DuenoCambia(it)) }, "Propietario o responsable (opcional)")
                     CampoTexto(estado.dni, { viewModel.onEvent(ProveedorFormUiEvent.DniCambia(it)) }, "DNI", iconoInicial = Icons.Filled.Badge)
                     CampoTexto(
                         estado.telefono,

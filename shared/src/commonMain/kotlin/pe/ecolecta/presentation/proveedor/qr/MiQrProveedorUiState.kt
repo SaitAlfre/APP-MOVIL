@@ -7,4 +7,5 @@ data class MiQrProveedorUiState(
     val proveedor: Proveedor? = null,
     val nombreZona: String = "",
     val contenidoQr: String = "",
+    val error: String? = null,
 )

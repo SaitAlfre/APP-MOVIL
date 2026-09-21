@@ -2,71 +2,90 @@
 
 @section('titulo', 'Auditoría')
 
-@php
-    $accionColor = fn (string $accion) => match ($accion) {
-        'crear' => 'bg-eh-primary-soft text-eh-primary',
-        'corregir' => 'bg-eh-blue-soft text-eh-blue',
-        'anular', 'rechazar' => 'bg-eh-red-soft text-eh-red',
-        'autorizar' => 'bg-eh-primary-soft text-eh-primary',
-        default => 'bg-eh-gold-soft text-eh-gold',
-    };
-    $accionLabel = fn (string $accion) => [
-        'crear' => 'Creación', 'corregir' => 'Corrección', 'anular' => 'Anulación',
-        'actualizar' => 'Actualización', 'desactivar' => 'Desactivación',
-        'autorizar' => 'Autorización', 'rechazar' => 'Rechazo',
-    ][$accion] ?? ucfirst($accion);
-@endphp
-
 @section('contenido')
-    <div class="mb-6">
-        <h1 class="text-[22px] font-bold text-eh-text">Auditoría</h1>
-        <p class="mt-0.5 text-[13.5px] text-eh-text-muted">Historial de acciones sensibles registradas en el sistema</p>
-    </div>
+    @php
+        $variantesAccion = [
+            'crear' => 'green',
+            'autorizar' => 'green',
+            'iniciar_sesion' => 'green',
+            'corregir' => 'blue',
+            'actualizar' => 'blue',
+            'cerrar_sesion' => 'gray',
+            'desactivar' => 'yellow',
+            'anular' => 'red',
+            'rechazar' => 'red',
+            'acceso_fallido' => 'red',
+        ];
+        $etiquetasAccion = [
+            'crear' => 'Creación',
+            'corregir' => 'Corrección',
+            'anular' => 'Anulación',
+            'actualizar' => 'Actualización',
+            'desactivar' => 'Desactivación',
+            'autorizar' => 'Autorización',
+            'rechazar' => 'Rechazo',
+            'iniciar_sesion' => 'Inicio de sesión',
+            'cerrar_sesion' => 'Cierre de sesión',
+            'acceso_fallido' => 'Acceso fallido',
+        ];
+        $hayFiltros = collect($filtros)->filter()->isNotEmpty();
+    @endphp
 
-    <div class="overflow-hidden rounded-2xl border border-eh-border bg-eh-surface shadow-sm">
-        <div class="overflow-x-auto">
-        <table class="w-full min-w-[720px] text-sm">
-            <thead class="bg-eh-table-head text-left text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">
-                <tr>
-                    <th class="px-5 py-3">Fecha</th>
-                    <th class="px-3 py-3">Entidad</th>
-                    <th class="px-3 py-3">Acción</th>
-                    <th class="px-3 py-3">Usuario</th>
-                    <th class="px-5 py-3">Motivo</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($filas as $i => $fila)
-                    <tr @class(['border-t border-eh-border align-top', 'bg-eh-stripe' => $i % 2 === 1])>
-                        <td class="px-5 py-3 whitespace-nowrap text-eh-text-muted">{{ $fila['registro']->ocurridoEn->format('d/m/Y H:i') }}</td>
-                        <td class="px-3 py-3 text-eh-text">{{ ucfirst($fila['registro']->entidad) }} #{{ $fila['registro']->entidadId }}</td>
-                        <td class="px-3 py-3">
-                            <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $accionColor($fila['registro']->accion->value) }}">
-                                {{ $accionLabel($fila['registro']->accion->value) }}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3 text-eh-text-muted">{{ $fila['usuario']?->nombres ?? '—' }}</td>
-                        <td class="px-5 py-3 text-eh-text-muted">{{ $fila['registro']->motivo ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-5 py-14 text-center">
-                            <div class="mx-auto flex max-w-xs flex-col items-center">
-                                <span class="mb-3 flex size-11 items-center justify-center rounded-xl bg-eh-surface-alt">
-                                    <svg class="size-5 text-eh-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 4.5 6.5v5.2c0 4.8 3.1 7.7 7.5 9 4.4-1.3 7.5-4.2 7.5-9V6.5Z"/></svg>
-                                </span>
-                                <p class="text-[13.5px] font-semibold text-eh-text">Aún no hay registros de auditoría</p>
-                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Aparecerán aquí las correcciones, anulaciones y demás acciones sensibles.</p>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        </div>
-    </div>
+    <x-ui.page-header title="Auditoría" description="Historial de acciones sensibles del negocio, separado de los logs técnicos" />
 
-    <div class="mt-4">
-        {{ $paginador->links() }}
-    </div>
+    <x-ui.card padding="p-4" class="mb-4">
+        <form method="GET" action="{{ route('admin.auditoria.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <x-ui.select name="usuario_id" label="Responsable o cuenta" placeholder="Todos" :selected="$filtros['usuario_id'] ?? null"
+                :options="$usuariosFiltro->mapWithKeys(fn ($usuario) => [$usuario->id => $usuario->nombres])->all()" />
+            <x-ui.select name="entidad" label="Módulo o entidad" placeholder="Todos" :selected="$filtros['entidad'] ?? null"
+                :options="$entidades->mapWithKeys(fn ($entidad) => [$entidad => ucfirst(str_replace('_', ' ', $entidad))])->all()" />
+            <x-ui.select name="accion" label="Acción" placeholder="Todas" :selected="$filtros['accion'] ?? null"
+                :options="collect($acciones)->mapWithKeys(fn ($accion) => [$accion->value => $etiquetasAccion[$accion->value] ?? ucfirst($accion->value)])->all()" />
+            <x-ui.field name="desde" label="Desde" type="date" :value="$filtros['desde'] ?? null" />
+            <x-ui.field name="hasta" label="Hasta" type="date" :value="$filtros['hasta'] ?? null" />
+            <div class="flex items-end gap-2">
+                <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
+                @if ($hayFiltros)
+                    <x-ui.btn :href="route('admin.auditoria.index')" variant="ghost" icon="xMark">Limpiar</x-ui.btn>
+                @endif
+            </div>
+        </form>
+    </x-ui.card>
+
+    <x-ui.card>
+        @if ($filas->isEmpty())
+            <x-ui.empty icon="shield" title="No hay registros para estos filtros"
+                description="Aquí aparecen creaciones, correcciones, anulaciones y demás acciones sensibles del negocio." />
+        @else
+            <x-ui.table :headers="['Fecha y hora', 'Entidad', 'Acción', 'Responsable', 'Motivo', '']" caption="Historial de auditoría">
+                @foreach ($filas as $fila)
+                    @php $registro = $fila['registro']; @endphp
+                    <tr class="border-b border-eh-border align-top last:border-0 hover:bg-eh-surface-alt">
+                        <td class="mono whitespace-nowrap px-4 py-3 text-xs text-eh-text">{{ $registro->ocurridoEn->format('d/m/Y H:i') }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-eh-text">
+                            {{ ucfirst(str_replace('_', ' ', $registro->entidad)) }}
+                            <span class="mono text-xs text-eh-text-muted">#{{ $registro->entidadId }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <x-ui.badge :variant="$variantesAccion[$registro->accion->value] ?? 'gray'"
+                                :label="$etiquetasAccion[$registro->accion->value] ?? ucfirst($registro->accion->value)" />
+                        </td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila['usuario']?->nombres ?? '—' }}</td>
+                        <td class="max-w-xs px-4 py-3 text-xs text-eh-text-muted">{{ $registro->motivo ?? '—' }}</td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="{{ route('admin.auditoria.show', ['auditoria' => $registro->id] + $filtros) }}" aria-label="Ver cambios del registro #{{ $registro->id }}"
+                                class="inline-flex rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
+                                <x-icon name="eye" class="h-4 w-4" />
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+            </x-ui.table>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
+                <span>Mostrando {{ $paginador->count() }} de {{ $paginador->total() }} registros</span>
+                <div>{{ $paginador->onEachSide(1)->links() }}</div>
+            </div>
+        @endif
+    </x-ui.card>
 @endsection

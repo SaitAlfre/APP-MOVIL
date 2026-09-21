@@ -13,6 +13,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.navegacion.Pantalla
@@ -35,8 +36,8 @@ fun ProveedorBottomNav(pestanaActual: PestanaProveedor, onSeleccionar: (PestanaP
                 icon = { Icon(pestana.icono, contentDescription = pestana.etiqueta) },
                 label = { Text(pestana.etiqueta) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Colores.onBrand,
-                    indicatorColor = Colores.brand,
+                    selectedIconColor = Colores.brandText,
+                    indicatorColor = Color.Transparent,
                     selectedTextColor = Colores.brandText,
                     unselectedIconColor = Colores.textSecundario,
                     unselectedTextColor = Colores.textSecundario,

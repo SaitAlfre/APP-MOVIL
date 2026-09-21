@@ -18,6 +18,4 @@ interface ProductoRepositoryInterface
     public function guardar(Producto $producto): Producto;
 
     public function cambiarEstado(int $id, bool $activo): Producto;
-
-    public function actualizarRecetaActiva(int $productoId, ?int $recetaId): void;
 }

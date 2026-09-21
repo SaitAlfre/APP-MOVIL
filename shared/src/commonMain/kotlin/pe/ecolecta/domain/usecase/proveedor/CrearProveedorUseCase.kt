@@ -19,6 +19,7 @@ class CrearProveedorUseCase(
         zonaId: String,
         tachos: Int = 1,
         capacidadTachoL: Double = 40.0,
+        dueno: String? = null,
     ): Result<Proveedor> {
         if (proveedorRepository.existeCodigo(codigo.trim(), "")) {
             return Result.failure(ProveedorInvalidoException.CodigoDuplicado)
@@ -38,7 +39,7 @@ class CrearProveedorUseCase(
             tachos = tachos,
             capacidadTachoL = capacidadTachoL,
             updatedAt = reloj.ahora().toEpochMilliseconds(),
-        ).getOrElse { return Result.failure(it) }
+        ).getOrElse { return Result.failure(it) }.copy(dueno = dueno?.trim()?.ifBlank { null })
 
         return runCatching {
             proveedorRepository.insertar(proveedor)

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.repository.UsuarioRepository
+import pe.ecolecta.domain.security.ParHashPin
 
 class FakeUsuarioRepository : UsuarioRepository {
     private val usuarios = MutableStateFlow<List<Usuario>>(emptyList())
@@ -44,6 +45,29 @@ class FakeUsuarioRepository : UsuarioRepository {
 
     override suspend fun quitarRol(usuarioId: String, rol: Rol) {
         reemplazar(usuarioId) { it.copy(roles = it.roles - rol) }
+    }
+
+    override suspend fun actualizarCompleto(
+        id: String,
+        nombres: String,
+        dni: String,
+        activo: Boolean,
+        rolesAgregados: List<Rol>,
+        rolesQuitados: List<Rol>,
+        nuevoPin: ParHashPin?,
+        updatedAt: Long,
+    ) {
+        reemplazar(id) { usuario ->
+            usuario.copy(
+                nombres = nombres,
+                dni = dni,
+                activo = activo,
+                roles = (usuario.roles + rolesAgregados - rolesQuitados.toSet()).distinct(),
+                pinHash = nuevoPin?.hash ?: usuario.pinHash,
+                pinSalt = nuevoPin?.salt ?: usuario.pinSalt,
+                updatedAt = updatedAt,
+            )
+        }
     }
 
     override suspend fun contarUsuariosConRol(rol: Rol): Long = usuarios.value.count { it.activo && rol in it.roles }.toLong()

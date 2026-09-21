@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('unidad_produccion', 20);
             $table->decimal('contenido_por_unidad', 12, 3)->nullable();
             $table->string('unidad_contenido', 20)->nullable();
+            $table->decimal('litros_por_unidad', 12, 3);
+            $table->text('otros_insumos')->nullable();
             $table->decimal('existencia', 12, 3)->default(0);
             $table->boolean('activo')->default(true);
             $table->timestamps();

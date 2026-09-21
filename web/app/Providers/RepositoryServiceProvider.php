@@ -6,29 +6,25 @@ use App\Domain\Auditoria\AuditoriaRepositoryInterface;
 use App\Domain\Auth\OperadorAuthenticatorInterface;
 use App\Domain\Calidad\ControlCalidadRepositoryInterface;
 use App\Domain\Entregas\EntregaRepositoryInterface;
-use App\Domain\Inventario\EntradaInsumoRepositoryInterface;
-use App\Domain\Inventario\InsumoRepositoryInterface;
 use App\Domain\Jornadas\JornadaRepositoryInterface;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Domain\Produccion\LoteProduccionRepositoryInterface;
 use App\Domain\Productos\ProductoRepositoryInterface;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
-use App\Domain\Recetas\RecetaRepositoryInterface;
+use App\Domain\Recepcion\RecepcionAcopioRepositoryInterface;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
 use App\Domain\Vehiculos\VehiculoRepositoryInterface;
 use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Infrastructure\Auth\LaravelOperadorAuthenticator;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentAuditoriaRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentControlCalidadRepository;
-use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentEntradaInsumoRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentEntregaRepository;
-use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInsumoRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentJornadaRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentLiquidacionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentLoteProduccionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductoRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProveedorRepository;
-use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentRecetaRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentRecepcionAcopioRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentUsuarioRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentVehiculoRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentZonaRepository;
@@ -49,12 +45,10 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OperadorAuthenticatorInterface::class, LaravelOperadorAuthenticator::class);
 
         $this->app->bind(ControlCalidadRepositoryInterface::class, EloquentControlCalidadRepository::class);
-        $this->app->bind(LoteProduccionRepositoryInterface::class, EloquentLoteProduccionRepository::class);
         $this->app->bind(LiquidacionRepositoryInterface::class, EloquentLiquidacionRepository::class);
 
-        $this->app->bind(InsumoRepositoryInterface::class, EloquentInsumoRepository::class);
-        $this->app->bind(EntradaInsumoRepositoryInterface::class, EloquentEntradaInsumoRepository::class);
         $this->app->bind(ProductoRepositoryInterface::class, EloquentProductoRepository::class);
-        $this->app->bind(RecetaRepositoryInterface::class, EloquentRecetaRepository::class);
+        $this->app->bind(LoteProduccionRepositoryInterface::class, EloquentLoteProduccionRepository::class);
+        $this->app->bind(RecepcionAcopioRepositoryInterface::class, EloquentRecepcionAcopioRepository::class);
     }
 }

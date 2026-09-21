@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
+use App\Domain\Proveedores\EstadoProveedor;
 use App\Domain\Proveedores\Proveedor as ProveedorDominio;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Proveedor as ProveedorEloquent;
@@ -37,6 +38,37 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
         $proveedor = ProveedorEloquent::query()->where('dni', $dni)->first();
 
         return $proveedor !== null ? $this->aDominio($proveedor) : null;
+    }
+
+    public function contarActivos(): int
+    {
+        return ProveedorEloquent::query()->where('estado', 'activo')->count();
+    }
+
+    public function contarTodos(): int
+    {
+        return ProveedorEloquent::query()->count();
+    }
+
+    public function paginarFiltrado(?string $busqueda, ?int $zonaId, ?EstadoProveedor $estado, int $porPagina = 15): LengthAwarePaginator
+    {
+        return ProveedorEloquent::query()
+            ->with('zona')
+            ->when($busqueda !== null && $busqueda !== '', function ($query) use ($busqueda) {
+                $termino = '%'.str_replace(['%', '_'], ['\%', '\_'], $busqueda).'%';
+
+                $query->where(function ($interno) use ($termino) {
+                    $interno->where('nombres', 'like', $termino)
+                        ->orWhere('codigo', 'like', $termino)
+                        ->orWhere('dni', 'like', $termino);
+                });
+            })
+            ->when($zonaId !== null, fn ($query) => $query->where('zona_id', $zonaId))
+            ->when($estado !== null, fn ($query) => $query->where('estado', $estado->value))
+            ->orderBy('nombres')
+            ->paginate($porPagina)
+            ->withQueryString()
+            ->through(fn (ProveedorEloquent $proveedor) => $this->aDominio($proveedor));
     }
 
     public function activosPorZona(int $zonaId): array

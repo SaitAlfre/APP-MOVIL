@@ -40,6 +40,7 @@ import pe.ecolecta.presentation.design.DialogoMotivo
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
 
@@ -57,7 +58,9 @@ fun TrasladosScreen(viewModel: TrasladosViewModel = koinViewModel()) {
         estado.error?.let {
             Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
         }
-        if (estado.traslados.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.traslados.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay traslados registrados",
                 descripcion = "Los cambios de zona de proveedores aparecerán aquí.",

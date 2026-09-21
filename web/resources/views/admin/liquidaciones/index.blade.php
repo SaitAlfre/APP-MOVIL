@@ -1,80 +1,79 @@
 @extends('layouts.admin')
 
-@section('titulo', 'Liquidaciones')
+@section('titulo', 'Liquidaciones y pagos')
 
 @section('contenido')
-    <div class="mb-6 flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-[22px] font-bold text-eh-text">Liquidaciones</h1>
-            <p class="mt-0.5 text-[13.5px] text-eh-text-muted">Pagos calculados a proveedores por periodo</p>
-        </div>
-        <a href="{{ route('admin.liquidaciones.create') }}" class="flex h-11 items-center rounded-xl bg-eh-gold px-4 text-sm font-semibold text-eh-gold-ink hover:opacity-90">
-            Generar liquidación
-        </a>
+    @php
+        $operador = auth('operador')->user();
+        $puedeGestionar = $operador->puede('liquidaciones', 'gestionar');
+    @endphp
+
+    <x-ui.page-header title="Liquidaciones y pagos" description="Gestión de liquidaciones a proveedores por periodo">
+        @if ($puedeGestionar)
+            <x-slot:actions>
+                <x-ui.btn :href="route('admin.liquidaciones.create')" icon="plus">Generar liquidación</x-ui.btn>
+            </x-slot:actions>
+        @endif
+    </x-ui.page-header>
+
+    <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <x-ui.kpi label="Liquidaciones en esta página" :value="$paginador->count()" icon="banknotes" color="blue" />
+        <x-ui.kpi label="Pendiente de pago" :value="'S/ '.number_format($totalPendiente, 2)" icon="clock" color="yellow"
+            hint="Suma de las liquidaciones pendientes visibles en esta página." />
+        <x-ui.kpi label="Pagado" :value="'S/ '.number_format($totalPagado, 2)" icon="check" color="green"
+            hint="Suma de las liquidaciones ya pagadas visibles en esta página." />
     </div>
 
-    <div class="overflow-hidden rounded-2xl border border-eh-border bg-eh-surface shadow-sm">
-        <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-sm">
-            <thead class="bg-eh-table-head text-left text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">
-                <tr>
-                    <th class="px-5 py-3">Proveedor</th>
-                    <th class="px-3 py-3">Periodo</th>
-                    <th class="px-3 py-3 text-right">Litros</th>
-                    <th class="px-3 py-3 text-right">Precio/L</th>
-                    <th class="px-3 py-3 text-right">Monto</th>
-                    <th class="px-3 py-3">Estado</th>
-                    <th class="px-5 py-3 text-right">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($filas as $i => $fila)
-                    <tr @class(['border-t border-eh-border', 'bg-eh-stripe' => $i % 2 === 1])>
-                        <td class="px-5 py-3 font-semibold text-eh-text">{{ $fila['proveedor']?->nombres ?? '—' }}</td>
-                        <td class="px-3 py-3 text-eh-text-muted whitespace-nowrap">{{ $fila['liquidacion']->periodoInicio->format('d/m/Y') }} – {{ $fila['liquidacion']->periodoFin->format('d/m/Y') }}</td>
-                        <td class="px-3 py-3 text-right text-eh-text">{{ number_format($fila['liquidacion']->litrosTotales, 1) }}</td>
-                        <td class="px-3 py-3 text-right text-eh-text-muted">S/ {{ number_format($fila['liquidacion']->precioLitro, 3) }}</td>
-                        <td class="px-3 py-3 text-right font-semibold text-eh-text">S/ {{ number_format($fila['liquidacion']->montoTotal, 2) }}</td>
-                        <td class="px-3 py-3">
-                            <span @class([
-                                'rounded-full px-2.5 py-1 text-[11px] font-semibold',
-                                'bg-eh-primary-soft text-eh-primary' => $fila['liquidacion']->estado->value === 'pagada',
-                                'bg-eh-gold-soft text-eh-gold' => $fila['liquidacion']->estado->value === 'pendiente',
-                            ])>
-                                {{ $fila['liquidacion']->estado->etiqueta() }}
-                            </span>
+    <x-ui.card>
+        @if ($filas->isEmpty())
+            <x-ui.empty icon="banknotes" title="Aún no hay liquidaciones generadas"
+                description="Genera la primera con el botón «Generar liquidación».">
+                @if ($puedeGestionar)
+                    <x-slot:action>
+                        <x-ui.btn :href="route('admin.liquidaciones.create')" icon="plus" size="sm">Generar liquidación</x-ui.btn>
+                    </x-slot:action>
+                @endif
+            </x-ui.empty>
+        @else
+            <x-ui.table :headers="['Periodo', 'Proveedor', 'Litros', 'Precio/L', 'Importe', 'Estado', 'Fecha de pago', '']" caption="Liquidaciones generadas">
+                @foreach ($filas as $fila)
+                    @php $liquidacion = $fila['liquidacion']; @endphp
+                    <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
+                        <td class="whitespace-nowrap px-4 py-3 text-xs text-eh-text-muted">
+                            {{ $liquidacion->periodoInicio->format('d/m/Y') }} — {{ $liquidacion->periodoFin->format('d/m/Y') }}
                         </td>
-                        <td class="px-5 py-3 text-right">
-                            @if ($fila['liquidacion']->estado->value === 'pendiente')
-                                <form method="POST" action="{{ route('admin.liquidaciones.pagar', $fila['liquidacion']->id) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="text-[12px] font-semibold text-eh-primary">Marcar pagada</button>
-                                </form>
-                            @else
-                                <span class="text-[12px] text-eh-text-muted">—</span>
-                            @endif
+                        <td class="px-4 py-3 text-sm font-medium text-eh-text">
+                            <a href="{{ route('admin.liquidaciones.show', $liquidacion->id) }}" class="hover:text-eh-primary hover:underline">{{ $fila['proveedor']?->nombres ?? '—' }}</a>
                         </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-5 py-14 text-center">
-                            <div class="mx-auto flex max-w-xs flex-col items-center">
-                                <span class="mb-3 flex size-11 items-center justify-center rounded-xl bg-eh-surface-alt">
-                                    <svg class="size-5 text-eh-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>
-                                </span>
-                                <p class="text-[13.5px] font-semibold text-eh-text">Aún no hay liquidaciones generadas</p>
-                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Genera la primera con el botón "Generar liquidación".</p>
+                        <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ number_format($liquidacion->litrosTotales, 1) }} L</td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">S/ {{ number_format($liquidacion->precioLitro, 3) }}</td>
+                        <td class="mono px-4 py-3 text-sm font-bold text-eh-primary">S/ {{ number_format($liquidacion->montoTotal, 2) }}</td>
+                        <td class="px-4 py-3"><x-ui.estado :estado="$liquidacion->estado->value" /></td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $liquidacion->pagadaEn?->format('d/m/Y') ?? '—' }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-end gap-1">
+                                <a href="{{ route('admin.liquidaciones.show', $liquidacion->id) }}" aria-label="Ver detalle de la liquidación"
+                                    class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
+                                    <x-icon name="eye" class="h-4 w-4" />
+                                </a>
+                                @if ($puedeGestionar && $liquidacion->estado->value === 'pendiente')
+                                    <form method="POST" action="{{ route('admin.liquidaciones.pagar', $liquidacion->id) }}"
+                                        data-confirm="¿Marcar como pagada la liquidación de {{ $fila['proveedor']?->nombres }} por S/ {{ number_format($liquidacion->montoTotal, 2) }}? La acción queda registrada en auditoría.">
+                                        @csrf
+                                        @method('PATCH')
+                                        <x-ui.btn type="submit" size="sm" variant="secondary">Marcar pagada</x-ui.btn>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-        </div>
-    </div>
+                @endforeach
+            </x-ui.table>
 
-    <div class="mt-4">
-        {{ $paginador->links() }}
-    </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
+                <span>Mostrando {{ $paginador->count() }} de {{ $paginador->total() }} liquidaciones</span>
+                <div>{{ $paginador->onEachSide(1)->links() }}</div>
+            </div>
+        @endif
+    </x-ui.card>
 @endsection

@@ -1,0 +1,19 @@
+-- Fila única (id fijo = 0) que guarda qué usuario/rol tiene la sesión activa, para que el Acopiador
+-- (que trabaja offline en campo) no tenga que volver a iniciar sesión cada vez que el sistema
+-- operativo mata el proceso. Solo guarda el id y el rol: los datos del usuario (nombres, roles,
+-- pin, etc.) siempre se leen frescos de la tabla `usuario`, así un cambio hecho por ADMIN mientras
+-- el dispositivo estaba offline (p. ej. desactivar la cuenta) se refleja en el próximo arranque.
+CREATE TABLE sesion_activa (
+    id INTEGER NOT NULL PRIMARY KEY,
+    usuario_id TEXT NOT NULL,
+    rol_activo TEXT NOT NULL
+);
+
+establecer:
+INSERT OR REPLACE INTO sesion_activa(id, usuario_id, rol_activo) VALUES (0, :usuario_id, :rol_activo);
+
+obtener:
+SELECT * FROM sesion_activa WHERE id = 0;
+
+limpiar:
+DELETE FROM sesion_activa;

@@ -55,6 +55,8 @@ final class EloquentProductoRepository implements ProductoRepositoryInterface
                 'unidad_produccion' => $producto->unidadProduccion,
                 'contenido_por_unidad' => $producto->contenidoPorUnidad,
                 'unidad_contenido' => $producto->unidadContenido,
+                'litros_por_unidad' => $producto->litrosPorUnidad,
+                'otros_insumos' => $producto->otrosInsumos,
                 'existencia' => $producto->existencia,
                 'activo' => $producto->activo,
             ]);
@@ -69,6 +71,8 @@ final class EloquentProductoRepository implements ProductoRepositoryInterface
             'unidad_produccion' => $producto->unidadProduccion,
             'contenido_por_unidad' => $producto->contenidoPorUnidad,
             'unidad_contenido' => $producto->unidadContenido,
+            'litros_por_unidad' => $producto->litrosPorUnidad,
+            'otros_insumos' => $producto->otrosInsumos,
         ]);
         $registro->save();
 
@@ -83,11 +87,6 @@ final class EloquentProductoRepository implements ProductoRepositoryInterface
         return $this->aDominio($registro->refresh());
     }
 
-    public function actualizarRecetaActiva(int $productoId, ?int $recetaId): void
-    {
-        ProductoEloquent::query()->whereKey($productoId)->update(['receta_activa_id' => $recetaId]);
-    }
-
     private function aDominio(ProductoEloquent $producto): ProductoDominio
     {
         return ProductoDominio::reconstruir(
@@ -97,9 +96,10 @@ final class EloquentProductoRepository implements ProductoRepositoryInterface
             unidadProduccion: $producto->unidad_produccion,
             contenidoPorUnidad: $producto->contenido_por_unidad !== null ? (float) $producto->contenido_por_unidad : null,
             unidadContenido: $producto->unidad_contenido,
+            litrosPorUnidad: (float) $producto->litros_por_unidad,
+            otrosInsumos: $producto->otros_insumos,
             existencia: (float) $producto->existencia,
             activo: $producto->activo,
-            recetaActivaId: $producto->receta_activa_id,
         );
     }
 }

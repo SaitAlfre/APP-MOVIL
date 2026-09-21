@@ -12,7 +12,7 @@ class Liquidacion extends Model
 
     protected $fillable = [
         'proveedor_id', 'periodo_inicio', 'periodo_fin', 'litros_totales', 'precio_litro',
-        'monto_total', 'estado', 'generada_en', 'pagada_en',
+        'monto_total', 'descuento_sanciones', 'estado', 'generada_en', 'pagada_en',
     ];
 
     protected function casts(): array
@@ -23,6 +23,7 @@ class Liquidacion extends Model
             'litros_totales' => 'decimal:2',
             'precio_litro' => 'decimal:3',
             'monto_total' => 'decimal:2',
+            'descuento_sanciones' => 'decimal:2',
             'estado' => EstadoLiquidacion::class,
             'generada_en' => 'datetime',
             'pagada_en' => 'datetime',

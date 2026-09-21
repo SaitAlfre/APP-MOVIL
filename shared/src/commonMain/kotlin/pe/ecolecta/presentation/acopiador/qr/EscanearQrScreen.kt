@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -43,6 +45,7 @@ import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
+import pe.ecolecta.presentation.design.Dato
 import pe.ecolecta.presentation.design.DivisorSutil
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
@@ -83,14 +86,26 @@ fun EscanearQrScreen(
 
 @Composable
 private fun VistaEscaneando(onCodigoEscaneado: (String) -> Unit, onError: (String) -> Unit) {
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier.fillMaxSize().padding(horizontal = Espaciado.l),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(Espaciado.l))
         Text(
-            "Apunta la cámara al código QR del proveedor",
+            "Apunta la cámara al código QR",
+            style = MaterialTheme.typography.titleMedium,
+            color = Colores.textPrimary,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "del proveedor",
             style = MaterialTheme.typography.bodyMedium,
             color = Colores.textSecundario,
-            modifier = Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.m),
+            textAlign = TextAlign.Center,
         )
-        Column(Modifier.padding(horizontal = Espaciado.l).fillMaxWidth().weight(1f)) {
+        Spacer(Modifier.height(Espaciado.m))
+
+        Box(Modifier.fillMaxWidth().weight(1f)) {
             QrScanner(
                 modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.large),
                 flashlightOn = false,
@@ -109,7 +124,50 @@ private fun VistaEscaneando(onCodigoEscaneado: (String) -> Unit, onError: (Strin
                 },
             )
         }
+
+        Spacer(Modifier.height(Espaciado.s))
+        Text(
+            "Busca el código QR dentro del recuadro",
+            style = MaterialTheme.typography.bodySmall,
+            color = Colores.textSecundario,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(Espaciado.m))
+        TarjetaConsejo()
         Spacer(Modifier.height(Espaciado.l))
+    }
+}
+
+/**
+ * Las dos cosas que desatascan un escaneo que no prende: más luz, o dejarlo y escribir los litros
+ * a mano. Está siempre visible porque el acopiador escanea al aire libre y a contraluz.
+ */
+@Composable
+private fun TarjetaConsejo() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = Colores.brandContainer,
+    ) {
+        Row(
+            Modifier.padding(Espaciado.m),
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
+        ) {
+            Icon(Icons.Filled.CameraAlt, contentDescription = null, tint = Colores.brandText, modifier = Modifier.size(20.dp))
+            Column {
+                Text("Consejo", style = MaterialTheme.typography.titleSmall, color = Colores.brandText)
+                Text(
+                    "Asegúrate de tener buena iluminación.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Colores.onBrandContainer,
+                )
+                Text(
+                    "Puedes registrar manualmente si es necesario.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Colores.onBrandContainer,
+                )
+            }
+        }
     }
 }
 
@@ -120,12 +178,16 @@ private fun VistaResultado(resultado: EstadoEscaneoQr.Resultado, alEscanearOtro:
 
     // Reutiliza el mismo ViewModel/caso de uso que el registro manual: el proveedor detectado por
     // el QR simplemente llega ya preseleccionado, sin duplicar lógica de guardado/duplicados/outbox.
-    val formViewModel: RegistroEntregaViewModel = koinViewModel(parameters = { parametersOf(proveedor.id) })
+    val formViewModel: RegistroEntregaViewModel =
+        koinViewModel(key = "registro-${proveedor.id}", parameters = { parametersOf(proveedor.id) })
     val formEstado by formViewModel.uiState.collectAsState()
     var confirmado by remember(proveedor.id) { mutableStateOf(false) }
 
     LaunchedEffect(formEstado.guardadoExitoso) {
-        if (formEstado.guardadoExitoso) confirmado = true
+        if (formEstado.guardadoExitoso) {
+            confirmado = true
+            formViewModel.confirmarNavegacion()
+        }
     }
 
     if (confirmado) {
@@ -147,13 +209,13 @@ private fun VistaResultado(resultado: EstadoEscaneoQr.Resultado, alEscanearOtro:
                     Text(proveedor.nombres, style = MaterialTheme.typography.titleLarge, color = Colores.textPrimary)
                     Text("Código ${proveedor.codigo}", style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
                 }
-                ChipEstado(proveedor.estado.name, colorDeEstado(proveedor.estado))
+                ChipEstado(proveedor.estado.name, colorDeEstado(proveedor.estado), mostrarPunto = false)
             }
             Spacer(Modifier.height(Espaciado.s))
             DivisorSutil()
             Spacer(Modifier.height(Espaciado.s))
-            FilaDato("Zona", resultado.nombreZona)
-            FilaDato("Tachos", "${proveedor.tachos} × ${formatearLitros(proveedor.capacidadTachoL)}", ultimo = true)
+            Dato("Zona", resultado.nombreZona)
+            Dato("Tachos", "${proveedor.tachos} × ${formatearLitros(proveedor.capacidadTachoL)}", ultimo = true)
         }
 
         mensajeBloqueo(proveedor, resultado)?.let { Banner(it, TipoBanner.ADVERTENCIA) }
@@ -210,13 +272,3 @@ private fun colorDeEstado(estado: EstadoProveedor) = when (estado) {
     EstadoProveedor.RETIRADO -> Colores.peligro
 }
 
-@Composable
-private fun FilaDato(etiqueta: String, valor: String, ultimo: Boolean = false) {
-    Row(
-        Modifier.fillMaxWidth().padding(bottom = if (ultimo) 0.dp else Espaciado.xs),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
-        Text(valor, color = Colores.textPrimary, style = MaterialTheme.typography.bodyMedium)
-    }
-}

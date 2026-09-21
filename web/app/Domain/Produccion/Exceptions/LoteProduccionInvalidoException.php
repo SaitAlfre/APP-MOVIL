@@ -2,72 +2,43 @@
 
 namespace App\Domain\Produccion\Exceptions;
 
+use App\Domain\Produccion\EstadoLoteProduccion;
 use DomainException;
 
 final class LoteProduccionInvalidoException extends DomainException
 {
-    public static function codigoVacio(): self
+    public static function productoNoExiste(): self
     {
-        return new self('El código del lote es obligatorio.');
+        return new self('La receta seleccionada no existe.');
     }
 
-    public static function codigoDuplicado(): self
+    public static function litrosAsignadosInvalidos(): self
     {
-        return new self('Ya existe un lote con ese código.');
+        return new self('Los litros asignados deben ser mayores a 0.');
     }
 
-    public static function cantidadInvalida(): self
+    public static function superaSaldoDisponible(float $disponibleL): self
     {
-        return new self('La cantidad a fabricar debe ser mayor a 0.');
+        return new self("No puedes asignar más leche de la disponible ese día: {$disponibleL} L.");
     }
 
-    public static function noExiste(): self
+    public static function transicionInvalida(EstadoLoteProduccion $actual, string $accion): self
     {
-        return new self('El lote no existe.');
+        return new self("No se puede {$accion} un lote en estado \"{$actual->etiqueta()}\".");
     }
 
-    public static function productoInactivo(): self
+    public static function consumoSuperaAsignado(float $asignadoL): self
     {
-        return new self('El producto está inactivo y no puede fabricarse.');
+        return new self("Los litros usados más la merma de proceso no pueden superar lo asignado: {$asignadoL} L.");
     }
 
-    public static function sinRecetaActiva(): self
+    public static function litrosUsadosInvalidos(): self
     {
-        return new self('El producto no tiene una receta activa. Actívala antes de fabricar.');
-    }
-
-    public static function noEstaEnBorrador(): self
-    {
-        return new self('El lote ya fue iniciado, finalizado o cancelado. La acción no se pudo repetir.');
-    }
-
-    public static function noEstaEnProceso(): self
-    {
-        return new self('El lote no está en proceso.');
-    }
-
-    public static function noSePuedeCancelar(): self
-    {
-        return new self('El lote ya fue finalizado o cancelado.');
+        return new self('Los litros usados no pueden ser negativos.');
     }
 
     public static function motivoCancelacionObligatorio(): self
     {
         return new self('Debes indicar el motivo de la cancelación.');
-    }
-
-    public static function consumoNoInformado(string $insumo): self
-    {
-        return new self("Falta informar el consumo real de \"{$insumo}\" (puede ser 0, pero debe registrarse explícitamente).");
-    }
-
-    public static function consumoInvalido(): self
-    {
-        return new self('El consumo registrado no puede ser negativo ni mayor a lo reservado.');
-    }
-
-    public static function cantidadObtenidaInvalida(): self
-    {
-        return new self('La cantidad obtenida no puede ser negativa.');
     }
 }

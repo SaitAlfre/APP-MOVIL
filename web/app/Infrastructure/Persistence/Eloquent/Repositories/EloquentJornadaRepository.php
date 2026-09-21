@@ -25,6 +25,17 @@ final class EloquentJornadaRepository implements JornadaRepositoryInterface
         return $jornada !== null ? $this->aDominio($jornada) : null;
     }
 
+    public function abiertas(int $limite = 10): array
+    {
+        return JornadaEloquent::query()
+            ->whereNull('cerrada_en')
+            ->orderByDesc('abierta_en')
+            ->limit($limite)
+            ->get()
+            ->map(fn (JornadaEloquent $jornada) => $this->aDominio($jornada))
+            ->all();
+    }
+
     public function obtenerAbiertaPorUsuarioYFecha(int $usuarioId, DateTimeImmutable $fecha): ?JornadaDominio
     {
         $jornada = JornadaEloquent::query()
@@ -63,7 +74,7 @@ final class EloquentJornadaRepository implements JornadaRepositoryInterface
 
     public function cerrar(int $id, DateTimeImmutable $cerradaEn): void
     {
-        JornadaEloquent::query()->whereKey($id)->update(['cerrada_en' => $cerradaEn]);
+        JornadaEloquent::query()->findOrFail($id)->update(['cerrada_en' => $cerradaEn]);
     }
 
     public function actualizarSeguimientoActivo(int $id, bool $activo): void

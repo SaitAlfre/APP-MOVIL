@@ -2,105 +2,118 @@
 
 @section('titulo', 'Calidad')
 
-@php
-    $resultadoColor = fn ($resultado) => match ($resultado->value) {
-        'aprobado' => 'bg-eh-primary-soft text-eh-primary',
-        'observado' => 'bg-eh-gold-soft text-eh-gold',
-        'rechazado' => 'bg-eh-red-soft text-eh-red',
-    };
-@endphp
-
 @section('contenido')
-    <div class="mb-6 flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-[22px] font-bold text-eh-text">Calidad</h1>
-            <p class="mt-0.5 text-[13.5px] text-eh-text-muted">
-                Controles de calidad registrados
-                @if ($pendientes > 0)
-                    · <span class="font-semibold text-eh-gold">{{ $pendientes }} entregas pendientes de evaluar</span>
-                @endif
-            </p>
-        </div>
-        <a href="{{ route('admin.calidad.create') }}" class="flex h-11 items-center rounded-xl bg-eh-blue px-4 text-sm font-semibold text-white hover:opacity-90">
-            Nuevo control
-        </a>
+    @php
+        $operador = auth('operador')->user();
+        $puedeGestionar = $operador->puede('calidad', 'gestionar');
+
+        $pestanas = collect([
+            ['key' => 'controles', 'label' => 'Controles'],
+            ['key' => 'reglas', 'label' => 'Reglas de calidad'],
+        ])->map(fn ($tab) => $tab + ['url' => route('admin.calidad.index', array_filter(['tab' => $tab['key'], 'resultado' => $filtroActual?->value]))])->all();
+
+        /** Rangos que usa la sugerencia automática de ControlCalidad::sugerirPorValores(). */
+        $reglas = [
+            ['parametro' => 'Temperatura', 'unidad' => '°C', 'aprobado' => '≤ 4.0', 'observado' => '4.1 – 8.0', 'rechazado' => '> 8.0', 'accion' => 'Revisar cadena de frío'],
+            ['parametro' => 'Acidez', 'unidad' => '°D', 'aprobado' => '14.0 – 18.0', 'observado' => '12.0 – 13.9 y 18.1 – 20.0', 'rechazado' => '< 12.0 o > 20.0', 'accion' => 'Proponer sanción al proveedor'],
+        ];
+    @endphp
+
+    <x-ui.page-header title="Control de calidad"
+        :description="'Controles registrados sobre las entregas'.($pendientes > 0 ? ' · '.$pendientes.' '.($pendientes === 1 ? 'entrega pendiente' : 'entregas pendientes').' de evaluar' : '')">
+        @if ($puedeGestionar)
+            <x-slot:actions>
+                <x-ui.btn :href="route('admin.calidad.create')" icon="plus">Nuevo control</x-ui.btn>
+            </x-slot:actions>
+        @endif
+    </x-ui.page-header>
+
+    <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <x-ui.kpi label="Aprobados" :value="$conteos['aprobado']" icon="check" color="green" hint="Controles con resultado aprobado (histórico)." />
+        <x-ui.kpi label="Observados" :value="$conteos['observado']" icon="exclamation" color="yellow" hint="Controles con observaciones registradas." />
+        <x-ui.kpi label="Rechazados" :value="$conteos['rechazado']" icon="xMark" color="red" hint="Controles rechazados: la leche no pasa a producción." />
+        <x-ui.kpi label="Pendientes de evaluar" :value="$pendientes" icon="beaker" color="blue" hint="Entregas sin ningún control de calidad registrado." />
     </div>
 
-    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div class="rounded-2xl border border-eh-border bg-eh-surface p-4 shadow-sm">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">Aprobados</p>
-            <p class="mt-1 text-[22px] font-bold text-eh-primary">{{ $conteos['aprobado'] }}</p>
-        </div>
-        <div class="rounded-2xl border border-eh-border bg-eh-surface p-4 shadow-sm">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">Observados</p>
-            <p class="mt-1 text-[22px] font-bold text-eh-gold">{{ $conteos['observado'] }}</p>
-        </div>
-        <div class="rounded-2xl border border-eh-border bg-eh-surface p-4 shadow-sm">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">Rechazados</p>
-            <p class="mt-1 text-[22px] font-bold text-eh-red">{{ $conteos['rechazado'] }}</p>
-        </div>
-        <div class="rounded-2xl border border-eh-border bg-eh-surface p-4 shadow-sm">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">Tasa de aprobación</p>
-            <p class="mt-1 text-[22px] font-bold text-eh-text">{{ $tasaAprobacion !== null ? $tasaAprobacion.'%' : '—' }}</p>
-        </div>
-    </div>
+    <x-ui.card>
+        <x-ui.tabs :tabs="$pestanas" :active="$pestana" class="mb-0 px-2" />
 
-    <form method="GET" action="{{ route('admin.calidad.index') }}" class="mb-4 flex items-center gap-2">
-        <label for="resultado-filtro" class="text-[12.5px] font-semibold text-eh-text-muted">Filtrar por resultado</label>
-        <select id="resultado-filtro" name="resultado" onchange="this.form.submit()" class="h-10 rounded-xl border border-eh-border bg-eh-bg px-3 text-[13px] text-eh-text focus:border-eh-blue focus:ring-eh-blue">
-            <option value="" @selected($filtroActual === null)>Todos</option>
-            <option value="aprobado" @selected($filtroActual?->value === 'aprobado')>Aprobado</option>
-            <option value="observado" @selected($filtroActual?->value === 'observado')>Observado</option>
-            <option value="rechazado" @selected($filtroActual?->value === 'rechazado')>Rechazado</option>
-        </select>
-    </form>
+        @if ($pestana === 'controles')
+            <div class="flex flex-wrap items-center gap-2 border-b border-eh-border px-4 py-3">
+                <form method="GET" action="{{ route('admin.calidad.index') }}" class="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="tab" value="controles">
+                    <label for="resultado-filtro" class="text-xs font-medium text-eh-text-muted">Filtrar por resultado</label>
+                    <x-ui.select id="resultado-filtro" name="resultado" placeholder="Todos" class="w-44"
+                        :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado']" :selected="$filtroActual?->value" />
+                    <x-ui.btn type="submit" variant="secondary" size="sm" icon="filter">Filtrar</x-ui.btn>
+                    @if ($filtroActual)
+                        <x-ui.btn :href="route('admin.calidad.index')" variant="ghost" size="sm" icon="xMark">Limpiar</x-ui.btn>
+                    @endif
+                </form>
+                <span class="ml-auto text-xs text-eh-text-muted">
+                    Tasa de aprobación: <strong class="mono text-eh-text">{{ $tasaAprobacion !== null ? $tasaAprobacion.'%' : '—' }}</strong>
+                </span>
+            </div>
 
-    <div class="overflow-hidden rounded-2xl border border-eh-border bg-eh-surface shadow-sm">
-        <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-sm">
-            <thead class="bg-eh-table-head text-left text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">
-                <tr>
-                    <th class="px-5 py-3">Fecha</th>
-                    <th class="px-3 py-3">Proveedor</th>
-                    <th class="px-3 py-3 text-right">Temp. (°C)</th>
-                    <th class="px-3 py-3 text-right">Acidez</th>
-                    <th class="px-3 py-3">Resultado</th>
-                    <th class="px-5 py-3">Evaluado por</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($filas as $i => $fila)
-                    <tr @class(['border-t border-eh-border', 'bg-eh-stripe' => $i % 2 === 1])>
-                        <td class="px-5 py-3 whitespace-nowrap text-eh-text-muted">{{ $fila['control']->evaluadoEn->format('d/m/Y H:i') }}</td>
-                        <td class="px-3 py-3 font-semibold text-eh-text">{{ $fila['proveedor']?->nombres ?? '—' }}</td>
-                        <td class="px-3 py-3 text-right text-eh-text">{{ $fila['control']->temperaturaC !== null ? number_format($fila['control']->temperaturaC, 1) : '—' }}</td>
-                        <td class="px-3 py-3 text-right text-eh-text">{{ $fila['control']->acidez !== null ? number_format($fila['control']->acidez, 1) : '—' }}</td>
-                        <td class="px-3 py-3">
-                            <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $resultadoColor($fila['control']->resultado) }}">
-                                {{ $fila['control']->resultado->etiqueta() }}
-                            </span>
-                        </td>
-                        <td class="px-5 py-3 text-eh-text-muted">{{ $fila['usuario']?->nombres ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-5 py-14 text-center">
-                            <div class="mx-auto flex max-w-xs flex-col items-center">
-                                <span class="mb-3 flex size-11 items-center justify-center rounded-xl bg-eh-surface-alt">
-                                    <svg class="size-5 text-eh-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M10.5 3v5.5L5.8 17a2 2 0 0 0 1.8 3h8.8a2 2 0 0 0 1.8-3l-4.7-8.5V3"/></svg>
+            @if ($filas->isEmpty())
+                <x-ui.empty icon="beaker"
+                    :title="$filtroActual ? 'No hay controles con ese resultado' : 'Aún no hay controles de calidad'"
+                    :description="$filtroActual ? 'Prueba con otro resultado o limpia el filtro.' : 'Registra el primero con el botón «Nuevo control».'" />
+            @else
+                <x-ui.table :headers="['Fecha y hora', 'Proveedor', 'Entrega', 'Técnico', 'Temperatura', 'Acidez', 'Resultado', 'Observaciones']"
+                    caption="Controles de calidad registrados">
+                    @foreach ($filas as $fila)
+                        @php
+                            $control = $fila['control'];
+                            $tempFuera = $control->temperaturaC !== null && $control->temperaturaC > 4;
+                            $acidezFuera = $control->acidez !== null && ($control->acidez < 14 || $control->acidez > 18);
+                        @endphp
+                        <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
+                            <td class="mono px-4 py-3 text-xs text-eh-text">{{ $control->evaluadoEn->format('d/m/Y H:i') }}</td>
+                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $fila['proveedor']?->nombres ?? '—' }}</td>
+                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">#{{ $control->entregaId }}</td>
+                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila['usuario']?->nombres ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $tempFuera, 'text-eh-text' => ! $tempFuera])>
+                                    {{ $control->temperaturaC !== null ? number_format($control->temperaturaC, 1).' °C' : '—' }}
                                 </span>
-                                <p class="text-[13.5px] font-semibold text-eh-text">Aún no hay controles de calidad</p>
-                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Regístralos con el botón "Nuevo control".</p>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        </div>
-    </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $acidezFuera, 'text-eh-text' => ! $acidezFuera])>
+                                    {{ $control->acidez !== null ? number_format($control->acidez, 1).' °D' : '—' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3"><x-ui.estado :estado="$control->resultado->value" /></td>
+                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $control->observaciones ?: '—' }}</td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
 
-    <div class="mt-4">
-        {{ $paginador->links() }}
-    </div>
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
+                    <span>Mostrando {{ $paginador->count() }} de {{ $paginador->total() }} controles</span>
+                    <div>{{ $paginador->onEachSide(1)->links() }}</div>
+                </div>
+            @endif
+
+        @else
+            <div class="p-4">
+                <p class="mb-4 text-sm text-eh-text-muted">
+                    Estos son los rangos que usa el sistema para <strong class="text-eh-text">sugerir</strong> un resultado al registrar un control.
+                    La sugerencia no es vinculante: el técnico siempre decide el resultado final, y el valor medido se conserva tal cual para trazabilidad.
+                </p>
+                <x-ui.table :headers="['Parámetro', 'Unidad', 'Aprobado', 'Observado', 'Rechazado', 'Acción propuesta']" caption="Rangos de referencia del control de calidad">
+                    @foreach ($reglas as $regla)
+                        <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
+                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $regla['parametro'] }}</td>
+                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $regla['unidad'] }}</td>
+                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-primary-soft px-2 py-1 text-xs font-medium text-eh-primary">{{ $regla['aprobado'] }}</span></td>
+                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-gold-soft px-2 py-1 text-xs font-medium text-eh-gold">{{ $regla['observado'] }}</span></td>
+                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-red-soft px-2 py-1 text-xs font-medium text-eh-red">{{ $regla['rechazado'] }}</span></td>
+                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $regla['accion'] }}</td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+            </div>
+        @endif
+    </x-ui.card>
 @endsection

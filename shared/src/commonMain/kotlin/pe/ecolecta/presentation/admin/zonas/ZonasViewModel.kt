@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.zona.DesactivarZonaUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ZonasViewModel(
     private val listarZonasUseCase: ListarZonasUseCase,
@@ -19,7 +20,8 @@ class ZonasViewModel(
 
     init {
         viewModelScope.launch {
-            listarZonasUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, zonas = lista) } }
+            cargaSegura { listarZonasUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, zonas = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar las zonas.") } }
         }
     }
 

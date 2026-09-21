@@ -31,9 +31,11 @@ import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.ecolecta.domain.model.Rol
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun SeleccionRolScreen(
@@ -61,9 +63,15 @@ fun SeleccionRolScreen(
             }
             Text("¿Con qué rol quieres ingresar?", style = MaterialTheme.typography.headlineSmall, color = Colores.textPrimary)
 
+            estado.error?.let { Banner(it, TipoBanner.ERROR) }
+
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 estado.roles.forEach { rol ->
-                    TarjetaRol(rol = rol, onClick = { viewModel.seleccionar(rol) })
+                    TarjetaRol(
+                        rol = rol,
+                        habilitado = !estado.seleccionando,
+                        onClick = { viewModel.seleccionar(rol) },
+                    )
                 }
             }
         }
@@ -71,8 +79,8 @@ fun SeleccionRolScreen(
 }
 
 @Composable
-private fun TarjetaRol(rol: Rol, onClick: () -> Unit) {
-    Tarjeta(onClick = onClick) {
+private fun TarjetaRol(rol: Rol, habilitado: Boolean, onClick: () -> Unit) {
+    Tarjeta(onClick = if (habilitado) onClick else null) {
         androidx.compose.foundation.layout.Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Espaciado.m),

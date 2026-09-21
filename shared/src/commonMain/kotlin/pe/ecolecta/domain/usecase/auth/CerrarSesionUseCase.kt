@@ -18,12 +18,16 @@ class CerrarSesionUseCase(
     suspend operator fun invoke() {
         val jornada = jornadaEnCursoRepository.observar().first()
         if (jornada != null && jornada.estaAbierta) {
-            detenerSeguimientoUseCase(
-                usuarioId = jornada.usuarioId,
-                zonaId = jornada.zonaId,
-                jornadaId = jornada.id,
-                jornadaAbiertaEn = jornada.abiertaEn,
-            )
+            // Si detener el seguimiento falla, el cierre de sesión debe continuar igual: quedarse
+            // atrapado en la sesión por un fallo de una actualización en memoria/Intent local sería peor.
+            runCatching {
+                detenerSeguimientoUseCase(
+                    usuarioId = jornada.usuarioId,
+                    zonaId = jornada.zonaId,
+                    jornadaId = jornada.id,
+                    jornadaAbiertaEn = jornada.abiertaEn,
+                )
+            }
         }
         sesionRepository.cerrar()
     }

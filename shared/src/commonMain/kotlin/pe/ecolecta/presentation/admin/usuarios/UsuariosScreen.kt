@@ -16,9 +16,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonAccion
 import pe.ecolecta.presentation.design.CampoTexto
 import pe.ecolecta.presentation.design.ChipEstado
@@ -26,7 +28,9 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun UsuariosScreen(
@@ -35,11 +39,14 @@ fun UsuariosScreen(
     viewModel: UsuariosViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
+    val usuariosFiltrados = remember(estado.usuarios, estado.filtroTexto, estado.filtroRol, estado.soloActivos) {
+        estado.usuariosFiltrados
+    }
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoSeccion(
             "Usuarios",
-            subtitulo = "${estado.usuariosFiltrados.size} registrados",
+            subtitulo = "${usuariosFiltrados.size} registrados",
             accion = { BotonAccion("Nuevo", alCrear, icono = Icons.Filled.Add) },
         )
         Column(Modifier.padding(horizontal = Espaciado.l)) {
@@ -49,7 +56,12 @@ fun UsuariosScreen(
                 etiqueta = "Buscar por nombre, usuario o DNI",
             )
         }
-        if (estado.usuariosFiltrados.isEmpty()) {
+        estado.error?.let {
+            Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
+        }
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (usuariosFiltrados.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay usuarios que coincidan",
                 descripcion = "Ajusta la búsqueda o crea un nuevo usuario del sistema.",
@@ -62,7 +74,7 @@ fun UsuariosScreen(
                 Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.m),
                 verticalArrangement = Arrangement.spacedBy(Espaciado.s),
             ) {
-                items(estado.usuariosFiltrados, key = { it.id }) { usuario ->
+                items(usuariosFiltrados, key = { it.id }) { usuario ->
                     Tarjeta(onClick = { alEditar(usuario.id) }) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {

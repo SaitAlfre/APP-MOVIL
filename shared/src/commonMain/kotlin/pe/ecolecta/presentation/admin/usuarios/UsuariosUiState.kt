@@ -9,6 +9,7 @@ data class UsuariosUiState(
     val filtroTexto: String = "",
     val filtroRol: Rol? = null,
     val soloActivos: Boolean = false,
+    val error: String? = null,
 ) {
     val usuariosFiltrados: List<Usuario>
         get() = usuarios.filter { u ->

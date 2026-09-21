@@ -27,6 +27,7 @@ data class MisEntregasUiState(
     val filtroEstado: SyncState? = null,
     val rangoResumen: RangoResumen = RangoResumen.HOY,
     val resumen: ResumenEntregas? = null,
+    val error: String? = null,
 ) {
     val usaPaginacion: Boolean get() = filtroRango == FiltroRangoFecha.TODOS && filtroEstado == null
 }

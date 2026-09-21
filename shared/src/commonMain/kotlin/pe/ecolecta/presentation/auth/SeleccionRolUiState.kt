@@ -6,4 +6,6 @@ data class SeleccionRolUiState(
     val cargando: Boolean = true,
     val roles: List<Rol> = emptyList(),
     val rolSeleccionado: Rol? = null,
+    val error: String? = null,
+    val seleccionando: Boolean = false,
 )

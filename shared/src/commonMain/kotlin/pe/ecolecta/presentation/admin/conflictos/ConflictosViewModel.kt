@@ -12,6 +12,7 @@ import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.conflicto.ListarConflictosUseCase
 import pe.ecolecta.domain.usecase.conflicto.ResolverConflictoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ConflictosViewModel(
     private val listarConflictosUseCase: ListarConflictosUseCase,
@@ -28,19 +29,30 @@ class ConflictosViewModel(
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
         viewModelScope.launch {
-            listarConflictosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, conflictos = lista) } }
+            cargaSegura {
+                listarConflictosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, conflictos = lista) } }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar los conflictos.") } }
         }
         viewModelScope.launch {
-            listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } }
+            cargaSegura { listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
     }
 
     fun resolver(entregaId: String, origen: OrigenValorConflicto, motivo: String) {
-        val usuarioId = usuarioActualId ?: return
+        val usuarioId = usuarioActualId ?: run {
+            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            return
+        }
         if (resolviendo) return
         resolviendo = true
         viewModelScope.launch {
-            resolverConflictoUseCase(entregaId, origen, motivo, usuarioId)
+            cargaSegura { resolverConflictoUseCase(entregaId, origen, motivo, usuarioId) }.fold(
+                onSuccess = { resultado ->
+                    resultado.onFailure { error -> _uiState.update { it.copy(error = error.message ?: "No se pudo resolver el conflicto.") } }
+                },
+                onFailure = { e -> _uiState.update { it.copy(error = e.message ?: "No se pudo resolver el conflicto.") } },
+            )
             resolviendo = false
         }
     }

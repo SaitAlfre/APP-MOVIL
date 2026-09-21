@@ -21,8 +21,16 @@ class DatabaseSeeder(
 ) {
     fun sembrarSiEsNecesario() {
         val yaHayDatos = db.usuarioQueries.selectTodos().executeAsList().isNotEmpty()
-        if (yaHayDatos) return
+        if (!yaHayDatos) {
+            // Todo en una única transacción: si el proceso se interrumpe a mitad de la siembra, no debe
+            // quedar un subconjunto de datos a medio sembrar que el guard de arriba ya no complete.
+            db.transaction { sembrar() }
+        }
+        // Es idempotente y se ejecuta también al actualizar una instalación existente.
+        db.transaction { sembrarDatosMovilesDePrueba() }
+    }
 
+    private fun sembrar() {
         val ahora = reloj.ahora().toEpochMilliseconds()
         val hoy = reloj.hoy()
 
@@ -120,5 +128,112 @@ class DatabaseSeeder(
             updated_at = ahora,
             id = entregaConflicto,
         )
+    }
+
+    /**
+     * Datos controlados para probar la operación móvil completa: 3 proveedores con cuenta por
+     * zona, cuatro acopiadores, un responsable de calidad por zona y cuatro camiones en total.
+     */
+    private fun sembrarDatosMovilesDePrueba() {
+        val ahora = reloj.ahora().toEpochMilliseconds()
+        val todasLasZonas = db.zonaQueries.selectTodas().executeAsList()
+        val zonas = listOf(
+            "FAON-MARKAPAJO" to "faon",
+            "MORO VIEJO-PANCHA" to "moro",
+            "COLLANA I-YASIN-HUAN" to "collana",
+            "PLANTA-COLLANA II" to "planta",
+        ).mapNotNull { (nombre, clave) -> todasLasZonas.firstOrNull { it.nombre == nombre }?.let { it to clave } }
+        val pinProveedor = pinHasher.crearHash("1234")
+        val pinAcopiador = pinHasher.crearHash("2468")
+        val pinCalidad = pinHasher.crearHash("8642")
+
+        fun usuarioSiFalta(
+            username: String,
+            nombres: String,
+            dni: String,
+            rol: Rol,
+            hash: String,
+            salt: String,
+        ): String {
+            val existente = db.usuarioQueries.selectPorUsername(username).executeAsOneOrNull()
+            if (existente != null) return existente.id
+            val id = nuevoId()
+            db.usuarioQueries.insertar(
+                id = id, username = username, nombres = nombres, dni = dni,
+                pin_hash = hash, pin_salt = salt, activo = 1, updated_at = ahora,
+            )
+            db.usuarioRolQueries.insertar(usuario_id = id, rol = rol.name)
+            return id
+        }
+
+        zonas.forEachIndexed { zonaIndex, (zona, clave) ->
+            val numeroZona = zonaIndex + 1
+
+            val calidadId = usuarioSiFalta(
+                username = "calidad_$clave",
+                nombres = "Control de Calidad ${zona.nombre}",
+                dni = "40${numeroZona.toString().padStart(6, '0')}",
+                rol = Rol.CALIDAD,
+                hash = pinCalidad.hash,
+                salt = pinCalidad.salt,
+            )
+            db.usuarioZonaQueries.asignar(usuario_id = calidadId, zona_id = zona.id)
+            val tecnico = db.usuarioQueries.selectPorId(calidadId).executeAsOne()
+            if (tecnico.nombres == "Control de Calidad ${zona.nombre}") {
+                val nombresTecnicos = listOf("Miguel Vargas", "Lucía Ramos", "Carlos Huamán", "Elena Quispe")
+                db.usuarioQueries.actualizar(nombres = nombresTecnicos[zonaIndex], dni = tecnico.dni,
+                    activo = tecnico.activo, updated_at = ahora, id = calidadId)
+            }
+
+            val acopiadorId = usuarioSiFalta(
+                username = "acop_$clave",
+                nombres = "Acopiador ${zona.nombre}",
+                dni = "30${numeroZona.toString().padStart(6, '0')}",
+                rol = Rol.ACOPIADOR,
+                hash = pinAcopiador.hash,
+                salt = pinAcopiador.salt,
+            )
+            db.usuarioZonaQueries.asignar(usuario_id = acopiadorId, zona_id = zona.id)
+
+            (1..3).forEach { numero ->
+                val sufijo = numero.toString().padStart(2, '0')
+                val username = "prov_${clave}_$sufijo"
+                val usuarioId = usuarioSiFalta(
+                    username = username,
+                    nombres = "Proveedor ${zona.nombre} $sufijo",
+                    dni = "${numeroZona}${numero.toString().padStart(7, '0')}",
+                    rol = Rol.PROVEEDOR,
+                    hash = pinProveedor.hash,
+                    salt = pinProveedor.salt,
+                )
+                val codigo = "PRV-${clave.uppercase()}-$sufijo"
+                val proveedorExistente = db.proveedorQueries.selectTodos().executeAsList().firstOrNull { it.codigo == codigo }
+                val proveedorId = proveedorExistente?.id ?: nuevoId().also { id ->
+                    db.proveedorQueries.insertar(
+                        id = id, codigo = codigo, nombres = "Proveedor ${zona.nombre} $sufijo",
+                        dni = "${numeroZona}${numero.toString().padStart(7, '0')}", telefono = null,
+                        direccion = zona.nombre, zona_id = zona.id, tachos = 2,
+                        capacidad_tacho_l = 40.0, estado = EstadoProveedor.ACTIVO.name,
+                        updated_at = ahora, sync_state = SyncState.SYNCED.name,
+                    )
+                }
+                db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = proveedorId)
+                val fincas = listOf("Finca El Rosal", "Hacienda Los Pinos", "Granja Bella Vista")
+                val duenos = listOf("Rosa Mamani", "Jorge Quispe", "Ana Condori")
+                db.proveedorQueries.actualizarEjemplo(nombres = fincas[numero - 1], dueno = duenos[numero - 1],
+                    id = proveedorId, nombreAnterior = "Proveedor ${zona.nombre} $sufijo")
+            }
+        }
+
+        val vehiculos = listOf(
+            "Camión 1" to "V1A-123",
+            "Camión 2" to "V2B-456",
+            "Camión 3" to "V3C-789",
+            "Camión 4" to "V4D-012",
+        )
+        val placasExistentes = db.vehiculoQueries.selectTodos().executeAsList().map { it.placa }.toSet()
+        vehiculos.filterNot { it.second in placasExistentes }.forEach { (nombre, placa) ->
+            db.vehiculoQueries.insertar(id = nuevoId(), nombre = nombre, placa = placa, activo = 1)
+        }
     }
 }

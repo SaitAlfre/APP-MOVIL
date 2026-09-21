@@ -40,6 +40,7 @@ import pe.ecolecta.presentation.admin.vehiculos.VehiculoFormScreen
 import pe.ecolecta.presentation.admin.vehiculos.VehiculosScreen
 import pe.ecolecta.presentation.admin.zonas.ZonaFormScreen
 import pe.ecolecta.presentation.admin.zonas.ZonasScreen
+import pe.ecolecta.presentation.ConAlcancePorPantalla
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.navegacion.Pantalla
 import pe.ecolecta.presentation.navegacion.SeccionAdmin
@@ -114,8 +115,28 @@ fun AdminShell(
 
 @Composable
 private fun ContenidoAdmin(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
+    // Cada pantalla recibe su propio ViewModelStoreOwner: al navegar a otra, el anterior se limpia,
+    // así los ViewModels de admin no se acumulan indefinidamente durante toda la sesión (§rendimiento).
+    ConAlcancePorPantalla(pantalla) {
+        ContenidoAdminPorPantalla(pantalla, onCambiarPantalla)
+    }
+}
+
+@Composable
+private fun ContenidoAdminPorPantalla(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
     when (pantalla) {
-        Pantalla.AdminDashboard -> AdminDashboardScreen()
+        Pantalla.AdminDashboard -> AdminDashboardScreen(alNavegar = onCambiarPantalla)
+        is Pantalla.AdminCalidad -> pe.ecolecta.presentation.admin.supervision.AdminCalidadScreen(
+            proveedorId = pantalla.proveedorId,
+            alVolver = { onCambiarPantalla(pantalla.proveedorId?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminDashboard) },
+        )
+        is Pantalla.AdminProveedorDetalle -> pe.ecolecta.presentation.admin.supervision.AdminProveedorDetalleScreen(
+            id = pantalla.id,
+            alVolver = { onCambiarPantalla(Pantalla.AdminProveedores) },
+            alEditar = { onCambiarPantalla(Pantalla.AdminProveedorForm(pantalla.id)) },
+            alCalidad = { onCambiarPantalla(Pantalla.AdminCalidad(pantalla.id)) },
+            alEntrega = { onCambiarPantalla(Pantalla.AdminEntregaDetalle(it, pantalla.id)) },
+        )
         Pantalla.AdminUsuarios -> UsuariosScreen(
             alCrear = { onCambiarPantalla(Pantalla.AdminUsuarioForm()) },
             alEditar = { id -> onCambiarPantalla(Pantalla.AdminUsuarioForm(id)) },
@@ -142,11 +163,11 @@ private fun ContenidoAdmin(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> 
         )
         Pantalla.AdminProveedores -> ProveedoresScreen(
             alCrear = { onCambiarPantalla(Pantalla.AdminProveedorForm()) },
-            alEditar = { id -> onCambiarPantalla(Pantalla.AdminProveedorForm(id)) },
+            alEditar = { id -> onCambiarPantalla(Pantalla.AdminProveedorDetalle(id)) },
         )
         is Pantalla.AdminProveedorForm -> ProveedorFormScreen(
             id = pantalla.id,
-            alGuardar = { onCambiarPantalla(Pantalla.AdminProveedores) },
+            alGuardar = { onCambiarPantalla(pantalla.id?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminProveedores) },
         )
         Pantalla.AdminTraslados -> TrasladosScreen()
         Pantalla.AdminJornadas -> JornadasScreen(
@@ -162,7 +183,7 @@ private fun ContenidoAdmin(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> 
         )
         is Pantalla.AdminEntregaDetalle -> EntregaDetalleScreen(
             id = pantalla.id,
-            alVolver = { onCambiarPantalla(Pantalla.AdminEntregas) },
+            alVolver = { onCambiarPantalla(pantalla.proveedorOrigenId?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminEntregas) },
         )
         Pantalla.AdminConflictos -> ConflictosScreen()
         Pantalla.AdminAuditoria -> AuditoriaScreen()
@@ -175,7 +196,8 @@ private fun seccionDe(pantalla: Pantalla): SeccionAdmin = when (pantalla) {
     Pantalla.AdminUsuarios, is Pantalla.AdminUsuarioForm -> SeccionAdmin.USUARIOS
     Pantalla.AdminZonas, is Pantalla.AdminZonaForm -> SeccionAdmin.ZONAS
     Pantalla.AdminVehiculos, is Pantalla.AdminVehiculoForm -> SeccionAdmin.VEHICULOS
-    Pantalla.AdminProveedores, is Pantalla.AdminProveedorForm -> SeccionAdmin.PROVEEDORES
+    Pantalla.AdminProveedores, is Pantalla.AdminProveedorForm, is Pantalla.AdminProveedorDetalle -> SeccionAdmin.PROVEEDORES
+    is Pantalla.AdminCalidad -> SeccionAdmin.CALIDAD
     Pantalla.AdminTraslados -> SeccionAdmin.TRASLADOS
     Pantalla.AdminJornadas, is Pantalla.AdminJornadaDetalle -> SeccionAdmin.JORNADAS
     Pantalla.AdminEntregas, is Pantalla.AdminEntregaDetalle -> SeccionAdmin.ENTREGAS

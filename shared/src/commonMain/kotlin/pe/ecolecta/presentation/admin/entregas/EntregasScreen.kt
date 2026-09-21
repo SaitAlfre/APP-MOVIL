@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
@@ -26,6 +28,7 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.formatearFechaHora
 import pe.ecolecta.presentation.design.formatearLitros
@@ -36,9 +39,13 @@ fun EntregasScreen(
     viewModel: EntregasViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
+    // La lista filtrada se recalcula sobre toda la lista en cada lectura (es una propiedad calculada,
+    // no un StateFlow propio): se memoiza para no repetir el filtrado en cada recomposición que no
+    // cambie ni la lista ni el filtro.
+    val entregasFiltradas = remember(estado.entregas, estado.filtroSyncState) { estado.entregasFiltradas }
 
     Column(Modifier.fillMaxSize()) {
-        EncabezadoSeccion("Entregas", subtitulo = "${estado.entregasFiltradas.size} registradas")
+        EncabezadoSeccion("Entregas", subtitulo = "${entregasFiltradas.size} registradas")
         Row(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                 item { ChipSeleccionable("Todas", estado.filtroSyncState == null) { viewModel.filtrarPorEstado(null) } }
@@ -47,7 +54,15 @@ fun EntregasScreen(
                 }
             }
         }
-        if (estado.entregasFiltradas.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.error != null) {
+            EstadoVacio(
+                titulo = "No se pudieron cargar las entregas",
+                descripcion = estado.error.orEmpty(),
+                icono = Icons.Filled.ErrorOutline,
+            )
+        } else if (entregasFiltradas.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay entregas que coincidan",
                 descripcion = "Ajusta el filtro para ver otras entregas.",
@@ -58,7 +73,7 @@ fun EntregasScreen(
                 Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.m),
                 verticalArrangement = Arrangement.spacedBy(Espaciado.s),
             ) {
-                items(estado.entregasFiltradas, key = { it.id }) { entrega ->
+                items(entregasFiltradas, key = { it.id }) { entrega ->
                     Tarjeta(onClick = { alVerDetalle(entrega.id) }) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f, fill = false)) {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.vehiculo.ActualizarVehiculoUseCase
 import pe.ecolecta.domain.usecase.vehiculo.CrearVehiculoUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ObtenerVehiculoUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class VehiculoFormViewModel(
     private val id: String?,
@@ -23,8 +24,14 @@ class VehiculoFormViewModel(
     init {
         if (id != null) {
             viewModelScope.launch {
-                val vehiculo = obtenerVehiculoUseCase(id) ?: return@launch
-                _uiState.update { it.copy(nombre = vehiculo.nombre, placa = vehiculo.placa, activo = vehiculo.activo) }
+                cargaSegura { obtenerVehiculoUseCase(id) }.fold(
+                    onSuccess = { vehiculo ->
+                        if (vehiculo != null) {
+                            _uiState.update { it.copy(nombre = vehiculo.nombre, placa = vehiculo.placa, activo = vehiculo.activo) }
+                        }
+                    },
+                    onFailure = { e -> _uiState.update { it.copy(error = e.message ?: "No se pudo cargar el vehículo.") } },
+                )
             }
         }
     }

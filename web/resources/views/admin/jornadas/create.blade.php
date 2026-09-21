@@ -1,67 +1,46 @@
 @extends('layouts.admin')
 
-@section('titulo', 'Nueva jornada')
-
-@php
-    $inputClass = 'block h-11 w-full rounded-xl border border-eh-border bg-eh-bg px-3.5 text-[13.5px] text-eh-text focus:border-eh-primary focus:ring-eh-primary';
-    $labelClass = 'mb-1.5 block text-[12.5px] font-semibold text-eh-text';
-@endphp
+@section('titulo', 'Iniciar jornada')
 
 @section('contenido')
-    <h1 class="mb-2 text-[22px] font-bold text-eh-text">Nueva jornada</h1>
-    <p class="mb-6 text-[13.5px] text-eh-text-muted">Abre una jornada en nombre de un acopiador para poder registrar sus entregas.</p>
-
-    @if ($errors->any())
-        <div class="mb-4 max-w-xl rounded-xl bg-eh-red-soft px-4 py-3 text-[13px] font-medium text-eh-red">
-            {{ $errors->first() }}
-        </div>
-    @endif
+    <x-ui.page-header title="Iniciar jornada"
+        description="Abre una jornada en nombre de un acopiador para poder registrar sus entregas."
+        :breadcrumbs="[['label' => 'Jornadas de acopio', 'url' => route('admin.jornadas.index')], ['label' => 'Iniciar jornada']]" />
 
     @if (empty($acopiadores))
-        <div class="max-w-xl rounded-2xl border border-dashed border-eh-border bg-eh-surface p-8 text-center">
-            <p class="text-[13.5px] font-semibold text-eh-text">No hay acopiadores registrados</p>
-            <p class="mt-1 text-[12.5px] text-eh-text-muted">Registra un usuario con rol acopiador antes de abrir una jornada.</p>
-        </div>
+        <x-ui.card class="max-w-2xl">
+            <x-ui.empty icon="truck" title="No hay acopiadores registrados"
+                description="Crea un usuario con rol «Acopiador» antes de abrir una jornada.">
+                @if (auth('operador')->user()->puede('usuarios', 'gestionar'))
+                    <x-slot:action>
+                        <x-ui.btn :href="route('admin.usuarios.create')" icon="plus" size="sm">Nuevo usuario</x-ui.btn>
+                    </x-slot:action>
+                @endif
+            </x-ui.empty>
+        </x-ui.card>
     @else
-        <form method="POST" action="{{ route('admin.acopiadores.jornadas.store') }}" class="max-w-xl space-y-4 rounded-2xl border border-eh-border bg-eh-surface p-6 shadow-sm">
-            @csrf
+        <x-ui.card padding="p-6" class="max-w-2xl">
+            <form method="POST" action="{{ route('admin.acopiadores.jornadas.store') }}" class="space-y-6" data-once>
+                @csrf
 
-            <div>
-                <label for="usuario_id" class="{{ $labelClass }}">Acopiador</label>
-                <select id="usuario_id" name="usuario_id" required class="{{ $inputClass }}">
-                    <option value="">Selecciona un acopiador</option>
-                    @foreach ($acopiadores as $acopiador)
-                        <option value="{{ $acopiador->id }}" @selected(old('usuario_id') == $acopiador->id)>{{ $acopiador->nombres }}</option>
-                    @endforeach
-                </select>
-            </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <x-ui.select name="usuario_id" label="Acopiador" required placeholder="Selecciona un acopiador" class="sm:col-span-2"
+                        :options="collect($acopiadores)->mapWithKeys(fn ($acopiador) => [$acopiador->id => $acopiador->nombres])->all()" />
+                    <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona"
+                        :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
+                    <x-ui.select name="vehiculo_id" label="Vehículo" required placeholder="Selecciona un vehículo"
+                        :options="collect($vehiculos)->mapWithKeys(fn ($vehiculo) => [$vehiculo->id => $vehiculo->nombre.' · '.$vehiculo->placa])->all()" />
+                </div>
 
-            <div>
-                <label for="zona_id" class="{{ $labelClass }}">Zona</label>
-                <select id="zona_id" name="zona_id" required class="{{ $inputClass }}">
-                    <option value="">Selecciona una zona</option>
-                    @foreach ($zonas as $zona)
-                        <option value="{{ $zona->id }}" @selected(old('zona_id') == $zona->id)>{{ $zona->nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
+                <p class="text-xs text-eh-text-muted">
+                    Una zona solo puede tener una jornada abierta a la vez. La fecha es la de hoy y se registra automáticamente.
+                </p>
 
-            <div>
-                <label for="vehiculo_id" class="{{ $labelClass }}">Vehículo</label>
-                <select id="vehiculo_id" name="vehiculo_id" required class="{{ $inputClass }}">
-                    <option value="">Selecciona un vehículo</option>
-                    @foreach ($vehiculos as $vehiculo)
-                        <option value="{{ $vehiculo->id }}" @selected(old('vehiculo_id') == $vehiculo->id)>{{ $vehiculo->nombre }} ({{ $vehiculo->placa }})</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex items-center gap-3 pt-2">
-                <button type="submit" class="flex h-11 items-center rounded-xl bg-eh-primary px-5 text-[13.5px] font-semibold text-white hover:bg-eh-primary-dark">
-                    Abrir jornada
-                </button>
-                <a href="{{ route('admin.acopiadores.index') }}" class="text-[13.5px] font-medium text-eh-text-muted hover:text-eh-text">Cancelar</a>
-            </div>
-        </form>
+                <div class="flex justify-end gap-2 border-t border-eh-border pt-4">
+                    <x-ui.btn :href="route('admin.jornadas.index')" variant="ghost">Cancelar</x-ui.btn>
+                    <x-ui.btn type="submit" icon="play">Iniciar jornada</x-ui.btn>
+                </div>
+            </form>
+        </x-ui.card>
     @endif
 @endsection

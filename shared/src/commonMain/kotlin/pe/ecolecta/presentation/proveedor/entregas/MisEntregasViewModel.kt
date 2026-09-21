@@ -2,6 +2,7 @@ package pe.ecolecta.presentation.proveedor.entregas
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ import pe.ecolecta.domain.usecase.proveedor.FiltrarMisEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerHistorialProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerResumenEntregasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class MisEntregasViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
@@ -36,25 +38,39 @@ class MisEntregasViewModel(
     private var proveedorId: String? = null
     private var paginaActual: Int = 0
 
+    // [cargarPrimeraPagina], [cargarMas] y [aplicarFiltro] escriben todas sobre `entregas`/
+    // `hayMasPaginas`: sin cancelar la anterior, cambiar de filtro rápido (p. ej. "Hoy" → "Últimos 7
+    // días" → "Todos") puede dejar en pantalla el resultado de una carga vieja que resuelve después
+    // que la más reciente, mostrando datos de un filtro distinto al que el chip seleccionado indica.
+    private var jobEntregas: Job? = null
+    private var jobResumen: Job? = null
+
     init {
         viewModelScope.launch {
-            val usuario = obtenerSesionUseCase().first()?.usuario ?: return@launch
-            val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@launch
-            proveedorId = proveedor.id
-            cargarPrimeraPagina()
-            cargarResumen()
+            cargaSegura {
+                val usuario = obtenerSesionUseCase().first()?.usuario ?: return@cargaSegura
+                val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@cargaSegura
+                proveedorId = proveedor.id
+                cargarPrimeraPagina()
+                cargarResumen()
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu información.") } }
         }
     }
 
     private fun cargarPrimeraPagina() {
         val id = proveedorId ?: return
-        viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true) }
+        jobEntregas?.cancel()
+        jobEntregas = viewModelScope.launch {
+            _uiState.update { it.copy(cargando = true, error = null) }
             paginaActual = 0
-            val pagina = obtenerHistorialProveedorUseCase(id, pagina = 0)
-            _uiState.update {
-                it.copy(cargando = false, entregas = pagina, hayMasPaginas = pagina.size >= ObtenerHistorialProveedorUseCase.TAMANO_PAGINA)
-            }
+            cargaSegura { obtenerHistorialProveedorUseCase(id, pagina = 0) }.fold(
+                onSuccess = { pagina ->
+                    _uiState.update {
+                        it.copy(cargando = false, entregas = pagina, hayMasPaginas = pagina.size >= ObtenerHistorialProveedorUseCase.TAMANO_PAGINA)
+                    }
+                },
+                onFailure = { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar las entregas.") } },
+            )
         }
     }
 
@@ -63,17 +79,22 @@ class MisEntregasViewModel(
         val estado = _uiState.value
         if (!estado.usaPaginacion || estado.cargandoMas || !estado.hayMasPaginas) return
 
-        viewModelScope.launch {
+        jobEntregas?.cancel()
+        jobEntregas = viewModelScope.launch {
             _uiState.update { it.copy(cargandoMas = true) }
             paginaActual += 1
-            val siguiente = obtenerHistorialProveedorUseCase(id, pagina = paginaActual)
-            _uiState.update {
-                it.copy(
-                    cargandoMas = false,
-                    entregas = it.entregas + siguiente,
-                    hayMasPaginas = siguiente.size >= ObtenerHistorialProveedorUseCase.TAMANO_PAGINA,
-                )
-            }
+            cargaSegura { obtenerHistorialProveedorUseCase(id, pagina = paginaActual) }.fold(
+                onSuccess = { siguiente ->
+                    _uiState.update {
+                        it.copy(
+                            cargandoMas = false,
+                            entregas = it.entregas + siguiente,
+                            hayMasPaginas = siguiente.size >= ObtenerHistorialProveedorUseCase.TAMANO_PAGINA,
+                        )
+                    }
+                },
+                onFailure = { e -> _uiState.update { it.copy(cargandoMas = false, error = e.message) } },
+            )
         }
     }
 
@@ -86,11 +107,14 @@ class MisEntregasViewModel(
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true) }
+        jobEntregas?.cancel()
+        jobEntregas = viewModelScope.launch {
+            _uiState.update { it.copy(cargando = true, error = null) }
             val (desde, hasta) = rangoFiltroAFechas(rango)
-            val filtradas = filtrarMisEntregasUseCase(id, syncState = estado, desde = desde, hasta = hasta)
-            _uiState.update { it.copy(cargando = false, entregas = filtradas, hayMasPaginas = false) }
+            cargaSegura { filtrarMisEntregasUseCase(id, syncState = estado, desde = desde, hasta = hasta) }.fold(
+                onSuccess = { filtradas -> _uiState.update { it.copy(cargando = false, entregas = filtradas, hayMasPaginas = false) } },
+                onFailure = { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron filtrar las entregas.") } },
+            )
         }
     }
 
@@ -101,10 +125,13 @@ class MisEntregasViewModel(
 
     private fun cargarResumen() {
         val id = proveedorId ?: return
-        viewModelScope.launch {
+        jobResumen?.cancel()
+        jobResumen = viewModelScope.launch {
             val (desde, hasta) = rangoResumenAFechas(_uiState.value.rangoResumen)
-            val resumen = obtenerResumenEntregasUseCase(id, desde, hasta)
-            _uiState.update { it.copy(resumen = resumen) }
+            cargaSegura { obtenerResumenEntregasUseCase(id, desde, hasta) }.fold(
+                onSuccess = { resumen -> _uiState.update { it.copy(resumen = resumen) } },
+                onFailure = { e -> _uiState.update { it.copy(error = e.message) } },
+            )
         }
     }
 

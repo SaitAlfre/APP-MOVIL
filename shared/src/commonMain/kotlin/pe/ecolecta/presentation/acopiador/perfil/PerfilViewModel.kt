@@ -31,6 +31,15 @@ class PerfilViewModel(
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
 
     init {
+        cargar()
+    }
+
+    /**
+     * Vuelve a consultar sesión/jornada/cola de sync. [PerfilViewModel] vive toda la sesión (ver
+     * [pe.ecolecta.presentation.App]), así que sin esto los "pendientes por sincronizar" se congelan
+     * en el valor del primer ingreso a esta pestaña y nunca reflejan entregas registradas después.
+     */
+    fun cargar() {
         viewModelScope.launch {
             val sesion = obtenerSesionUseCase().first() ?: return@launch
             val jornada = obtenerJornadaEnCursoUseCase().first()

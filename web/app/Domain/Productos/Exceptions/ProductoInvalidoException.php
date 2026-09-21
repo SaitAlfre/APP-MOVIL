@@ -26,14 +26,14 @@ final class ProductoInvalidoException extends DomainException
         return new self('El contenido por unidad debe ser mayor a 0.');
     }
 
+    public static function litrosPorUnidadInvalido(): self
+    {
+        return new self('Los litros de leche por unidad deben ser mayores a 0.');
+    }
+
     public static function nombreDuplicado(): self
     {
         return new self('Ya existe un producto con ese nombre.');
-    }
-
-    public static function sinRecetaActiva(): self
-    {
-        return new self('Este producto no tiene una receta activa. Crea y activa una receta antes de fabricarlo.');
     }
 
     public static function noExiste(): self

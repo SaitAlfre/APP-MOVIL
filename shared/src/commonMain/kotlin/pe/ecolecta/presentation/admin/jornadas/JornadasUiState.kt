@@ -12,6 +12,7 @@ data class JornadasUiState(
     val zonas: List<Zona> = emptyList(),
     val vehiculos: List<Vehiculo> = emptyList(),
     val filtroZonaId: String? = null,
+    val error: String? = null,
 ) {
     val jornadasFiltradas: List<Jornada>
         get() = jornadas.filter { filtroZonaId == null || it.zonaId == filtroZonaId }

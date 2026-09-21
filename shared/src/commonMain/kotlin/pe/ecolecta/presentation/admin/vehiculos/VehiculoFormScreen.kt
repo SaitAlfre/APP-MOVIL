@@ -31,7 +31,7 @@ fun VehiculoFormScreen(
     id: String?,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
-    viewModel: VehiculoFormViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: VehiculoFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
 

@@ -1,74 +1,89 @@
 @extends('layouts.admin')
 
-@section('titulo', 'Acopiadores')
+@section('titulo', 'Jornadas de acopio')
 
 @section('contenido')
-    <div class="mb-6 flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-[22px] font-bold text-eh-text">Acopiadores</h1>
-            <p class="mt-0.5 text-[13.5px] text-eh-text-muted">Jornadas y entregas registradas en nombre de los acopiadores</p>
-        </div>
-        <a href="{{ route('admin.acopiadores.jornadas.create') }}" class="flex h-11 items-center rounded-xl bg-eh-primary px-4 text-sm font-semibold text-white hover:bg-eh-primary-dark">
-            Nueva jornada
-        </a>
-    </div>
+    @php
+        $operador = auth('operador')->user();
+        $puedeGestionar = $operador->puede('acopiadores', 'gestionar');
+        $umbral = (float) config('ecolecta.umbral_merma_porcentaje');
+    @endphp
 
-    <div class="overflow-hidden rounded-2xl border border-eh-border bg-eh-surface shadow-sm">
-        <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-sm">
-            <thead class="bg-eh-table-head text-left text-[11px] font-semibold uppercase tracking-wide text-eh-text-muted">
-                <tr>
-                    <th class="px-5 py-3">Acopiador</th>
-                    <th class="px-3 py-3">Zona</th>
-                    <th class="px-3 py-3">Vehículo</th>
-                    <th class="px-3 py-3">Fecha</th>
-                    <th class="px-3 py-3 text-right">Litros</th>
-                    <th class="px-3 py-3 text-right">Entregas</th>
-                    <th class="px-3 py-3">Estado</th>
-                    <th class="px-5 py-3 text-right">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($filas as $i => $fila)
-                    <tr @class(['border-t border-eh-border', 'bg-eh-stripe' => $i % 2 === 1])>
-                        <td class="px-5 py-3 font-semibold text-eh-text">{{ $fila['usuario']?->nombres ?? '—' }}</td>
-                        <td class="px-3 py-3 text-eh-text-muted">{{ $fila['zona']?->nombre ?? '—' }}</td>
-                        <td class="px-3 py-3 text-eh-text-muted">{{ $fila['vehiculo']?->nombre ?? '—' }} @if($fila['vehiculo']) <span class="text-xs">({{ $fila['vehiculo']->placa }})</span> @endif</td>
-                        <td class="px-3 py-3 text-eh-text-muted">{{ $fila['jornada']->fecha->format('d/m/Y') }}</td>
-                        <td class="px-3 py-3 text-right font-semibold text-eh-text">{{ number_format($fila['litros'], 1) }}</td>
-                        <td class="px-3 py-3 text-right text-eh-text">{{ $fila['entregas'] }}</td>
-                        <td class="px-3 py-3">
-                            <span @class([
-                                'rounded-full px-2.5 py-1 text-[11px] font-semibold',
-                                'bg-eh-blue-soft text-eh-blue' => $fila['jornada']->estaAbierta(),
-                                'bg-eh-surface-alt text-eh-text-muted' => ! $fila['jornada']->estaAbierta(),
-                            ])>
-                                {{ $fila['jornada']->estaAbierta() ? 'Jornada abierta' : 'Jornada cerrada' }}
-                            </span>
+    <x-ui.page-header title="Jornadas de acopio" description="Registro y seguimiento de jornadas de recolección">
+        @if ($puedeGestionar)
+            <x-slot:actions>
+                <x-ui.btn :href="route('admin.acopiadores.jornadas.create')" icon="play">Iniciar jornada</x-ui.btn>
+            </x-slot:actions>
+        @endif
+    </x-ui.page-header>
+
+    <x-ui.card>
+        @if ($filas->isEmpty())
+            <x-ui.empty icon="clipboardList" title="Aún no hay jornadas registradas"
+                description="Abre la primera jornada con el botón «Iniciar jornada» para poder registrar entregas.">
+                @if ($puedeGestionar)
+                    <x-slot:action>
+                        <x-ui.btn :href="route('admin.acopiadores.jornadas.create')" icon="play" size="sm">Iniciar jornada</x-ui.btn>
+                    </x-slot:action>
+                @endif
+            </x-ui.empty>
+        @else
+            <x-ui.table :headers="['Fecha', 'Acopiador', 'Zona', 'Vehículo', 'Apertura', 'Cierre', 'L. campo', 'L. planta', 'Diferencia', 'Entregas', 'Estado', '']"
+                caption="Jornadas de acopio registradas">
+                @foreach ($filas as $fila)
+                    @php
+                        $jornada = $fila['jornada'];
+                        $recepcion = $fila['recepcion'];
+                        $diferencia = $recepcion !== null ? $recepcion->litrosRecolectados - $recepcion->litrosMedidos : null;
+                        $porcentaje = $recepcion !== null && $recepcion->litrosRecolectados > 0
+                            ? ($diferencia / $recepcion->litrosRecolectados) * 100
+                            : null;
+                        $sobreUmbral = $porcentaje !== null && $porcentaje > $umbral;
+                    @endphp
+                    <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
+                        <td class="px-4 py-3 text-xs text-eh-text">{{ $jornada->fecha->format('d/m/Y') }}</td>
+                        <td class="px-4 py-3 text-xs font-medium text-eh-text">{{ $fila['usuario']?->nombres ?? '—' }}</td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila['zona']?->nombre ?? '—' }}</td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">
+                            {{ $fila['vehiculo']?->nombre ?? '—' }}
+                            @if ($fila['vehiculo'])
+                                <span class="mono">({{ $fila['vehiculo']->placa }})</span>
+                            @endif
                         </td>
-                        <td class="px-5 py-3 text-right">
-                            <a href="{{ route('admin.acopiadores.jornadas.show', $fila['jornada']->id) }}" class="text-[12px] font-semibold text-eh-primary">Ver</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="px-5 py-14 text-center">
-                            <div class="mx-auto flex max-w-xs flex-col items-center">
-                                <span class="mb-3 flex size-11 items-center justify-center rounded-xl bg-eh-surface-alt">
-                                    <svg class="size-5 text-eh-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="12" height="9" rx="1.4"/><path d="M14.5 10h4l3 3v3h-7z"/></svg>
+                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $jornada->abiertaEn->format('H:i') }}</td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $jornada->cerradaEn?->format('H:i') ?? '—' }}</td>
+                        <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ number_format($fila['litros'], 1) }} L</td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $recepcion ? number_format($recepcion->litrosMedidos, 1).' L' : '—' }}</td>
+                        <td class="px-4 py-3">
+                            @if ($diferencia === null)
+                                <span class="mono text-xs text-eh-text-muted">—</span>
+                            @else
+                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $sobreUmbral, 'text-eh-text' => ! $sobreUmbral])>
+                                    {{ number_format($diferencia, 1) }} L
+                                    @if ($porcentaje !== null)
+                                        ({{ number_format($porcentaje, 1) }}%)
+                                    @endif
                                 </span>
-                                <p class="text-[13.5px] font-semibold text-eh-text">Aún no hay jornadas registradas</p>
-                                <p class="mt-1 text-[12.5px] text-eh-text-muted">Regístralas con el botón "Nueva jornada".</p>
-                            </div>
+                                @if ($sobreUmbral)
+                                    <span class="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-eh-red">
+                                        <x-icon name="exclamation" class="h-3 w-3" /> Sobre el {{ number_format($umbral, 0) }}%
+                                    </span>
+                                @endif
+                            @endif
+                        </td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $fila['entregas'] }}</td>
+                        <td class="px-4 py-3"><x-ui.estado :estado="$jornada->estaAbierta() ? 'abierta' : 'cerrada'" /></td>
+                        <td class="px-4 py-3 text-right">
+                            <x-ui.btn :href="route('admin.acopiadores.jornadas.show', $jornada->id)" variant="secondary" size="sm">Ver</x-ui.btn>
                         </td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-        </div>
-    </div>
+                @endforeach
+            </x-ui.table>
 
-    <div class="mt-4">
-        {{ $paginador->links() }}
-    </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
+                <span>Mostrando {{ $paginador->count() }} de {{ $paginador->total() }} jornadas</span>
+                <div>{{ $paginador->onEachSide(1)->links() }}</div>
+            </div>
+        @endif
+    </x-ui.card>
 @endsection

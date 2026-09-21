@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Admin\Produccion;
 
-use App\Application\Produccion\ListarLotesProduccionUseCase;
 use App\Application\Productos\ActualizarProductoUseCase;
 use App\Application\Productos\CambiarEstadoProductoUseCase;
 use App\Application\Productos\CrearProductoUseCase;
 use App\Application\Productos\ListarProductosUseCase;
-use App\Application\Recetas\ListarRecetasPorProductoUseCase;
 use App\Domain\Productos\Exceptions\ProductoInvalidoException;
 use App\Domain\Productos\ProductoRepositoryInterface;
 use App\Http\Controllers\Controller;
@@ -34,10 +32,10 @@ class ProductoController extends Controller
         try {
             $crear->ejecutar(...$datos);
         } catch (ProductoInvalidoException $e) {
-            return back()->withErrors(['nombre' => $e->getMessage()])->withInput();
+            return back()->withErrors(['nombre' => $this->mensajeSeguro($e)])->withInput();
         }
 
-        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Producto creado correctamente.');
+        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Receta creada correctamente.');
     }
 
     public function edit(int $producto, ProductoRepositoryInterface $productos): View
@@ -56,10 +54,10 @@ class ProductoController extends Controller
         try {
             $actualizar->ejecutar($producto, ...$datos);
         } catch (ProductoInvalidoException $e) {
-            return back()->withErrors(['nombre' => $e->getMessage()])->withInput();
+            return back()->withErrors(['nombre' => $this->mensajeSeguro($e)])->withInput();
         }
 
-        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Producto actualizado correctamente.');
+        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Receta actualizada correctamente.');
     }
 
     public function cambiarEstado(int $producto, Request $request, CambiarEstadoProductoUseCase $cambiar): RedirectResponse
@@ -68,27 +66,19 @@ class ProductoController extends Controller
 
         $cambiar->ejecutar($producto, $request->boolean('activo'));
 
-        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Estado del producto actualizado.');
+        return redirect()->route('admin.produccion.productos.index')->with('estado', 'Estado de la receta actualizado.');
     }
 
-    public function show(
-        int $producto,
-        ProductoRepositoryInterface $productos,
-        ListarRecetasPorProductoUseCase $listarRecetas,
-        ListarLotesProduccionUseCase $listarLotes,
-    ): View {
+    public function show(int $producto, ProductoRepositoryInterface $productos): View
+    {
         $productoDominio = $productos->buscarPorId($producto);
 
         abort_if($productoDominio === null, 404);
 
-        return view('admin.produccion.productos.show', [
-            'producto' => $productoDominio,
-            'recetas' => $listarRecetas->ejecutar($producto),
-            'lotes' => $listarLotes->ejecutar(10, null, $producto),
-        ]);
+        return view('admin.produccion.productos.show', ['producto' => $productoDominio]);
     }
 
-    /** @return array{0: string, 1: string, 2: string, 3: ?float, 4: ?string} */
+    /** @return array{0: string, 1: string, 2: string, 3: ?float, 4: ?string, 5: float, 6: ?string} */
     private function validarDatos(Request $request): array
     {
         $request->validate([
@@ -97,6 +87,8 @@ class ProductoController extends Controller
             'unidad_produccion' => ['required', 'string', 'max:20'],
             'contenido_por_unidad' => ['nullable', 'numeric', 'gt:0'],
             'unidad_contenido' => ['nullable', 'string', 'max:20'],
+            'litros_por_unidad' => ['required', 'numeric', 'gt:0'],
+            'otros_insumos' => ['nullable', 'string', 'max:500'],
         ]);
 
         return [
@@ -105,6 +97,8 @@ class ProductoController extends Controller
             $request->string('unidad_produccion')->toString(),
             $request->filled('contenido_por_unidad') ? (float) $request->input('contenido_por_unidad') : null,
             $request->string('unidad_contenido')->toString() ?: null,
+            (float) $request->input('litros_por_unidad'),
+            $request->string('otros_insumos')->toString() ?: null,
         ];
     }
 }

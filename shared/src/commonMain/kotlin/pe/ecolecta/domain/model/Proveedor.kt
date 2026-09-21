@@ -16,6 +16,7 @@ data class Proveedor(
     val updatedAt: Long,
     val syncState: SyncState,
     val usuarioId: String? = null,
+    val dueno: String? = null,
 ) {
     val capacidadTotalL: Double get() = tachos * capacidadTachoL
 

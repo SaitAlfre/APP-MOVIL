@@ -1,0 +1,7 @@
+-- Persiste qué usuario/rol tiene la sesión activa (ver sesion.sq), para que el Acopiador no pierda
+-- la sesión cada vez que el sistema operativo mata el proceso mientras trabaja offline en campo.
+CREATE TABLE sesion_activa (
+    id INTEGER NOT NULL PRIMARY KEY,
+    usuario_id TEXT NOT NULL,
+    rol_activo TEXT NOT NULL
+);

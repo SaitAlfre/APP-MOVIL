@@ -79,8 +79,22 @@ class ProveedorManagementTest extends TestCase
             'capacidad_tacho_l' => 40,
         ]);
 
-        $response->assertSessionHasErrors('tachos');
+        $response->assertSessionHasErrors([
+            'tachos' => 'El campo cantidad de tachos debe ser mayor o igual que 1.',
+        ]);
         $this->assertDatabaseMissing('proveedores', ['codigo' => 'PRV-002']);
+    }
+
+    public function test_los_campos_obligatorios_muestran_mensajes_en_espanol(): void
+    {
+        $this->comoAdmin();
+
+        $this->post('/admin/proveedores', [])->assertSessionHasErrors([
+            'codigo' => 'El campo código es obligatorio.',
+            'nombres' => 'El campo nombre completo es obligatorio.',
+            'dni' => 'El campo DNI es obligatorio.',
+            'zona_id' => 'El campo zona es obligatorio.',
+        ]);
     }
 
     public function test_un_admin_puede_actualizar_un_proveedor(): void

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.auditoria.ListarAuditoriaUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class AuditoriaViewModel(private val listarAuditoriaUseCase: ListarAuditoriaUseCase) : ViewModel() {
     private val _uiState = MutableStateFlow(AuditoriaUiState())
@@ -15,7 +16,9 @@ class AuditoriaViewModel(private val listarAuditoriaUseCase: ListarAuditoriaUseC
 
     init {
         viewModelScope.launch {
-            listarAuditoriaUseCase.observarTodas().collect { lista -> _uiState.update { it.copy(cargando = false, registros = lista) } }
+            cargaSegura {
+                listarAuditoriaUseCase.observarTodas().collect { lista -> _uiState.update { it.copy(cargando = false, registros = lista) } }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar la auditoría.") } }
         }
     }
 }

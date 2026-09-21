@@ -11,8 +11,8 @@ final class ListarAuditoriaUseCase
         private readonly AuditoriaRepositoryInterface $auditorias,
     ) {}
 
-    public function ejecutar(int $porPagina = 25): LengthAwarePaginator
+    public function ejecutar(int $porPagina = 25, array $filtros = []): LengthAwarePaginator
     {
-        return $this->auditorias->paginar($porPagina);
+        return $this->auditorias->paginar($porPagina, $filtros);
     }
 }

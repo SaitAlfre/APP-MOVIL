@@ -13,5 +13,14 @@ interface JornadaRepository {
     suspend fun filtrar(fecha: LocalDate?, usuarioId: String?, zonaId: String?, vehiculoId: String?): List<Jornada>
     suspend fun contarAbiertas(): Long
     suspend fun insertar(jornada: Jornada)
+
+    /**
+     * Inserta [jornada] solo si la zona no tiene ya una jornada abierta de un usuario distinto, todo
+     * dentro de una única operación atómica — evita la condición de carrera entre comprobar la zona
+     * e insertar que permitiría, con dos llamadas solapadas (p. ej. doble tap), abrir dos jornadas en
+     * la misma zona. Devuelve la jornada que ya ocupa la zona si no se insertó, o null si se insertó.
+     */
+    suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada?
+
     suspend fun cerrar(id: String, cerradaEn: Long)
 }

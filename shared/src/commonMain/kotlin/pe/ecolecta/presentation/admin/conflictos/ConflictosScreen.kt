@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.OrigenValorConflicto
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.ChipEstado
@@ -29,7 +30,9 @@ import pe.ecolecta.presentation.design.DialogoMotivo
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
@@ -39,7 +42,12 @@ fun ConflictosScreen(viewModel: ConflictosViewModel = koinViewModel()) {
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoSeccion("Conflictos de sincronización", subtitulo = "${estado.conflictos.size} pendientes por resolver")
-        if (estado.conflictos.isEmpty()) {
+        estado.error?.let {
+            Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
+        }
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.conflictos.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay conflictos pendientes",
                 descripcion = "Todas las entregas están sincronizadas correctamente.",

@@ -30,7 +30,7 @@ fun ZonaFormScreen(
     id: String?,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
-    viewModel: ZonaFormViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: ZonaFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
 

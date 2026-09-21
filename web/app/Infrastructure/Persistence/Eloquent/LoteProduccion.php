@@ -2,38 +2,34 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
-use App\Domain\Produccion\EstadoLoteProduccion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LoteProduccion extends Model
 {
     protected $table = 'lotes_produccion';
 
     protected $fillable = [
-        'codigo', 'producto_id', 'receta_id', 'cantidad_planificada', 'cantidad_obtenida', 'unidad',
-        'estado', 'responsable_usuario_id', 'fecha_planificada', 'observaciones',
-        'abierto_en', 'iniciado_en', 'finalizado_en', 'cancelado_en', 'motivo_cancelacion',
+        'codigo', 'producto_id', 'fecha', 'litros_por_unidad_snapshot', 'litros_asignados',
+        'litros_usados', 'litros_merma_proceso', 'litros_sobrantes', 'unidades_estimadas',
+        'unidades_producidas', 'estado', 'origen_acopio', 'responsable_id',
+        'iniciado_en', 'finalizado_en', 'cancelado_en', 'motivo_cancelacion',
     ];
 
     protected function casts(): array
     {
         return [
-            'cantidad_planificada' => 'decimal:3',
-            'cantidad_obtenida' => 'decimal:3',
-            'estado' => EstadoLoteProduccion::class,
-            'fecha_planificada' => 'date',
-            'abierto_en' => 'datetime',
+            'fecha' => 'date',
+            'litros_por_unidad_snapshot' => 'decimal:3',
+            'litros_asignados' => 'decimal:3',
+            'litros_usados' => 'decimal:3',
+            'litros_merma_proceso' => 'decimal:3',
+            'litros_sobrantes' => 'decimal:3',
+            'origen_acopio' => 'array',
             'iniciado_en' => 'datetime',
             'finalizado_en' => 'datetime',
             'cancelado_en' => 'datetime',
         ];
-    }
-
-    public function responsable(): BelongsTo
-    {
-        return $this->belongsTo(Usuario::class, 'responsable_usuario_id');
     }
 
     public function producto(): BelongsTo
@@ -41,13 +37,8 @@ class LoteProduccion extends Model
         return $this->belongsTo(Producto::class);
     }
 
-    public function receta(): BelongsTo
+    public function responsable(): BelongsTo
     {
-        return $this->belongsTo(Receta::class);
-    }
-
-    public function insumos(): HasMany
-    {
-        return $this->hasMany(LoteInsumo::class, 'lote_produccion_id');
+        return $this->belongsTo(Usuario::class, 'responsable_id');
     }
 }

@@ -32,6 +32,7 @@ import pe.ecolecta.presentation.acopiador.onboarding.SeleccionZonaVehiculoScreen
 import pe.ecolecta.presentation.admin.AdminShell
 import pe.ecolecta.presentation.auth.LoginScreen
 import pe.ecolecta.presentation.auth.SeleccionRolScreen
+import pe.ecolecta.presentation.calidad.CalidadShell
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EcolectaTheme
 import pe.ecolecta.presentation.navegacion.Pantalla
@@ -105,6 +106,7 @@ fun App() {
                         val proveedor = obtenerPerfilProveedorUseCase(sesion.usuario.id)
                         pantalla = if (proveedor != null) Pantalla.ProveedorHome else Pantalla.RolNoDisponible
                     }
+                    sesion.rolActivo == Rol.CALIDAD -> pantalla = Pantalla.CalidadInicio
                     else -> pantalla = Pantalla.RolNoDisponible
                 }
             }
@@ -133,7 +135,8 @@ fun App() {
                             alJornadaAbierta = { pantalla = Pantalla.AcopiadorHome },
                         )
                         Pantalla.AcopiadorHome,
-                        Pantalla.AcopiadorRegistroEntrega,
+                        Pantalla.AcopiadorLista,
+                        is Pantalla.AcopiadorRegistroEntrega,
                         Pantalla.AcopiadorEscanearQr,
                         Pantalla.AcopiadorLote,
                         Pantalla.AcopiadorSincronizacion,
@@ -146,6 +149,13 @@ fun App() {
                         Pantalla.ProveedorMiQr,
                         Pantalla.ProveedorPerfil,
                         -> ProveedorShell(pantalla = actual, onCambiarPantalla = { pantalla = it })
+                        Pantalla.CalidadInicio,
+                        Pantalla.CalidadNuevo,
+                        -> CalidadShell(
+                            pantalla = actual,
+                            onCambiarPantalla = { pantalla = it },
+                            onCerrarSesion = ::cerrarSesion,
+                        )
                         else -> AdminShell(
                             pantalla = actual,
                             onCambiarPantalla = { pantalla = it },

@@ -52,6 +52,8 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.play.services.location)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.mlkit.text.recognition)
             // Firebase (GitLive) solo aquí: nunca en commonMain/iosMain, para no requerir Xcode
             // ni linkear los SDK nativos de Firebase en esta demo (ver plan del Grupo 5).
             implementation(libs.firebase.firestore)

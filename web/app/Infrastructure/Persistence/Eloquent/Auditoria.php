@@ -2,10 +2,20 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Application\Auditoria\DatosSegurosAuditoria;
 use Illuminate\Database\Eloquent\Model;
 
 class Auditoria extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (self $registro) {
+            foreach (['valor_antes', 'valor_despues', 'motivo'] as $campo) {
+                $registro->{$campo} = DatosSegurosAuditoria::limpiar($registro->{$campo});
+            }
+        });
+    }
+
     protected $table = 'auditorias';
 
     protected $fillable = [

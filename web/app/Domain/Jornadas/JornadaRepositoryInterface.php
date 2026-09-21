@@ -10,6 +10,13 @@ interface JornadaRepositoryInterface
 
     public function buscarPorId(int $id): ?Jornada;
 
+    /**
+     * Jornadas todavía sin cerrar, de la más reciente a la más antigua.
+     *
+     * @return list<Jornada>
+     */
+    public function abiertas(int $limite = 10): array;
+
     public function obtenerAbiertaPorUsuarioYFecha(int $usuarioId, \DateTimeImmutable $fecha): ?Jornada;
 
     public function obtenerAbiertaPorZona(int $zonaId): ?Jornada;

@@ -44,6 +44,9 @@ class CalidadController extends Controller
         $conteos = $controlCalidad->contarPorResultado();
         $totalEvaluadas = array_sum($conteos);
 
+        $pestanas = ['controles', 'reglas'];
+        $pestana = $request->string('tab')->toString();
+
         return view('admin.calidad.index', [
             'filas' => $filas,
             'paginador' => $controles,
@@ -51,6 +54,7 @@ class CalidadController extends Controller
             'conteos' => $conteos,
             'tasaAprobacion' => $totalEvaluadas > 0 ? round(($conteos['aprobado'] / $totalEvaluadas) * 100, 1) : null,
             'filtroActual' => $resultado,
+            'pestana' => in_array($pestana, $pestanas, true) ? $pestana : 'controles',
         ]);
     }
 
@@ -87,7 +91,7 @@ class CalidadController extends Controller
                 observaciones: $request->string('observaciones')->toString() ?: null,
             );
         } catch (ControlCalidadInvalidoException|RuntimeException $e) {
-            return back()->withErrors(['entrega_id' => $e->getMessage()])->withInput();
+            return back()->withErrors(['entrega_id' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.calidad.index')->with('estado', 'Control de calidad registrado correctamente.');

@@ -16,7 +16,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->post('/login', ['username' => $admin->username, 'pin' => '1234']);
 
-        $response->assertRedirect(route('admin.proveedores.index'));
+        $response->assertRedirect(route('admin.dashboard.index'));
         $this->assertAuthenticatedAs($admin, 'operador');
     }
 

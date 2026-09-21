@@ -5,6 +5,8 @@ namespace App\Application\Produccion;
 use App\Domain\Produccion\Exceptions\LoteProduccionInvalidoException;
 use App\Domain\Produccion\LoteProduccion;
 use App\Domain\Produccion\LoteProduccionRepositoryInterface;
+use DateTimeImmutable;
+use RuntimeException;
 
 final class FinalizarLoteProduccionUseCase
 {
@@ -12,13 +14,20 @@ final class FinalizarLoteProduccionUseCase
         private readonly LoteProduccionRepositoryInterface $lotes,
     ) {}
 
-    /** @param array<int, float>|null $consumosFinales insumoId => cantidad total consumida informada */
-    public function ejecutar(int $loteId, float $cantidadObtenida, ?array $consumosFinales, int $usuarioId): LoteProduccion
+    public function ejecutar(int $loteId, float $litrosUsados, float $litrosMermaProceso, int $usuarioId): LoteProduccion
     {
-        if ($this->lotes->buscarPorId($loteId) === null) {
-            throw LoteProduccionInvalidoException::noExiste();
+        $lote = $this->lotes->buscarPorId($loteId);
+
+        if ($lote === null) {
+            throw new RuntimeException('Lote no encontrado.');
         }
 
-        return $this->lotes->finalizar($loteId, $cantidadObtenida, $consumosFinales, $usuarioId);
+        if (! $lote->puedeFinalizar()) {
+            throw LoteProduccionInvalidoException::transicionInvalida($lote->estado, 'finalizar');
+        }
+
+        LoteProduccion::validarFinalizacion($lote->litrosAsignados, $litrosUsados, $litrosMermaProceso);
+
+        return $this->lotes->finalizar($loteId, $litrosUsados, $litrosMermaProceso, new DateTimeImmutable, $usuarioId);
     }
 }

@@ -47,12 +47,17 @@ class AdminModulesTest extends TestCase
         Zona::factory()->create(['nombre' => 'Zona Este', 'activo' => true]);
         Vehiculo::factory()->create(['nombre' => 'Camioneta 3', 'placa' => 'ZZZ-999']);
 
-        $response = $this->get('/admin/zonas-vehiculos');
+        // La pantalla usa pestañas: zonas por defecto y vehículos en su propia pestaña.
+        $zonas = $this->get('/admin/zonas-vehiculos');
 
-        $response->assertOk();
-        $response->assertSee('Zona Este');
-        $response->assertSee('Camioneta 3');
-        $response->assertSee('ZZZ-999');
+        $zonas->assertOk();
+        $zonas->assertSee('Zona Este');
+
+        $vehiculos = $this->get('/admin/zonas-vehiculos?tab=vehiculos');
+
+        $vehiculos->assertOk();
+        $vehiculos->assertSee('Camioneta 3');
+        $vehiculos->assertSee('ZZZ-999');
     }
 
     public function test_el_listado_de_auditoria_muestra_los_registros_existentes(): void

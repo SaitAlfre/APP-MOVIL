@@ -22,3 +22,6 @@ node_modules/
 
 # Credenciales de Firebase: nunca se suben al repositorio.
 androidApp/google-services.json
+
+# Home local del SDK de Android (keystore de debug y cache)
+.android/

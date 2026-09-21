@@ -13,8 +13,8 @@ import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerEstadoSincronizacionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.SincronizarDatosProveedorUseCase
-import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class PerfilProveedorViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
@@ -23,30 +23,27 @@ class PerfilProveedorViewModel(
     private val obtenerEstadoSincronizacionUseCase: ObtenerEstadoSincronizacionUseCase,
     private val sincronizarDatosProveedorUseCase: SincronizarDatosProveedorUseCase,
     private val cerrarSesionUseCase: CerrarSesionUseCase,
-    private val obtenerIdentidadRemotaUseCase: ObtenerIdentidadRemotaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilProveedorUiState())
     val uiState: StateFlow<PerfilProveedorUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            val usuario = obtenerSesionUseCase().first()?.usuario ?: return@launch
-            val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@launch
-            val zonas = listarZonasUseCase().first()
-            val resumenSync = obtenerEstadoSincronizacionUseCase(proveedor.id)
+            cargaSegura {
+                val usuario = obtenerSesionUseCase().first()?.usuario ?: return@cargaSegura
+                val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@cargaSegura
+                val zonas = listarZonasUseCase().first()
+                val resumenSync = obtenerEstadoSincronizacionUseCase(proveedor.id)
 
-            _uiState.update {
-                it.copy(
-                    cargando = false,
-                    proveedor = proveedor,
-                    nombreZona = zonas.firstOrNull { z -> z.id == proveedor.zonaId }?.nombre ?: proveedor.zonaId,
-                    resumenSync = resumenSync,
-                    usuarioIdLocal = usuario.id,
-                )
-            }
-
-            val uid = obtenerIdentidadRemotaUseCase()
-            _uiState.update { it.copy(uidFirebase = uid) }
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        proveedor = proveedor,
+                        nombreZona = zonas.firstOrNull { z -> z.id == proveedor.zonaId }?.nombre ?: proveedor.zonaId,
+                        resumenSync = resumenSync,
+                    )
+                }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu perfil.") } }
         }
     }
 

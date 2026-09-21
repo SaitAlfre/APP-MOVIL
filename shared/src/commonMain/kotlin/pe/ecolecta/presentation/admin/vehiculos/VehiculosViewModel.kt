@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.vehiculo.DesactivarVehiculoUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class VehiculosViewModel(
     private val listarVehiculosUseCase: ListarVehiculosUseCase,
@@ -19,7 +20,8 @@ class VehiculosViewModel(
 
     init {
         viewModelScope.launch {
-            listarVehiculosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, vehiculos = lista) } }
+            cargaSegura { listarVehiculosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, vehiculos = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar los vehículos.") } }
         }
     }
 

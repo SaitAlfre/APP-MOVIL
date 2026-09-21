@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaAcopioUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class MiRutaAcopioViewModel(
     private val obtenerRutaAcopioUseCase: ObtenerRutaAcopioUseCase,
@@ -20,9 +21,11 @@ class MiRutaAcopioViewModel(
 
     init {
         viewModelScope.launch {
-            obtenerRutaAcopioUseCase().collect { estado ->
-                _uiState.update { it.copy(cargando = false, estado = estado, ahoraMs = reloj.ahora().toEpochMilliseconds()) }
-            }
+            cargaSegura {
+                obtenerRutaAcopioUseCase().collect { estado ->
+                    _uiState.update { it.copy(cargando = false, estado = estado, ahoraMs = reloj.ahora().toEpochMilliseconds()) }
+                }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu ruta.") } }
         }
         // Refresca "hace X min" periódicamente aunque no llegue ningún dato nuevo.
         viewModelScope.launch {

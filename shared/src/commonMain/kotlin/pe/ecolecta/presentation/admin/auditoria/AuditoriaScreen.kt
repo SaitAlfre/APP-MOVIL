@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import pe.ecolecta.presentation.design.DivisorSutil
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.formatearFechaHora
 
@@ -31,7 +33,15 @@ fun AuditoriaScreen(viewModel: AuditoriaViewModel = koinViewModel()) {
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoSeccion("Auditoría", subtitulo = "Historial de acciones sobre el sistema")
-        if (estado.registros.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.error != null) {
+            EstadoVacio(
+                titulo = "No se pudo cargar la auditoría",
+                descripcion = estado.error.orEmpty(),
+                icono = Icons.Filled.ErrorOutline,
+            )
+        } else if (estado.registros.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay registros de auditoría todavía",
                 descripcion = "Las correcciones, anulaciones y resoluciones quedarán registradas aquí.",

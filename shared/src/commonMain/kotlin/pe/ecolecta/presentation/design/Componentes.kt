@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.WarningAmber
@@ -270,7 +271,16 @@ fun Tarjeta(
     }
 }
 
-/** Tarjeta de estadística para dashboards (ADMIN/ACOPIADOR/PROVEEDOR): valor grande + etiqueta + ícono de color. */
+/**
+ * Tarjeta de estadística para dashboards (ADMIN/ACOPIADOR/PROVEEDOR): valor grande + etiqueta +
+ * ícono de color.
+ *
+ * Admite las dos presentaciones del diseño con una sola definición: por defecto el ícono va a la
+ * derecha dentro de un círculo tenue (tableros densos de ADMIN), y con [iconoEnLinea] va suelto a
+ * la izquierda de la etiqueta, que es como se ven las métricas en las pantallas de móvil.
+ * [colorValor] tiñe la cifra cuando esa métrica es la protagonista de la pantalla — el resto de
+ * las tarjetas dejan el valor en el color de texto normal para no competir entre sí.
+ */
 @Composable
 fun TarjetaEstadistica(
     etiqueta: String,
@@ -278,6 +288,9 @@ fun TarjetaEstadistica(
     modifier: Modifier = Modifier,
     icono: ImageVector? = null,
     color: Color? = null,
+    colorValor: Color? = null,
+    iconoEnLinea: Boolean = false,
+    estiloValor: androidx.compose.ui.text.TextStyle? = null,
 ) {
     val acento = color ?: Colores.brand
     Surface(
@@ -288,9 +301,16 @@ fun TarjetaEstadistica(
         shadowElevation = 1.dp,
     ) {
         Column(Modifier.padding(Espaciado.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = if (iconoEnLinea) Arrangement.spacedBy(Espaciado.xs) else Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (iconoEnLinea && icono != null) {
+                    Icon(icono, contentDescription = null, tint = acento, modifier = Modifier.size(18.dp))
+                }
                 Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario, modifier = Modifier.weight(1f))
-                if (icono != null) {
+                if (!iconoEnLinea && icono != null) {
                     Box(
                         Modifier.size(28.dp).clip(CircleShape).background(acento.copy(alpha = 0.14f)),
                         contentAlignment = Alignment.Center,
@@ -300,24 +320,36 @@ fun TarjetaEstadistica(
                 }
             }
             Spacer(Modifier.height(Espaciado.xxs))
-            Text(valor, style = MaterialTheme.typography.headlineMedium, color = Colores.textPrimary, fontWeight = FontWeight.Bold)
+            Text(
+                valor,
+                style = estiloValor ?: MaterialTheme.typography.headlineMedium,
+                color = colorValor ?: Colores.textPrimary,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
 
-/** Insignia de estado (SYNCED/PENDING/ERROR/CONFLICT, ACTIVO/INACTIVO, etc.) con punto de color + texto. */
+/**
+ * Insignia de estado (SYNCED/PENDING/ERROR/CONFLICT, ACTIVO/INACTIVO, etc.): pastilla con fondo
+ * tenue y texto del mismo color. [mostrarPunto] antepone un punto sólido; las pantallas de ADMIN
+ * lo usan para distinguir estados de un vistazo en tablas densas, mientras que ACOPIADOR y
+ * PROVEEDOR lo omiten siguiendo el diseño de móvil, donde la pastilla ya va suelta y aireada.
+ */
 @Composable
-fun ChipEstado(texto: String, color: Color, modifier: Modifier = Modifier) {
+fun ChipEstado(texto: String, color: Color, modifier: Modifier = Modifier, mostrarPunto: Boolean = true) {
     Row(
         modifier
             .clip(RoundedCornerShape(50))
             .background(color.copy(alpha = 0.14f))
-            .padding(horizontal = Espaciado.xs, vertical = Espaciado.xxs),
+            .padding(horizontal = Espaciado.s, vertical = Espaciado.xxs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(Modifier.size(6.dp).clip(CircleShape).background(color))
-        Text(texto, color = color, style = MaterialTheme.typography.labelMedium)
+        if (mostrarPunto) {
+            Box(Modifier.size(6.dp).clip(CircleShape).background(color))
+        }
+        Text(texto, color = color, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -431,6 +463,10 @@ fun DialogoMotivo(
     contenidoExtra: @Composable (() -> Unit)? = null,
 ) {
     var motivo by remember { mutableStateOf("") }
+    // Este diálogo se reutiliza para acciones de negocio sensibles (Corregir/Anular/Rechazar/
+    // Resolver, no idempotentes): sin este guard, un doble tap accidental sobre "Confirmar" podría
+    // invocar onConfirmar dos veces antes de que el llamador cierre el diálogo.
+    var enviando by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onCancelar,
         shape = MaterialTheme.shapes.large,
@@ -442,9 +478,12 @@ fun DialogoMotivo(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirmar(motivo) }, enabled = motivo.isNotBlank()) { Text(textoConfirmar) }
+            TextButton(
+                onClick = { enviando = true; onConfirmar(motivo) },
+                enabled = motivo.isNotBlank() && !enviando,
+            ) { Text(textoConfirmar) }
         },
-        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onCancelar, enabled = !enviando) { Text("Cancelar") } },
     )
 }
 
@@ -460,4 +499,50 @@ fun EspacioSeccion() = Spacer(Modifier.height(Espaciado.xl))
 @Composable
 fun DivisorSutil(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().height(1.dp).background(Colores.borde))
+}
+
+/**
+ * Par etiqueta/valor apilado, el bloque de lectura más repetido de la app (detalle de entrega,
+ * perfil, QR, ruta). Vivía duplicado como `private fun Dato` en media docena de pantallas, cada
+ * una con su propio espaciado; aquí queda una sola definición para que todas midan igual.
+ */
+@Composable
+fun Dato(
+    etiqueta: String,
+    valor: String,
+    modifier: Modifier = Modifier,
+    icono: ImageVector? = null,
+    ultimo: Boolean = false,
+) {
+    Row(
+        modifier.fillMaxWidth().padding(bottom = if (ultimo) 0.dp else Espaciado.s),
+        horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
+    ) {
+        if (icono != null) {
+            Icon(icono, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.padding(top = 2.dp).size(20.dp))
+        }
+        Column {
+            Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
+            Text(valor, color = Colores.textPrimary, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+/** Campo de búsqueda redondeado con lupa, para filtrar listas largas (proveedores, entregas…). */
+@Composable
+fun CampoBusqueda(
+    valor: String,
+    onValorCambia: (String) -> Unit,
+    marcador: String,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onValorCambia,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text(marcador, style = MaterialTheme.typography.bodyMedium) },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.size(20.dp)) },
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+    )
 }

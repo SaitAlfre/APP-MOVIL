@@ -8,22 +8,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.jornada.AbrirJornadaUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.acopiador.ciclo.cicloSimuladoDe
 
 class SeleccionZonaVehiculoViewModel(
     private val listarZonasUseCase: ListarZonasUseCase,
     private val listarVehiculosUseCase: ListarVehiculosUseCase,
     private val abrirJornadaUseCase: AbrirJornadaUseCase,
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
+    private val reloj: Reloj,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SeleccionZonaVehiculoUiState())
     val uiState: StateFlow<SeleccionZonaVehiculoUiState> = _uiState.asStateFlow()
 
     init {
+        // El nombre de zona del ciclo se rellena al elegirla; aquí solo interesan las fechas.
+        _uiState.update { it.copy(ciclo = cicloSimuladoDe(reloj.hoy(), zonaNombre = "")) }
+
         viewModelScope.launch {
             listarZonasUseCase(soloActivas = true).collect { lista ->
                 _uiState.update { it.copy(zonas = lista, zonaId = it.zonaId ?: lista.firstOrNull()?.id) }

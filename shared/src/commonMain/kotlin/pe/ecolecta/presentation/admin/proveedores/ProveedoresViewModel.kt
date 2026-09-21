@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
 import pe.ecolecta.domain.usecase.proveedor.RetirarProveedorUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ProveedoresViewModel(
     private val listarProveedoresUseCase: ListarProveedoresUseCase,
@@ -22,10 +23,12 @@ class ProveedoresViewModel(
 
     init {
         viewModelScope.launch {
-            combine(listarProveedoresUseCase(), listarZonasUseCase()) { proveedores, zonas -> proveedores to zonas }
-                .collect { (proveedores, zonas) ->
-                    _uiState.update { it.copy(cargando = false, proveedores = proveedores, zonas = zonas) }
-                }
+            cargaSegura {
+                combine(listarProveedoresUseCase(), listarZonasUseCase()) { proveedores, zonas -> proveedores to zonas }
+                    .collect { (proveedores, zonas) ->
+                        _uiState.update { it.copy(cargando = false, proveedores = proveedores, zonas = zonas) }
+                    }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar los proveedores.") } }
         }
     }
 

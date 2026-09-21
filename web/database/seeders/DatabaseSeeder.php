@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             ZonaSeeder::class,
             VehiculoSeeder::class,
             UsuarioSeeder::class,
+            ProductoSeeder::class,
+            ProduccionDemoSeeder::class,
         ]);
     }
 }

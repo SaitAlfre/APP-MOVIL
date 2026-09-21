@@ -9,6 +9,7 @@ use App\Application\Jornadas\ListarJornadasUseCase;
 use App\Domain\Jornadas\Exceptions\ZonaOcupadaException;
 use App\Domain\Jornadas\JornadaRepositoryInterface;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
+use App\Domain\Recepcion\RecepcionAcopioRepositoryInterface;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
 use App\Domain\Vehiculos\VehiculoRepositoryInterface;
@@ -26,10 +27,16 @@ class JornadaController extends Controller
         UsuarioRepositoryInterface $usuarios,
         ZonaRepositoryInterface $zonas,
         VehiculoRepositoryInterface $vehiculos,
+        RecepcionAcopioRepositoryInterface $recepciones,
     ): View {
         $jornadas = $listar->ejecutar();
 
-        $filas = collect($jornadas->items())->map(function ($jornada) use ($usuarios, $zonas, $vehiculos, $obtenerResumen) {
+        // Litros medidos en planta, para mostrar la diferencia junto a lo registrado en campo.
+        $recepcionesPorJornada = $recepciones->porJornadas(
+            collect($jornadas->items())->map(fn ($jornada) => $jornada->id)->filter()->values()->all(),
+        );
+
+        $filas = collect($jornadas->items())->map(function ($jornada) use ($usuarios, $zonas, $vehiculos, $obtenerResumen, $recepcionesPorJornada) {
             $resumen = $obtenerResumen->ejecutar($jornada->id, 0);
 
             return [
@@ -39,6 +46,7 @@ class JornadaController extends Controller
                 'vehiculo' => $vehiculos->buscarPorId($jornada->vehiculoId),
                 'litros' => $resumen['litros'],
                 'entregas' => $resumen['entregas'],
+                'recepcion' => $recepcionesPorJornada[$jornada->id] ?? null,
             ];
         });
 
@@ -68,7 +76,7 @@ class JornadaController extends Controller
         try {
             $jornada = $abrirJornada->ejecutar($request->integer('usuario_id'), $request->integer('zona_id'), $request->integer('vehiculo_id'));
         } catch (ZonaOcupadaException $e) {
-            return back()->withErrors(['zona_id' => $e->getMessage()])->withInput();
+            return back()->withErrors(['zona_id' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.acopiadores.jornadas.show', $jornada->id);

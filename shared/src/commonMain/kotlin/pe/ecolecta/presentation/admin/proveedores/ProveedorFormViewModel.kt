@@ -14,6 +14,7 @@ import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.VincularUsuarioProveedorUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ProveedorFormViewModel(
     private val id: String?,
@@ -29,34 +30,45 @@ class ProveedorFormViewModel(
 
     init {
         viewModelScope.launch {
-            listarZonasUseCase(soloActivas = true).collect { zonas ->
-                _uiState.update { estado ->
-                    estado.copy(zonas = zonas, zonaId = estado.zonaId.ifBlank { zonas.firstOrNull()?.id.orEmpty() })
+            cargaSegura {
+                listarZonasUseCase(soloActivas = true).collect { zonas ->
+                    _uiState.update { estado ->
+                        estado.copy(zonas = zonas, zonaId = estado.zonaId.ifBlank { zonas.firstOrNull()?.id.orEmpty() })
+                    }
                 }
-            }
+            }.onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
         if (id != null) {
             viewModelScope.launch {
-                val proveedor = obtenerProveedorUseCase(id) ?: return@launch
-                _uiState.update {
-                    it.copy(
-                        codigo = proveedor.codigo,
-                        nombres = proveedor.nombres,
-                        dni = proveedor.dni,
-                        telefono = proveedor.telefono.orEmpty(),
-                        direccion = proveedor.direccion.orEmpty(),
-                        zonaId = proveedor.zonaId,
-                        tachos = proveedor.tachos.toString(),
-                        capacidadTachoL = proveedor.capacidadTachoL.toString(),
-                        estado = proveedor.estado,
-                        usuarioIdVinculado = proveedor.usuarioId,
-                    )
-                }
+                cargaSegura { obtenerProveedorUseCase(id) }.fold(
+                    onSuccess = { proveedor ->
+                        if (proveedor != null) {
+                            _uiState.update {
+                                it.copy(
+                                    codigo = proveedor.codigo,
+                                    nombres = proveedor.nombres,
+                                    dueno = proveedor.dueno.orEmpty(),
+                                    dni = proveedor.dni,
+                                    telefono = proveedor.telefono.orEmpty(),
+                                    direccion = proveedor.direccion.orEmpty(),
+                                    zonaId = proveedor.zonaId,
+                                    tachos = proveedor.tachos.toString(),
+                                    capacidadTachoL = proveedor.capacidadTachoL.toString(),
+                                    estado = proveedor.estado,
+                                    usuarioIdVinculado = proveedor.usuarioId,
+                                )
+                            }
+                        }
+                    },
+                    onFailure = { e -> _uiState.update { it.copy(error = e.message ?: "No se pudo cargar el proveedor.") } },
+                )
             }
             viewModelScope.launch {
-                listarUsuariosUseCase().collect { usuarios ->
-                    _uiState.update { it.copy(usuariosProveedor = usuarios.filter { u -> Rol.PROVEEDOR in u.roles }) }
-                }
+                cargaSegura {
+                    listarUsuariosUseCase().collect { usuarios ->
+                        _uiState.update { it.copy(usuariosProveedor = usuarios.filter { u -> Rol.PROVEEDOR in u.roles }) }
+                    }
+                }.onFailure { e -> _uiState.update { it.copy(error = e.message) } }
             }
         }
     }
@@ -65,6 +77,7 @@ class ProveedorFormViewModel(
         when (evento) {
             is ProveedorFormUiEvent.CodigoCambia -> _uiState.update { it.copy(codigo = evento.valor, error = null) }
             is ProveedorFormUiEvent.NombresCambia -> _uiState.update { it.copy(nombres = evento.valor, error = null) }
+            is ProveedorFormUiEvent.DuenoCambia -> _uiState.update { it.copy(dueno = evento.valor, error = null) }
             is ProveedorFormUiEvent.DniCambia -> _uiState.update { it.copy(dni = evento.valor, error = null) }
             is ProveedorFormUiEvent.TelefonoCambia -> _uiState.update { it.copy(telefono = evento.valor) }
             is ProveedorFormUiEvent.DireccionCambia -> _uiState.update { it.copy(direccion = evento.valor) }
@@ -100,6 +113,7 @@ class ProveedorFormViewModel(
             val resultado = if (id == null) {
                 crearProveedorUseCase(
                     codigo = estado.codigo,
+                    dueno = estado.dueno,
                     nombres = estado.nombres,
                     dni = estado.dni,
                     telefono = estado.telefono.ifBlank { null },
@@ -112,6 +126,7 @@ class ProveedorFormViewModel(
                 actualizarProveedorUseCase(
                     id = id,
                     codigoActual = estado.codigo,
+                    dueno = estado.dueno,
                     nombres = estado.nombres,
                     dni = estado.dni,
                     telefono = estado.telefono.ifBlank { null },

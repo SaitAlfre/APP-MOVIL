@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 
 @Composable
@@ -44,7 +46,15 @@ fun JornadasScreen(
                 }
             }
         }
-        if (estado.jornadasFiltradas.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.error != null) {
+            EstadoVacio(
+                titulo = "No se pudieron cargar las jornadas",
+                descripcion = estado.error.orEmpty(),
+                icono = Icons.Filled.ErrorOutline,
+            )
+        } else if (estado.jornadasFiltradas.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay jornadas registradas",
                 descripcion = "Las jornadas abiertas por ACOPIADOR aparecerán aquí.",

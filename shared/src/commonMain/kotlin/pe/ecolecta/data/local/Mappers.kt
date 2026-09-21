@@ -23,6 +23,19 @@ import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.model.Vehiculo
 import pe.ecolecta.domain.model.Zona
 
+/**
+ * Estas columnas guardan el `.name` de un enum de dominio como TEXT. Un `valueOf()` directo lanza
+ * `IllegalArgumentException` con un mensaje genérico ("No enum constant...") si el valor guardado no
+ * coincide con ningún caso conocido — puede pasar si el backend introduce un estado nuevo antes de que
+ * el cliente se actualice, o si la fila fue editada a mano. Este helper deja el fallo tan explícito
+ * como antes (no oculta datos corruptos convirtiéndolos en un estado por defecto arbitrario, lo que
+ * sería peligroso p. ej. para [EstadoProveedor]), pero con un mensaje que dice qué tabla/columna/valor
+ * causó el problema, en vez de un stacktrace críptico.
+ */
+private inline fun <reified T : Enum<T>> enumDeColumna(entidad: String, columna: String, valor: String): T =
+    enumValues<T>().firstOrNull { it.name == valor }
+        ?: throw IllegalStateException("Valor de $entidad.$columna no reconocido: '$valor'. ¿La app está desactualizada?")
+
 internal fun UsuarioFila.aDominio(roles: List<Rol>): Usuario = Usuario(
     id = id,
     username = username,
@@ -51,10 +64,11 @@ internal fun ProveedorFila.aDominio(): Proveedor = Proveedor(
     zonaId = zona_id,
     tachos = tachos.toInt(),
     capacidadTachoL = capacidad_tacho_l,
-    estado = EstadoProveedor.valueOf(estado),
+    estado = enumDeColumna("proveedor", "estado", estado),
     updatedAt = updated_at,
-    syncState = SyncState.valueOf(sync_state),
+    syncState = enumDeColumna("proveedor", "sync_state", sync_state),
     usuarioId = usuario_id,
+    dueno = dueno,
 )
 
 internal fun TrasladoZonaFila.aDominio(): TrasladoZona = TrasladoZona(
@@ -64,7 +78,7 @@ internal fun TrasladoZonaFila.aDominio(): TrasladoZona = TrasladoZona(
     zonaDestinoId = zona_destino_id,
     motivo = motivo,
     autorizadoPor = autorizado_por,
-    estado = EstadoTraslado.valueOf(estado),
+    estado = enumDeColumna("traslado_zona", "estado", estado),
     creadoEn = creado_en,
 )
 
@@ -76,7 +90,7 @@ internal fun JornadaFila.aDominio(): Jornada = Jornada(
     fecha = LocalDate.parse(fecha),
     abiertaEn = abierta_en,
     cerradaEn = cerrada_en,
-    syncState = SyncState.valueOf(sync_state),
+    syncState = enumDeColumna("jornada", "sync_state", sync_state),
 )
 
 internal fun EntregaFila.aDominio(): Entrega = Entrega(
@@ -93,7 +107,7 @@ internal fun EntregaFila.aDominio(): Entrega = Entrega(
     deviceId = device_id,
     loteId = lote_id,
     anulada = anulada != 0L,
-    syncState = SyncState.valueOf(sync_state),
+    syncState = enumDeColumna("entrega", "sync_state", sync_state),
     syncError = sync_error,
     intentos = intentos.toInt(),
     updatedAt = updated_at,
@@ -106,12 +120,12 @@ internal fun AuditoriaFila.aDominio(): Auditoria = Auditoria(
     id = id,
     entidad = entidad,
     entidadId = entidad_id,
-    accion = AccionAuditoria.valueOf(accion),
+    accion = enumDeColumna("auditoria", "accion", accion),
     valorAntes = valor_antes,
     valorDespues = valor_despues,
     motivo = motivo,
     usuarioId = usuario_id,
     ocurridoEn = ocurrido_en,
     deviceId = device_id,
-    syncState = SyncState.valueOf(sync_state),
+    syncState = enumDeColumna("auditoria", "sync_state", sync_state),
 )

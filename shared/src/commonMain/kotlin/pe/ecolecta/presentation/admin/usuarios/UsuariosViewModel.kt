@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.usuario.DesactivarUsuarioUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class UsuariosViewModel(
     private val listarUsuariosUseCase: ListarUsuariosUseCase,
@@ -19,7 +20,8 @@ class UsuariosViewModel(
 
     init {
         viewModelScope.launch {
-            listarUsuariosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, usuarios = lista) } }
+            cargaSegura { listarUsuariosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, usuarios = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar los usuarios.") } }
         }
     }
 

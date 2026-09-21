@@ -14,4 +14,5 @@ data class ProveedorHomeUiState(
     val entregasSemana: Int = 0,
     val ultimasEntregas: List<Entrega> = emptyList(),
     val sinEntregas: Boolean = false,
+    val error: String? = null,
 )

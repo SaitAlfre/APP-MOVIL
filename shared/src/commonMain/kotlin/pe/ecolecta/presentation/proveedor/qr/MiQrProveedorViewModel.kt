@@ -12,6 +12,7 @@ import pe.ecolecta.domain.generarQrProveedor
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class MiQrProveedorViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
@@ -23,18 +24,20 @@ class MiQrProveedorViewModel(
 
     init {
         viewModelScope.launch {
-            val usuario = obtenerSesionUseCase().first()?.usuario ?: return@launch
-            val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@launch
-            val zonas = listarZonasUseCase().first()
+            cargaSegura {
+                val usuario = obtenerSesionUseCase().first()?.usuario ?: return@cargaSegura
+                val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@cargaSegura
+                val zonas = listarZonasUseCase().first()
 
-            _uiState.update {
-                it.copy(
-                    cargando = false,
-                    proveedor = proveedor,
-                    nombreZona = zonas.firstOrNull { z -> z.id == proveedor.zonaId }?.nombre ?: proveedor.zonaId,
-                    contenidoQr = generarQrProveedor(proveedor.id),
-                )
-            }
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        proveedor = proveedor,
+                        nombreZona = zonas.firstOrNull { z -> z.id == proveedor.zonaId }?.nombre ?: proveedor.zonaId,
+                        contenidoQr = generarQrProveedor(proveedor.id),
+                    )
+                }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo generar tu QR.") } }
         }
     }
 }

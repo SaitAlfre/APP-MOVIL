@@ -2,131 +2,111 @@
 
 @section('titulo', $proveedor ? 'Editar proveedor' : 'Nuevo proveedor')
 
-@php
-    $inputClass = 'block h-11 w-full rounded-xl border border-eh-border bg-eh-bg px-3.5 text-[13.5px] text-eh-text focus:border-eh-primary focus:ring-eh-primary';
-    $labelClass = 'mb-1.5 block text-[12.5px] font-semibold text-eh-text';
-@endphp
-
 @section('contenido')
-    <h1 class="mb-6 text-[22px] font-bold text-eh-text">{{ $proveedor ? 'Editar proveedor' : 'Nuevo proveedor' }}</h1>
+    @php
+        $esNuevo = $proveedor === null;
+        $usuarioVinculado = $proveedor?->usuarioId
+            ? collect($usuariosProveedor)->firstWhere('id', $proveedor->usuarioId)
+            : null;
+    @endphp
 
-    @if ($errors->any())
-        <div class="mb-4 max-w-xl rounded-xl bg-eh-red-soft px-4 py-3 text-[13px] font-medium text-eh-red">
-            {{ $errors->first() }}
-        </div>
-    @endif
+    <x-ui.page-header :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
+        description="Datos del productor, su zona de acopio y la capacidad de sus tachos."
+        :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $esNuevo ? 'Nuevo proveedor' : $proveedor->nombres]]">
+        @unless ($esNuevo)
+            <x-slot:actions>
+                <x-ui.btn :href="route('admin.proveedores.show', $proveedor->id)" variant="secondary" size="sm" icon="eye">Ver ficha</x-ui.btn>
+            </x-slot:actions>
+        @endunless
+    </x-ui.page-header>
 
-    <form method="POST"
-        action="{{ $proveedor ? route('admin.proveedores.update', $proveedor->id) : route('admin.proveedores.store') }}"
-        class="max-w-xl space-y-4 rounded-2xl border border-eh-border bg-eh-surface p-6 shadow-sm">
-        @csrf
-        @if ($proveedor)
-            @method('PUT')
-        @endif
+    <div class="grid max-w-5xl grid-cols-1 gap-4 lg:grid-cols-3">
+        <x-ui.card padding="p-6" class="lg:col-span-2">
+            <form method="POST"
+                action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
+                class="space-y-6" data-once>
+                @csrf
+                @unless ($esNuevo)
+                    @method('PUT')
+                @endunless
 
-        <div>
-            <label for="codigo" class="{{ $labelClass }}">Código</label>
-            <input id="codigo" name="codigo" type="text" value="{{ old('codigo', $proveedor->codigo ?? '') }}" required class="{{ $inputClass }}">
-        </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <x-ui.field name="codigo" label="Código" required maxlength="30" :value="$proveedor?->codigo" placeholder="PRV-009" />
+                    <x-ui.field name="dni" label="DNI" required maxlength="20" :value="$proveedor?->dni" placeholder="01234580" />
+                    <x-ui.field name="nombres" label="Nombre del proveedor o finca" required maxlength="150" :value="$proveedor?->nombres"
+                        class="sm:col-span-2" placeholder="Juan Pérez Quispe" />
+                    <x-ui.field name="telefono" label="Celular" maxlength="30" :value="$proveedor?->telefono" placeholder="95XXXXXXX" />
+                    <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona" :selected="$proveedor?->zonaId"
+                        :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
+                    <x-ui.field name="direccion" label="Dirección o referencia" maxlength="255" :value="$proveedor?->direccion"
+                        class="sm:col-span-2" placeholder="Sector Quispe, Huata" />
+                    <x-ui.field name="tachos" label="Cantidad de tachos" type="number" min="1" required :value="$proveedor?->tachos ?? 1" />
+                    <x-ui.field name="capacidad_tacho_l" label="Capacidad por tacho" type="number" step="0.01" min="0.01" required unit="L"
+                        :value="$proveedor?->capacidadTachoL ?? 40" hint="Se usa para validar los litros de cada entrega." />
+                </div>
 
-        <div>
-            <label for="nombres" class="{{ $labelClass }}">Nombres</label>
-            <input id="nombres" name="nombres" type="text" value="{{ old('nombres', $proveedor->nombres ?? '') }}" required class="{{ $inputClass }}">
-        </div>
+                <div class="flex justify-end gap-2 border-t border-eh-border pt-4">
+                    <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost">Cancelar</x-ui.btn>
+                    <x-ui.btn type="submit">{{ $esNuevo ? 'Guardar proveedor' : 'Guardar cambios' }}</x-ui.btn>
+                </div>
+            </form>
+        </x-ui.card>
 
-        <div>
-            <label for="dni" class="{{ $labelClass }}">DNI</label>
-            <input id="dni" name="dni" type="text" value="{{ old('dni', $proveedor->dni ?? '') }}" required class="{{ $inputClass }}">
-        </div>
+        @unless ($esNuevo)
+            <div class="space-y-4">
+                <x-ui.card padding="p-4">
+                    <h2 class="mb-3 text-sm font-semibold text-eh-text">Estado del proveedor</h2>
+                    <p class="mb-3"><x-ui.estado :estado="$proveedor->estado->value" /></p>
+                    <form method="POST" action="{{ route('admin.proveedores.estado', $proveedor->id) }}" class="space-y-3" data-once>
+                        @csrf
+                        @method('PATCH')
+                        <x-ui.select name="estado" label="Cambiar a" :selected="$proveedor->estado->value"
+                            :options="collect(\App\Domain\Proveedores\EstadoProveedor::cases())->mapWithKeys(fn ($estado) => [$estado->value => $estado->etiqueta()])->all()" />
+                        <x-ui.btn type="submit" variant="secondary" class="w-full">Actualizar estado</x-ui.btn>
+                    </form>
+                    <p class="mt-3 text-xs text-eh-text-muted">
+                        Un proveedor suspendido o retirado deja de aparecer al registrar entregas nuevas.
+                    </p>
+                </x-ui.card>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-                <label for="telefono" class="{{ $labelClass }}">Teléfono</label>
-                <input id="telefono" name="telefono" type="text" value="{{ old('telefono', $proveedor->telefono ?? '') }}" class="{{ $inputClass }}">
+                <x-ui.card padding="p-4">
+                    <h2 class="mb-3 text-sm font-semibold text-eh-text">Cuenta vinculada</h2>
+                    @if ($proveedor->usuarioId)
+                        <div class="mb-3 flex items-center gap-3 rounded-xl bg-eh-surface-alt p-3">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-eh-primary-soft text-eh-primary">
+                                <x-icon name="userCircle" class="h-5 w-5" />
+                            </span>
+                            <div class="min-w-0">
+                                <p class="mono truncate text-sm font-medium text-eh-text">{{ $usuarioVinculado->username ?? 'Usuario #'.$proveedor->usuarioId }}</p>
+                                <p class="truncate text-xs text-eh-text-muted">{{ $usuarioVinculado->nombres ?? 'Acceso propio del proveedor' }}</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ route('admin.proveedores.desvincular', $proveedor->id) }}"
+                            data-confirm="¿Desvincular la cuenta de {{ $proveedor->nombres }}? Perderá el acceso a la app móvil.">
+                            @csrf
+                            <x-ui.btn type="submit" variant="ghost" class="w-full">Desvincular cuenta</x-ui.btn>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('admin.proveedores.vincular', $proveedor->id) }}" class="space-y-3" data-once>
+                            @csrf
+                            <x-ui.select name="usuario_id" label="Cuenta con rol proveedor" required placeholder="Selecciona una cuenta"
+                                :options="collect($usuariosProveedor)->mapWithKeys(fn ($usuario) => [$usuario->id => $usuario->username.' · '.$usuario->nombres])->all()" />
+                            <x-ui.btn type="submit" variant="secondary" class="w-full">Vincular cuenta</x-ui.btn>
+                        </form>
+                        <p class="mt-3 text-xs text-eh-text-muted">
+                            Vincular una cuenta permite al proveedor consultar sus entregas y pagos desde la app móvil.
+                        </p>
+                    @endif
+                </x-ui.card>
+
+                <x-ui.card padding="p-4">
+                    <h2 class="mb-3 text-sm font-semibold text-eh-text">Código QR</h2>
+                    <p class="mb-3 text-xs text-eh-text-muted">El acopiador lo escanea para identificar al proveedor en campo.</p>
+                    <x-ui.btn :href="route('admin.proveedores.qr', $proveedor->id)" target="_blank" rel="noopener" variant="outline" icon="qrCode" class="w-full">
+                        Ver código QR
+                    </x-ui.btn>
+                </x-ui.card>
             </div>
-            <div>
-                <label for="zona_id" class="{{ $labelClass }}">Zona</label>
-                <select id="zona_id" name="zona_id" required class="{{ $inputClass }}">
-                    <option value="">Selecciona una zona</option>
-                    @foreach ($zonas as $zona)
-                        <option value="{{ $zona->id }}" @selected(old('zona_id', $proveedor->zonaId ?? '') == $zona->id)>
-                            {{ $zona->nombre }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
-        <div>
-            <label for="direccion" class="{{ $labelClass }}">Dirección</label>
-            <input id="direccion" name="direccion" type="text" value="{{ old('direccion', $proveedor->direccion ?? '') }}" class="{{ $inputClass }}">
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-                <label for="tachos" class="{{ $labelClass }}">Tachos</label>
-                <input id="tachos" name="tachos" type="number" min="1" value="{{ old('tachos', $proveedor->tachos ?? 1) }}" required class="{{ $inputClass }}">
-            </div>
-            <div>
-                <label for="capacidad_tacho_l" class="{{ $labelClass }}">Capacidad por tacho (L)</label>
-                <input id="capacidad_tacho_l" name="capacidad_tacho_l" type="number" step="0.01" min="0.01"
-                    value="{{ old('capacidad_tacho_l', $proveedor->capacidadTachoL ?? 40) }}" required class="{{ $inputClass }}">
-            </div>
-        </div>
-
-        <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="flex h-11 items-center rounded-xl bg-eh-primary px-5 text-[13.5px] font-semibold text-white hover:bg-eh-primary-dark">
-                Guardar
-            </button>
-            <a href="{{ route('admin.proveedores.index') }}" class="text-[13.5px] font-medium text-eh-text-muted hover:text-eh-text">Cancelar</a>
-        </div>
-    </form>
-
-    @if ($proveedor)
-        <form method="POST" action="{{ route('admin.proveedores.estado', $proveedor->id) }}" class="mt-5 max-w-xl">
-            @csrf
-            @method('PATCH')
-            <label for="estado" class="{{ $labelClass }}">Estado</label>
-            <div class="flex gap-2">
-                <select id="estado" name="estado" class="{{ $inputClass }}">
-                    @foreach (\App\Domain\Proveedores\EstadoProveedor::cases() as $estado)
-                        <option value="{{ $estado->value }}" @selected($proveedor->estado === $estado)>
-                            {{ $estado->etiqueta() }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="submit" class="flex h-11 items-center whitespace-nowrap rounded-xl border border-eh-border px-4 text-[13px] font-semibold text-eh-text hover:bg-eh-surface-alt">
-                    Cambiar estado
-                </button>
-            </div>
-        </form>
-
-        <div class="mt-5 max-w-xl rounded-2xl border border-eh-border bg-eh-surface p-5 shadow-sm">
-            <p class="mb-3 text-[13px] font-semibold text-eh-text">Usuario vinculado (acceso propio del proveedor)</p>
-
-            @if ($proveedor->usuarioId)
-                @php($usuarioVinculado = collect($usuariosProveedor)->firstWhere('id', $proveedor->usuarioId))
-                <p class="mb-3 text-[13px] text-eh-text-muted">
-                    Vinculado a <strong class="text-eh-text">{{ $usuarioVinculado->username ?? $proveedor->usuarioId }}</strong>
-                </p>
-                <form method="POST" action="{{ route('admin.proveedores.desvincular', $proveedor->id) }}">
-                    @csrf
-                    <button type="submit" class="text-xs font-semibold text-eh-red">Desvincular usuario</button>
-                </form>
-            @else
-                <form method="POST" action="{{ route('admin.proveedores.vincular', $proveedor->id) }}" class="flex gap-2">
-                    @csrf
-                    <select name="usuario_id" required class="{{ $inputClass }}">
-                        <option value="">Selecciona un usuario con rol proveedor</option>
-                        @foreach ($usuariosProveedor as $usuario)
-                            <option value="{{ $usuario->id }}">{{ $usuario->username }} · {{ $usuario->nombres }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="flex h-11 items-center whitespace-nowrap rounded-xl border border-eh-border px-4 text-[13px] font-semibold text-eh-text hover:bg-eh-surface-alt">
-                        Vincular
-                    </button>
-                </form>
-            @endif
-        </div>
-    @endif
+        @endunless
+    </div>
 @endsection

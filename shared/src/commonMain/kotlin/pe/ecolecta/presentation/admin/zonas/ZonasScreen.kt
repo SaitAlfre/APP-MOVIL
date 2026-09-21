@@ -26,6 +26,7 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
 
@@ -46,7 +47,9 @@ fun ZonasScreen(
         estado.error?.let {
             Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
         }
-        if (estado.zonas.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.zonas.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay zonas registradas",
                 descripcion = "Crea la primera zona para poder asignar proveedores y jornadas.",

@@ -22,6 +22,12 @@ fun formatearFechaHora(epochMs: Long): String {
         "${ldt.hour.dosDigitos()}:${ldt.minute.dosDigitos()}"
 }
 
+/** Solo la hora ("06:38"), para listas donde la fecha ya la da el contexto de la pantalla. */
+fun formatearHora(epochMs: Long): String {
+    val ldt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${ldt.hour.dosDigitos()}:${ldt.minute.dosDigitos()}"
+}
+
 fun formatearFecha(epochMs: Long): String {
     val ldt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault())
     return "${ldt.day.toString().padStart(2, '0')}/${ldt.monthNumber.toString().padStart(2, '0')}/${ldt.year}"

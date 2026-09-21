@@ -35,7 +35,9 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
     ) { paddingInterno ->
         Column(Modifier.fillMaxSize().padding(paddingInterno)) {
             when (pantalla) {
-                Pantalla.ProveedorHome -> ProveedorHomeScreen()
+                Pantalla.ProveedorHome -> ProveedorHomeScreen(
+                    alVerMiRuta = { onCambiarPantalla(Pantalla.ProveedorMiRuta) },
+                )
                 Pantalla.ProveedorEntregas -> MisEntregasScreen(
                     alVerDetalle = { id -> onCambiarPantalla(Pantalla.ProveedorEntregaDetalle(id)) },
                 )
@@ -49,7 +51,9 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
                 Pantalla.ProveedorMiRuta -> MiRutaAcopioScreen()
                 Pantalla.ProveedorMiQr -> MiQrProveedorScreen()
                 Pantalla.ProveedorPerfil -> PerfilProveedorScreen()
-                else -> ProveedorHomeScreen()
+                else -> ProveedorHomeScreen(
+                    alVerMiRuta = { onCambiarPantalla(Pantalla.ProveedorMiRuta) },
+                )
             }
         }
     }

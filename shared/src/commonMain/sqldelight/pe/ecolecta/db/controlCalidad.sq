@@ -1,0 +1,68 @@
+CREATE TABLE control_calidad (
+    id TEXT NOT NULL PRIMARY KEY,
+    proveedor_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    codigo_muestra TEXT NOT NULL UNIQUE,
+    lote_recipiente TEXT,
+    volumen_l REAL,
+    origen_captura TEXT NOT NULL,
+    serial_analizador TEXT,
+    modo_analizador TEXT,
+    temperatura REAL,
+    grasa REAL,
+    sng REAL,
+    densidad REAL,
+    proteina REAL,
+    lactosa REAL,
+    sales REAL,
+    solidos_totales REAL,
+    agua_anadida REAL,
+    punto_congelacion REAL,
+    ph REAL,
+    apariencia TEXT,
+    observaciones TEXT,
+    estado TEXT NOT NULL,
+    alertas TEXT NOT NULL,
+    texto_comprobante TEXT,
+    registrado_en INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING',
+    visita_json TEXT NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX control_calidad_proveedor_idx ON control_calidad(proveedor_id);
+CREATE INDEX control_calidad_usuario_idx ON control_calidad(usuario_id);
+CREATE INDEX control_calidad_fecha_idx ON control_calidad(registrado_en);
+
+insertar:
+INSERT INTO control_calidad(
+    id, proveedor_id, usuario_id, codigo_muestra, lote_recipiente, volumen_l,
+    origen_captura, serial_analizador, modo_analizador, temperatura, grasa, sng,
+    densidad, proteina, lactosa, sales, solidos_totales, agua_anadida,
+    punto_congelacion, ph, apariencia, observaciones, estado, alertas,
+    texto_comprobante, registrado_en, updated_at, sync_state
+) VALUES (
+    :id, :proveedor_id, :usuario_id, :codigo_muestra, :lote_recipiente, :volumen_l,
+    :origen_captura, :serial_analizador, :modo_analizador, :temperatura, :grasa, :sng,
+    :densidad, :proteina, :lactosa, :sales, :solidos_totales, :agua_anadida,
+    :punto_congelacion, :ph, :apariencia, :observaciones, :estado, :alertas,
+    :texto_comprobante, :registrado_en, :updated_at, :sync_state
+);
+
+selectTodos:
+SELECT * FROM control_calidad ORDER BY registrado_en DESC;
+
+selectPorUsuario:
+SELECT * FROM control_calidad WHERE usuario_id = :usuario_id ORDER BY registrado_en DESC;
+
+selectPorProveedor:
+SELECT * FROM control_calidad WHERE proveedor_id = :proveedor_id ORDER BY registrado_en DESC;
+
+selectPorId:
+SELECT * FROM control_calidad WHERE id = :id;
+
+contarPorCodigo:
+SELECT COUNT(*) FROM control_calidad WHERE codigo_muestra = :codigo_muestra;
+
+guardarVisita:
+UPDATE control_calidad SET visita_json = :visita_json WHERE id = :id;

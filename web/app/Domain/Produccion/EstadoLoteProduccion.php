@@ -18,4 +18,10 @@ enum EstadoLoteProduccion: string
             self::Cancelado => 'Cancelado',
         };
     }
+
+    /** Reservan leche del saldo del día: solo estos estados cuentan contra lo disponible. */
+    public function reservaLeche(): bool
+    {
+        return $this !== self::Cancelado;
+    }
 }

@@ -16,6 +16,14 @@ data class LoteUiState(
             it.proveedorId.isNotBlank() && (it.litros.toDoubleOrNull() ?: 0.0) > 0.0 && (it.tachos.toIntOrNull() ?: 0) > 0
         }
 
+    /** Lo que el acopiador contrasta contra lo que lleva en el vehículo antes de guardar. */
+    val litrosTotales: Double get() = filas.sumOf { it.litros.toDoubleOrNull() ?: 0.0 }
+    val tachosTotales: Int get() = filas.sumOf { it.tachos.toIntOrNull() ?: 0 }
+
     fun nombreProveedor(id: String): String =
-        proveedores.firstOrNull { it.id == id }?.let { "${it.codigo} - ${it.nombres}" } ?: "Elegir proveedor"
+        proveedores.firstOrNull { it.id == id }?.nombres ?: "Elegir proveedor"
+
+    /** "P-001 · 12 tachos", o null para una fila a la que todavía no se le eligió proveedor. */
+    fun detalleProveedor(id: String): String? =
+        proveedores.firstOrNull { it.id == id }?.let { "${it.codigo} · ${it.tachos} tachos" }
 }

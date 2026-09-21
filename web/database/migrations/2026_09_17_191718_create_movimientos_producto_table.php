@@ -17,7 +17,6 @@ return new class extends Migration
             $table->enum('tipo', ['produccion', 'ajuste']);
             $table->decimal('cantidad', 12, 3);
             $table->string('unidad', 20);
-            $table->foreignId('lote_produccion_id')->nullable()->constrained('lotes_produccion')->nullOnDelete();
             $table->string('motivo')->nullable();
             $table->foreignId('usuario_id')->constrained('usuarios')->restrictOnDelete();
             $table->text('observaciones')->nullable();

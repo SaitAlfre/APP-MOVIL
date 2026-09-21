@@ -14,6 +14,7 @@ import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class DetalleEntregaProveedorViewModel(
     private val entregaId: String,
@@ -29,29 +30,31 @@ class DetalleEntregaProveedorViewModel(
 
     init {
         viewModelScope.launch {
-            val usuario = obtenerSesionUseCase().first()?.usuario ?: return@launch
-            val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@launch
+            cargaSegura {
+                val usuario = obtenerSesionUseCase().first()?.usuario ?: return@cargaSegura
+                val proveedor = obtenerPerfilProveedorUseCase(usuario.id) ?: return@cargaSegura
 
-            // ObtenerDetalleEntregaUseCase solo devuelve la entrega si en verdad pertenece a este proveedor (§11, §39).
-            val entrega = obtenerDetalleEntregaUseCase(entregaId, proveedor.id)
-            if (entrega == null) {
-                _uiState.update { it.copy(cargando = false, noEncontrada = true) }
-                return@launch
-            }
+                // ObtenerDetalleEntregaUseCase solo devuelve la entrega si en verdad pertenece a este proveedor (§11, §39).
+                val entrega = obtenerDetalleEntregaUseCase(entregaId, proveedor.id)
+                if (entrega == null) {
+                    _uiState.update { it.copy(cargando = false, noEncontrada = true) }
+                    return@cargaSegura
+                }
 
-            val zonas = listarZonasUseCase().first()
-            val vehiculos = listarVehiculosUseCase().first()
-            val usuarios = listarUsuariosUseCase().first()
+                val zonas = listarZonasUseCase().first()
+                val vehiculos = listarVehiculosUseCase().first()
+                val usuarios = listarUsuariosUseCase().first()
 
-            _uiState.update {
-                it.copy(
-                    cargando = false,
-                    entrega = entrega,
-                    nombreZona = zonas.firstOrNull { z -> z.id == entrega.zonaId }?.nombre ?: entrega.zonaId,
-                    nombreVehiculo = vehiculos.firstOrNull { v -> v.id == entrega.vehiculoId }?.nombre ?: entrega.vehiculoId,
-                    nombreAcopiador = usuarios.firstOrNull { u -> u.id == entrega.usuarioId }?.nombres ?: entrega.usuarioId,
-                )
-            }
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        entrega = entrega,
+                        nombreZona = zonas.firstOrNull { z -> z.id == entrega.zonaId }?.nombre ?: entrega.zonaId,
+                        nombreVehiculo = vehiculos.firstOrNull { v -> v.id == entrega.vehiculoId }?.nombre ?: entrega.vehiculoId,
+                        nombreAcopiador = usuarios.firstOrNull { u -> u.id == entrega.usuarioId }?.nombres ?: entrega.usuarioId,
+                    )
+                }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar la entrega.") } }
         }
     }
 }

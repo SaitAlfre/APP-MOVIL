@@ -8,5 +8,7 @@ interface AuditoriaRepositoryInterface
 {
     public function registrar(Auditoria $auditoria): void;
 
-    public function paginar(int $porPagina = 25): LengthAwarePaginator;
+    public function paginar(int $porPagina = 25, array $filtros = []): LengthAwarePaginator;
+
+    public function buscarPorId(int $id): ?Auditoria;
 }

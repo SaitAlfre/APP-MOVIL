@@ -1,27 +1,33 @@
 package pe.ecolecta.presentation.acopiador.onboarding
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.presentation.design.Banner
@@ -31,7 +37,6 @@ import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
-import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun SeleccionZonaVehiculoScreen(
@@ -49,18 +54,35 @@ fun SeleccionZonaVehiculoScreen(
 
         Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.l)) {
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                Text("Zona", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
+                Text("Zona de recolección", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
                 estado.zonas.forEach { zona ->
-                    FilaSeleccionable(zona.nombre, Icons.Filled.LocationOn, zona.id == estado.zonaId) { viewModel.seleccionarZona(zona.id) }
+                    FilaSeleccionable(
+                        titulo = zona.nombre,
+                        detalle = null,
+                        icono = Icons.Filled.LocationOn,
+                        seleccionado = zona.id == estado.zonaId,
+                        onClick = { viewModel.seleccionarZona(zona.id) },
+                    )
                 }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                 Text("Vehículo", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
                 estado.vehiculos.forEach { vehiculo ->
-                    FilaSeleccionable("${vehiculo.nombre} (${vehiculo.placa})", Icons.Filled.LocalShipping, vehiculo.id == estado.vehiculoId) {
-                        viewModel.seleccionarVehiculo(vehiculo.id)
-                    }
+                    FilaSeleccionable(
+                        titulo = vehiculo.nombre,
+                        detalle = "Placa ${vehiculo.placa}",
+                        icono = Icons.Filled.LocalShipping,
+                        seleccionado = vehiculo.id == estado.vehiculoId,
+                        onClick = { viewModel.seleccionarVehiculo(vehiculo.id) },
+                    )
+                }
+            }
+
+            estado.ciclo?.let { ciclo ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                    FechaDelCiclo("INICIO", ciclo.inicioLargo, Modifier.weight(1f))
+                    FechaDelCiclo("FINAL", ciclo.finLargo, Modifier.weight(1f))
                 }
             }
 
@@ -71,28 +93,67 @@ fun SeleccionZonaVehiculoScreen(
                 onClick = viewModel::abrirJornada,
                 habilitado = estado.puedeContinuar && !estado.cargando,
             )
+
+            Spacer(Modifier.height(Espaciado.l))
+        }
+    }
+}
+
+/**
+ * Opción de zona o vehículo. La elegida se rellena en verde además de marcarse con el check: es la
+ * primera pantalla del día y debe quedar claro de un vistazo qué se va a abrir.
+ */
+@Composable
+private fun FilaSeleccionable(
+    titulo: String,
+    detalle: String?,
+    icono: ImageVector,
+    seleccionado: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.medium,
+        color = if (seleccionado) Colores.brandContainer else Colores.surface,
+        border = if (seleccionado) BorderStroke(1.dp, Colores.brand) else null,
+        tonalElevation = 1.dp,
+        shadowElevation = 1.dp,
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(Espaciado.m),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s), verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    icono,
+                    contentDescription = null,
+                    tint = if (seleccionado) Colores.brandText else Colores.textSecundario,
+                    modifier = Modifier.size(20.dp),
+                )
+                Column {
+                    Text(
+                        titulo,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (seleccionado) Colores.onBrandContainer else Colores.textPrimary,
+                    )
+                    if (detalle != null) {
+                        Text(detalle, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                    }
+                }
+            }
+            if (seleccionado) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = Colores.brand, modifier = Modifier.size(20.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun FilaSeleccionable(texto: String, icono: ImageVector, seleccionado: Boolean, onClick: () -> Unit) {
-    Tarjeta(
-        onClick = onClick,
-        modifier = if (seleccionado) Modifier.border(width = 2.dp, color = Colores.brand, shape = MaterialTheme.shapes.medium) else Modifier,
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                Icon(icono, contentDescription = null, tint = if (seleccionado) Colores.brand else Colores.textSecundario, modifier = Modifier.size(20.dp))
-                Text(
-                    texto,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (seleccionado) Colores.brandText else Colores.textPrimary,
-                )
-            }
-            if (seleccionado) {
-                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = Colores.brand, modifier = Modifier.size(20.dp))
-            }
-        }
+private fun FechaDelCiclo(etiqueta: String, fecha: String, modifier: Modifier = Modifier) {
+    Tarjeta(modifier = modifier) {
+        Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
+        Spacer(Modifier.height(Espaciado.xxs))
+        Text(fecha, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
     }
 }

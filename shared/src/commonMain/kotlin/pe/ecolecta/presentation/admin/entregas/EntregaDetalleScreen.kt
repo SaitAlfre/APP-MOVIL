@@ -40,7 +40,7 @@ import pe.ecolecta.presentation.design.formatearLitros
 fun EntregaDetalleScreen(
     id: String,
     alVolver: () -> Unit = {},
-    viewModel: EntregaDetalleViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: EntregaDetalleViewModel = koinViewModel(key = id, parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
     var mostrarCorregir by remember { mutableStateOf(false) }

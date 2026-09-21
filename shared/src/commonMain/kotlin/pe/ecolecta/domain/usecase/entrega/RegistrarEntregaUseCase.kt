@@ -71,7 +71,9 @@ class RegistrarEntregaUseCase(
             loteId = loteId,
         ).getOrElse { return Result.failure(it) }
 
-        val anteriores = entregaRepository.filtrar(proveedorId = proveedorId).take(ENTREGAS_PARA_PROMEDIO)
+        // obtenerHistorial ya pagina en SQL (LIMIT), a diferencia de filtrar() que traería TODO el
+        // historial del proveedor a memoria en cada registro, solo para promediar las últimas 7 (§rendimiento).
+        val anteriores = entregaRepository.obtenerHistorial(proveedorId, limite = ENTREGAS_PARA_PROMEDIO, desplazamiento = 0)
         val promedio = if (anteriores.isNotEmpty()) anteriores.map { it.litros }.average() else 0.0
         val advertencia = promedio > 0.0 && kotlin.math.abs(litros - promedio) / promedio > UMBRAL_DESVIACION
 

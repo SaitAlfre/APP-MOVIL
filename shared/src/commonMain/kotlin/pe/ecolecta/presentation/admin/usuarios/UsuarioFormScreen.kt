@@ -38,7 +38,7 @@ fun UsuarioFormScreen(
     id: String?,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
-    viewModel: UsuarioFormViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: UsuarioFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
 

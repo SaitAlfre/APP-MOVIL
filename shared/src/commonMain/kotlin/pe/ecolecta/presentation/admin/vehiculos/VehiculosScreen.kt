@@ -19,13 +19,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonAccion
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun VehiculosScreen(
@@ -41,7 +44,12 @@ fun VehiculosScreen(
             subtitulo = "${estado.vehiculos.size} registrados",
             accion = { BotonAccion("Nuevo", alCrear, icono = Icons.Filled.Add) },
         )
-        if (estado.vehiculos.isEmpty()) {
+        estado.error?.let {
+            Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
+        }
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (estado.vehiculos.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay vehículos registrados",
                 descripcion = "Agrega el primer vehículo para asignarlo a una jornada.",

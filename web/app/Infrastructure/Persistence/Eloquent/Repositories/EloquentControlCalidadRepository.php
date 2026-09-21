@@ -62,6 +62,22 @@ final class EloquentControlCalidadRepository implements ControlCalidadRepository
         ];
     }
 
+    /** @return array{aprobado: int, observado: int, rechazado: int} */
+    public function contarPorResultadoEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array
+    {
+        $conteos = ControlCalidadEloquent::query()
+            ->whereBetween('evaluado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->selectRaw('resultado, COUNT(*) as total')
+            ->groupBy('resultado')
+            ->pluck('total', 'resultado');
+
+        return [
+            'aprobado' => (int) ($conteos[EstadoCalidad::Aprobado->value] ?? 0),
+            'observado' => (int) ($conteos[EstadoCalidad::Observado->value] ?? 0),
+            'rechazado' => (int) ($conteos[EstadoCalidad::Rechazado->value] ?? 0),
+        ];
+    }
+
     private function aDominio(ControlCalidadEloquent $control): ControlCalidadDominio
     {
         return ControlCalidadDominio::reconstruir(

@@ -11,11 +11,13 @@ import pe.ecolecta.data.local.DatabaseSeeder
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.data.remote.crearHttpClient
 import pe.ecolecta.data.repository.SqlDelightAuditoriaRepository
+import pe.ecolecta.data.repository.SqlDelightControlCalidadRepository
 import pe.ecolecta.data.repository.SqlDelightEntregaRepository
 import pe.ecolecta.data.repository.SqlDelightAvisoRemotoPendienteRepository
 import pe.ecolecta.data.repository.SqlDelightJornadaRepository
 import pe.ecolecta.data.repository.SqlDelightProveedorRepository
 import pe.ecolecta.data.repository.SqlDelightRutaProveedorCacheRepository
+import pe.ecolecta.data.repository.SqlDelightSesionRepository
 import pe.ecolecta.data.repository.SqlDelightTrasladoRepository
 import pe.ecolecta.data.repository.SqlDelightUbicacionAcopiadorLocalRepository
 import pe.ecolecta.data.repository.SqlDelightUsuarioRepository
@@ -23,10 +25,10 @@ import pe.ecolecta.data.repository.SqlDelightVehiculoRepository
 import pe.ecolecta.data.repository.SqlDelightZonaRepository
 import pe.ecolecta.data.security.InMemoryEstadoSeguimientoRepository
 import pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository
-import pe.ecolecta.data.security.InMemorySesionRepository
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.RelojSistema
 import pe.ecolecta.domain.repository.AuditoriaRepository
+import pe.ecolecta.domain.repository.ControlCalidadRepository
 import pe.ecolecta.domain.repository.AvisoRemotoPendienteRepository
 import pe.ecolecta.domain.repository.EntregaRepository
 import pe.ecolecta.domain.repository.EstadoSeguimientoRepository
@@ -61,6 +63,7 @@ import pe.ecolecta.domain.usecase.entrega.RegistrarLoteUseCase
 import pe.ecolecta.domain.usecase.jornada.AbrirJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ListarJornadasUseCase
+import pe.ecolecta.domain.usecase.jornada.ObservarJornadasUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ReanudarJornadaSiExisteUseCase
@@ -100,6 +103,7 @@ import pe.ecolecta.domain.usecase.traslado.AutorizarTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.CrearTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.ListarTrasladosUseCase
 import pe.ecolecta.domain.usecase.traslado.RechazarTrasladoUseCase
+import pe.ecolecta.domain.usecase.usuario.ActualizarUsuarioCompletoUseCase
 import pe.ecolecta.domain.usecase.usuario.ActualizarUsuarioUseCase
 import pe.ecolecta.domain.usecase.usuario.AsignarRolUseCase
 import pe.ecolecta.domain.usecase.usuario.CambiarPinUsuarioUseCase
@@ -135,6 +139,7 @@ import pe.ecolecta.presentation.admin.vehiculos.VehiculosViewModel
 import pe.ecolecta.presentation.admin.zonas.ZonaFormViewModel
 import pe.ecolecta.presentation.admin.zonas.ZonasViewModel
 import pe.ecolecta.presentation.acopiador.home.AcopiadorHomeViewModel
+import pe.ecolecta.presentation.acopiador.lista.ListaProveedoresViewModel
 import pe.ecolecta.presentation.acopiador.lote.LoteViewModel
 import pe.ecolecta.presentation.acopiador.onboarding.SeleccionZonaVehiculoViewModel
 import pe.ecolecta.presentation.acopiador.perfil.PerfilViewModel
@@ -149,6 +154,7 @@ import pe.ecolecta.presentation.proveedor.qr.MiQrProveedorViewModel
 import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioViewModel
 import pe.ecolecta.presentation.auth.LoginViewModel
 import pe.ecolecta.presentation.auth.SeleccionRolViewModel
+import pe.ecolecta.presentation.calidad.CalidadViewModel
 
 val dataModule = module {
     single<SqlDriver> { get<DatabaseDriverFactory>().crearDriver() }
@@ -164,7 +170,8 @@ val dataModule = module {
     single<JornadaRepository> { SqlDelightJornadaRepository(get(), Dispatchers.Default) }
     single<EntregaRepository> { SqlDelightEntregaRepository(get(), Dispatchers.Default) }
     single<AuditoriaRepository> { SqlDelightAuditoriaRepository(get(), Dispatchers.Default) }
-    single<SesionRepository> { InMemorySesionRepository() }
+    single<ControlCalidadRepository> { SqlDelightControlCalidadRepository(get(), Dispatchers.Default) }
+    single<SesionRepository> { SqlDelightSesionRepository(get(), get(), Dispatchers.Default) }
     single<JornadaEnCursoRepository> { InMemoryJornadaEnCursoRepository() }
     single<UbicacionAcopiadorLocalRepository> { SqlDelightUbicacionAcopiadorLocalRepository(get(), Dispatchers.Default) }
     single<RutaProveedorCacheRepository> { SqlDelightRutaProveedorCacheRepository(get(), Dispatchers.Default) }
@@ -187,6 +194,7 @@ val domainModule = module {
     factory { ListarUsuariosUseCase(get()) }
     factory { ObtenerUsuarioUseCase(get()) }
     factory { ActualizarUsuarioUseCase(get(), get()) }
+    factory { ActualizarUsuarioCompletoUseCase(get(), get(), get()) }
     factory { CambiarPinUsuarioUseCase(get(), get(), get()) }
     factory { DesactivarUsuarioUseCase(get(), get()) }
     factory { AsignarRolUseCase(get()) }
@@ -232,6 +240,7 @@ val domainModule = module {
     factory { RechazarTrasladoUseCase(get(), get(), get()) }
 
     factory { ListarJornadasUseCase(get()) }
+    factory { ObservarJornadasUseCase(get()) }
     factory { ObtenerJornadaUseCase(get()) }
     factory { ObtenerJornadaEnCursoUseCase(get()) }
     factory { AbrirJornadaUseCase(get(), get(), get()) }
@@ -270,11 +279,21 @@ val domainModule = module {
 
 val presentationModule = module {
     viewModel { LoginViewModel(loginOfflineUseCase = get(), seleccionarRolUseCase = get()) }
+    viewModel {
+        CalidadViewModel(
+            repository = get(),
+            listarProveedoresUseCase = get(),
+            obtenerSesionUseCase = get(),
+            reloj = get(),
+            listarZonasUseCase = get(),
+        )
+    }
     viewModel { (usuarioId: String) ->
         SeleccionRolViewModel(usuarioId = usuarioId, obtenerUsuarioUseCase = get(), seleccionarRolUseCase = get())
     }
 
     viewModel { AdminDashboardViewModel(obtenerResumenAdminUseCase = get()) }
+    viewModel { pe.ecolecta.presentation.admin.supervision.AdminSupervisionViewModel(get(), get(), get(), get(), get()) }
 
     viewModel { UsuariosViewModel(listarUsuariosUseCase = get(), desactivarUsuarioUseCase = get()) }
     viewModel { (id: String?) ->
@@ -282,10 +301,7 @@ val presentationModule = module {
             id = id,
             obtenerUsuarioUseCase = get(),
             crearUsuarioUseCase = get(),
-            actualizarUsuarioUseCase = get(),
-            cambiarPinUsuarioUseCase = get(),
-            asignarRolUseCase = get(),
-            quitarRolUseCase = get(),
+            actualizarUsuarioCompletoUseCase = get(),
         )
     }
 
@@ -328,7 +344,7 @@ val presentationModule = module {
 
     viewModel {
         JornadasViewModel(
-            listarJornadasUseCase = get(),
+            observarJornadasUseCase = get(),
             listarUsuariosUseCase = get(),
             listarZonasUseCase = get(),
             listarVehiculosUseCase = get(),
@@ -372,6 +388,7 @@ val presentationModule = module {
             listarVehiculosUseCase = get(),
             abrirJornadaUseCase = get(),
             obtenerSesionUseCase = get(),
+            reloj = get(),
         )
     }
 
@@ -419,7 +436,23 @@ val presentationModule = module {
         )
     }
 
-    viewModel { SincronizacionViewModel(obtenerColaSyncUseCase = get(), obtenerSesionUseCase = get()) }
+    viewModel {
+        ListaProveedoresViewModel(
+            obtenerJornadaEnCursoUseCase = get(),
+            listarProveedoresPorZonaUseCase = get(),
+            observarEntregasUseCase = get(),
+            listarZonasUseCase = get(),
+        )
+    }
+
+    viewModel {
+        SincronizacionViewModel(
+            obtenerColaSyncUseCase = get(),
+            obtenerSesionUseCase = get(),
+            observarEntregasUseCase = get(),
+            listarProveedoresUseCase = get(),
+        )
+    }
 
     viewModel {
         PerfilViewModel(
@@ -474,7 +507,6 @@ val presentationModule = module {
             obtenerEstadoSincronizacionUseCase = get(),
             sincronizarDatosProveedorUseCase = get(),
             cerrarSesionUseCase = get(),
-            obtenerIdentidadRemotaUseCase = get(),
         )
     }
 

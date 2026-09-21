@@ -49,6 +49,26 @@ class SqlDelightJornadaRepository(
         Unit
     }
 
+    override suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada? = withContext(dispatcher) {
+        db.jornadaQueries.transactionWithResult {
+            val ocupante = db.jornadaQueries.selectAbiertaPorZona(zona_id = jornada.zonaId).executeAsOneOrNull()?.aDominio()
+            if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) {
+                ocupante
+            } else {
+                db.jornadaQueries.insertar(
+                    id = jornada.id,
+                    usuario_id = jornada.usuarioId,
+                    zona_id = jornada.zonaId,
+                    vehiculo_id = jornada.vehiculoId,
+                    fecha = jornada.fecha.toString(),
+                    abierta_en = jornada.abiertaEn,
+                    sync_state = jornada.syncState.name,
+                )
+                null
+            }
+        }
+    }
+
     override suspend fun cerrar(id: String, cerradaEn: Long) = withContext(dispatcher) {
         db.jornadaQueries.cerrar(cerrada_en = cerradaEn, id = id)
         Unit

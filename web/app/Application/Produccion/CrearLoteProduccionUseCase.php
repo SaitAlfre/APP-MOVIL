@@ -5,65 +5,38 @@ namespace App\Application\Produccion;
 use App\Domain\Produccion\Exceptions\LoteProduccionInvalidoException;
 use App\Domain\Produccion\LoteProduccion;
 use App\Domain\Produccion\LoteProduccionRepositoryInterface;
-use App\Domain\Productos\Exceptions\ProductoInvalidoException;
 use App\Domain\Productos\ProductoRepositoryInterface;
-use App\Domain\Recetas\RecetaRepositoryInterface;
 use DateTimeImmutable;
 
 final class CrearLoteProduccionUseCase
 {
     public function __construct(
-        private readonly LoteProduccionRepositoryInterface $lotes,
+        private readonly ObtenerAcopioDelDiaUseCase $obtenerAcopio,
         private readonly ProductoRepositoryInterface $productos,
-        private readonly RecetaRepositoryInterface $recetas,
-        private readonly CalculaNecesidadesReceta $calculaNecesidades,
+        private readonly LoteProduccionRepositoryInterface $lotes,
     ) {}
 
-    public function ejecutar(
-        string $codigo,
-        int $productoId,
-        float $cantidadPlanificada,
-        DateTimeImmutable $fechaPlanificada,
-        ?string $observaciones,
-        int $responsableUsuarioId,
-    ): LoteProduccion {
+    public function ejecutar(DateTimeImmutable $fecha, int $productoId, float $litrosAsignados, int $responsableId): LoteProduccion
+    {
         $producto = $this->productos->buscarPorId($productoId);
 
         if ($producto === null) {
-            throw ProductoInvalidoException::noExiste();
+            throw LoteProduccionInvalidoException::productoNoExiste();
         }
 
-        if (! $producto->activo) {
-            throw LoteProduccionInvalidoException::productoInactivo();
-        }
+        LoteProduccion::validarAsignacion($litrosAsignados);
 
-        if ($producto->recetaActivaId === null) {
-            throw LoteProduccionInvalidoException::sinRecetaActiva();
-        }
-
-        $receta = $this->recetas->buscarPorId($producto->recetaActivaId);
-
-        if ($receta === null) {
-            throw LoteProduccionInvalidoException::sinRecetaActiva();
-        }
-
-        if ($this->lotes->buscarPorCodigo(trim($codigo)) !== null) {
-            throw LoteProduccionInvalidoException::codigoDuplicado();
-        }
-
-        $necesidades = $this->calculaNecesidades->ejecutar($receta, $cantidadPlanificada);
+        $acopio = $this->obtenerAcopio->ejecutar($fecha);
 
         $lote = LoteProduccion::crear(
-            codigo: $codigo,
             productoId: $producto->id,
-            recetaId: $receta->id,
-            cantidadPlanificada: $cantidadPlanificada,
-            unidad: $producto->unidadProduccion,
-            responsableUsuarioId: $responsableUsuarioId,
-            fechaPlanificada: $fechaPlanificada,
-            observaciones: $observaciones,
+            fecha: $fecha,
+            litrosPorUnidadSnapshot: $producto->litrosPorUnidad,
+            litrosAsignados: $litrosAsignados,
+            origenAcopio: $acopio->porVehiculo,
+            responsableId: $responsableId,
         );
 
-        return $this->lotes->crear($lote, $necesidades);
+        return $this->lotes->crear($lote);
     }
 }

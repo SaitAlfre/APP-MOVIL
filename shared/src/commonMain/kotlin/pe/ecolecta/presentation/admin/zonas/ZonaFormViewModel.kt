@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.zona.ActualizarZonaUseCase
 import pe.ecolecta.domain.usecase.zona.CrearZonaUseCase
 import pe.ecolecta.domain.usecase.zona.ObtenerZonaUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class ZonaFormViewModel(
     private val id: String?,
@@ -23,8 +24,12 @@ class ZonaFormViewModel(
     init {
         if (id != null) {
             viewModelScope.launch {
-                val zona = obtenerZonaUseCase(id) ?: return@launch
-                _uiState.update { it.copy(nombre = zona.nombre, activo = zona.activo) }
+                cargaSegura { obtenerZonaUseCase(id) }.fold(
+                    onSuccess = { zona ->
+                        if (zona != null) _uiState.update { it.copy(nombre = zona.nombre, activo = zona.activo) }
+                    },
+                    onFailure = { e -> _uiState.update { it.copy(error = e.message ?: "No se pudo cargar la zona.") } },
+                )
             }
         }
     }

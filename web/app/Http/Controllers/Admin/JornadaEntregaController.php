@@ -59,7 +59,7 @@ class JornadaEntregaController extends Controller
                 observaciones: $request->string('observaciones')->toString() ?: null,
             );
         } catch (EntregaInvalidaException|RuntimeException $e) {
-            return back()->withErrors(['litros' => $e->getMessage()])->withInput();
+            return back()->withErrors(['litros' => $this->mensajeSeguro($e)])->withInput();
         }
 
         $mensaje = 'Entrega registrada correctamente.';
@@ -91,7 +91,7 @@ class JornadaEntregaController extends Controller
                 usuarioId: auth('operador')->id(),
             );
         } catch (EntregaInvalidaException|RuntimeException $e) {
-            return redirect()->route('admin.acopiadores.index')->withErrors(['litros' => $e->getMessage()]);
+            return redirect()->route('admin.acopiadores.index')->withErrors(['litros' => $this->mensajeSeguro($e)]);
         }
 
         return redirect()->route('admin.acopiadores.jornadas.show', $jornadaId)->with('estado', 'Entrega sumada correctamente.');
@@ -106,7 +106,7 @@ class JornadaEntregaController extends Controller
         try {
             $anular->ejecutar($entrega, $request->string('motivo')->toString(), auth('operador')->id());
         } catch (EntregaInvalidaException|RuntimeException $e) {
-            return redirect()->route('admin.acopiadores.index')->withErrors(['motivo' => $e->getMessage()]);
+            return redirect()->route('admin.acopiadores.index')->withErrors(['motivo' => $this->mensajeSeguro($e)]);
         }
 
         return redirect()->route('admin.acopiadores.jornadas.show', $jornadaId)->with('estado', 'Entrega anulada.');

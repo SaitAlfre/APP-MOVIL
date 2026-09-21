@@ -1,0 +1,11 @@
+CREATE TABLE usuario_zona (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    zona_id TEXT NOT NULL
+);
+
+asignar:
+INSERT OR REPLACE INTO usuario_zona(usuario_id, zona_id) VALUES (:usuario_id, :zona_id);
+
+selectZonaId:
+SELECT zona_id FROM usuario_zona WHERE usuario_id = :usuario_id;
+

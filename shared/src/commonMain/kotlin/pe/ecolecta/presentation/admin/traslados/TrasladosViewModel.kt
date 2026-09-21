@@ -14,6 +14,7 @@ import pe.ecolecta.domain.usecase.traslado.CrearTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.ListarTrasladosUseCase
 import pe.ecolecta.domain.usecase.traslado.RechazarTrasladoUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.cargaSegura
 
 class TrasladosViewModel(
     private val listarTrasladosUseCase: ListarTrasladosUseCase,
@@ -33,13 +34,16 @@ class TrasladosViewModel(
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
         viewModelScope.launch {
-            listarTrasladosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, traslados = lista) } }
+            cargaSegura { listarTrasladosUseCase().collect { lista -> _uiState.update { it.copy(cargando = false, traslados = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudieron cargar los traslados.") } }
         }
         viewModelScope.launch {
-            listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } }
+            cargaSegura { listarProveedoresUseCase().collect { lista -> _uiState.update { it.copy(proveedores = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
         viewModelScope.launch {
-            listarZonasUseCase(soloActivas = true).collect { lista -> _uiState.update { it.copy(zonas = lista) } }
+            cargaSegura { listarZonasUseCase(soloActivas = true).collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
     }
 
@@ -59,7 +63,10 @@ class TrasladosViewModel(
     }
 
     fun autorizar(id: String) {
-        val adminId = usuarioActualId ?: return
+        val adminId = usuarioActualId ?: run {
+            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            return
+        }
         if (accionEnCurso) return
         accionEnCurso = true
         viewModelScope.launch {
@@ -69,7 +76,10 @@ class TrasladosViewModel(
     }
 
     fun rechazar(id: String, motivo: String) {
-        val adminId = usuarioActualId ?: return
+        val adminId = usuarioActualId ?: run {
+            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            return
+        }
         if (accionEnCurso) return
         accionEnCurso = true
         viewModelScope.launch {

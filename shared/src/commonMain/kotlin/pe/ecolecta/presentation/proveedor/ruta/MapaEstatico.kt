@@ -49,10 +49,14 @@ fun MapaEstatico(lat: Double, lng: Double, centrarEn: Int, modifier: Modifier = 
     var cargando by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf(false) }
 
-    LaunchedEffect(lat, lng, centrarEn) {
+    // Se calcula fuera del LaunchedEffect y se usa como key en vez de lat/lng crudos: la ubicación del
+    // acopiador se actualiza periódicamente con variaciones mínimas de GPS que casi siempre caen en el
+    // mismo tile — sin esto, cada actualización de ubicación repetía la descarga del mismo tile.
+    val (x, y) = remember(lat, lng) { tileXY(lat, lng, ZOOM) }
+
+    LaunchedEffect(x, y, centrarEn) {
         cargando = true
         error = false
-        val (x, y) = tileXY(lat, lng, ZOOM)
         runCatching {
             val bytes = httpClient.get("https://tile.openstreetmap.org/$ZOOM/$x/$y.png").bodyAsBytes()
             imagen = bytes.aImageBitmap()

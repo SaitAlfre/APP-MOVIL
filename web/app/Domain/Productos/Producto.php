@@ -13,9 +13,10 @@ final class Producto
         public readonly string $unidadProduccion,
         public readonly ?float $contenidoPorUnidad,
         public readonly ?string $unidadContenido,
+        public readonly float $litrosPorUnidad,
+        public readonly ?string $otrosInsumos,
         public readonly float $existencia,
         public readonly bool $activo,
-        public readonly ?int $recetaActivaId,
     ) {}
 
     public static function crear(
@@ -24,8 +25,10 @@ final class Producto
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
+        float $litrosPorUnidad,
+        ?string $otrosInsumos,
     ): self {
-        self::validar($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad);
+        self::validar($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $litrosPorUnidad);
 
         return new self(
             id: null,
@@ -34,9 +37,10 @@ final class Producto
             unidadProduccion: trim($unidadProduccion),
             contenidoPorUnidad: $contenidoPorUnidad,
             unidadContenido: $unidadContenido !== null && trim($unidadContenido) !== '' ? trim($unidadContenido) : null,
+            litrosPorUnidad: $litrosPorUnidad,
+            otrosInsumos: $otrosInsumos !== null && trim($otrosInsumos) !== '' ? trim($otrosInsumos) : null,
             existencia: 0.0,
             activo: true,
-            recetaActivaId: null,
         );
     }
 
@@ -47,11 +51,12 @@ final class Producto
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
+        float $litrosPorUnidad,
+        ?string $otrosInsumos,
         float $existencia,
         bool $activo,
-        ?int $recetaActivaId,
     ): self {
-        return new self($id, $nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $unidadContenido, $existencia, $activo, $recetaActivaId);
+        return new self($id, $nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $unidadContenido, $litrosPorUnidad, $otrosInsumos, $existencia, $activo);
     }
 
     public function conDatosActualizados(
@@ -60,8 +65,10 @@ final class Producto
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
+        float $litrosPorUnidad,
+        ?string $otrosInsumos,
     ): self {
-        self::validar($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad);
+        self::validar($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $litrosPorUnidad);
 
         return new self(
             id: $this->id,
@@ -70,18 +77,14 @@ final class Producto
             unidadProduccion: trim($unidadProduccion),
             contenidoPorUnidad: $contenidoPorUnidad,
             unidadContenido: $unidadContenido !== null && trim($unidadContenido) !== '' ? trim($unidadContenido) : null,
+            litrosPorUnidad: $litrosPorUnidad,
+            otrosInsumos: $otrosInsumos !== null && trim($otrosInsumos) !== '' ? trim($otrosInsumos) : null,
             existencia: $this->existencia,
             activo: $this->activo,
-            recetaActivaId: $this->recetaActivaId,
         );
     }
 
-    public function tieneRecetaActiva(): bool
-    {
-        return $this->recetaActivaId !== null;
-    }
-
-    private static function validar(string $nombre, string $presentacion, string $unidadProduccion, ?float $contenidoPorUnidad): void
+    private static function validar(string $nombre, string $presentacion, string $unidadProduccion, ?float $contenidoPorUnidad, float $litrosPorUnidad): void
     {
         if (trim($nombre) === '') {
             throw ProductoInvalidoException::nombreVacio();
@@ -97,6 +100,10 @@ final class Producto
 
         if ($contenidoPorUnidad !== null && $contenidoPorUnidad <= 0.0) {
             throw ProductoInvalidoException::contenidoPorUnidadInvalido();
+        }
+
+        if ($litrosPorUnidad <= 0.0) {
+            throw ProductoInvalidoException::litrosPorUnidadInvalido();
         }
     }
 }

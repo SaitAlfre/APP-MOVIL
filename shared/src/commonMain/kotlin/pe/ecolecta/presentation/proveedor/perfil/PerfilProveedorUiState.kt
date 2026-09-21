@@ -9,7 +9,5 @@ data class PerfilProveedorUiState(
     val nombreZona: String = "",
     val resumenSync: ResumenSyncProveedor = ResumenSyncProveedor(0, 0, 0, 0),
     val mensajeSincronizar: String? = null,
-    val usuarioIdLocal: String = "",
-    /** UID anónimo de Firebase de este dispositivo, o null si aún no se resolvió / no disponible en esta plataforma. */
-    val uidFirebase: String? = null,
+    val error: String? = null,
 )

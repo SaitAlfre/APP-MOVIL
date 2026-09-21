@@ -29,7 +29,7 @@ class VehiculoController extends Controller
         try {
             $crear->ejecutar($request->string('nombre')->toString(), $request->string('placa')->toString());
         } catch (VehiculoInvalidoException $e) {
-            return back()->withErrors(['placa' => $e->getMessage()])->withInput();
+            return back()->withErrors(['placa' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.zonas-vehiculos.index')->with('estado', 'Vehículo registrado correctamente.');
@@ -53,7 +53,7 @@ class VehiculoController extends Controller
         try {
             $actualizar->ejecutar($vehiculo, $request->string('nombre')->toString(), $request->string('placa')->toString());
         } catch (VehiculoInvalidoException $e) {
-            return back()->withErrors(['placa' => $e->getMessage()])->withInput();
+            return back()->withErrors(['placa' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.zonas-vehiculos.index')->with('estado', 'Vehículo actualizado correctamente.');

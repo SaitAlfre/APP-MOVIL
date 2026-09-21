@@ -17,10 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.EstadoProveedor
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonAccion
 import pe.ecolecta.presentation.design.CampoTexto
 import pe.ecolecta.presentation.design.ChipEstado
@@ -29,7 +31,9 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
+import pe.ecolecta.presentation.design.TipoBanner
 
 @Composable
 fun ProveedoresScreen(
@@ -38,13 +42,19 @@ fun ProveedoresScreen(
     viewModel: ProveedoresViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
+    val proveedoresFiltrados = remember(estado.proveedores, estado.filtroTexto, estado.filtroZonaId, estado.filtroEstado) {
+        estado.proveedoresFiltrados
+    }
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoSeccion(
             "Proveedores",
-            subtitulo = "${estado.proveedoresFiltrados.size} de ${estado.proveedores.size} proveedores",
+            subtitulo = "${proveedoresFiltrados.size} de ${estado.proveedores.size} proveedores",
             accion = { BotonAccion("Nuevo", alCrear, icono = Icons.Filled.Add) },
         )
+        estado.error?.let {
+            Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
+        }
         Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
             CampoTexto(
                 estado.filtroTexto,
@@ -60,7 +70,9 @@ fun ProveedoresScreen(
                 }
             }
         }
-        if (estado.proveedoresFiltrados.isEmpty()) {
+        if (estado.cargando) {
+            IndicadorCarga()
+        } else if (proveedoresFiltrados.isEmpty()) {
             EstadoVacio(
                 titulo = "No hay proveedores que coincidan",
                 descripcion = "Ajusta la búsqueda/filtro o registra un nuevo proveedor.",
@@ -73,7 +85,7 @@ fun ProveedoresScreen(
                 Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.m),
                 verticalArrangement = Arrangement.spacedBy(Espaciado.s),
             ) {
-                items(estado.proveedoresFiltrados, key = { it.id }) { proveedor ->
+                items(proveedoresFiltrados, key = { it.id }) { proveedor ->
                     Tarjeta(onClick = { alEditar(proveedor.id) }) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {

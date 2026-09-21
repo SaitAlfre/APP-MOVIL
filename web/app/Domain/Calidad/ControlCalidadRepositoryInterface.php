@@ -14,4 +14,7 @@ interface ControlCalidadRepositoryInterface
 
     /** @return array{aprobado: int, observado: int, rechazado: int} */
     public function contarPorResultado(): array;
+
+    /** @return array{aprobado: int, observado: int, rechazado: int} */
+    public function contarPorResultadoEnRango(\DateTimeImmutable $desde, \DateTimeImmutable $hasta): array;
 }

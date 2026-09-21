@@ -9,4 +9,5 @@ data class DetalleEntregaProveedorUiState(
     val nombreVehiculo: String = "",
     val nombreAcopiador: String = "",
     val noEncontrada: Boolean = false,
+    val error: String? = null,
 )

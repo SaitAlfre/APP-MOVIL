@@ -26,7 +26,7 @@ class ZonaController extends Controller
         try {
             $crear->ejecutar($request->string('nombre')->toString());
         } catch (ZonaInvalidaException $e) {
-            return back()->withErrors(['nombre' => $e->getMessage()])->withInput();
+            return back()->withErrors(['nombre' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.zonas-vehiculos.index')->with('estado', 'Zona registrada correctamente.');
@@ -47,7 +47,7 @@ class ZonaController extends Controller
         try {
             $actualizar->ejecutar($zona, $request->string('nombre')->toString());
         } catch (ZonaInvalidaException $e) {
-            return back()->withErrors(['nombre' => $e->getMessage()])->withInput();
+            return back()->withErrors(['nombre' => $this->mensajeSeguro($e)])->withInput();
         }
 
         return redirect()->route('admin.zonas-vehiculos.index')->with('estado', 'Zona actualizada correctamente.');

@@ -10,7 +10,7 @@ class MovimientoProducto extends Model
     protected $table = 'movimientos_producto';
 
     protected $fillable = [
-        'producto_id', 'tipo', 'cantidad', 'unidad', 'lote_produccion_id',
+        'producto_id', 'tipo', 'cantidad', 'unidad',
         'motivo', 'usuario_id', 'observaciones', 'fecha',
     ];
 

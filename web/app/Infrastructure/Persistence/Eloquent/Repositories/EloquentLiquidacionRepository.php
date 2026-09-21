@@ -26,6 +26,22 @@ final class EloquentLiquidacionRepository implements LiquidacionRepositoryInterf
         return $liquidacion !== null ? $this->aDominio($liquidacion) : null;
     }
 
+    public function ultimasDelProveedor(int $proveedorId, int $limite = 10): array
+    {
+        return LiquidacionEloquent::query()
+            ->where('proveedor_id', $proveedorId)
+            ->orderByDesc('generada_en')
+            ->limit($limite)
+            ->get()
+            ->map(fn (LiquidacionEloquent $l) => $this->aDominio($l))
+            ->all();
+    }
+
+    public function contarPendientes(): int
+    {
+        return LiquidacionEloquent::query()->where('estado', EstadoLiquidacion::Pendiente->value)->count();
+    }
+
     public function guardar(LiquidacionDominio $liquidacion): LiquidacionDominio
     {
         $registro = $liquidacion->id !== null

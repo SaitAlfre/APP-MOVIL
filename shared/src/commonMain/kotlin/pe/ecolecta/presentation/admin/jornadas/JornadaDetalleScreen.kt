@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +33,7 @@ fun JornadaDetalleScreen(
     id: String,
     alVerEntrega: (String) -> Unit,
     alVolver: () -> Unit = {},
-    viewModel: JornadaDetalleViewModel = koinViewModel(parameters = { parametersOf(id) }),
+    viewModel: JornadaDetalleViewModel = koinViewModel(key = id, parameters = { parametersOf(id) }),
 ) {
     val estado by viewModel.uiState.collectAsState()
 
@@ -56,7 +57,13 @@ fun JornadaDetalleScreen(
                 }
             }
         }
-        if (estado.entregas.isEmpty()) {
+        if (estado.error != null) {
+            EstadoVacio(
+                titulo = "No se pudo cargar la jornada",
+                descripcion = estado.error.orEmpty(),
+                icono = Icons.Filled.ErrorOutline,
+            )
+        } else if (estado.entregas.isEmpty()) {
             EstadoVacio(
                 titulo = "Sin entregas todavía",
                 descripcion = "Esta jornada no tiene entregas registradas.",

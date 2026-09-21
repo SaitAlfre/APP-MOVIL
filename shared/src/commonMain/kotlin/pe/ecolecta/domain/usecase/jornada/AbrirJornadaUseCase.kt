@@ -21,10 +21,6 @@ class AbrirJornadaUseCase(
     suspend operator fun invoke(usuarioId: String, zonaId: String, vehiculoId: String): Result<Jornada> = runCatching {
         val hoy = reloj.hoy()
         val jornada = jornadaRepository.obtenerPorUsuarioYFecha(usuarioId, hoy) ?: run {
-            val ocupante = jornadaRepository.obtenerAbiertaPorZona(zonaId)
-            if (ocupante != null && ocupante.usuarioId != usuarioId) {
-                throw ZonaOcupadaException(zonaId)
-            }
             val nueva = Jornada(
                 id = nuevoId(),
                 usuarioId = usuarioId,
@@ -35,7 +31,10 @@ class AbrirJornadaUseCase(
                 cerradaEn = null,
                 syncState = SyncState.PENDING,
             )
-            jornadaRepository.insertar(nueva)
+            // insertarSiZonaLibre comprueba la zona e inserta en una sola operación atómica: evita que
+            // dos llamadas solapadas (p. ej. doble tap) abran dos jornadas en la misma zona.
+            val ocupante = jornadaRepository.insertarSiZonaLibre(nueva)
+            if (ocupante != null) throw ZonaOcupadaException(zonaId)
             nueva
         }
         jornadaEnCursoRepository.establecer(jornada)
