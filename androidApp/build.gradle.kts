@@ -3,8 +3,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.googleServices)
+    alias(libs.plugins.googleServices) apply false
 }
+
+// Vista local explícita para probar el portal cuando no se ha entregado google-services.json.
+// La compilación normal conserva Firebase y falla si su configuración no está disponible.
+val localPreview = providers.gradleProperty("localPreview").orNull == "true"
+if (!localPreview) apply(plugin = "com.google.gms.google-services")
 
 kotlin {
     compilerOptions {
@@ -33,6 +38,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("boolean", "LOCAL_PREVIEW", localPreview.toString())
     }
     packaging {
         resources {
@@ -40,6 +46,12 @@ android {
         }
     }
     buildTypes {
+        debug {
+            if (localPreview) {
+                applicationIdSuffix = ".preview"
+                versionNameSuffix = "-local"
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -54,5 +66,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+}
+
+tasks.matching { it.name.contains("Release", ignoreCase = true) }.configureEach {
+    if (localPreview) doFirst { error("localPreview solo permite builds de prueba Debug.") }
 }

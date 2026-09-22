@@ -35,8 +35,14 @@ class EcolectaApp : Application() {
                     // RutaAcopioRepositoryFirebase recibe la MISMA instancia de IdentidadRemotaProvider
                     // que usa Perfil — el candado contra sesiones anónimas duplicadas solo protege si
                     // todos los llamadores pasan por ese único punto (ver FirebaseAuthAnonimoProvider).
-                    single<IdentidadRemotaProvider> { FirebaseAuthAnonimoProvider() }
-                    single<RutaAcopioRepository> { RutaAcopioRepositoryFirebase(get()) }
+                    single<IdentidadRemotaProvider> {
+                        if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.auth.IdentidadRemotaProviderPendiente()
+                        else FirebaseAuthAnonimoProvider()
+                    }
+                    single<RutaAcopioRepository> {
+                        if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.repository.RutaAcopioRepositoryPendiente()
+                        else RutaAcopioRepositoryFirebase(get())
+                    }
                 },
             )
         }

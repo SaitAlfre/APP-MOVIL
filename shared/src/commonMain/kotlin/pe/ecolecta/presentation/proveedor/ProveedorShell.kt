@@ -1,68 +1,48 @@
 package pe.ecolecta.presentation.proveedor
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import pe.ecolecta.presentation.design.BarraSuperior
-import pe.ecolecta.presentation.design.Colores
+import org.koin.compose.viewmodel.koinViewModel
+import pe.ecolecta.presentation.calidad.CalidadBackHandler
+import pe.ecolecta.presentation.design.EcolectaTheme
 import pe.ecolecta.presentation.navegacion.Pantalla
-import pe.ecolecta.presentation.proveedor.detalle.DetalleEntregaProveedorScreen
-import pe.ecolecta.presentation.proveedor.entregas.MisEntregasScreen
-import pe.ecolecta.presentation.proveedor.home.ProveedorHomeScreen
-import pe.ecolecta.presentation.proveedor.nav.PestanaProveedor
-import pe.ecolecta.presentation.proveedor.nav.ProveedorBottomNav
-import pe.ecolecta.presentation.proveedor.perfil.PerfilProveedorScreen
-import pe.ecolecta.presentation.proveedor.qr.MiQrProveedorScreen
+import pe.ecolecta.presentation.proveedor.nav.*
 import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioScreen
 
 @Composable
-fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
-    val esDetalle = pantalla is Pantalla.ProveedorEntregaDetalle
-
-    Scaffold(
-        containerColor = Colores.bgBase,
-        bottomBar = {
-            if (!esDetalle) {
-                ProveedorBottomNav(
-                    pestanaActual = pestanaDe(pantalla),
-                    onSeleccionar = { onCambiarPantalla(it.pantalla) },
-                )
-            }
-        },
-    ) { paddingInterno ->
-        Column(Modifier.fillMaxSize().padding(paddingInterno)) {
-            when (pantalla) {
-                Pantalla.ProveedorHome -> ProveedorHomeScreen(
-                    alVerMiRuta = { onCambiarPantalla(Pantalla.ProveedorMiRuta) },
-                )
-                Pantalla.ProveedorEntregas -> MisEntregasScreen(
-                    alVerDetalle = { id -> onCambiarPantalla(Pantalla.ProveedorEntregaDetalle(id)) },
-                )
-                is Pantalla.ProveedorEntregaDetalle -> {
-                    BarraSuperior(
-                        titulo = "Detalle de entrega",
-                        alVolver = { onCambiarPantalla(Pantalla.ProveedorEntregas) },
-                    )
-                    DetalleEntregaProveedorScreen(id = pantalla.id)
+fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit, vm: PortalProveedorViewModel = koinViewModel()) {
+    val s by vm.state.collectAsState()
+    CalidadBackHandler(pantalla != Pantalla.ProveedorHome) { onCambiarPantalla(Pantalla.ProveedorHome) }
+    EcolectaTheme(oscuroForzado = false) {
+        Scaffold(containerColor = ProveedorFondo, bottomBar = {
+            ProveedorBottomNav(when(pantalla) {
+                Pantalla.ProveedorEntregas, is Pantalla.ProveedorEntregaDetalle -> PestanaProveedor.ENTREGAS
+                Pantalla.ProveedorCalidad -> PestanaProveedor.CALIDAD
+                Pantalla.ProveedorPagos -> PestanaProveedor.PAGOS
+                Pantalla.ProveedorPerfil -> PestanaProveedor.PERFIL
+                else -> PestanaProveedor.INICIO
+            }, { vm.limpiarMensaje(); onCambiarPantalla(it.pantalla) })
+        }) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                if (s.cargando) CargandoProveedor()
+                else if (s.proveedor == null) ErrorProveedor(s.error ?: "No se encontró tu perfil.", vm::recargar)
+                else when(pantalla) {
+                    Pantalla.ProveedorHome -> InicioProveedor(s, onCambiarPantalla)
+                    Pantalla.ProveedorEntregas -> EntregasProveedor(s, onCambiarPantalla)
+                    is Pantalla.ProveedorEntregaDetalle -> DetalleProveedor(s, pantalla.id, onCambiarPantalla)
+                    Pantalla.ProveedorCalidad -> CalidadProveedor(s, onCambiarPantalla)
+                    Pantalla.ProveedorPagos -> PagosProveedor(s, onCambiarPantalla)
+                    Pantalla.ProveedorMiQr -> QrProveedor(s, onCambiarPantalla)
+                    Pantalla.ProveedorReclamos -> ReclamoProveedor(s, vm, onCambiarPantalla)
+                    Pantalla.ProveedorTraslado -> TrasladoProveedor(s, vm, onCambiarPantalla)
+                    Pantalla.ProveedorSolicitudes -> SolicitudesProveedor(s, onCambiarPantalla)
+                    Pantalla.ProveedorPerfil -> PerfilProveedor(s, vm, onCambiarPantalla)
+                    Pantalla.ProveedorMiRuta -> MiRutaAcopioScreen()
+                    else -> InicioProveedor(s, onCambiarPantalla)
                 }
-                Pantalla.ProveedorMiRuta -> MiRutaAcopioScreen()
-                Pantalla.ProveedorMiQr -> MiQrProveedorScreen()
-                Pantalla.ProveedorPerfil -> PerfilProveedorScreen()
-                else -> ProveedorHomeScreen(
-                    alVerMiRuta = { onCambiarPantalla(Pantalla.ProveedorMiRuta) },
-                )
             }
         }
     }
-}
-
-private fun pestanaDe(pantalla: Pantalla): PestanaProveedor = when (pantalla) {
-    Pantalla.ProveedorEntregas -> PestanaProveedor.ENTREGAS
-    Pantalla.ProveedorMiRuta -> PestanaProveedor.MI_RUTA
-    Pantalla.ProveedorMiQr -> PestanaProveedor.MI_QR
-    Pantalla.ProveedorPerfil -> PestanaProveedor.PERFIL
-    else -> PestanaProveedor.INICIO
 }

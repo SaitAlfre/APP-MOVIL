@@ -157,6 +157,8 @@ import pe.ecolecta.presentation.auth.SeleccionRolViewModel
 import pe.ecolecta.presentation.calidad.CalidadViewModel
 
 val dataModule = module {
+    single<pe.ecolecta.domain.repository.PortalProveedorRepository> { pe.ecolecta.data.repository.PortalProveedorRepository(get()) }
+    viewModel { pe.ecolecta.presentation.proveedor.PortalProveedorViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single<SqlDriver> { get<DatabaseDriverFactory>().crearDriver() }
     single { EcolectaDatabase(get()) }
     single { DatabaseSeeder(get(), get(), get()) }

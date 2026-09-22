@@ -23,6 +23,11 @@ sealed interface Pantalla {
     data object ProveedorMiRuta : Pantalla
     data object ProveedorMiQr : Pantalla
     data object ProveedorPerfil : Pantalla
+    data object ProveedorCalidad : Pantalla
+    data object ProveedorPagos : Pantalla
+    data object ProveedorReclamos : Pantalla
+    data object ProveedorTraslado : Pantalla
+    data object ProveedorSolicitudes : Pantalla
 
     data object CalidadInicio : Pantalla
     data object CalidadNuevo : Pantalla

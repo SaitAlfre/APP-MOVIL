@@ -6,6 +6,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,9 +23,9 @@ import pe.ecolecta.presentation.navegacion.Pantalla
 
 enum class PestanaProveedor(val pantalla: Pantalla, val etiqueta: String, val icono: ImageVector) {
     INICIO(Pantalla.ProveedorHome, "Inicio", Icons.Filled.Home),
-    ENTREGAS(Pantalla.ProveedorEntregas, "Entregas", Icons.AutoMirrored.Filled.ReceiptLong),
-    MI_RUTA(Pantalla.ProveedorMiRuta, "Mi ruta", Icons.Filled.Map),
-    MI_QR(Pantalla.ProveedorMiQr, "Mi QR", Icons.Filled.QrCode2),
+    ENTREGAS(Pantalla.ProveedorEntregas, "Entregas", Icons.Filled.WaterDrop),
+    CALIDAD(Pantalla.ProveedorCalidad, "Calidad", Icons.Filled.CheckCircleOutline),
+    PAGOS(Pantalla.ProveedorPagos, "Pagos", Icons.Filled.AttachMoney),
     PERFIL(Pantalla.ProveedorPerfil, "Perfil", Icons.Filled.Person),
 }
 

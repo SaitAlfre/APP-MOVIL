@@ -148,6 +148,11 @@ fun App() {
                         Pantalla.ProveedorMiRuta,
                         Pantalla.ProveedorMiQr,
                         Pantalla.ProveedorPerfil,
+                        Pantalla.ProveedorCalidad,
+                        Pantalla.ProveedorPagos,
+                        Pantalla.ProveedorReclamos,
+                        Pantalla.ProveedorTraslado,
+                        Pantalla.ProveedorSolicitudes,
                         -> ProveedorShell(pantalla = actual, onCambiarPantalla = { pantalla = it })
                         Pantalla.CalidadInicio,
                         Pantalla.CalidadNuevo,
