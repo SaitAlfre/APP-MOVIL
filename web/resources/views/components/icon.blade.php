@@ -5,7 +5,7 @@
 
 @php
     /**
-     * Set de iconos del diseño Ecolactea Digital (trazo 1.5, viewBox 24).
+     * Set de iconos del diseño Ecolactea Digital (trazo 1.8 como el mockup Lumen, viewBox 24).
      *
      * @var array<string, list<string>> $trazos
      */
@@ -53,6 +53,9 @@
         'bell' => ['M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'],
         'userCircle' => ['M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z'],
         'bars3' => ['M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'],
+        'arrowRight' => ['M5 12h14M13 6l6 6-6 6'],
+        'ellipsis' => ['M5 12h.01M12 12h.01M19 12h.01'],
+        'sparkles' => ['M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z'],
         'arrowLeft' => ['M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18'],
         'clipboardList' => ['M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'],
         'qrCode' => [
@@ -77,7 +80,7 @@
     $paths = $trazos[$name] ?? $trazos['info'];
 @endphp
 
-<svg {{ $attributes->merge(['class' => $class, 'aria-hidden' => 'true']) }} fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+<svg {{ $attributes->merge(['class' => $class, 'aria-hidden' => 'true']) }} fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
     @foreach ($paths as $d)
         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}" />
     @endforeach

@@ -4,27 +4,40 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
     --color-eh-bg: var(--eh-bg);
     --color-eh-surface: var(--eh-surface);
     --color-eh-surface-alt: var(--eh-surface-alt);
     --color-eh-border: var(--eh-border);
+    --color-eh-border-strong: var(--eh-border-strong);
     --color-eh-text: var(--eh-text);
     --color-eh-text-muted: var(--eh-text-muted);
     --color-eh-primary: var(--eh-primary);
     --color-eh-primary-dark: var(--eh-primary-dark);
     --color-eh-primary-soft: var(--eh-primary-soft);
+    --color-eh-on-primary: var(--eh-on-primary);
+    --color-eh-success: var(--eh-success);
+    --color-eh-success-soft: var(--eh-success-soft);
+    --color-eh-lime: var(--eh-lime);
+    --color-eh-lime-soft: var(--eh-lime-soft);
+    --color-eh-ink: var(--eh-ink);
+    --color-eh-sand: var(--eh-sand);
+    --color-eh-sage: var(--eh-sage);
+    --color-eh-sage-soft: var(--eh-sage-soft);
     --color-eh-blue: var(--eh-blue);
     --color-eh-blue-soft: var(--eh-blue-soft);
+    --color-eh-violet: var(--eh-violet);
+    --color-eh-violet-soft: var(--eh-violet-soft);
     --color-eh-gold: var(--eh-gold);
     --color-eh-gold-soft: var(--eh-gold-soft);
     --color-eh-gold-ink: var(--eh-gold-ink);
     --color-eh-red: var(--eh-red);
     --color-eh-red-dark: var(--eh-red-dark);
     --color-eh-red-soft: var(--eh-red-soft);
+    --color-eh-coral: var(--eh-coral);
     --color-eh-table-head: var(--eh-table-head);
     --color-eh-stripe: var(--eh-stripe);
     --color-eh-sidebar: var(--eh-sidebar);
@@ -34,61 +47,95 @@
 }
 
 /*
- * Tokens de EcolectaHuata — los valores claros replican exactamente la paleta
- * del diseño "Ecolactea Digital" (Figma Make). `.dark` redefine los mismos
- * nombres para que cada utilidad `eh-*` siga siendo correcta en ambos temas.
+ * Tokens de EcolectaHuata — los valores claros replican la paleta del diseño
+ * "Mockup Admin Dashboard" (Figma Make): tinta #142820, lima #d8ff57, fondo
+ * #f4f4ef, arena #e6ddd1 y salvia #6c8c7b. `.dark` redefine los mismos nombres
+ * para que cada utilidad `eh-*` siga siendo correcta en ambos temas.
  */
 :root {
-    --eh-bg: #f7f6f1;
+    --eh-bg: #f4f4ef;
     --eh-surface: #ffffff;
-    --eh-surface-alt: #f7f6f1;
-    --eh-border: #dde4df;
-    --eh-text: #25342c;
-    --eh-text-muted: #66736c;
-    --eh-primary: #2e7d46;
-    --eh-primary-dark: #1e5631;
-    --eh-primary-soft: #e8f4ec;
-    --eh-blue: #3783b5;
-    --eh-blue-soft: #eff6ff;
-    --eh-gold: #b45309;
-    --eh-gold-soft: #fffbeb;
+    --eh-surface-alt: #eef0e9;
+    --eh-border: #17231e14;
+    --eh-border-strong: #17231e1f;
+    --eh-text: #17231e;
+    --eh-text-muted: #66706b;
+    --eh-primary: #142820;
+    --eh-primary-dark: #203c31;
+    --eh-primary-soft: #e3ebe3;
+    --eh-on-primary: #ffffff;
+    --eh-success: #39765d;
+    --eh-success-soft: #e3f1e8;
+    --eh-lime: #d8ff57;
+    --eh-lime-soft: #e7ff95;
+    --eh-ink: #142820;
+    --eh-sand: #e6ddd1;
+    --eh-sage: #6c8c7b;
+    --eh-sage-soft: #cfd7ce;
+    --eh-blue: #285989;
+    --eh-blue-soft: #d9ecff;
+    --eh-violet: #655497;
+    --eh-violet-soft: #ede9f8;
+    --eh-gold: #926b22;
+    --eh-gold-soft: #fff0d1;
     --eh-gold-ink: #3a2e0a;
-    --eh-red: #c94a4a;
-    --eh-red-dark: #a83838;
-    --eh-red-soft: #fef2f2;
-    --eh-table-head: #ffffff;
-    --eh-stripe: #fbfaf7;
-    --eh-sidebar: #1e5631;
-    --eh-sidebar-active: #2e7d46;
-    --eh-sidebar-muted: #dcfce7cc;
-    --eh-sidebar-label: #4ade8099;
+    --eh-red: #b55e4d;
+    --eh-red-dark: #9a4a3b;
+    --eh-red-soft: #f8e5df;
+    --eh-coral: #ef765d;
+    --eh-table-head: #f4f4efa6;
+    --eh-stripe: #f8f8f4;
+    --eh-sidebar: #142820;
+    --eh-sidebar-active: #ffffff;
+    --eh-sidebar-muted: #ffffff94;
+    --eh-sidebar-label: #ffffff4d;
+    --eh-shadow-ink: 0 10px 25px rgb(20 40 32 / 0.16);
 }
 
 .dark {
     color-scheme: dark;
-    --eh-bg: #161c18;
-    --eh-surface: #1f2723;
-    --eh-surface-alt: #262f2a;
-    --eh-border: #32403a;
-    --eh-text: #eceee8;
-    --eh-text-muted: #98a69e;
-    --eh-primary: #4caf6e;
-    --eh-primary-dark: #3c9059;
-    --eh-primary-soft: #23352a;
-    --eh-blue: #6aaede;
-    --eh-blue-soft: #1e2a35;
-    --eh-gold: #e0b84a;
-    --eh-gold-soft: #322a17;
+    --eh-bg: #0f1a15;
+    --eh-surface: #16241e;
+    --eh-surface-alt: #1d2c25;
+    --eh-border: #ffffff14;
+    --eh-border-strong: #ffffff24;
+    --eh-text: #eef1ea;
+    --eh-text-muted: #9aa7a0;
+    --eh-primary: #d8ff57;
+    --eh-primary-dark: #c6ee45;
+    --eh-primary-soft: #22342b;
+    --eh-on-primary: #142820;
+    --eh-success: #8fcaa9;
+    --eh-success-soft: #1f3329;
+    --eh-lime: #d8ff57;
+    --eh-lime-soft: #3a4a1c;
+    --eh-ink: #0a1410;
+    --eh-sand: #2a2721;
+    --eh-sage: #7ba18e;
+    --eh-sage-soft: #33443b;
+    --eh-blue: #8cbfee;
+    --eh-blue-soft: #1c2b3a;
+    --eh-violet: #b3a6e0;
+    --eh-violet-soft: #28233a;
+    --eh-gold: #e5bd6a;
+    --eh-gold-soft: #332a17;
     --eh-gold-ink: #2a2107;
-    --eh-red: #e1746b;
-    --eh-red-dark: #c05a52;
-    --eh-red-soft: #33211f;
-    --eh-table-head: #1f2723;
-    --eh-stripe: #1b221e;
-    --eh-sidebar: #123f25;
-    --eh-sidebar-active: #2e7d46;
-    --eh-sidebar-muted: #c4dccbcc;
-    --eh-sidebar-label: #4ade8099;
+    --eh-red: #ec8f7c;
+    --eh-red-dark: #d9735f;
+    --eh-red-soft: #3a221d;
+    --eh-coral: #ef765d;
+    --eh-table-head: #1a2923;
+    --eh-stripe: #1a2822;
+    --eh-sidebar: #0a1410;
+    --eh-sidebar-active: #ffffff;
+    --eh-sidebar-muted: #ffffff94;
+    --eh-sidebar-label: #ffffff4d;
+    --eh-shadow-ink: 0 10px 25px rgb(0 0 0 / 0.35);
+}
+
+/* En modo oscuro la acción principal pasa a lima: su texto debe ser tinta, no blanco. */
+.dark .bg-eh-primary.text-white {
+    color: var(--eh-on-primary);
 }
 
 * {
@@ -99,12 +146,14 @@ body {
     background-color: var(--eh-bg);
     color: var(--eh-text);
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11';
 }
 
-/* Cifras comparables: JetBrains Mono, igual que el diseño. */
+/* Cifras comparables: la misma Inter del diseño, con dígitos tabulares. */
 .mono {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
 }
 
 ::-webkit-scrollbar {
@@ -117,7 +166,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--eh-border);
+    background: var(--eh-border-strong);
     border-radius: 3px;
 }
 
@@ -126,64 +175,228 @@ body {
 }
 
 :focus-visible {
-    outline: 2px solid var(--eh-primary);
+    outline: 2px solid var(--eh-sage);
     outline-offset: 2px;
 }
 
 ::selection {
-    background: color-mix(in srgb, var(--eh-primary) 24%, transparent);
+    background: var(--eh-lime);
+    color: #142820;
 }
 
 .sidebar-transition {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-button,
-a,
-input,
-select,
-textarea,
-summary {
-    transition-duration: 160ms;
-    transition-property: color, background-color, border-color, box-shadow, opacity;
-    transition-timing-function: ease-out;
-}
-
-input,
-select,
-textarea {
-    accent-color: var(--eh-primary);
-}
-
-input::placeholder,
-textarea::placeholder {
-    color: color-mix(in srgb, var(--eh-text-muted) 60%, transparent);
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled,
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /*
- * Estilos base del área administrativa. Replican los componentes Table/Input/Btn
+ * Animaciones del diseño: entrada escalonada (rise), menús (pop), toasts,
+ * barras que crecen, anillos de progreso y líneas que se dibujan.
+ */
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pop {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-out {
+    to {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+}
+
+@keyframes grow {
+    from {
+        height: 0;
+    }
+}
+
+@keyframes grow-x {
+    from {
+        width: 0;
+    }
+}
+
+@keyframes ring {
+    from {
+        stroke-dashoffset: 377px;
+    }
+}
+
+@keyframes donut {
+    from {
+        stroke-dasharray: 0 400;
+    }
+}
+
+@keyframes draw {
+    from {
+        stroke-dasharray: 1200;
+        stroke-dashoffset: 1200px;
+    }
+
+    to {
+        stroke-dasharray: 1200;
+        stroke-dashoffset: 0;
+    }
+}
+
+.animate-rise {
+    animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-pop {
+    animation: pop 0.22s ease-out both;
+}
+
+.animate-toast {
+    animation: toast 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.toast-leave {
+    animation: toast-out 0.25s ease-in both;
+}
+
+.chart-bar {
+    animation: grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.chart-bar-x {
+    animation: grow-x 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.progress-ring {
+    animation: ring 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
+}
+
+.donut-seg {
+    animation: donut 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+.line-draw {
+    animation: draw 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/*
+ * Entrada escalonada automática de cada bloque de la página. Solo se rellena
+ * el estado inicial (`backwards`) para no dejar un `transform` permanente que
+ * cambie el contexto de posicionamiento de menús o diálogos internos.
+ */
+.admin-page > *,
+.stagger > * {
+    animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.admin-page > :nth-child(2) { animation-delay: 60ms; }
+.admin-page > :nth-child(3) { animation-delay: 120ms; }
+.admin-page > :nth-child(4) { animation-delay: 180ms; }
+.admin-page > :nth-child(5) { animation-delay: 240ms; }
+.admin-page > :nth-child(6) { animation-delay: 300ms; }
+.admin-page > :nth-child(7) { animation-delay: 360ms; }
+.admin-page > :nth-child(n + 8) { animation-delay: 420ms; }
+
+.stagger > :nth-child(2) { animation-delay: 70ms; }
+.stagger > :nth-child(3) { animation-delay: 140ms; }
+.stagger > :nth-child(4) { animation-delay: 210ms; }
+.stagger > :nth-child(5) { animation-delay: 280ms; }
+.stagger > :nth-child(n + 6) { animation-delay: 350ms; }
+
+/* Cuadrícula tenue de fondo de los gráficos, igual que el diseño. */
+.chart-grid {
+    background-image: linear-gradient(
+        to bottom,
+        transparent 24.5%,
+        var(--eh-border) 25%,
+        transparent 25.5%,
+        transparent 49.5%,
+        var(--eh-border) 50%,
+        transparent 50.5%,
+        transparent 74.5%,
+        var(--eh-border) 75%,
+        transparent 75.5%
+    );
+}
+
+/*
+ * Estilos base del área administrativa. Replican las tablas, campos y botones
  * del diseño para que cualquier tabla, campo o botón herede el mismo lenguaje
  * visual aunque la vista use HTML plano.
  */
 @layer base {
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    summary {
+        transition-duration: 200ms;
+        transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+        transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    input,
+    select,
+    textarea {
+        accent-color: var(--eh-sage);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: color-mix(in srgb, var(--eh-text-muted) 65%, transparent);
+    }
+
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
     .admin-content table {
         font-variant-numeric: tabular-nums;
         width: 100%;
     }
 
+    .admin-content thead {
+        background-color: var(--eh-table-head);
+    }
+
     .admin-content th {
-        color: var(--eh-text-muted);
-        font-size: 0.75rem;
+        color: color-mix(in srgb, var(--eh-text) 45%, transparent);
+        font-size: 10px;
         font-weight: 600;
-        letter-spacing: 0.025em;
+        letter-spacing: 0.12em;
         padding: 0.75rem 1rem;
         text-align: left;
         text-transform: uppercase;
@@ -196,7 +409,7 @@ button:disabled {
 
     .admin-content tbody tr {
         border-bottom: 1px solid var(--eh-border);
-        transition: background-color 160ms ease-out;
+        transition: background-color 200ms ease-out;
     }
 
     .admin-content tbody tr:last-child {
@@ -204,28 +417,29 @@ button:disabled {
     }
 
     .admin-content tbody tr:hover {
-        background-color: var(--eh-surface-alt);
+        background-color: var(--eh-stripe);
     }
 
     .admin-content td {
         color: var(--eh-text);
-        padding: 0.75rem 1rem;
+        font-size: 0.8125rem;
+        padding: 0.875rem 1rem;
         vertical-align: middle;
     }
 
     .admin-content :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
         background: var(--eh-surface);
-        border: 1px solid var(--eh-border);
+        border: 1px solid var(--eh-border-strong);
         border-radius: 0.75rem;
         color: var(--eh-text);
-        font-size: 0.875rem;
-        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        padding: 0.625rem 0.875rem;
         width: 100%;
     }
 
     .admin-content :is(input, select, textarea):focus {
-        border-color: var(--eh-primary);
-        box-shadow: 0 0 0 1px var(--eh-primary);
+        border-color: var(--eh-sage);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--eh-sage) 18%, transparent);
         outline: none;
     }
 
@@ -244,29 +458,31 @@ button:disabled {
         align-items: center;
         border-radius: 0.75rem;
         display: inline-flex;
-        font-size: 0.875rem;
-        font-weight: 500;
-        gap: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        gap: 0.5rem;
         justify-content: center;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
     }
 
     .btn-primary {
         background: var(--eh-primary);
-        color: #fff;
+        box-shadow: var(--eh-shadow-ink);
+        color: var(--eh-on-primary);
     }
 
     .btn-primary:hover {
         background: var(--eh-primary-dark);
+        transform: translateY(-2px);
     }
 
     .btn-secondary {
-        background: var(--eh-primary-soft);
-        color: var(--eh-primary);
+        background: var(--eh-surface-alt);
+        color: var(--eh-text);
     }
 
     .btn-secondary:hover {
-        background: var(--eh-border);
+        background: var(--eh-primary-soft);
     }
 
     .btn-danger {
@@ -283,17 +499,17 @@ button:disabled {
     }
 
     .btn-ghost:hover {
-        background: var(--eh-primary-soft);
-        color: var(--eh-primary);
+        background: var(--eh-surface-alt);
+        color: var(--eh-text);
     }
 
     .btn-accent {
-        background: var(--eh-blue);
-        color: #fff;
+        background: var(--eh-lime);
+        color: #142820;
     }
 
     .btn-accent:hover {
-        filter: brightness(0.92);
+        filter: brightness(0.95);
     }
 }
 
@@ -308,14 +524,15 @@ button:disabled {
         color-scheme: light;
         --eh-bg: #fff;
         --eh-surface: #fff;
-        --eh-surface-alt: #f7f6f1;
-        --eh-text: #25342c;
-        --eh-text-muted: #66736c;
-        --eh-border: #dde4df;
+        --eh-surface-alt: #f4f4ef;
+        --eh-text: #17231e;
+        --eh-text-muted: #66706b;
+        --eh-border: #dfe2dc;
     }
 
     .no-print,
     [data-admin-menu-overlay],
+    [data-toast],
     a[href="#contenido-principal"] {
         display: none !important;
     }
@@ -333,6 +550,10 @@ button:disabled {
 
     .admin-content {
         padding: 0;
+    }
+
+    .admin-page > * {
+        animation: none !important;
     }
 
     .admin-content .overflow-x-auto {
@@ -386,6 +607,7 @@ button:disabled {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
         animation-iteration-count: 1 !important;
     }
 }

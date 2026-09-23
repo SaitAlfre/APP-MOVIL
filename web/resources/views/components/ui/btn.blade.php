@@ -8,19 +8,19 @@
 
 @php
     $tamanos = [
-        'sm' => 'text-xs px-3 py-1.5',
-        'md' => 'text-sm px-4 py-2',
+        'sm' => 'text-[11px] px-3 py-2',
+        'md' => 'text-xs px-4 py-3',
     ];
     $variantes = [
-        'primary' => 'bg-eh-primary text-white hover:bg-eh-primary-dark',
-        'secondary' => 'bg-eh-primary-soft text-eh-primary hover:bg-eh-border',
-        'danger' => 'bg-eh-red text-white hover:bg-eh-red-dark',
-        'ghost' => 'text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary',
-        'accent' => 'bg-eh-blue text-white hover:brightness-90',
-        'outline' => 'border border-eh-border bg-eh-surface text-eh-text hover:bg-eh-surface-alt',
+        'primary' => 'bg-eh-primary text-eh-on-primary shadow-[var(--eh-shadow-ink)] hover:-translate-y-0.5 hover:bg-eh-primary-dark',
+        'secondary' => 'bg-eh-surface-alt text-eh-text hover:bg-eh-primary-soft',
+        'danger' => 'bg-eh-red text-white hover:-translate-y-0.5 hover:bg-eh-red-dark',
+        'ghost' => 'text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text',
+        'accent' => 'bg-eh-lime text-[#142820] hover:-translate-y-0.5 hover:brightness-95',
+        'outline' => 'border border-eh-border-strong bg-eh-surface/65 text-eh-text hover:bg-eh-surface',
     ];
     $clases = implode(' ', [
-        'inline-flex items-center justify-center gap-1.5 rounded-xl font-medium transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
         $tamanos[$size] ?? $tamanos['md'],
         $variantes[$variant] ?? $variantes['primary'],
     ]);

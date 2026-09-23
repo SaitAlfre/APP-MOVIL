@@ -46,13 +46,13 @@
             'label' => $fila['vehiculo'].' · '.$fila['placa'],
             'value' => $fila['merma'],
             'meta' => number_format($fila['mermaPorcentaje'], 1).'% del viaje',
-            'color' => $fila['mermaPorcentaje'] > $alertas['umbral_merma_porcentaje'] ? 'var(--eh-red)' : 'var(--eh-gold)',
+            'color' => $fila['mermaPorcentaje'] > $alertas['umbral_merma_porcentaje'] ? '#be6b5a' : '#c9a14f',
         ])->all();
 
         $serieCalidad = [
-            ['label' => 'Aprobado', 'value' => $panel['calidad']['aprobado'], 'color' => '#2E7D46'],
-            ['label' => 'Observado', 'value' => $panel['calidad']['observado'], 'color' => '#E8B339'],
-            ['label' => 'Rechazado', 'value' => $panel['calidad']['rechazado'], 'color' => '#C94A4A'],
+            ['label' => 'Aprobado', 'value' => $panel['calidad']['aprobado'], 'color' => '#547564'],
+            ['label' => 'Observado', 'value' => $panel['calidad']['observado'], 'color' => '#c9a14f'],
+            ['label' => 'Rechazado', 'value' => $panel['calidad']['rechazado'], 'color' => '#be6b5a'],
         ];
 
         // Alertas reales del negocio, con el mismo formato de tarjeta que el diseño.
@@ -100,9 +100,17 @@
             ['label' => 'Iniciar jornada', 'icono' => 'play', 'url' => route('admin.acopiadores.jornadas.create'), 'permiso' => 'acopiadores'],
             ['label' => 'Generar liquidación', 'icono' => 'banknotes', 'url' => route('admin.liquidaciones.create'), 'permiso' => 'liquidaciones'],
         ])->filter(fn ($acceso) => $usuario->puede($acceso['permiso'], 'gestionar'))->values();
+
+        // Presentación: saludo según la hora y periodo rápido activo.
+        $saludo = $ahora->hour < 12 ? 'Buenos días' : ($ahora->hour < 19 ? 'Buenas tardes' : 'Buenas noches');
+        $primerNombre = \Illuminate\Support\Str::of($usuario->nombres)->trim()->explode(' ')->first();
+        $diasPeriodo = $hasta->format('Y-m-d') === now()->toDateString()
+            ? (new \DateTimeImmutable($desde->format('Y-m-d')))->diff(new \DateTimeImmutable($hasta->format('Y-m-d')))->days + 1
+            : null;
     @endphp
 
-    <x-ui.page-header title="Centro operativo" :description="$fechaActual.' · Rol: '.$rolPrincipal">
+    <x-ui.page-header :eyebrow="$fechaActual" :title="$saludo.', '.$primerNombre.'.'"
+        :description="'Centro operativo · Rol: '.$rolPrincipal.' · Esto es lo que está pasando en el acopio.'">
         @if ($puedeJornadas)
             <x-slot:actions>
                 <x-ui.btn :href="route('admin.acopiadores.jornadas.create')" icon="play">Iniciar jornada</x-ui.btn>
@@ -111,13 +119,20 @@
     </x-ui.page-header>
 
     {{-- Filtros del periodo --}}
-    <x-ui.card padding="p-4" class="mb-6">
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-sm font-semibold text-eh-text">Periodo analizado</h2>
-            <div class="flex flex-wrap gap-1.5" aria-label="Periodos rápidos">
+    <x-ui.card padding="p-5 md:p-6" class="mb-3">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="font-semibold tracking-[-.02em] text-eh-text">Periodo analizado</h2>
+                <p class="mt-1 text-[11px] text-eh-text-muted">{{ $desde->format('d/m/Y') }} — {{ $hasta->format('d/m/Y') }} · tendencia por {{ $etiquetaAgrupacion }}</p>
+            </div>
+            <div class="flex rounded-xl bg-eh-surface-alt p-1" aria-label="Periodos rápidos">
                 @foreach ([7 => '7 días', 30 => '30 días', 90 => '90 días'] as $dias => $etiqueta)
                     <a href="{{ route('admin.dashboard.index', array_filter(['desde' => now()->subDays($dias - 1)->toDateString(), 'hasta' => now()->toDateString(), 'zona_id' => $zonaId, 'agrupacion' => $agrupacion])) }}"
-                        class="rounded-lg border border-eh-border px-2.5 py-1.5 text-xs font-medium text-eh-text-muted transition-colors hover:border-eh-primary hover:text-eh-primary">{{ $etiqueta }}</a>
+                        @class([
+                            'rounded-lg px-3 py-1.5 text-[10px] font-semibold transition-all',
+                            'bg-eh-surface text-eh-text shadow-sm' => $diasPeriodo === $dias,
+                            'text-eh-text-muted hover:text-eh-text' => $diasPeriodo !== $dias,
+                        ]) @if ($diasPeriodo === $dias) aria-current="true" @endif>{{ $etiqueta }}</a>
                 @endforeach
             </div>
         </div>
@@ -127,17 +142,17 @@
             <x-ui.select name="zona_id" label="Zona" placeholder="Todas las zonas"
                 :options="collect($zonasDisponibles)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" :selected="$zonaId" />
             <x-ui.select name="agrupacion" label="Tendencia por" :options="['dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes']" :selected="$agrupacion" />
-            <x-ui.btn type="submit">Aplicar</x-ui.btn>
+            <x-ui.btn type="submit" icon="filter">Aplicar</x-ui.btn>
         </form>
-        <p class="mt-3 text-[11px] leading-relaxed text-eh-text-muted">
+        <p class="mt-4 border-t border-eh-border pt-4 text-[11px] leading-relaxed text-eh-text-muted">
             La zona filtra litros recolectados, recibidos, merma, calidad pendiente y los gráficos por zona y acopiador.
             Leche habilitada, disponible, producción y liquidaciones son globales: una vez recepcionada, la leche se acumula en una sola pila sin importar la zona de origen.
         </p>
     </x-ui.card>
 
     {{-- Indicadores del día --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <x-ui.kpi label="Litros hoy" :value="number_format($panel['litros_hoy'], 1)" unit="L" icon="droplets" color="green"
+    <section class="stagger mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.kpi dark label="Litros hoy" :value="number_format($panel['litros_hoy'], 1)" unit="L" icon="droplets" color="green"
             :trend="$panel['litros_hoy_variacion'] !== null ? number_format(abs($panel['litros_hoy_variacion']), 1).'% vs ayer' : null"
             :trend-up="($panel['litros_hoy_variacion'] ?? 0) >= 0"
             hint="Litros recolectados hoy, sin contar entregas anuladas." />
@@ -147,9 +162,9 @@
             hint="Entregas del periodo que todavía no tienen control de calidad." />
         <x-ui.kpi label="Liquidaciones pendientes" :value="$indicadores['liquidaciones_pendientes']" icon="banknotes" color="red"
             hint="Liquidaciones generadas que aún no se marcan como pagadas." />
-    </div>
+    </section>
 
-    <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <section class="stagger mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <x-ui.kpi label="Entregas registradas" :value="$panel['entregas_registradas']" icon="clipboardList" color="green"
             hint="Entregas no anuladas registradas en el periodo filtrado." />
         <x-ui.kpi label="Jornadas abiertas" :value="count($panel['jornadas_abiertas'])" icon="play" color="blue"
@@ -158,170 +173,216 @@
             hint="Controles observados o rechazados dentro del periodo." />
         <x-ui.kpi label="Lotes abiertos" :value="$panel['lotes_abiertos']" icon="factory" color="green"
             hint="Lotes de producción en borrador o en proceso." />
-    </div>
+    </section>
 
     {{-- Tendencia y calidad --}}
-    <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <x-ui.card padding="p-4" class="lg:col-span-2">
-            <h3 class="mb-4 text-sm font-semibold text-eh-text">Litros recolectados — por {{ $etiquetaAgrupacion }}</h3>
-            <x-ui.chart-bars :data="$serieTendencia" :height="200" unit="L"
+    <section class="mb-3 grid gap-3 xl:grid-cols-[1.65fr_1fr]">
+        <x-ui.card padding="p-5 md:p-6">
+            <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Litros recolectados — por {{ $etiquetaAgrupacion }}</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Recolección del periodo filtrado</p>
+                </div>
+                <span class="flex items-center gap-1.5 text-[10px] text-eh-text-muted">
+                    <i class="h-2 w-2 rounded-sm bg-eh-sage" aria-hidden="true"></i> Litros recolectados
+                </span>
+            </div>
+            <x-ui.chart-bars :data="$serieTendencia" :height="210" unit="L" color="var(--eh-sage)"
                 description="Litros recolectados por {{ $etiquetaAgrupacion }} en el periodo filtrado."
                 empty="No hay entregas en este periodo. Prueba un rango más amplio o quita el filtro de zona." />
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <h3 class="mb-4 text-sm font-semibold text-eh-text">Resultados de calidad</h3>
-            <x-ui.chart-donut :data="$serieCalidad" :size="160"
+        <article class="rounded-[22px] border border-eh-border bg-eh-sand p-5 md:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Resultados de calidad</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Controles del periodo por resultado</p>
+                </div>
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-eh-surface/45 text-eh-text">
+                    <x-icon name="beaker" class="h-4 w-4" />
+                </span>
+            </div>
+            <x-ui.chart-donut class="mt-5" :data="$serieCalidad" :size="150"
                 description="Distribución de controles de calidad del periodo por resultado."
                 empty="Todavía no hay controles de calidad en el periodo." />
-        </x-ui.card>
-    </div>
+        </article>
+    </section>
 
     {{-- Zonas y accesos rápidos --}}
-    <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <x-ui.card padding="p-4" class="lg:col-span-2">
-            <h3 class="mb-4 text-sm font-semibold text-eh-text">Litros por zona — periodo filtrado</h3>
-            <x-ui.chart-hbars :data="$serieZonas" meta-key="meta" unit="L" color="var(--eh-blue)"
+    <section class="mb-3 grid gap-3 xl:grid-cols-[1.65fr_1fr]">
+        <x-ui.card padding="p-5 md:p-6">
+            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Litros por zona — periodo filtrado</h2>
+            <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Volumen y número de entregas por zona</p>
+            <x-ui.chart-hbars :data="$serieZonas" meta-key="meta" unit="L" color="var(--eh-sage)"
                 description="Litros recolectados por zona." empty="Sin datos por zona para mostrar." />
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <h3 class="mb-3 text-sm font-semibold text-eh-text">Accesos rápidos</h3>
+        <article class="rounded-[22px] bg-eh-ink p-5 text-white md:p-6">
+            <h2 class="font-semibold tracking-[-.02em]">Accesos rápidos</h2>
+            <p class="mt-1 text-[11px] text-white/40">Acciones frecuentes de tu rol</p>
             @if ($accesosRapidos->isEmpty())
-                <p class="py-4 text-center text-sm text-eh-text-muted">Tu rol no tiene acciones rápidas disponibles.</p>
+                <p class="mt-5 rounded-2xl border border-white/10 bg-white/[.055] px-4 py-6 text-center text-xs text-white/55">Tu rol no tiene acciones rápidas disponibles.</p>
             @else
-                <div class="grid grid-cols-2 gap-2">
+                <div class="stagger mt-5 grid grid-cols-2 gap-2">
                     @foreach ($accesosRapidos as $acceso)
-                        <a href="{{ $acceso['url'] }}" class="flex flex-col items-center gap-2 rounded-xl border border-eh-border p-3 transition-colors hover:border-eh-primary hover:bg-eh-primary-soft">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-eh-primary-soft text-eh-primary">
-                                <x-icon :name="$acceso['icono']" class="h-5 w-5" />
+                        <a href="{{ $acceso['url'] }}" class="group flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.055] p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
+                            <span class="grid h-9 w-9 place-items-center rounded-xl bg-eh-lime text-[#142820] shadow-[0_6px_20px_rgba(216,255,87,.16)]">
+                                <x-icon :name="$acceso['icono']" class="h-[18px] w-[18px]" />
                             </span>
-                            <span class="text-center text-xs font-medium leading-tight text-eh-text">{{ $acceso['label'] }}</span>
+                            <span class="flex items-center justify-between gap-2 text-xs font-medium leading-tight">
+                                {{ $acceso['label'] }}
+                                <x-icon name="arrowRight" class="h-3.5 w-3.5 shrink-0 opacity-40 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+                            </span>
                         </a>
                     @endforeach
                 </div>
             @endif
-        </x-ui.card>
-    </div>
+        </article>
+    </section>
 
     {{-- Colas de trabajo --}}
-    <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <x-ui.card padding="p-4">
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-eh-text">Jornadas abiertas</h3>
-                <a href="{{ route('admin.jornadas.index') }}" class="text-xs text-eh-primary hover:underline">Ver todas</a>
+    <section class="mb-3 grid gap-3 lg:grid-cols-2">
+        <x-ui.card class="overflow-hidden">
+            <div class="flex items-center justify-between p-5 md:px-6">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Jornadas abiertas</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Acopio en curso ahora mismo</p>
+                </div>
+                <a href="{{ route('admin.jornadas.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todas <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
             @forelse ($panel['jornadas_abiertas'] as $fila)
-                <a href="{{ route('admin.acopiadores.jornadas.show', $fila['jornada']->id) }}" class="flex items-center gap-3 border-b border-eh-border py-2.5 last:border-0 hover:opacity-80">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-eh-primary-soft text-eh-primary">
+                <a href="{{ route('admin.acopiadores.jornadas.show', $fila['jornada']->id) }}" class="group flex items-center gap-3 border-t border-eh-border px-5 py-3.5 transition-colors hover:bg-eh-stripe md:px-6">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-eh-success-soft text-eh-success">
                         <x-icon name="play" class="h-4 w-4" />
                     </span>
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-medium text-eh-text">{{ $fila['zona']?->nombre ?? 'Zona sin nombre' }} · {{ $fila['acopiador']?->nombres ?? 'Acopiador' }}</span>
-                        <span class="block text-xs text-eh-text-muted">
+                        <span class="block truncate text-xs font-semibold text-eh-text">{{ $fila['zona']?->nombre ?? 'Zona sin nombre' }} · {{ $fila['acopiador']?->nombres ?? 'Acopiador' }}</span>
+                        <span class="mt-0.5 block text-[10px] text-eh-text-muted">
                             Inicio {{ $fila['jornada']->abiertaEn->format('H:i') }} ·
-                            <span class="mono font-medium">{{ number_format($fila['litros'], 1) }} L</span> ·
+                            <span class="mono font-semibold text-eh-text">{{ number_format($fila['litros'], 1) }} L</span> ·
                             {{ $fila['entregas'] }} entregas
                         </span>
                     </span>
                     <x-ui.badge variant="green" label="Abierta" />
+                    <x-icon name="chevronRight" class="h-4 w-4 shrink-0 text-eh-text-muted opacity-40 transition group-hover:opacity-100" />
                 </a>
             @empty
-                <p class="py-4 text-center text-sm text-eh-text-muted">No hay jornadas abiertas ahora mismo.</p>
+                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">No hay jornadas abiertas ahora mismo.</p>
             @endforelse
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-eh-text">Alertas recientes</h3>
+        <x-ui.card class="overflow-hidden">
+            <div class="flex items-center justify-between p-5 md:px-6">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Alertas recientes</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Pendientes que requieren atención</p>
+                </div>
                 <span @class([
-                    'rounded-full px-2 py-0.5 text-xs font-medium',
+                    'rounded-md px-2 py-1 text-[10px] font-bold',
                     'bg-eh-red-soft text-eh-red' => $alertasRecientes->isNotEmpty(),
-                    'bg-eh-primary-soft text-eh-primary' => $alertasRecientes->isEmpty(),
+                    'bg-eh-success-soft text-eh-success' => $alertasRecientes->isEmpty(),
                 ])>{{ $alertasRecientes->count() }}</span>
             </div>
             @forelse ($alertasRecientes as $alerta)
-                <div class="flex items-start gap-3 border-b border-eh-border py-2.5 last:border-0">
+                <div class="flex items-start gap-3 border-t border-eh-border px-5 py-3.5 md:px-6">
                     <span @class([
-                        'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
+                        'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
                         'bg-eh-red-soft text-eh-red' => $alerta['tipo'] === 'danger',
                         'bg-eh-gold-soft text-eh-gold' => $alerta['tipo'] === 'warning',
                         'bg-eh-blue-soft text-eh-blue' => $alerta['tipo'] === 'info',
                     ])>
-                        <x-icon :name="$alerta['tipo'] === 'info' ? 'info' : 'exclamation'" class="h-3.5 w-3.5" />
+                        <x-icon :name="$alerta['tipo'] === 'info' ? 'info' : 'exclamation'" class="h-4 w-4" />
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm leading-snug text-eh-text">{{ $alerta['texto'] }}</p>
-                        <a href="{{ $alerta['url'] }}" class="mt-0.5 inline-block text-xs font-medium text-eh-primary hover:underline">{{ $alerta['accion'] }} →</a>
+                        <p class="text-xs leading-snug text-eh-text">{{ $alerta['texto'] }}</p>
+                        <a href="{{ $alerta['url'] }}" class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">{{ $alerta['accion'] }} <x-icon name="arrowRight" class="h-3 w-3" /></a>
                     </div>
                 </div>
             @empty
-                <p class="rounded-xl bg-eh-primary-soft px-4 py-6 text-center text-sm font-medium text-eh-primary">
-                    Sin pendientes: recepción, calidad, producción y liquidaciones están al día.
-                </p>
+                <div class="border-t border-eh-border p-5 md:px-6">
+                    <p class="flex items-center justify-center gap-2 rounded-2xl bg-eh-success-soft px-4 py-6 text-center text-xs font-semibold text-eh-success">
+                        <x-icon name="check" class="h-4 w-4 shrink-0" />
+                        Sin pendientes: recepción, calidad, producción y liquidaciones están al día.
+                    </p>
+                </div>
             @endforelse
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-eh-text">Últimas entregas</h3>
-                <a href="{{ route('admin.entregas.index') }}" class="text-xs text-eh-primary hover:underline">Ver todas</a>
+        <x-ui.card class="overflow-hidden">
+            <div class="flex items-center justify-between p-5 md:px-6">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Últimas entregas</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Últimas transacciones registradas</p>
+                </div>
+                <a href="{{ route('admin.entregas.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todas <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
             @if (count($panel['ultimas_entregas']) === 0)
-                <p class="py-4 text-center text-sm text-eh-text-muted">Sin entregas registradas en el periodo.</p>
+                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin entregas registradas en el periodo.</p>
             @else
-                <x-ui.table :headers="['Proveedor', 'Zona', 'Litros', 'Hora']" caption="Últimas entregas registradas">
+                <x-ui.table :headers="['Proveedor', 'Zona', 'Litros', 'Hora']" caption="Últimas entregas registradas" class="border-t border-eh-border">
                     @foreach ($panel['ultimas_entregas'] as $entrega)
-                        <tr class="border-b border-eh-border last:border-0">
-                            <td class="px-0 py-2 pr-3 text-xs text-eh-text">{{ $entrega['proveedor'] }}</td>
-                            <td class="px-0 py-2 pr-3 text-xs text-eh-text-muted">{{ $entrega['zona'] }}</td>
-                            <td class="mono px-0 py-2 pr-3 text-xs font-medium text-eh-text">{{ number_format($entrega['litros'], 1) }} L</td>
-                            <td class="px-0 py-2 text-xs text-eh-text-muted">{{ \Illuminate\Support\Carbon::parse($entrega['fecha'])->format('d/m H:i') }}</td>
+                        @php
+                            $inicialesProveedor = collect(preg_split('/\s+/u', trim((string) $entrega['proveedor'])))
+                                ->filter()->take(2)->map(fn ($parte) => mb_strtoupper(mb_substr($parte, 0, 1)))->implode('');
+                        @endphp
+                        <tr class="group">
+                            <td>
+                                <span class="flex items-center gap-3">
+                                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-eh-primary-soft text-[9px] font-bold text-eh-text">{{ $inicialesProveedor }}</span>
+                                    <span class="min-w-0 truncate font-medium">{{ $entrega['proveedor'] }}</span>
+                                </span>
+                            </td>
+                            <td class="!text-eh-text-muted">{{ $entrega['zona'] }}</td>
+                            <td class="mono font-semibold">{{ number_format($entrega['litros'], 1) }} L</td>
+                            <td class="!text-eh-text-muted">{{ \Illuminate\Support\Carbon::parse($entrega['fecha'])->format('d/m H:i') }}</td>
                         </tr>
                     @endforeach
                 </x-ui.table>
             @endif
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-eh-text">Controles de calidad pendientes</h3>
-                <a href="{{ route('admin.calidad.index') }}" class="text-xs text-eh-primary hover:underline">Ver todos</a>
+        <x-ui.card class="overflow-hidden">
+            <div class="flex items-center justify-between p-5 md:px-6">
+                <div>
+                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Controles de calidad pendientes</h2>
+                    <p class="mt-1 text-[11px] text-eh-text-muted">Entregas a la espera de evaluación</p>
+                </div>
+                <a href="{{ route('admin.calidad.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todos <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
             @forelse ($panel['entregas_sin_calidad'] as $fila)
-                <div class="flex items-center gap-3 border-b border-eh-border py-2.5 last:border-0">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-eh-gold-soft text-eh-gold">
+                <div class="flex items-center gap-3 border-t border-eh-border px-5 py-3.5 transition-colors hover:bg-eh-stripe md:px-6">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-eh-gold-soft text-eh-gold">
                         <x-icon name="beaker" class="h-4 w-4" />
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm font-medium text-eh-text">{{ $fila['proveedor']?->nombres ?? 'Proveedor' }}</p>
-                        <p class="text-xs text-eh-text-muted">
+                        <p class="truncate text-xs font-semibold text-eh-text">{{ $fila['proveedor']?->nombres ?? 'Proveedor' }}</p>
+                        <p class="mt-0.5 text-[10px] text-eh-text-muted">
                             {{ $fila['entrega']->registradoEn->format('d/m/Y H:i') }} ·
-                            <span class="mono">{{ number_format($fila['entrega']->litros, 1) }} L</span>
+                            <span class="mono font-semibold text-eh-text">{{ number_format($fila['entrega']->litros, 1) }} L</span>
                         </p>
                     </div>
                     <x-ui.badge variant="yellow" label="Pendiente" />
                 </div>
             @empty
-                <p class="py-4 text-center text-sm text-eh-text-muted">Sin controles pendientes.</p>
+                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin controles pendientes.</p>
             @endforelse
         </x-ui.card>
-    </div>
+    </section>
 
     {{-- Rendimiento y mermas --}}
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <x-ui.card padding="p-4">
-            <h3 class="mb-1 text-sm font-semibold text-eh-text">Rendimiento por acopiador</h3>
-            <p class="mb-4 text-xs text-eh-text-muted">Litros recolectados por acopiador en el periodo</p>
-            <x-ui.chart-hbars :data="$serieAcopiadores" meta-key="meta" unit="L" color="var(--eh-primary)"
+    <section class="grid gap-3 lg:grid-cols-2">
+        <x-ui.card padding="p-5 md:p-6">
+            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Rendimiento por acopiador</h2>
+            <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Litros recolectados por acopiador en el periodo</p>
+            <x-ui.chart-hbars :data="$serieAcopiadores" meta-key="meta" unit="L" color="var(--eh-sage)"
                 description="Litros recolectados por acopiador." empty="Sin datos por acopiador para mostrar." />
         </x-ui.card>
 
-        <x-ui.card padding="p-4">
-            <h3 class="mb-1 text-sm font-semibold text-eh-text">Mermas por camión</h3>
-            <p class="mb-4 text-xs text-eh-text-muted">Solo viajes con recepción registrada · umbral {{ number_format($alertas['umbral_merma_porcentaje'], 0) }}%</p>
-            <x-ui.chart-hbars :data="$serieMermas" meta-key="meta" unit="L" color="var(--eh-gold)"
+        <x-ui.card padding="p-5 md:p-6">
+            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Mermas por camión</h2>
+            <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Solo viajes con recepción registrada · umbral {{ number_format($alertas['umbral_merma_porcentaje'], 0) }}%</p>
+            <x-ui.chart-hbars :data="$serieMermas" meta-key="meta" unit="L" color="#c9a14f"
                 description="Merma de transporte por vehículo." empty="Sin recepciones registradas en este periodo." />
         </x-ui.card>
-    </div>
+    </section>
 @endsection

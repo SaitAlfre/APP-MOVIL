@@ -3,7 +3,7 @@
     'labelKey' => 'label',
     'valueKey' => 'value',
     'unit' => 'L',
-    'color' => 'var(--eh-primary)',
+    'color' => 'var(--eh-sage)',
     'height' => 200,
     'description' => null,
     'empty' => 'Sin datos en el periodo seleccionado.',
@@ -33,7 +33,7 @@
 @else
     <figure {{ $attributes->class('m-0 min-w-0 max-w-full') }}>
         <div class="flex gap-2" style="height: {{ $height }}px">
-            <div class="flex w-10 shrink-0 flex-col justify-between py-0 text-right text-[11px] text-eh-text-muted">
+            <div class="flex w-10 shrink-0 flex-col justify-between py-0 text-right text-[9px] text-eh-text-muted/80">
                 @foreach ($lineas as $fraccion)
                     <span class="mono leading-none">{{ number_format($escala * $fraccion, $escala >= 100 ? 0 : 1) }}</span>
                 @endforeach
@@ -41,17 +41,17 @@
             <div class="relative min-w-0 flex-1">
                 <div aria-hidden="true" class="absolute inset-0 flex flex-col justify-between">
                     @foreach ($lineas as $fraccion)
-                        <span class="block border-t border-dashed border-eh-border"></span>
+                        <span class="block border-t border-eh-border"></span>
                     @endforeach
                 </div>
                 <div class="relative grid h-full items-end"
                     style="grid-template-columns: repeat({{ $totalBarras }}, minmax(0, 1fr)); column-gap: min(0.375rem, {{ 30 / max(1, $totalBarras - 1) }}%);">
-                    @foreach ($filas as $fila)
+                    @foreach ($filas as $indiceBarra => $fila)
                         @php $valor = (float) ($fila[$valueKey] ?? 0); @endphp
-                        <div class="group flex h-full min-w-0 items-end"
+                        <div class="group flex h-full min-w-0 items-end justify-center"
                             title="{{ $fila[$labelKey] ?? '' }}: {{ number_format($valor, 1) }} {{ $unit }}">
-                            <div class="w-full rounded-t-md transition-opacity group-hover:opacity-80"
-                                style="height: {{ max(2, ($valor / $escala) * 100) }}%; background: {{ $color }}"></div>
+                            <div class="chart-bar w-full max-w-[22px] rounded-t-md transition-[background-color,filter] duration-200 group-hover:!bg-eh-lime"
+                                style="height: {{ max(2, ($valor / $escala) * 100) }}%; background: {{ $color }}; animation-delay: {{ min($indiceBarra, 24) * 40 }}ms"></div>
                         </div>
                     @endforeach
                 </div>
@@ -60,7 +60,7 @@
         <div class="relative ml-12 mt-2 h-4">
             @foreach ($indicesEtiqueta as $indice)
                 @php $posicion = $totalBarras > 1 ? ($indice / ($totalBarras - 1)) * 100 : 50; @endphp
-                <span class="absolute -translate-x-1/2 whitespace-nowrap text-[10px] text-eh-text-muted"
+                <span class="absolute -translate-x-1/2 whitespace-nowrap text-[9px] text-eh-text-muted/80"
                     style="left: {{ round(min(96, max(4, $posicion)), 2) }}%">{{ $filas[$indice][$labelKey] ?? '' }}</span>
             @endforeach
         </div>

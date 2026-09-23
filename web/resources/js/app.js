@@ -126,6 +126,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Toast de confirmación: entra animado, se cierra solo o con su botón.
+    document.querySelectorAll('[data-toast]').forEach((toast) => {
+        const dismiss = () => {
+            if (toast.classList.contains('toast-leave')) {
+                return;
+            }
+            toast.classList.remove('animate-toast');
+            toast.classList.add('toast-leave');
+            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        };
+
+        toast.querySelector('[data-toast-close]')?.addEventListener('click', dismiss);
+        window.setTimeout(dismiss, 4200);
+    });
+
     document.querySelectorAll('[data-report-table]').forEach((table) => {
         const search = table.querySelector('[data-report-search]');
         const rows = [...table.querySelectorAll('[data-report-row]')];

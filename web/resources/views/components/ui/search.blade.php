@@ -19,5 +19,5 @@
         type="search"
         value="{{ $value }}"
         placeholder="{{ $placeholder }}"
-        {{ $attributes->class('w-full rounded-xl border border-eh-border bg-eh-surface py-2 pl-9 pr-3 text-sm text-eh-text transition-colors focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary') }}>
+        {{ $attributes->class('w-full rounded-xl border border-eh-border-strong bg-eh-surface/65 py-2.5 pl-9 pr-3 text-[13px] text-eh-text transition hover:border-eh-text/25 focus:border-eh-sage focus:bg-eh-surface focus:outline-none focus:ring-[3px] focus:ring-eh-sage/15') }}>
 </div>
