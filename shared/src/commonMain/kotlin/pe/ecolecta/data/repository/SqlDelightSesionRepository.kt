@@ -28,7 +28,7 @@ class SqlDelightSesionRepository(
     override fun observar(): Flow<Sesion?> =
         db.sesionQueries.obtener().asFlow().mapToOneOrNull(dispatcher).map { fila ->
             val usuario = fila?.let { usuarioRepository.obtenerPorId(it.usuario_id) } ?: return@map null
-            Sesion(usuario = usuario, rolActivo = Rol.valueOf(fila.rol_activo))
+            Sesion(usuario = usuario, rolActivo = Rol.desde(fila.rol_activo) ?: return@map null)
         }
 
     override suspend fun iniciar(sesion: Sesion) = withContext(dispatcher) {

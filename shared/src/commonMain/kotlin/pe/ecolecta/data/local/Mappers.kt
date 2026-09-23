@@ -15,6 +15,7 @@ import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.EstadoTraslado
 import pe.ecolecta.domain.model.Jornada
+import pe.ecolecta.domain.model.ModalidadEntrega
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.model.SyncState
@@ -102,6 +103,7 @@ internal fun EntregaFila.aDominio(): Entrega = Entrega(
     vehiculoId = vehiculo_id,
     litros = litros,
     tachos = tachos.toInt(),
+    modalidad = enumDeColumna("entrega", "modalidad", modalidad),
     observaciones = observaciones,
     registradoEn = registrado_en,
     deviceId = device_id,

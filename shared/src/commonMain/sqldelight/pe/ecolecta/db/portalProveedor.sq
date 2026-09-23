@@ -6,8 +6,17 @@ CREATE TABLE portal_proveedor (
     creado_en INTEGER NOT NULL
 );
 
+CREATE INDEX portal_proveedor_proveedor_idx ON portal_proveedor(proveedor_id);
+CREATE INDEX portal_proveedor_tipo_idx ON portal_proveedor(tipo);
+
 porProveedor:
 SELECT * FROM portal_proveedor WHERE proveedor_id = ? ORDER BY creado_en DESC;
 
 guardar:
 INSERT INTO portal_proveedor(id, proveedor_id, tipo, contenido, creado_en) VALUES (?, ?, ?, ?, ?);
+
+porTipo:
+SELECT * FROM portal_proveedor WHERE tipo = ? ORDER BY creado_en DESC;
+
+actualizarContenido:
+UPDATE portal_proveedor SET contenido = ? WHERE id = ?;

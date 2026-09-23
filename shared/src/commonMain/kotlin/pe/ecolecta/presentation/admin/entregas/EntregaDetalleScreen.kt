@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.entregas
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +26,6 @@ import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.ecolecta.presentation.design.Banner
-import pe.ecolecta.presentation.design.BarraSuperior
 import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.CampoTexto
@@ -46,8 +48,8 @@ fun EntregaDetalleScreen(
     var mostrarCorregir by remember { mutableStateOf(false) }
     var mostrarAnular by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize()) {
-        BarraSuperior("Detalle de entrega", alVolver = alVolver)
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Detalle de entrega", alVolver = alVolver)
         estado.entrega?.let { entrega ->
             Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.s), verticalArrangement = Arrangement.spacedBy(Espaciado.m)) {
                 Tarjeta {

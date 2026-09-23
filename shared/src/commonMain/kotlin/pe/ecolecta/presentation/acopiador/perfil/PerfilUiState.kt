@@ -17,4 +17,10 @@ data class PerfilUiState(
     val usuarioIdLocal: String = "",
     /** UID anónimo de Firebase de este dispositivo, o null si aún no se resolvió / no disponible en esta plataforma. */
     val uidFirebase: String? = null,
+    val servidorConectado: Boolean = true,
+    val mostrarCambiarPin: Boolean = false,
+    val cambiandoPin: Boolean = false,
+    val errorCambiarPin: String? = null,
+    val pinCambiadoExitosamente: Boolean = false,
+    val mensajeDescarga: String? = null,
 )

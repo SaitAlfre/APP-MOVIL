@@ -146,6 +146,7 @@ class SqlDelightEntregaRepository(
             vehiculo_id = entrega.vehiculoId,
             litros = entrega.litros,
             tachos = entrega.tachos.toLong(),
+            modalidad = entrega.modalidad.name,
             observaciones = entrega.observaciones,
             registrado_en = entrega.registradoEn,
             device_id = entrega.deviceId,

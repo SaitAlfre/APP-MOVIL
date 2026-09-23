@@ -1,0 +1,16 @@
+CREATE TABLE comunicado (
+    id TEXT NOT NULL PRIMARY KEY,
+    mensaje TEXT NOT NULL,
+    autor_id TEXT NOT NULL,
+    autor_nombre TEXT NOT NULL,
+    publicado_en INTEGER NOT NULL
+);
+
+selectTodos:
+SELECT * FROM comunicado ORDER BY publicado_en DESC;
+
+insertar:
+INSERT INTO comunicado(id, mensaje, autor_id, autor_nombre, publicado_en) VALUES (?, ?, ?, ?, ?);
+
+eliminar:
+DELETE FROM comunicado WHERE id = ?;

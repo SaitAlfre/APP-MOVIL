@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.jornadas
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-import pe.ecolecta.presentation.design.BarraSuperior
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.Espaciado
@@ -37,8 +39,8 @@ fun JornadaDetalleScreen(
 ) {
     val estado by viewModel.uiState.collectAsState()
 
-    Column(Modifier.fillMaxSize()) {
-        BarraSuperior("Detalle de jornada", alVolver = alVolver)
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Detalle de jornada", alVolver = alVolver)
         estado.jornada?.let { jornada ->
             Tarjeta(modifier = Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.s)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

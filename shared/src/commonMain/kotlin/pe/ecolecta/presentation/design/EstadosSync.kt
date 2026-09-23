@@ -18,7 +18,7 @@ fun colorSync(estado: SyncState): Color = when (estado) {
     SyncState.PENDING -> Colores.advertencia
     SyncState.SYNCING -> Colores.info
     SyncState.ERROR -> Colores.peligro
-    SyncState.CONFLICT -> Colores.advertencia
+    SyncState.CONFLICT -> Colores.peligro
 }
 
 /** Etiqueta corta en mayúsculas (SYNCED, PENDING…) para las insignias de listas y resúmenes. */

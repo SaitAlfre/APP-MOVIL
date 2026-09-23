@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -60,6 +62,7 @@ import qrscanner.QrScanner
 @Composable
 fun EscanearQrScreen(
     alFinalizar: () -> Unit,
+    alRegistrarManual: () -> Unit,
     viewModel: EscanearQrViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -68,6 +71,7 @@ fun EscanearQrScreen(
         EstadoEscaneoQr.Escaneando -> VistaEscaneando(
             onCodigoEscaneado = viewModel::onCodigoEscaneado,
             onError = viewModel::onErrorLectura,
+            alRegistrarManual = alRegistrarManual,
         )
         is EstadoEscaneoQr.Resultado -> VistaResultado(
             resultado = actual,
@@ -85,20 +89,20 @@ fun EscanearQrScreen(
 }
 
 @Composable
-private fun VistaEscaneando(onCodigoEscaneado: (String) -> Unit, onError: (String) -> Unit) {
+private fun VistaEscaneando(onCodigoEscaneado: (String) -> Unit, onError: (String) -> Unit, alRegistrarManual: () -> Unit) {
     Column(
         Modifier.fillMaxSize().padding(horizontal = Espaciado.l),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(Espaciado.l))
         Text(
-            "Apunta la cámara al código QR",
+            "Ubica el código QR del proveedor",
             style = MaterialTheme.typography.titleMedium,
             color = Colores.textPrimary,
             textAlign = TextAlign.Center,
         )
         Text(
-            "del proveedor",
+            "dentro del recuadro",
             style = MaterialTheme.typography.bodyMedium,
             color = Colores.textSecundario,
             textAlign = TextAlign.Center,
@@ -134,6 +138,8 @@ private fun VistaEscaneando(onCodigoEscaneado: (String) -> Unit, onError: (Strin
         )
         Spacer(Modifier.height(Espaciado.m))
         TarjetaConsejo()
+        Spacer(Modifier.height(Espaciado.s))
+        BotonSecundario("Registrar manualmente", alRegistrarManual)
         Spacer(Modifier.height(Espaciado.l))
     }
 }
@@ -206,9 +212,10 @@ private fun VistaResultado(resultado: EstadoEscaneoQr.Resultado, alEscanearOtro:
         Tarjeta {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f, fill = false)) {
-                    Text(proveedor.nombres, style = MaterialTheme.typography.titleLarge, color = Colores.textPrimary)
+                    Text(proveedor.nombres, style = MaterialTheme.typography.titleLarge, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text("Código ${proveedor.codigo}", style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
                 }
+                Spacer(Modifier.width(Espaciado.s))
                 ChipEstado(proveedor.estado.name, colorDeEstado(proveedor.estado), mostrarPunto = false)
             }
             Spacer(Modifier.height(Espaciado.s))

@@ -1,5 +1,6 @@
 package pe.ecolecta.presentation.proveedor
 
+import pe.ecolecta.domain.model.EstadoSolicitud
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -110,7 +111,15 @@ import qrgenerator.shareQrCodeImage
         s.solicitudes.forEach { solicitud -> TarjetaProveedor {
             TextoProveedor(if(solicitud.tipo == "TRASLADO") "Traslado de zona" else "Reclamo de entrega", 16, bold = true)
             TextoProveedor(fechaProveedor(solicitud.creadaEn), 12, ProveedorGris)
-            EtiquetaProveedor("Pendiente de envío", true)
+            EtiquetaProveedor(
+                when (solicitud.estado) {
+                    EstadoSolicitud.APROBADA -> "Aprobada"
+                    EstadoSolicitud.ATENDIDA -> "Atendida"
+                    EstadoSolicitud.RECHAZADA -> "Rechazada"
+                    else -> "Pendiente de revisión"
+                },
+                solicitud.estado != EstadoSolicitud.APROBADA && solicitud.estado != EstadoSolicitud.ATENDIDA,
+            )
             TextoProveedor(solicitud.motivo, bold = true)
             TextoProveedor(solicitud.descripcion)
             solicitud.litros?.let { TextoProveedor("Litros solicitados: ${decimalProveedor(it)} L") }

@@ -237,6 +237,37 @@ fun BotonAccion(texto: String, onClick: () -> Unit, modifier: Modifier = Modifie
     }
 }
 
+/**
+ * Botón de borde teñido para acciones de salida/cierre (cerrar jornada, cerrar sesión): van
+ * delineados y no rellenos porque casi nunca son la acción que uno viene a hacer a esa pantalla.
+ */
+@Composable
+fun BotonBorde(
+    texto: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icono: ImageVector? = null,
+    habilitado: Boolean = true,
+    cargando: Boolean = false,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth().height(52.dp),
+        shape = MaterialTheme.shapes.medium,
+        enabled = habilitado,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
+    ) {
+        if (cargando) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = color, strokeWidth = 2.dp)
+        } else if (icono != null) {
+            Icon(icono, contentDescription = null, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(Espaciado.xs))
+        Text(texto, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
 /** Texto de enlace/acción secundaria discreta (p. ej. "Ver todo", "Cerrar sesión"). */
 @Composable
 fun EnlaceTexto(texto: String, onClick: () -> Unit, modifier: Modifier = Modifier, color: Color? = null) {
@@ -331,6 +362,27 @@ fun TarjetaEstadistica(
 }
 
 /**
+ * Pastilla ámbar con la cuenta de pendientes por sincronizar, para el encabezado de cualquier
+ * pantalla del Acopiador (Jornada, Proveedores, Entregas, Sincronizar, Perfil): siempre visible,
+ * no solo dentro de la pestaña de sincronización.
+ */
+@Composable
+fun PildoraPendientes(cantidad: Int, modifier: Modifier = Modifier) {
+    if (cantidad <= 0) return
+    Row(
+        modifier
+            .clip(RoundedCornerShape(50))
+            .background(Colores.advertencia.copy(alpha = 0.14f))
+            .padding(horizontal = Espaciado.s, vertical = Espaciado.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(Modifier.size(6.dp).clip(CircleShape).background(Colores.advertencia))
+        Text("$cantidad pendientes", color = Colores.advertencia, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+    }
+}
+
+/**
  * Insignia de estado (SYNCED/PENDING/ERROR/CONFLICT, ACTIVO/INACTIVO, etc.): pastilla con fondo
  * tenue y texto del mismo color. [mostrarPunto] antepone un punto sólido; las pantallas de ADMIN
  * lo usan para distinguir estados de un vistazo en tablas densas, mientras que ACOPIADOR y
@@ -398,11 +450,6 @@ fun Banner(mensaje: String, tipo: TipoBanner, modifier: Modifier = Modifier) {
 }
 
 /** Estado vacío simple, mantiene la firma histórica usada en ~15 listas. */
-@Composable
-fun MensajeVacio(texto: String, modifier: Modifier = Modifier) {
-    EstadoVacio(titulo = texto, modifier = modifier)
-}
-
 /** Estado vacío enriquecido: ícono + título + descripción opcional + acción opcional (CTA). */
 @Composable
 fun EstadoVacio(
@@ -486,15 +533,6 @@ fun DialogoMotivo(
         dismissButton = { TextButton(onClick = onCancelar, enabled = !enviando) { Text("Cancelar") } },
     )
 }
-
-@Composable
-fun MostrarSiVisible(visible: Boolean, contenido: @Composable () -> Unit) {
-    AnimatedVisibility(visible = visible) { contenido() }
-}
-
-/** Espaciador vertical de una sección a otra, para separar grupos relacionados del resto (regla de multiplicador). */
-@Composable
-fun EspacioSeccion() = Spacer(Modifier.height(Espaciado.xl))
 
 @Composable
 fun DivisorSutil(modifier: Modifier = Modifier) {

@@ -7,6 +7,7 @@ CREATE TABLE entrega (
     vehiculo_id TEXT NOT NULL,
     litros REAL NOT NULL,
     tachos INTEGER NOT NULL DEFAULT 1,
+    modalidad TEXT NOT NULL DEFAULT 'MEDIANTE_ACOPIADOR',
     observaciones TEXT,
     registrado_en INTEGER NOT NULL,
     device_id TEXT NOT NULL,
@@ -27,12 +28,14 @@ CREATE INDEX entrega_proveedor_id_idx ON entrega(proveedor_id);
 CREATE INDEX entrega_jornada_id_idx ON entrega(jornada_id);
 CREATE INDEX entrega_zona_id_idx ON entrega(zona_id);
 CREATE INDEX entrega_sync_state_idx ON entrega(sync_state);
+-- Resumen del día, liquidaciones semanales y alertas filtran por fecha de registro.
+CREATE INDEX entrega_registrado_en_idx ON entrega(registrado_en);
 
 insertar:
-INSERT INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_id, litros, tachos, observaciones,
+INSERT INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_id, litros, tachos, modalidad, observaciones,
     registrado_en, device_id, lote_id, anulada, sync_state, sync_error, intentos, updated_at,
     litros_servidor, tachos_servidor, motivo_conflicto)
-VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :vehiculo_id, :litros, :tachos, :observaciones,
+VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :vehiculo_id, :litros, :tachos, :modalidad, :observaciones,
     :registrado_en, :device_id, :lote_id, 0, :sync_state, NULL, 0, :updated_at, NULL, NULL, NULL);
 
 corregir:

@@ -10,12 +10,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.Factory
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Outbox
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -96,17 +93,6 @@ private fun iconoDeRol(rol: Rol): ImageVector = when (rol) {
     Rol.ACOPIADOR -> Icons.Filled.LocalShipping
     Rol.PROVEEDOR -> Icons.Filled.Storefront
     Rol.CALIDAD -> Icons.Filled.Science
-    Rol.ASISTENTE -> Icons.Filled.SupportAgent
-    Rol.PRODUCCION -> Icons.Filled.Factory
-    Rol.DESPACHO -> Icons.Filled.Outbox
 }
 
-private fun etiquetaDeRol(rol: Rol): String = when (rol) {
-    Rol.ADMIN -> "Administrador"
-    Rol.ACOPIADOR -> "Acopiador"
-    Rol.PROVEEDOR -> "Proveedor"
-    Rol.CALIDAD -> "Calidad"
-    Rol.ASISTENTE -> "Asistente"
-    Rol.PRODUCCION -> "Producción"
-    Rol.DESPACHO -> "Despacho"
-}
+private fun etiquetaDeRol(rol: Rol): String = rol.etiqueta

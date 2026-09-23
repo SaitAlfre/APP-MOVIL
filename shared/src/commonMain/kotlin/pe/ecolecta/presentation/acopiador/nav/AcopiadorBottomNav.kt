@@ -1,10 +1,13 @@
 package pe.ecolecta.presentation.acopiador.nav
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -18,20 +21,34 @@ import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.navegacion.Pantalla
 
 enum class PestanaAcopiador(val pantalla: Pantalla, val etiqueta: String, val icono: ImageVector) {
-    INICIO(Pantalla.AcopiadorHome, "Inicio", Icons.Filled.Home),
-    LISTA(Pantalla.AcopiadorLista, "Lista", Icons.AutoMirrored.Filled.ListAlt),
+    JORNADA(Pantalla.AcopiadorHome, "Jornada", Icons.Filled.LocalShipping),
+    PROVEEDORES(Pantalla.AcopiadorLista, "Proveedores", Icons.Filled.Groups),
+    ENTREGAS(Pantalla.AcopiadorEntregas, "Entregas", Icons.Filled.WaterDrop),
     SINCRONIZACION(Pantalla.AcopiadorSincronizacion, "Sincronizar", Icons.Filled.Sync),
     PERFIL(Pantalla.AcopiadorPerfil, "Perfil", Icons.Filled.Person),
 }
 
 @Composable
-fun AcopiadorBottomNav(pestanaActual: PestanaAcopiador, onSeleccionar: (PestanaAcopiador) -> Unit, modifier: Modifier = Modifier) {
+fun AcopiadorBottomNav(
+    pestanaActual: PestanaAcopiador,
+    onSeleccionar: (PestanaAcopiador) -> Unit,
+    modifier: Modifier = Modifier,
+    pendientesSync: Int = 0,
+) {
     NavigationBar(modifier = modifier, containerColor = Colores.surface) {
         PestanaAcopiador.entries.forEach { pestana ->
             NavigationBarItem(
                 selected = pestana == pestanaActual,
                 onClick = { onSeleccionar(pestana) },
-                icon = { Icon(pestana.icono, contentDescription = pestana.etiqueta) },
+                icon = {
+                    if (pestana == PestanaAcopiador.SINCRONIZACION && pendientesSync > 0) {
+                        BadgedBox(badge = { Badge { Text(pendientesSync.toString()) } }) {
+                            Icon(pestana.icono, contentDescription = pestana.etiqueta)
+                        }
+                    } else {
+                        Icon(pestana.icono, contentDescription = pestana.etiqueta)
+                    }
+                },
                 label = { Text(pestana.etiqueta) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Colores.brandText,

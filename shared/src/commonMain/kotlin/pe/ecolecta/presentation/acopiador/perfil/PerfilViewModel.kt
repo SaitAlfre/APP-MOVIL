@@ -14,6 +14,7 @@ import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
 import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
+import pe.ecolecta.domain.usecase.usuario.CambiarPinUsuarioUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 
@@ -26,6 +27,7 @@ class PerfilViewModel(
     private val cerrarSesionUseCase: CerrarSesionUseCase,
     private val cerrarJornadaUseCase: CerrarJornadaUseCase,
     private val obtenerIdentidadRemotaUseCase: ObtenerIdentidadRemotaUseCase,
+    private val cambiarPinUsuarioUseCase: CambiarPinUsuarioUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
@@ -123,4 +125,32 @@ class PerfilViewModel(
     fun cancelarCierreJornada() = _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false) }
 
     fun descartarErrorCierreJornada() = _uiState.update { it.copy(errorCierreJornada = null) }
+
+    fun solicitarCambiarPin() = _uiState.update { it.copy(mostrarCambiarPin = true, errorCambiarPin = null) }
+
+    fun cancelarCambiarPin() = _uiState.update { it.copy(mostrarCambiarPin = false, errorCambiarPin = null) }
+
+    fun cambiarPin(nuevoPin: String, confirmacionPin: String) {
+        val id = _uiState.value.usuarioIdLocal
+        if (id.isBlank()) return
+        _uiState.update { it.copy(cambiandoPin = true, errorCambiarPin = null) }
+        viewModelScope.launch {
+            cambiarPinUsuarioUseCase(id, nuevoPin, confirmacionPin).fold(
+                onSuccess = {
+                    _uiState.update { it.copy(cambiandoPin = false, mostrarCambiarPin = false, pinCambiadoExitosamente = true) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(cambiandoPin = false, errorCambiarPin = error.message ?: "No se pudo cambiar el PIN.") }
+                },
+            )
+        }
+    }
+
+    fun descartarPinCambiado() = _uiState.update { it.copy(pinCambiadoExitosamente = false) }
+
+    /** "Descargar datos de ruta": vuelve a consultar zona/vehículo/cola por si algo cambió en el servidor. */
+    fun descargarDatosDeRuta() {
+        cargar()
+        _uiState.update { it.copy(mensajeDescarga = "Datos de ruta actualizados.") }
+    }
 }

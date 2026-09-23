@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.conflictos
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +30,6 @@ import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.DialogoMotivo
-import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
@@ -36,12 +38,12 @@ import pe.ecolecta.presentation.design.TipoBanner
 import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
-fun ConflictosScreen(viewModel: ConflictosViewModel = koinViewModel()) {
+fun ConflictosScreen(alVolver: () -> Unit = {}, viewModel: ConflictosViewModel = koinViewModel()) {
     val estado by viewModel.uiState.collectAsState()
     var resolucionPendiente by remember { mutableStateOf<Pair<String, OrigenValorConflicto>?>(null) }
 
-    Column(Modifier.fillMaxSize()) {
-        EncabezadoSeccion("Conflictos de sincronización", subtitulo = "${estado.conflictos.size} pendientes por resolver")
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Conflictos de sincronización", subtitulo = "${estado.conflictos.size} pendientes por resolver", alVolver = alVolver)
         estado.error?.let {
             Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
         }

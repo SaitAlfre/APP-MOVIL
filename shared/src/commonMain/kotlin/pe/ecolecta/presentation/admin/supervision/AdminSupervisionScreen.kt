@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.supervision
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material3.*
@@ -25,10 +28,13 @@ fun AdminCalidadScreen(proveedorId: String?, alVolver: () -> Unit, vm: AdminSupe
     pe.ecolecta.presentation.calidad.CalidadBackHandler(true) {
         if (seleccionado != null) seleccionado = null else alVolver()
     }
+    androidx.compose.foundation.layout.Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+    AdminTopBar(
+        if (seleccionado == null) "Control de calidad" else "Detalle del análisis",
+        "Solo consulta · Datos de este dispositivo",
+        alVolver = { if (seleccionado != null) seleccionado = null else alVolver() },
+    )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-        item { TextButton(onClick = { if (seleccionado != null) seleccionado = null else alVolver() }) { Text("← Volver") } }
-        item { Text(if (seleccionado == null) "Control de calidad" else "Detalle del análisis", style = MaterialTheme.typography.headlineSmall) }
-        item { Text("Solo consulta · Datos de este dispositivo", color = Colores.textSecundario) }
         when {
             datos.cargando -> item { IndicadorCarga() }
             datos.error != null -> item { Text(datos.error.orEmpty()); TextButton(onClick = vm::cargar) { Text("Reintentar") } }
@@ -66,25 +72,6 @@ fun AdminCalidadScreen(proveedorId: String?, alVolver: () -> Unit, vm: AdminSupe
             }
         }
     }
-}
-
-@Composable
-fun ResumenCalidadAdmin(alAbrir: () -> Unit, vm: AdminSupervisionViewModel = koinViewModel()) {
-    val datos by vm.state.collectAsState()
-    Tarjeta(onClick = alAbrir) {
-        Text("Calidad · Todas las fechas", style = MaterialTheme.typography.titleMedium)
-        when {
-            datos.cargando -> Text("Cargando análisis…")
-            datos.error != null -> Text("No se pudo cargar calidad. Abre la sección para reintentar.")
-            else -> {
-                Text("${datos.controles.size} análisis guardados")
-                val rechazados = datos.controles.count { it.estado == EstadoControlCalidad.RECHAZADO }
-                val observados = datos.controles.count { it.estado == EstadoControlCalidad.OBSERVADO || it.estado == EstadoControlCalidad.REPETIR }
-                Text("$rechazados rechazados · $observados con observaciones o para repetir")
-                Text("Estos son resultados, no una lista de revisiones pendientes.", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
-                Text("Consultar análisis →", color = Colores.brand)
-            }
-        }
     }
 }
 
@@ -151,8 +138,9 @@ fun AdminProveedorDetalleScreen(id: String, alVolver: () -> Unit, alEditar: () -
     val datos by vm.state.collectAsState()
     val p = datos.proveedores.find { it.id == id }
     pe.ecolecta.presentation.calidad.CalidadBackHandler(true, alVolver)
+    androidx.compose.foundation.layout.Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+    AdminTopBar(p?.nombres ?: "Proveedor", p?.codigo, alVolver = alVolver)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-        item { TextButton(onClick = alVolver) { Text("← Proveedores") } }
         when {
             datos.cargando -> item { IndicadorCarga() }
             datos.error != null -> item { Text(datos.error.orEmpty()); TextButton(onClick = vm::cargar) { Text("Reintentar") } }
@@ -186,5 +174,6 @@ fun AdminProveedorDetalleScreen(id: String, alVolver: () -> Unit, alEditar: () -
                 } }
             }
         }
+    }
     }
 }

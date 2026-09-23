@@ -1,0 +1,11 @@
+CREATE TABLE alerta_descartada (
+    id TEXT NOT NULL PRIMARY KEY,
+    usuario_id TEXT NOT NULL,
+    descartada_en INTEGER NOT NULL
+);
+
+selectIds:
+SELECT id FROM alerta_descartada;
+
+insertar:
+INSERT OR REPLACE INTO alerta_descartada(id, usuario_id, descartada_en) VALUES (?, ?, ?);

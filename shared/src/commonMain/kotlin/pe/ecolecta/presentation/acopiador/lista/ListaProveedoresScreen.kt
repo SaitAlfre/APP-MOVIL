@@ -24,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,8 +35,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
@@ -50,6 +53,7 @@ import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
+import pe.ecolecta.presentation.design.PildoraPendientes
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.formatearHora
 import pe.ecolecta.presentation.design.formatearLitros
@@ -57,6 +61,7 @@ import pe.ecolecta.presentation.design.formatearLitros
 @Composable
 fun ListaProveedoresScreen(
     alRegistrarEntrega: (String) -> Unit,
+    pendientesSync: Int = 0,
     viewModel: ListaProveedoresViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -76,7 +81,7 @@ fun ListaProveedoresScreen(
     }
 
     when (estado.modo) {
-        ModoLista.HOY -> VistaHoy(estado, ciclo, viewModel, alRegistrarEntrega)
+        ModoLista.HOY -> VistaHoy(estado, ciclo, viewModel, alRegistrarEntrega, pendientesSync)
         ModoLista.SEMANA -> VistaCiclo(estado, ciclo, viewModel)
     }
 }
@@ -91,12 +96,17 @@ private fun VistaHoy(
     ciclo: CicloAcopio,
     viewModel: ListaProveedoresViewModel,
     alRegistrarEntrega: (String) -> Unit,
+    pendientesSync: Int,
 ) {
     var paraMarcarSinEntrega by remember { mutableStateOf<ProveedorDelDia?>(null) }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            EncabezadoSeccion("Lista de proveedores", subtitulo = ciclo.resumenCorto)
+            EncabezadoSeccion(
+                "Mis proveedores",
+                subtitulo = ciclo.resumenCorto,
+                accion = { PildoraPendientes(pendientesSync) },
+            )
 
             Column(
                 Modifier.padding(horizontal = Espaciado.l),
@@ -173,17 +183,9 @@ private fun FilaProveedorDelDia(fila: ProveedorDelDia, onClick: (() -> Unit)?, o
     val entrega = fila.entrega
     val detalle = when (fila.estado) {
         EstadoProveedorDia.POR_REGISTRAR -> "Pendiente de entrega"
-        EstadoProveedorDia.REGISTRADO -> entrega?.let {
-            "${formatearLitros(it.litros)} · ${it.tachos} tachos · ${formatearHora(it.registradoEn)}"
-        }.orEmpty()
-        EstadoProveedorDia.POR_SINCRONIZAR -> entrega?.let { "Registrado localmente · ${formatearLitros(it.litros)}" }.orEmpty()
+        EstadoProveedorDia.REGISTRADO -> entrega?.let { "${it.tachos} tachos · ${formatearHora(it.registradoEn)}" }.orEmpty()
+        EstadoProveedorDia.POR_SINCRONIZAR -> entrega?.let { "Registrado localmente · ${formatearHora(it.registradoEn)}" }.orEmpty()
         EstadoProveedorDia.SIN_ENTREGA -> listOfNotNull("Sin entrega", fila.motivoSinEntrega).joinToString(" · ")
-    }
-    val (etiqueta, color) = when (fila.estado) {
-        EstadoProveedorDia.POR_REGISTRAR -> "REGISTRAR" to Colores.brand
-        EstadoProveedorDia.REGISTRADO -> "REGISTRADO" to Colores.exito
-        EstadoProveedorDia.POR_SINCRONIZAR -> "PENDIENTE" to Colores.info
-        EstadoProveedorDia.SIN_ENTREGA -> "DESHACER" to Colores.advertencia
     }
 
     Tarjeta(onClick = onClick) {
@@ -192,15 +194,25 @@ private fun FilaProveedorDelDia(fila: ProveedorDelDia, onClick: (() -> Unit)?, o
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f, fill = false)) {
+                Text(fila.proveedor.codigo, color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
                 Text(
-                    "${fila.proveedor.codigo} · ${fila.proveedor.nombres}",
+                    fila.proveedor.nombres,
                     color = Colores.textPrimary,
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Text(detalle, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
+                Text(detalle, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            ChipEstado(etiqueta, color, mostrarPunto = false)
+            Spacer(Modifier.width(Espaciado.s))
+            Column(horizontalAlignment = Alignment.End) {
+                if (entrega != null) {
+                    Text(formatearLitros(entrega.litros), color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(Espaciado.xxs))
+                }
+                EstadoAccionProveedor(fila.estado, onClick)
+            }
         }
         if (fila.estado == EstadoProveedorDia.POR_REGISTRAR) {
             Spacer(Modifier.height(Espaciado.xs))
@@ -213,6 +225,37 @@ private fun FilaProveedorDelDia(fila: ProveedorDelDia, onClick: (() -> Unit)?, o
                     .padding(vertical = Espaciado.xxs),
             )
         }
+    }
+}
+
+/**
+ * A la derecha de cada fila: un botón sólido cuando falta actuar (Registrar/Deshacer) y una
+ * pastilla tenue de solo lectura cuando ya está resuelto (Atendido), igual que el diseño.
+ */
+@Composable
+private fun EstadoAccionProveedor(estado: EstadoProveedorDia, onClick: (() -> Unit)?) {
+    when (estado) {
+        EstadoProveedorDia.POR_REGISTRAR -> BotonPildora("Registrar", Colores.brand, Colores.onBrand, onClick)
+        EstadoProveedorDia.SIN_ENTREGA -> BotonPildora("Deshacer", Colores.advertencia, Colores.onSecundario, onClick)
+        EstadoProveedorDia.REGISTRADO -> ChipEstado("✓ Atendido", Colores.exito, mostrarPunto = false)
+        EstadoProveedorDia.POR_SINCRONIZAR -> ChipEstado("Pendiente", Colores.info, mostrarPunto = false)
+    }
+}
+
+@Composable
+private fun BotonPildora(texto: String, contenedor: Color, contenido: Color, onClick: (() -> Unit)?) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = contenedor,
+        contentColor = contenido,
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+    ) {
+        Text(
+            texto,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.xs),
+        )
     }
 }
 

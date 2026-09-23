@@ -1,38 +1,37 @@
 package pe.ecolecta.presentation.admin
 
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import pe.ecolecta.presentation.ConAlcancePorPantalla
+import pe.ecolecta.presentation.admin.alertas.AdminAlertasScreen
+import pe.ecolecta.presentation.admin.alertas.AdminAlertasViewModel
 import pe.ecolecta.presentation.admin.auditoria.AuditoriaScreen
 import pe.ecolecta.presentation.admin.conflictos.ConflictosScreen
 import pe.ecolecta.presentation.admin.dashboard.AdminDashboardScreen
+import pe.ecolecta.presentation.admin.design.AdminColor
 import pe.ecolecta.presentation.admin.entregas.EntregaDetalleScreen
 import pe.ecolecta.presentation.admin.entregas.EntregasScreen
 import pe.ecolecta.presentation.admin.jornadas.JornadaDetalleScreen
 import pe.ecolecta.presentation.admin.jornadas.JornadasScreen
-import pe.ecolecta.presentation.admin.nav.AdminDrawerContenido
-import pe.ecolecta.presentation.admin.nav.AdminNavigationRail
+import pe.ecolecta.presentation.admin.nav.AdminBottomNav
+import pe.ecolecta.presentation.admin.nav.PestanaAdmin
+import pe.ecolecta.presentation.admin.perfil.AdminPerfilScreen
 import pe.ecolecta.presentation.admin.proveedores.ProveedorFormScreen
 import pe.ecolecta.presentation.admin.proveedores.ProveedoresScreen
+import pe.ecolecta.presentation.admin.reportes.AdminReportesScreen
+import pe.ecolecta.presentation.admin.supervision.AdminCalidadScreen
+import pe.ecolecta.presentation.admin.supervision.AdminProveedorDetalleScreen
 import pe.ecolecta.presentation.admin.traslados.TrasladosScreen
 import pe.ecolecta.presentation.admin.usuarios.UsuarioFormScreen
 import pe.ecolecta.presentation.admin.usuarios.UsuariosScreen
@@ -40,168 +39,127 @@ import pe.ecolecta.presentation.admin.vehiculos.VehiculoFormScreen
 import pe.ecolecta.presentation.admin.vehiculos.VehiculosScreen
 import pe.ecolecta.presentation.admin.zonas.ZonaFormScreen
 import pe.ecolecta.presentation.admin.zonas.ZonasScreen
-import pe.ecolecta.presentation.ConAlcancePorPantalla
-import pe.ecolecta.presentation.design.Colores
+import pe.ecolecta.presentation.calidad.CalidadBackHandler
 import pe.ecolecta.presentation.navegacion.Pantalla
-import pe.ecolecta.presentation.navegacion.SeccionAdmin
 
-private val ANCHO_TABLET = 840.dp
-
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Administrador con el diseño del prototipo: cinco pestañas (Inicio, Jornadas, Alertas,
+ * Reportes, Perfil) y los módulos de gestión apilados encima, con historial de retroceso.
+ */
 @Composable
 fun AdminShell(
     pantalla: Pantalla,
     onCambiarPantalla: (Pantalla) -> Unit,
     onCerrarSesion: () -> Unit,
 ) {
-    val seccionActual = seccionDe(pantalla)
+    val historial = remember { mutableStateListOf<Pantalla>() }
+    // Una sola instancia de alertas para la insignia, Inicio y Alertas: vive en el ámbito de la sesión.
+    val alertasViewModel: AdminAlertasViewModel = koinViewModel(key = "admin-alertas-insignia")
+    val alertas by alertasViewModel.uiState.collectAsState()
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        if (maxWidth >= ANCHO_TABLET) {
-            Row(Modifier.fillMaxSize()) {
-                AdminNavigationRail(
-                    seccionActual = seccionActual,
-                    onSeleccionar = { onCambiarPantalla(it.pantalla) },
-                    onCerrarSesion = onCerrarSesion,
-                )
-                androidx.compose.foundation.layout.Box(Modifier.weight(1f).fillMaxSize()) {
-                    ContenidoAdmin(pantalla, onCambiarPantalla)
-                }
-            }
-        } else {
-            val estadoDrawer = rememberDrawerState(DrawerValue.Closed)
-            val scope = rememberCoroutineScope()
+    fun navegar(destino: Pantalla) {
+        if (destino == pantalla) return
+        val pestana = PestanaAdmin.entries.firstOrNull { it.pantalla == destino }
+        if (pestana != null && destino !is Pantalla.AdminAlertas) historial.clear() else historial.add(pantalla)
+        onCambiarPantalla(destino)
+    }
 
-            ModalNavigationDrawer(
-                drawerState = estadoDrawer,
-                drawerContent = {
-                    AdminDrawerContenido(
-                        seccionActual = seccionActual,
-                        onSeleccionar = {
-                            onCambiarPantalla(it.pantalla)
-                            scope.launch { estadoDrawer.close() }
-                        },
-                        onCerrarSesion = onCerrarSesion,
-                    )
-                },
-            ) {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text(seccionActual.etiqueta) },
-                            navigationIcon = {
-                                IconButton(onClick = { scope.launch { estadoDrawer.open() } }) {
-                                    Icon(Icons.Filled.Menu, contentDescription = "Menú")
-                                }
-                            },
-                            actions = {
-                                IconButton(onClick = onCerrarSesion) {
-                                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión", tint = Colores.peligro)
-                                }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Colores.surface, titleContentColor = Colores.textPrimary),
-                        )
-                    },
-                    containerColor = Colores.bgBase,
-                ) { padding ->
-                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().padding(padding)) {
-                        ContenidoAdmin(pantalla, onCambiarPantalla)
-                    }
-                }
+    fun volver() {
+        val anterior = historial.removeLastOrNull() ?: Pantalla.AdminDashboard
+        onCambiarPantalla(anterior)
+    }
+
+    fun irAPestana(pestana: PestanaAdmin) {
+        historial.clear()
+        onCambiarPantalla(pestana.pantalla)
+    }
+
+    CalidadBackHandler(pantalla != Pantalla.AdminDashboard) { volver() }
+
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        Box(Modifier.weight(1f).fillMaxWidth().statusBarsPadding()) {
+            // Cada pantalla recibe su propio ViewModelStoreOwner: al navegar a otra, el anterior se
+            // limpia, así los ViewModels de admin no se acumulan durante la sesión (§rendimiento).
+            ConAlcancePorPantalla(pantalla) {
+                ContenidoAdmin(pantalla, alertasViewModel, ::navegar, ::volver, onCerrarSesion)
             }
         }
+        AdminBottomNav(pestanaDe(pantalla), alertas.alertas.size, ::irAPestana)
     }
 }
 
 @Composable
-private fun ContenidoAdmin(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
-    // Cada pantalla recibe su propio ViewModelStoreOwner: al navegar a otra, el anterior se limpia,
-    // así los ViewModels de admin no se acumulan indefinidamente durante toda la sesión (§rendimiento).
-    ConAlcancePorPantalla(pantalla) {
-        ContenidoAdminPorPantalla(pantalla, onCambiarPantalla)
-    }
-}
-
-@Composable
-private fun ContenidoAdminPorPantalla(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
+private fun ContenidoAdmin(
+    pantalla: Pantalla,
+    alertas: AdminAlertasViewModel,
+    navegar: (Pantalla) -> Unit,
+    volver: () -> Unit,
+    onCerrarSesion: () -> Unit,
+) {
     when (pantalla) {
-        Pantalla.AdminDashboard -> AdminDashboardScreen(alNavegar = onCambiarPantalla)
-        is Pantalla.AdminCalidad -> pe.ecolecta.presentation.admin.supervision.AdminCalidadScreen(
-            proveedorId = pantalla.proveedorId,
-            alVolver = { onCambiarPantalla(pantalla.proveedorId?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminDashboard) },
-        )
-        is Pantalla.AdminProveedorDetalle -> pe.ecolecta.presentation.admin.supervision.AdminProveedorDetalleScreen(
+        Pantalla.AdminDashboard -> AdminDashboardScreen(alNavegar = navegar, alertasViewModel = alertas)
+        Pantalla.AdminJornadas -> JornadasScreen(alVerDetalle = { navegar(Pantalla.AdminJornadaDetalle(it)) }, alVolver = volver)
+        is Pantalla.AdminJornadaDetalle -> JornadaDetalleScreen(
             id = pantalla.id,
-            alVolver = { onCambiarPantalla(Pantalla.AdminProveedores) },
-            alEditar = { onCambiarPantalla(Pantalla.AdminProveedorForm(pantalla.id)) },
-            alCalidad = { onCambiarPantalla(Pantalla.AdminCalidad(pantalla.id)) },
-            alEntrega = { onCambiarPantalla(Pantalla.AdminEntregaDetalle(it, pantalla.id)) },
+            alVerEntrega = { navegar(Pantalla.AdminEntregaDetalle(it)) },
+            alVolver = volver,
         )
-        Pantalla.AdminUsuarios -> UsuariosScreen(
-            alCrear = { onCambiarPantalla(Pantalla.AdminUsuarioForm()) },
-            alEditar = { id -> onCambiarPantalla(Pantalla.AdminUsuarioForm(id)) },
-        )
-        is Pantalla.AdminUsuarioForm -> UsuarioFormScreen(
+        is Pantalla.AdminAlertas -> AdminAlertasScreen(filtroInicial = pantalla.filtro, alNavegar = navegar, alVolver = volver, viewModel = alertas)
+        Pantalla.AdminReportes -> AdminReportesScreen(alVolver = volver)
+        Pantalla.AdminPerfil -> AdminPerfilScreen(alNavegar = navegar, alCerrarSesion = onCerrarSesion)
+
+        is Pantalla.AdminCalidad -> AdminCalidadScreen(proveedorId = pantalla.proveedorId, alVolver = volver)
+        is Pantalla.AdminProveedorDetalle -> AdminProveedorDetalleScreen(
             id = pantalla.id,
-            alGuardar = { onCambiarPantalla(Pantalla.AdminUsuarios) },
-        )
-        Pantalla.AdminZonas -> ZonasScreen(
-            alCrear = { onCambiarPantalla(Pantalla.AdminZonaForm()) },
-            alEditar = { id -> onCambiarPantalla(Pantalla.AdminZonaForm(id)) },
-        )
-        is Pantalla.AdminZonaForm -> ZonaFormScreen(
-            id = pantalla.id,
-            alGuardar = { onCambiarPantalla(Pantalla.AdminZonas) },
-        )
-        Pantalla.AdminVehiculos -> VehiculosScreen(
-            alCrear = { onCambiarPantalla(Pantalla.AdminVehiculoForm()) },
-            alEditar = { id -> onCambiarPantalla(Pantalla.AdminVehiculoForm(id)) },
-        )
-        is Pantalla.AdminVehiculoForm -> VehiculoFormScreen(
-            id = pantalla.id,
-            alGuardar = { onCambiarPantalla(Pantalla.AdminVehiculos) },
+            alVolver = volver,
+            alEditar = { navegar(Pantalla.AdminProveedorForm(pantalla.id)) },
+            alCalidad = { navegar(Pantalla.AdminCalidad(pantalla.id)) },
+            alEntrega = { navegar(Pantalla.AdminEntregaDetalle(it, pantalla.id)) },
         )
         Pantalla.AdminProveedores -> ProveedoresScreen(
-            alCrear = { onCambiarPantalla(Pantalla.AdminProveedorForm()) },
-            alEditar = { id -> onCambiarPantalla(Pantalla.AdminProveedorDetalle(id)) },
+            alCrear = { navegar(Pantalla.AdminProveedorForm()) },
+            alEditar = { navegar(Pantalla.AdminProveedorDetalle(it)) },
+            alVolver = volver,
         )
         is Pantalla.AdminProveedorForm -> ProveedorFormScreen(
             id = pantalla.id,
-            alGuardar = { onCambiarPantalla(pantalla.id?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminProveedores) },
+            alGuardar = volver,
+            alVolver = volver,
+            alCuenta = { usuarioId, fichaId -> navegar(Pantalla.AdminUsuarioForm(usuarioId, fichaId.takeIf { usuarioId == null })) },
         )
-        Pantalla.AdminTraslados -> TrasladosScreen()
-        Pantalla.AdminJornadas -> JornadasScreen(
-            alVerDetalle = { id -> onCambiarPantalla(Pantalla.AdminJornadaDetalle(id)) },
+        Pantalla.AdminUsuarios -> UsuariosScreen(
+            alCrear = { navegar(Pantalla.AdminUsuarioForm()) },
+            alEditar = { navegar(Pantalla.AdminUsuarioForm(it)) },
+            alVolver = volver,
         )
-        is Pantalla.AdminJornadaDetalle -> JornadaDetalleScreen(
-            id = pantalla.id,
-            alVerEntrega = { id -> onCambiarPantalla(Pantalla.AdminEntregaDetalle(id)) },
-            alVolver = { onCambiarPantalla(Pantalla.AdminJornadas) },
+        is Pantalla.AdminUsuarioForm -> UsuarioFormScreen(id = pantalla.id, fichaId = pantalla.fichaId, alGuardar = volver, alVolver = volver)
+        Pantalla.AdminZonas -> ZonasScreen(
+            alCrear = { navegar(Pantalla.AdminZonaForm()) },
+            alEditar = { navegar(Pantalla.AdminZonaForm(it)) },
+            alVolver = volver,
         )
-        Pantalla.AdminEntregas -> EntregasScreen(
-            alVerDetalle = { id -> onCambiarPantalla(Pantalla.AdminEntregaDetalle(id)) },
+        is Pantalla.AdminZonaForm -> ZonaFormScreen(id = pantalla.id, alGuardar = volver, alVolver = volver)
+        Pantalla.AdminVehiculos -> VehiculosScreen(
+            alCrear = { navegar(Pantalla.AdminVehiculoForm()) },
+            alEditar = { navegar(Pantalla.AdminVehiculoForm(it)) },
+            alVolver = volver,
         )
-        is Pantalla.AdminEntregaDetalle -> EntregaDetalleScreen(
-            id = pantalla.id,
-            alVolver = { onCambiarPantalla(pantalla.proveedorOrigenId?.let { Pantalla.AdminProveedorDetalle(it) } ?: Pantalla.AdminEntregas) },
-        )
-        Pantalla.AdminConflictos -> ConflictosScreen()
-        Pantalla.AdminAuditoria -> AuditoriaScreen()
-        else -> AdminDashboardScreen()
+        is Pantalla.AdminVehiculoForm -> VehiculoFormScreen(id = pantalla.id, alGuardar = volver, alVolver = volver)
+        Pantalla.AdminTraslados -> TrasladosScreen(alVolver = volver)
+        Pantalla.AdminEntregas -> EntregasScreen(alVerDetalle = { navegar(Pantalla.AdminEntregaDetalle(it)) }, alVolver = volver)
+        is Pantalla.AdminEntregaDetalle -> EntregaDetalleScreen(id = pantalla.id, alVolver = volver)
+        Pantalla.AdminConflictos -> ConflictosScreen(alVolver = volver)
+        Pantalla.AdminAuditoria -> AuditoriaScreen(alVolver = volver)
+        else -> AdminDashboardScreen(alNavegar = navegar, alertasViewModel = alertas)
     }
 }
 
-private fun seccionDe(pantalla: Pantalla): SeccionAdmin = when (pantalla) {
-    Pantalla.AdminDashboard -> SeccionAdmin.DASHBOARD
-    Pantalla.AdminUsuarios, is Pantalla.AdminUsuarioForm -> SeccionAdmin.USUARIOS
-    Pantalla.AdminZonas, is Pantalla.AdminZonaForm -> SeccionAdmin.ZONAS
-    Pantalla.AdminVehiculos, is Pantalla.AdminVehiculoForm -> SeccionAdmin.VEHICULOS
-    Pantalla.AdminProveedores, is Pantalla.AdminProveedorForm, is Pantalla.AdminProveedorDetalle -> SeccionAdmin.PROVEEDORES
-    is Pantalla.AdminCalidad -> SeccionAdmin.CALIDAD
-    Pantalla.AdminTraslados -> SeccionAdmin.TRASLADOS
-    Pantalla.AdminJornadas, is Pantalla.AdminJornadaDetalle -> SeccionAdmin.JORNADAS
-    Pantalla.AdminEntregas, is Pantalla.AdminEntregaDetalle -> SeccionAdmin.ENTREGAS
-    Pantalla.AdminConflictos -> SeccionAdmin.CONFLICTOS
-    Pantalla.AdminAuditoria -> SeccionAdmin.AUDITORIA
-    else -> SeccionAdmin.DASHBOARD
+/** Pestaña resaltada: los módulos de gestión cuelgan de Inicio o de Perfil, según desde dónde se abren. */
+private fun pestanaDe(pantalla: Pantalla): PestanaAdmin = when (pantalla) {
+    Pantalla.AdminJornadas, is Pantalla.AdminJornadaDetalle -> PestanaAdmin.JORNADAS
+    is Pantalla.AdminAlertas -> PestanaAdmin.ALERTAS
+    Pantalla.AdminReportes -> PestanaAdmin.REPORTES
+    Pantalla.AdminPerfil, Pantalla.AdminUsuarios, is Pantalla.AdminUsuarioForm, Pantalla.AdminZonas, is Pantalla.AdminZonaForm,
+    Pantalla.AdminVehiculos, is Pantalla.AdminVehiculoForm, Pantalla.AdminAuditoria -> PestanaAdmin.PERFIL
+    else -> PestanaAdmin.INICIO
 }

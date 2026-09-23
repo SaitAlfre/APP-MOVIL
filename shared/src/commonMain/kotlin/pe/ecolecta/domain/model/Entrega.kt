@@ -11,6 +11,7 @@ data class Entrega(
     val vehiculoId: String,
     val litros: Double,
     val tachos: Int,
+    val modalidad: ModalidadEntrega = ModalidadEntrega.MEDIANTE_ACOPIADOR,
     val observaciones: String?,
     val registradoEn: Long,
     val deviceId: String,
@@ -38,6 +39,7 @@ data class Entrega(
             registradoEn: Long,
             deviceId: String,
             loteId: String?,
+            modalidad: ModalidadEntrega = ModalidadEntrega.MEDIANTE_ACOPIADOR,
         ): Result<Entrega> {
             if (litros <= 0.0) return Result.failure(EntregaInvalidaException.LitrosNoPositivos)
             if (tachos <= 0) return Result.failure(EntregaInvalidaException.TachosInvalidos)
@@ -51,6 +53,7 @@ data class Entrega(
                     vehiculoId = vehiculoId,
                     litros = litros,
                     tachos = tachos,
+                    modalidad = modalidad,
                     observaciones = observaciones?.trim()?.ifBlank { null },
                     registradoEn = registradoEn,
                     deviceId = deviceId,

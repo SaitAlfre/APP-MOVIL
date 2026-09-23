@@ -8,13 +8,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.Jornada
+import pe.ecolecta.domain.model.ModalidadEntrega
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.entrega.CorregirEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ListarEntregasUseCase
 import pe.ecolecta.domain.usecase.entrega.RegistrarEntregaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
+import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 
 class RegistroEntregaViewModel(
     private val obtenerJornadaEnCursoUseCase: ObtenerJornadaEnCursoUseCase,
@@ -23,6 +26,7 @@ class RegistroEntregaViewModel(
     private val registrarEntregaUseCase: RegistrarEntregaUseCase,
     private val corregirEntregaUseCase: CorregirEntregaUseCase,
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
+    private val listarZonasUseCase: ListarZonasUseCase,
     proveedorIdPreseleccionado: String? = null,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegistroEntregaUiState(proveedorId = proveedorIdPreseleccionado.orEmpty()))
@@ -31,25 +35,60 @@ class RegistroEntregaViewModel(
     private var jornada: Jornada? = null
     private var usuarioId: String? = null
 
+    // Ids de proveedores que ya tienen una entrega hoy, para preseleccionar por defecto al primero
+    // que todavía falta atender y avisar en la tarjeta si el elegido ya fue registrado.
+    private var proveedoresConEntregaHoy: Set<String> = emptySet()
+
     init {
         viewModelScope.launch {
             usuarioId = obtenerSesionUseCase().first()?.usuario?.id
             jornada = obtenerJornadaEnCursoUseCase().first()
             jornada?.let { j ->
+                val zonaNombre = listarZonasUseCase().first().firstOrNull { it.id == j.zonaId }?.nombre.orEmpty()
+                proveedoresConEntregaHoy = listarEntregasUseCase(jornadaId = j.id)
+                    .filterNot(Entrega::anulada)
+                    .map(Entrega::proveedorId)
+                    .toSet()
+                _uiState.update { it.copy(zonaNombre = zonaNombre) }
+
                 listarProveedoresPorZonaUseCase(j.zonaId).collect { lista ->
-                    _uiState.update { it.copy(proveedores = lista, proveedorId = it.proveedorId.ifBlank { lista.firstOrNull()?.id.orEmpty() }) }
+                    _uiState.update { estado ->
+                        val proveedorId = estado.proveedorId.ifBlank {
+                            (lista.firstOrNull { it.id !in proveedoresConEntregaHoy } ?: lista.firstOrNull())?.id.orEmpty()
+                        }
+                        estado.copy(
+                            proveedores = lista,
+                            proveedorId = proveedorId,
+                            entregadoHoyDelSeleccionado = proveedorId in proveedoresConEntregaHoy,
+                        )
+                    }
                 }
             }
         }
     }
 
-    fun onProveedorCambia(id: String) = _uiState.update { it.copy(proveedorId = id, error = null) }
+    fun onProveedorCambia(id: String) = _uiState.update {
+        it.copy(proveedorId = id, error = null, entregadoHoyDelSeleccionado = id in proveedoresConEntregaHoy)
+    }
     fun onLitrosCambia(valor: String) = _uiState.update { it.copy(litros = valor, error = null) }
     fun aplicarPreset(valor: Double) = _uiState.update { it.copy(litros = if (valor == valor.toLong().toDouble()) valor.toLong().toString() else valor.toString()) }
+
+    /** Suma [delta] a los litros actuales (atajos +0.5/+1/+5/+10 de la pantalla de registro). */
+    fun sumarLitros(delta: Double) = _uiState.update {
+        val actual = it.litros.toDoubleOrNull() ?: 0.0
+        val nuevo = (kotlin.math.round((actual + delta) * 10) / 10.0).coerceAtLeast(0.0)
+        it.copy(litros = if (nuevo == nuevo.toLong().toDouble()) nuevo.toLong().toString() else nuevo.toString(), error = null)
+    }
+
     fun onTachosCambia(valor: String) = _uiState.update { it.copy(tachos = valor) }
+    fun sumarTachos(delta: Int) = _uiState.update {
+        val actual = it.tachos.toIntOrNull() ?: 0
+        it.copy(tachos = (actual + delta).coerceAtLeast(0).toString())
+    }
+    fun onModalidadCambia(valor: ModalidadEntrega) = _uiState.update { it.copy(modalidad = valor) }
     fun onObservacionesCambia(valor: String) = _uiState.update { it.copy(observaciones = valor) }
 
-    fun guardar(omitirChequeoDuplicado: Boolean = false) {
+    fun guardar(omitirChequeoDuplicado: Boolean = false, quedarseParaOtra: Boolean = false) {
         val estado = _uiState.value
         if (estado.cargando) return
         val j = jornada ?: return
@@ -81,9 +120,34 @@ class RegistroEntregaViewModel(
                 litros = litros,
                 tachos = tachos,
                 observaciones = estado.observaciones.ifBlank { null },
+                modalidad = estado.modalidad,
             ).fold(
                 onSuccess = { resultado ->
-                    _uiState.update { it.copy(cargando = false, guardadoExitoso = true, advertenciaDesviacion = resultado.advertenciaDesviacion) }
+                    proveedoresConEntregaHoy = proveedoresConEntregaHoy + estado.proveedorId
+                    if (quedarseParaOtra) {
+                        val siguiente = estado.proveedores.firstOrNull { it.id !in proveedoresConEntregaHoy }?.id ?: estado.proveedorId
+                        _uiState.update {
+                            it.copy(
+                                cargando = false,
+                                litros = "",
+                                tachos = "1",
+                                modalidad = ModalidadEntrega.MEDIANTE_ACOPIADOR,
+                                observaciones = "",
+                                proveedorId = siguiente,
+                                entregadoHoyDelSeleccionado = siguiente in proveedoresConEntregaHoy,
+                                advertenciaDesviacion = resultado.advertenciaDesviacion,
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                cargando = false,
+                                guardadoExitoso = true,
+                                advertenciaDesviacion = resultado.advertenciaDesviacion,
+                                entregadoHoyDelSeleccionado = true,
+                            )
+                        }
+                    }
                 },
                 onFailure = { error -> _uiState.update { it.copy(cargando = false, error = error.message) } },
             )

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.presentation.design.Banner
@@ -124,7 +126,11 @@ private fun FilaSeleccionable(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.weight(1f, fill = false),
+                horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Icon(
                     icono,
                     contentDescription = null,
@@ -136,6 +142,8 @@ private fun FilaSeleccionable(
                         titulo,
                         style = MaterialTheme.typography.titleMedium,
                         color = if (seleccionado) Colores.onBrandContainer else Colores.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     if (detalle != null) {
                         Text(detalle, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
@@ -143,6 +151,7 @@ private fun FilaSeleccionable(
                 }
             }
             if (seleccionado) {
+                Spacer(Modifier.width(Espaciado.s))
                 Icon(Icons.Filled.Check, contentDescription = null, tint = Colores.brand, modifier = Modifier.size(20.dp))
             }
         }

@@ -64,3 +64,6 @@ UPDATE proveedor SET nombres = :nombres, dueno = :dueno WHERE id = :id AND nombr
 
 actualizarResponsable:
 UPDATE proveedor SET dueno = :dueno WHERE id = :id;
+
+desvincularUsuario:
+UPDATE proveedor SET usuario_id = NULL WHERE usuario_id = :usuario_id;

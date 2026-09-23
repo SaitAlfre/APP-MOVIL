@@ -53,8 +53,3 @@ data class LecturaCalidad(
     /** Fecha/hora leída del comprobante, si el texto trae una legible; solo una propuesta a revisar. */
     val fechaHoraEpochMs: Long? = null,
 )
-
-data class EvaluacionCalidad(
-    val estado: EstadoControlCalidad,
-    val alertas: List<String>,
-)

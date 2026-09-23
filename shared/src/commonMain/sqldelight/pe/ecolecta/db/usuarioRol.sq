@@ -4,6 +4,8 @@ CREATE TABLE usuario_rol (
     PRIMARY KEY (usuario_id, rol)
 );
 
+CREATE INDEX usuario_rol_rol_idx ON usuario_rol(rol);
+
 insertar:
 INSERT OR IGNORE INTO usuario_rol(usuario_id, rol) VALUES (:usuario_id, :rol);
 
@@ -23,3 +25,6 @@ contarUsuariosConRol:
 SELECT COUNT(*) FROM usuario_rol
 INNER JOIN usuario ON usuario.id = usuario_rol.usuario_id
 WHERE usuario_rol.rol = :rol AND usuario.activo = 1;
+
+selectTodos:
+SELECT usuario_id, rol FROM usuario_rol;

@@ -82,26 +82,4 @@ class ControlCalidadTest {
         assertEquals(-0.525, lectura.puntoCongelacion)
         assertEquals(6.65, lectura.ph)
     }
-
-    @Test
-    fun `aprueba lectura dentro de rangos`() {
-        val evaluacion = EvaluadorCalidad.evaluar(
-            LecturaCalidad(
-                temperatura = 6.0, grasa = 3.5, sng = 8.7, densidad = 1.030,
-                proteina = 3.2, lactosa = 4.7, solidosTotales = 12.2,
-                aguaAnadida = 0.0, puntoCongelacion = -0.530, ph = 6.7,
-            ),
-        )
-        assertEquals(EstadoControlCalidad.APROBADO, evaluacion.estado)
-        assertTrue(evaluacion.alertas.isEmpty())
-    }
-
-    @Test
-    fun `rechaza cuando el equipo reporta agua anadida`() {
-        val evaluacion = EvaluadorCalidad.evaluar(
-            LecturaCalidad(temperatura = 6.0, grasa = 3.5, aguaAnadida = 2.0),
-        )
-        assertEquals(EstadoControlCalidad.RECHAZADO, evaluacion.estado)
-        assertTrue(evaluacion.alertas.any { it.contains("agua añadida", ignoreCase = true) })
-    }
 }

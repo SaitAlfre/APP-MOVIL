@@ -1,162 +1,122 @@
 package pe.ecolecta.presentation.admin.proveedores
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.ecolecta.domain.model.EstadoProveedor
-import pe.ecolecta.presentation.design.BarraSuperior
-import pe.ecolecta.presentation.design.Banner
-import pe.ecolecta.presentation.design.BotonPrimario
-import pe.ecolecta.presentation.design.CampoTexto
-import pe.ecolecta.presentation.design.ChipSeleccionable
-import pe.ecolecta.presentation.design.Colores
-import pe.ecolecta.presentation.design.Espaciado
-import pe.ecolecta.presentation.design.Tarjeta
-import pe.ecolecta.presentation.design.TipoBanner
+import pe.ecolecta.presentation.admin.design.AdminBoton
+import pe.ecolecta.presentation.admin.design.AdminBotonChico
+import pe.ecolecta.presentation.admin.design.AdminCampo
+import pe.ecolecta.presentation.admin.design.AdminCard
+import pe.ecolecta.presentation.admin.design.AdminChip
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminMensaje
+import pe.ecolecta.presentation.admin.design.AdminSeccion
+import pe.ecolecta.presentation.admin.design.AdminTexto
+import pe.ecolecta.presentation.admin.design.AdminTopBar
 
 @Composable
 fun ProveedorFormScreen(
     id: String?,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
+    alCuenta: (usuarioId: String?, fichaId: String) -> Unit = { _, _ -> },
     viewModel: ProveedorFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
 ) {
-    val estado by viewModel.uiState.collectAsState()
+    val s by viewModel.uiState.collectAsState()
+    LaunchedEffect(s.guardado) { if (s.guardado) alGuardar() }
 
-    LaunchedEffect(estado.guardadoExitoso) { if (estado.guardadoExitoso) alGuardar() }
-
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        BarraSuperior(if (estado.esEdicion) "Editar proveedor" else "Nuevo proveedor", alVolver = alVolver)
-        Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.m)) {
-            Tarjeta {
-                Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                    CampoTexto(
-                        estado.codigo,
-                        { viewModel.onEvent(ProveedorFormUiEvent.CodigoCambia(it)) },
-                        "Código",
-                        soloLectura = estado.esEdicion,
-                        iconoInicial = Icons.Filled.Badge,
-                    )
-                    CampoTexto(
-                        estado.nombres,
-                        { viewModel.onEvent(ProveedorFormUiEvent.NombresCambia(it)) },
-                        "Nombre del proveedor o finca",
-                        iconoInicial = Icons.Filled.Person,
-                    )
-                    CampoTexto(estado.dueno, { viewModel.onEvent(ProveedorFormUiEvent.DuenoCambia(it)) }, "Propietario o responsable (opcional)")
-                    CampoTexto(estado.dni, { viewModel.onEvent(ProveedorFormUiEvent.DniCambia(it)) }, "DNI", iconoInicial = Icons.Filled.Badge)
-                    CampoTexto(
-                        estado.telefono,
-                        { viewModel.onEvent(ProveedorFormUiEvent.TelefonoCambia(it)) },
-                        "Teléfono",
-                        iconoInicial = Icons.Filled.Phone,
-                    )
-                    CampoTexto(
-                        estado.direccion,
-                        { viewModel.onEvent(ProveedorFormUiEvent.DireccionCambia(it)) },
-                        "Dirección",
-                        iconoInicial = Icons.Filled.Home,
-                    )
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar(if (s.esEdicion) "Editar ficha" else "Nuevo proveedor", if (s.esEdicion) s.codigo else "Proveedores", alVolver = alVolver)
+        Column(
+            Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            AdminSeccion("Identificación")
+            AdminCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AdminCampo(s.codigo, viewModel::codigo, "Código", marcador = "Ej: PRV-FAON-04", soloLectura = s.esEdicion,
+                        ayuda = if (s.esEdicion) "El código no se cambia: identifica las entregas y el QR." else null)
+                    AdminCampo(s.nombres, viewModel::nombres, "Proveedor o finca", marcador = "Ej: Finca El Rosal")
+                    AdminCampo(s.dueno, viewModel::dueno, "Propietario o responsable (opcional)")
+                    AdminCampo(s.dni, viewModel::dni, "DNI o RUC", teclado = KeyboardType.Number)
+                    AdminCampo(s.telefono, viewModel::telefono, "Teléfono (opcional)", teclado = KeyboardType.Phone)
+                    AdminCampo(s.direccion, viewModel::direccion, "Dirección o referencia (opcional)")
                 }
             }
 
-            Tarjeta {
-                Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                    Text("Zona", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                        items(estado.zonas, key = { it.id }) { zona ->
-                            ChipSeleccionable(zona.nombre, zona.id == estado.zonaId) {
-                                viewModel.onEvent(ProveedorFormUiEvent.ZonaCambia(zona.id))
-                            }
-                        }
+            AdminSeccion("Zona y capacidad")
+            AdminCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AdminTexto("Zona de acopio", 13, peso = FontWeight.SemiBold)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(s.zonas, key = { it.id }) { z -> AdminChip(z.nombre, s.zonaId == z.id) { viewModel.zona(z.id) } }
+                    }
+                    if (s.esEdicion) AdminTexto("Para mover al proveedor de ruta con trazabilidad, usa Traslados.", 11, AdminColor.gris)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        AdminCampo(s.tachos, viewModel::tachos, "Tachos", Modifier.weight(1f), teclado = KeyboardType.Number)
+                        AdminCampo(s.capacidadTachoL, viewModel::capacidad, "Litros por tacho", Modifier.weight(1f), teclado = KeyboardType.Decimal)
                     }
                 }
             }
 
-            Tarjeta {
-                Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                    CampoTexto(
-                        estado.tachos,
-                        { viewModel.onEvent(ProveedorFormUiEvent.TachosCambia(it)) },
-                        "Cantidad de tachos",
-                        iconoInicial = Icons.Filled.Inventory2,
-                    )
-                    CampoTexto(
-                        estado.capacidadTachoL,
-                        { viewModel.onEvent(ProveedorFormUiEvent.CapacidadCambia(it)) },
-                        "Capacidad por tacho (L)",
-                        error = estado.error,
-                    )
-                }
-            }
-
-            if (estado.esEdicion) {
-                Tarjeta {
-                    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                        Text("Estado", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                            items(EstadoProveedor.entries) { valor ->
-                                ChipSeleccionable(valor.name, valor == estado.estado) {
-                                    viewModel.onEvent(ProveedorFormUiEvent.EstadoCambia(valor))
-                                }
-                            }
+            if (s.esEdicion) {
+                AdminSeccion("Estado")
+                AdminCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(EstadoProveedor.entries) { e -> AdminChip(e.etiqueta(), s.estado == e, e.color()) { viewModel.estado(e) } }
                         }
-                    }
-                }
-
-                Tarjeta {
-                    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                        Text("Cuenta de acceso (rol PROVEEDOR)", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                        Text(
-                            "Vincula el usuario con el que este proveedor inicia sesión para ver su perfil y sus entregas.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Colores.textSecundario,
+                        AdminTexto(
+                            when (s.estado) {
+                                EstadoProveedor.ACTIVO -> "Aparece en la ruta del acopiador y puede entregar leche."
+                                EstadoProveedor.SUSPENDIDO -> "No aparece en la ruta; sus datos y su historial se conservan."
+                                EstadoProveedor.RETIRADO -> "Baja definitiva: deja de contar en la zona. El historial se conserva."
+                            },
+                            12, AdminColor.gris,
                         )
-                        if (estado.usuariosProveedor.isEmpty()) {
-                            Text(
-                                "No hay usuarios con rol PROVEEDOR creados todavía. Créalo primero en Usuarios.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Colores.textSecundario,
-                            )
-                        } else {
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                                items(estado.usuariosProveedor, key = { it.id }) { usuario ->
-                                    ChipSeleccionable(usuario.username, usuario.id == estado.usuarioIdVinculado) {
-                                        viewModel.onEvent(ProveedorFormUiEvent.VincularUsuario(usuario.id))
-                                    }
-                                }
-                            }
-                        }
-                        val errorVinculacion = estado.errorVinculacion
-                        if (errorVinculacion != null) {
-                            Banner(errorVinculacion, TipoBanner.ERROR)
-                        }
+                    }
+                }
+
+                AdminSeccion("Cuenta de acceso al portal")
+                AdminCard {
+                    val cuenta = s.cuenta
+                    if (cuenta == null) {
+                        AdminTexto("Esta ficha no tiene cuenta: el proveedor no puede ver sus entregas, calidad ni pagos.", 13, AdminColor.ambarTexto)
+                        Spacer(Modifier.height(10.dp))
+                        AdminBotonChico("Crear cuenta de acceso", AdminColor.blanco, AdminColor.azul, { alCuenta(null, id!!) })
+                    } else {
+                        AdminTexto("@${cuenta.username} · ${cuenta.nombres}", 14, peso = FontWeight.Bold)
+                        AdminTexto(if (cuenta.activo) "Cuenta activa" else "Cuenta inactiva", 12, if (cuenta.activo) AdminColor.verde else AdminColor.rojo)
+                        Spacer(Modifier.height(10.dp))
+                        AdminBotonChico("Gestionar cuenta", AdminColor.blanco, AdminColor.azul, { alCuenta(cuenta.id, id!!) })
                     }
                 }
             }
 
-            BotonPrimario("Guardar", { viewModel.onEvent(ProveedorFormUiEvent.Guardar) }, habilitado = estado.puedeGuardar && !estado.cargando)
+            s.error?.let { AdminMensaje(it, true, {}) }
+            AdminBoton(if (s.guardando) "Guardando…" else if (s.esEdicion) "Guardar cambios" else "Registrar proveedor", viewModel::guardar, habilitado = !s.guardando)
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

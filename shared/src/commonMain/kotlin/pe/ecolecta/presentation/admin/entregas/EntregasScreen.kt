@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.entregas
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +28,6 @@ import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.ChipSeleccionable
 import pe.ecolecta.presentation.design.Colores
-import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
@@ -36,6 +38,7 @@ import pe.ecolecta.presentation.design.formatearLitros
 @Composable
 fun EntregasScreen(
     alVerDetalle: (String) -> Unit,
+    alVolver: () -> Unit = {},
     viewModel: EntregasViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -44,8 +47,8 @@ fun EntregasScreen(
     // cambie ni la lista ni el filtro.
     val entregasFiltradas = remember(estado.entregas, estado.filtroSyncState) { estado.entregasFiltradas }
 
-    Column(Modifier.fillMaxSize()) {
-        EncabezadoSeccion("Entregas", subtitulo = "${entregasFiltradas.size} registradas")
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Entregas", subtitulo = "${entregasFiltradas.size} registradas", alVolver = alVolver)
         Row(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                 item { ChipSeleccionable("Todas", estado.filtroSyncState == null) { viewModel.filtrarPorEstado(null) } }

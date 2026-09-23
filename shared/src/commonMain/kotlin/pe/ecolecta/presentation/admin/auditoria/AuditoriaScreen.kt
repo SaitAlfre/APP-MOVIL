@@ -1,5 +1,8 @@
 package pe.ecolecta.presentation.admin.auditoria
 
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +23,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.presentation.design.ChipEstado
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.DivisorSutil
-import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
@@ -28,11 +30,11 @@ import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.formatearFechaHora
 
 @Composable
-fun AuditoriaScreen(viewModel: AuditoriaViewModel = koinViewModel()) {
+fun AuditoriaScreen(alVolver: () -> Unit = {}, viewModel: AuditoriaViewModel = koinViewModel()) {
     val estado by viewModel.uiState.collectAsState()
 
-    Column(Modifier.fillMaxSize()) {
-        EncabezadoSeccion("Auditoría", subtitulo = "Historial de acciones sobre el sistema")
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Auditoría", subtitulo = "Historial de acciones sobre el sistema", alVolver = alVolver)
         if (estado.cargando) {
             IndicadorCarga()
         } else if (estado.error != null) {

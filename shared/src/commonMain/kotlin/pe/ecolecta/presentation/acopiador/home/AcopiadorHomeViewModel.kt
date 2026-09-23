@@ -21,12 +21,16 @@ import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.entrega.AnularEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.CorregirEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ObservarEntregasDeJornadaUseCase
+import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
 import pe.ecolecta.domain.usecase.seguimiento.DetenerSeguimientoUseCase
 import pe.ecolecta.domain.usecase.seguimiento.IniciarSeguimientoUseCase
 import pe.ecolecta.domain.usecase.seguimiento.ObtenerEstadoSeguimientoUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
+import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
+import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
+import pe.ecolecta.presentation.design.formatearHora
 
 class AcopiadorHomeViewModel(
     private val obtenerJornadaEnCursoUseCase: ObtenerJornadaEnCursoUseCase,
@@ -39,6 +43,9 @@ class AcopiadorHomeViewModel(
     private val iniciarSeguimientoUseCase: IniciarSeguimientoUseCase,
     private val detenerSeguimientoUseCase: DetenerSeguimientoUseCase,
     private val obtenerEstadoSeguimientoUseCase: ObtenerEstadoSeguimientoUseCase,
+    private val listarZonasUseCase: ListarZonasUseCase,
+    private val listarVehiculosUseCase: ListarVehiculosUseCase,
+    private val cerrarJornadaUseCase: CerrarJornadaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AcopiadorHomeUiState())
     val uiState: StateFlow<AcopiadorHomeUiState> = _uiState.asStateFlow()
@@ -48,7 +55,8 @@ class AcopiadorHomeViewModel(
 
     init {
         viewModelScope.launch {
-            val usuarioId = obtenerSesionUseCase().first()?.usuario?.id
+            val sesion = obtenerSesionUseCase().first()
+            val usuarioId = sesion?.usuario?.id
             usuarioIdActual = usuarioId
 
             obtenerJornadaEnCursoUseCase()
@@ -65,14 +73,22 @@ class AcopiadorHomeViewModel(
                 }
                 .collect { (entregas, proveedores, jornadaAbierta) ->
                     val pendientes = usuarioId?.let { obtenerColaSyncUseCase(it).pendientes } ?: 0
+                    val jornada = jornadaActual
+                    val zonaNombre = jornada?.let { j -> listarZonasUseCase().first().firstOrNull { it.id == j.zonaId }?.nombre }.orEmpty()
+                    val vehiculo = jornada?.let { j -> listarVehiculosUseCase().first().firstOrNull { it.id == j.vehiculoId } }
                     _uiState.update {
                         it.copy(
                             cargando = false,
+                            nombreUsuario = sesion?.usuario?.nombres.orEmpty(),
+                            zonaNombre = zonaNombre,
+                            vehiculoInfo = vehiculo?.let { v -> "${v.nombre} · ${v.placa}" }.orEmpty(),
+                            horaInicio = jornada?.let { j -> formatearHora(j.abiertaEn) }.orEmpty(),
                             litrosHoy = entregas.filterNot(Entrega::anulada).sumOf(Entrega::litros),
                             entregasHoy = entregas.count { e -> !e.anulada },
                             pendientesSync = pendientes,
-                            ultimasEntregas = entregas.sortedByDescending(Entrega::registradoEn).take(10),
+                            entregas = entregas,
                             proveedores = proveedores,
+                            jornadaId = jornada?.id,
                             jornadaAbierta = jornadaAbierta,
                         )
                     }
@@ -121,4 +137,30 @@ class AcopiadorHomeViewModel(
     fun descartarAvisoPermiso() {
         _uiState.update { it.copy(mostrarAvisoPermisoDenegado = false) }
     }
+
+    /** Siempre pide confirmación, haya o no pendientes por sincronizar: es una acción que cierra el día. */
+    fun solicitarCierreJornada() {
+        if (_uiState.value.jornadaId == null) return
+        _uiState.update { it.copy(mostrarConfirmacionCierreJornada = true) }
+    }
+
+    fun confirmarCierreJornada() {
+        val jornadaId = _uiState.value.jornadaId ?: return
+        _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false, cerrandoJornada = true, errorCierreJornada = null) }
+        viewModelScope.launch {
+            cerrarJornadaUseCase(jornadaId).fold(
+                onSuccess = { _uiState.update { it.copy(cerrandoJornada = false) } },
+                onFailure = { error ->
+                    // La jornada sigue abierta: el use case no la marca cerrada si esto falla.
+                    _uiState.update {
+                        it.copy(cerrandoJornada = false, errorCierreJornada = error.message ?: "No se pudo cerrar la jornada.")
+                    }
+                },
+            )
+        }
+    }
+
+    fun cancelarCierreJornada() = _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false) }
+
+    fun descartarErrorCierreJornada() = _uiState.update { it.copy(errorCierreJornada = null) }
 }

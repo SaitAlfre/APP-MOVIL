@@ -30,3 +30,6 @@ SELECT * FROM zona WHERE id = :id;
 
 contarProveedoresEnZona:
 SELECT COUNT(*) FROM proveedor WHERE zona_id = :id AND estado != 'RETIRADO';
+
+existeNombre:
+SELECT COUNT(*) FROM zona WHERE UPPER(nombre) = UPPER(:nombre) AND id != :idExcluido;

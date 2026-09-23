@@ -1,0 +1,10 @@
+-- La app móvil queda con cuatro perfiles: ADMIN, ACOPIADOR, CALIDAD y PROVEEDOR.
+DELETE FROM usuario_rol WHERE rol NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
+DELETE FROM sesion_activa WHERE rol_activo NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
+
+CREATE INDEX IF NOT EXISTS entrega_registrado_en_idx ON entrega(registrado_en);
+CREATE INDEX IF NOT EXISTS portal_proveedor_proveedor_idx ON portal_proveedor(proveedor_id);
+CREATE INDEX IF NOT EXISTS portal_proveedor_tipo_idx ON portal_proveedor(tipo);
+CREATE INDEX IF NOT EXISTS jornada_fecha_idx ON jornada(fecha);
+CREATE INDEX IF NOT EXISTS jornada_usuario_idx ON jornada(usuario_id);
+CREATE INDEX IF NOT EXISTS usuario_rol_rol_idx ON usuario_rol(rol);

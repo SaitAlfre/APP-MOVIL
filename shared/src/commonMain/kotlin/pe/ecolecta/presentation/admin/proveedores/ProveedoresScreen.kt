@@ -1,117 +1,113 @@
 package pe.ecolecta.presentation.admin.proveedores
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.EstadoProveedor
-import pe.ecolecta.presentation.design.Banner
-import pe.ecolecta.presentation.design.BotonAccion
-import pe.ecolecta.presentation.design.CampoTexto
-import pe.ecolecta.presentation.design.ChipEstado
-import pe.ecolecta.presentation.design.ChipSeleccionable
-import pe.ecolecta.presentation.design.Colores
-import pe.ecolecta.presentation.design.EncabezadoSeccion
-import pe.ecolecta.presentation.design.Espaciado
-import pe.ecolecta.presentation.design.EstadoVacio
-import pe.ecolecta.presentation.design.IndicadorCarga
-import pe.ecolecta.presentation.design.Tarjeta
-import pe.ecolecta.presentation.design.TipoBanner
+import pe.ecolecta.presentation.admin.design.AdminBuscador
+import pe.ecolecta.presentation.admin.design.AdminCard
+import pe.ecolecta.presentation.admin.design.AdminCargando
+import pe.ecolecta.presentation.admin.design.AdminChip
+import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminMensaje
+import pe.ecolecta.presentation.admin.design.AdminTexto
+import pe.ecolecta.presentation.admin.design.AdminTopBar
+import pe.ecolecta.presentation.admin.design.AdminVacio
+import pe.ecolecta.presentation.admin.design.cifra
 
 @Composable
 fun ProveedoresScreen(
     alCrear: () -> Unit,
     alEditar: (String) -> Unit,
+    alVolver: () -> Unit = {},
     viewModel: ProveedoresViewModel = koinViewModel(),
 ) {
-    val estado by viewModel.uiState.collectAsState()
-    val proveedoresFiltrados = remember(estado.proveedores, estado.filtroTexto, estado.filtroZonaId, estado.filtroEstado) {
-        estado.proveedoresFiltrados
-    }
-
-    Column(Modifier.fillMaxSize()) {
-        EncabezadoSeccion(
-            "Proveedores",
-            subtitulo = "${proveedoresFiltrados.size} de ${estado.proveedores.size} proveedores",
-            accion = { BotonAccion("Nuevo", alCrear, icono = Icons.Filled.Add) },
-        )
-        estado.error?.let {
-            Column(Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs)) { Banner(it, TipoBanner.ERROR) }
+    val s by viewModel.uiState.collectAsState()
+    Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
+        AdminTopBar("Proveedores", "${s.visibles.size} de ${s.filas.size} fichas", alVolver = alVolver) {
+            IconButton(onClick = alCrear) { Icon(Icons.Filled.Add, contentDescription = "Nuevo proveedor", tint = AdminColor.verde) }
         }
-        Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-            CampoTexto(
-                estado.filtroTexto,
-                { viewModel.onEvent(ProveedoresUiEvent.FiltroTextoCambia(it)) },
-                "Buscar por código, nombre o DNI",
-            )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                item { ChipSeleccionable("Todas", estado.filtroZonaId == null) { viewModel.onEvent(ProveedoresUiEvent.FiltroZonaCambia(null)) } }
-                items(estado.zonas, key = { it.id }) { zona ->
-                    ChipSeleccionable(zona.nombre, estado.filtroZonaId == zona.id) {
-                        viewModel.onEvent(ProveedoresUiEvent.FiltroZonaCambia(zona.id))
-                    }
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item { AdminBuscador(s.texto, viewModel::buscar, "Buscar por código, nombre, DNI o responsable") }
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item { AdminChip("Todas las zonas", s.zonaId == null) { viewModel.zona(null) } }
+                    items(s.zonas, key = { it.id }) { z -> AdminChip(z.nombre, s.zonaId == z.id) { viewModel.zona(z.id) } }
                 }
             }
-        }
-        if (estado.cargando) {
-            IndicadorCarga()
-        } else if (proveedoresFiltrados.isEmpty()) {
-            EstadoVacio(
-                titulo = "No hay proveedores que coincidan",
-                descripcion = "Ajusta la búsqueda/filtro o registra un nuevo proveedor.",
-                icono = Icons.Filled.Storefront,
-                textoAccion = "Crear proveedor",
-                alPresionarAccion = alCrear,
-            )
-        } else {
-            LazyColumn(
-                Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.m),
-                verticalArrangement = Arrangement.spacedBy(Espaciado.s),
-            ) {
-                items(proveedoresFiltrados, key = { it.id }) { proveedor ->
-                    Tarjeta(onClick = { alEditar(proveedor.id) }) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item { AdminChip("Todos", s.estado == null, AdminColor.gris) { viewModel.estado(null) } }
+                    items(EstadoProveedor.entries) { e -> AdminChip(e.etiqueta(), s.estado == e, e.color()) { viewModel.estado(e) } }
+                    item { AdminChip("Sin cuenta", s.sinCuenta, AdminColor.ambarTexto, s.filas.count { it.cuenta == null }) { viewModel.sinCuenta(!s.sinCuenta) } }
+                }
+            }
+            s.error?.let { item { AdminMensaje(it, true, {}) } }
+            when {
+                s.cargando -> item { AdminCargando() }
+                s.visibles.isEmpty() -> item { AdminVacio("Sin fichas para estos filtros", "Cambia los filtros o registra un proveedor con el botón +.") }
+                else -> items(s.visibles, key = { it.proveedor.id }) { f ->
+                    val p = f.proveedor
+                    AdminCard(onClick = { alEditar(p.id) }, radio = 14, padding = 14) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text(
-                                    "${proveedor.codigo} · ${proveedor.nombres}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Colores.textPrimary,
-                                )
-                                Text(
-                                    "${estado.nombreZona(proveedor.zonaId)} · ${proveedor.tachos} tachos · ${proveedor.capacidadTotalL} L",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Colores.textSecundario,
-                                )
+                                AdminTexto(p.nombres, 15, peso = FontWeight.Bold, maxLineas = 1)
+                                AdminTexto("${p.codigo} · ${f.zona}", 12, AdminColor.gris, maxLineas = 1)
                             }
-                            ChipEstado(
-                                proveedor.estado.name,
-                                when (proveedor.estado) {
-                                    EstadoProveedor.ACTIVO -> Colores.exito
-                                    EstadoProveedor.SUSPENDIDO -> Colores.advertencia
-                                    EstadoProveedor.RETIRADO -> Colores.peligro
-                                },
-                            )
+                            pe.ecolecta.presentation.admin.design.AdminEtiqueta(p.estado.etiqueta(), p.estado.color(), p.estado.color().copy(alpha = 0.12f))
                         }
+                        AdminTexto(
+                            "${p.tachos} tachos · ${cifra(p.capacidadTotalL)} L" + (p.dueno?.let { " · Resp. $it" } ?: ""),
+                            12, AdminColor.gris, modifier = Modifier.padding(top = 6.dp), maxLineas = 1,
+                        )
+                        AdminTexto(
+                            when {
+                                f.cuenta == null -> "⚠ Sin cuenta de acceso al portal"
+                                f.cuentaActiva -> "Cuenta @${f.cuenta}"
+                                else -> "Cuenta @${f.cuenta} (inactiva)"
+                            },
+                            12, if (f.cuenta == null || !f.cuentaActiva) AdminColor.ambarTexto else AdminColor.azul, FontWeight.SemiBold,
+                            Modifier.padding(top = 4.dp),
+                        )
                     }
                 }
             }
         }
     }
+}
+
+fun EstadoProveedor.etiqueta() = when (this) {
+    EstadoProveedor.ACTIVO -> "Activo"
+    EstadoProveedor.SUSPENDIDO -> "Suspendido"
+    EstadoProveedor.RETIRADO -> "Retirado"
+}
+
+fun EstadoProveedor.color() = when (this) {
+    EstadoProveedor.ACTIVO -> AdminColor.verde
+    EstadoProveedor.SUSPENDIDO -> AdminColor.ambarTexto
+    EstadoProveedor.RETIRADO -> AdminColor.rojo
 }

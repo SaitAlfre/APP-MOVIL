@@ -47,6 +47,7 @@ import pe.ecolecta.presentation.navegacion.Pantalla
                     TextoProveedor(s.pagoSemana?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Pendiente de publicación", 12, ProveedorGris)
                 }
             }
+            ComunicadosProveedor()
             TarjetaProveedor(color = Color(0xFFE8F4EC)) {
                 TextoProveedor("INFORMACIÓN", 11, ProveedorVerde, true)
                 TextoProveedor("Tu semana de acopio", 14, bold = true)
@@ -136,4 +137,17 @@ import pe.ecolecta.presentation.navegacion.Pantalla
         }
     }
     if(cerrar) AlertDialog(onDismissRequest = { cerrar = false }, title = { Text("Cerrar sesión") }, text = { Text("Tus solicitudes guardadas se conservarán en este dispositivo.") }, confirmButton = { TextButton(onClick = vm::cerrarSesion) { Text("Cerrar sesión") } }, dismissButton = { TextButton(onClick = { cerrar = false }) { Text("Cancelar") } })
+}
+
+/** Avisos publicados por el administrador (Reportes → Publicar aviso); se muestran los dos más recientes. */
+@Composable private fun ComunicadosProveedor() {
+    val repositorio = org.koin.compose.koinInject<pe.ecolecta.domain.repository.ComunicadoRepository>()
+    val comunicados by remember(repositorio) { repositorio.observarTodos() }.collectAsState(emptyList())
+    comunicados.take(2).forEach { c ->
+        TarjetaProveedor(color = Color(0xFFFFF8E7)) {
+            TextoProveedor("📢 COMUNICADO", 11, Color(0xFF9C720A), true)
+            TextoProveedor(c.mensaje, 14)
+            TextoProveedor(fechaProveedor(c.publicadoEn), 11, ProveedorGris)
+        }
+    }
 }

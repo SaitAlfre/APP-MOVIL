@@ -70,24 +70,12 @@ import pe.ecolecta.domain.usecase.jornada.ReanudarJornadaSiExisteUseCase
 import pe.ecolecta.domain.usecase.proveedor.ActualizarProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.CrearProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.EscanearQrProveedorUseCase
-import pe.ecolecta.domain.usecase.proveedor.FiltrarMisEntregasUseCase
-import pe.ecolecta.domain.usecase.proveedor.ListarMisEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
-import pe.ecolecta.domain.usecase.proveedor.LoginProveedorUseCase
-import pe.ecolecta.domain.usecase.proveedor.ObtenerDetalleEntregaUseCase
-import pe.ecolecta.domain.usecase.proveedor.ObtenerEstadoSincronizacionUseCase
-import pe.ecolecta.domain.usecase.proveedor.ObtenerHistorialProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorAsociadoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaAcopioUseCase
-import pe.ecolecta.domain.usecase.proveedor.GuardarRutaCacheUseCase
-import pe.ecolecta.domain.usecase.proveedor.ObtenerResumenEntregasUseCase
-import pe.ecolecta.domain.usecase.proveedor.ObtenerRutaCacheUseCase
-import pe.ecolecta.domain.usecase.proveedor.RetirarProveedorUseCase
-import pe.ecolecta.domain.usecase.proveedor.SincronizarDatosProveedorUseCase
-import pe.ecolecta.domain.usecase.proveedor.VincularUsuarioProveedorUseCase
 import pe.ecolecta.domain.usecase.seguimiento.DetenerSeguimientoUseCase
 import pe.ecolecta.domain.usecase.seguimiento.GuardarUbicacionLocalUseCase
 import pe.ecolecta.domain.usecase.seguimiento.IniciarSeguimientoUseCase
@@ -103,23 +91,16 @@ import pe.ecolecta.domain.usecase.traslado.AutorizarTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.CrearTrasladoUseCase
 import pe.ecolecta.domain.usecase.traslado.ListarTrasladosUseCase
 import pe.ecolecta.domain.usecase.traslado.RechazarTrasladoUseCase
-import pe.ecolecta.domain.usecase.usuario.ActualizarUsuarioCompletoUseCase
-import pe.ecolecta.domain.usecase.usuario.ActualizarUsuarioUseCase
-import pe.ecolecta.domain.usecase.usuario.AsignarRolUseCase
 import pe.ecolecta.domain.usecase.usuario.CambiarPinUsuarioUseCase
 import pe.ecolecta.domain.usecase.usuario.CrearUsuarioUseCase
-import pe.ecolecta.domain.usecase.usuario.DesactivarUsuarioUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.usuario.ObtenerUsuarioUseCase
-import pe.ecolecta.domain.usecase.usuario.QuitarRolUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ActualizarVehiculoUseCase
 import pe.ecolecta.domain.usecase.vehiculo.CrearVehiculoUseCase
-import pe.ecolecta.domain.usecase.vehiculo.DesactivarVehiculoUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ObtenerVehiculoUseCase
 import pe.ecolecta.domain.usecase.zona.ActualizarZonaUseCase
 import pe.ecolecta.domain.usecase.zona.CrearZonaUseCase
-import pe.ecolecta.domain.usecase.zona.DesactivarZonaUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 import pe.ecolecta.domain.usecase.zona.ObtenerZonaUseCase
 import pe.ecolecta.presentation.admin.auditoria.AuditoriaViewModel
@@ -138,19 +119,16 @@ import pe.ecolecta.presentation.admin.vehiculos.VehiculoFormViewModel
 import pe.ecolecta.presentation.admin.vehiculos.VehiculosViewModel
 import pe.ecolecta.presentation.admin.zonas.ZonaFormViewModel
 import pe.ecolecta.presentation.admin.zonas.ZonasViewModel
+import pe.ecolecta.presentation.acopiador.entregas.EntregasDelDiaViewModel
 import pe.ecolecta.presentation.acopiador.home.AcopiadorHomeViewModel
 import pe.ecolecta.presentation.acopiador.lista.ListaProveedoresViewModel
 import pe.ecolecta.presentation.acopiador.lote.LoteViewModel
+import pe.ecolecta.presentation.acopiador.nav.AcopiadorBadgeViewModel
 import pe.ecolecta.presentation.acopiador.onboarding.SeleccionZonaVehiculoViewModel
 import pe.ecolecta.presentation.acopiador.perfil.PerfilViewModel
 import pe.ecolecta.presentation.acopiador.qr.EscanearQrViewModel
 import pe.ecolecta.presentation.acopiador.registro.RegistroEntregaViewModel
 import pe.ecolecta.presentation.acopiador.sincronizacion.SincronizacionViewModel
-import pe.ecolecta.presentation.proveedor.detalle.DetalleEntregaProveedorViewModel
-import pe.ecolecta.presentation.proveedor.entregas.MisEntregasViewModel
-import pe.ecolecta.presentation.proveedor.home.ProveedorHomeViewModel
-import pe.ecolecta.presentation.proveedor.perfil.PerfilProveedorViewModel
-import pe.ecolecta.presentation.proveedor.qr.MiQrProveedorViewModel
 import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioViewModel
 import pe.ecolecta.presentation.auth.LoginViewModel
 import pe.ecolecta.presentation.auth.SeleccionRolViewModel
@@ -178,6 +156,10 @@ val dataModule = module {
     single<UbicacionAcopiadorLocalRepository> { SqlDelightUbicacionAcopiadorLocalRepository(get(), Dispatchers.Default) }
     single<RutaProveedorCacheRepository> { SqlDelightRutaProveedorCacheRepository(get(), Dispatchers.Default) }
     single<EstadoSeguimientoRepository> { InMemoryEstadoSeguimientoRepository() }
+    single<pe.ecolecta.domain.repository.CuentasRepository> { pe.ecolecta.data.repository.SqlDelightCuentasRepository(get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.GestionPortalRepository> { pe.ecolecta.data.repository.SqlDelightGestionPortalRepository(get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.ComunicadoRepository> { pe.ecolecta.data.repository.SqlDelightComunicadoRepository(get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.AlertaDescartadaRepository> { pe.ecolecta.data.repository.SqlDelightAlertaDescartadaRepository(get(), Dispatchers.Default) }
     single<AvisoRemotoPendienteRepository> { SqlDelightAvisoRemotoPendienteRepository(get(), Dispatchers.Default) }
     // RutaAcopioRepository e IdentidadRemotaProvider se registran por plataforma (EcolectaApp.kt /
     // KoinIOS.kt): Firebase es Android-only en esta versión, nunca en el módulo común.
@@ -193,48 +175,33 @@ val domainModule = module {
     factory { ObtenerSesionUseCase(get()) }
 
     factory { CrearUsuarioUseCase(get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.usuario.ReglasCuenta(get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.usuario.GuardarCuentaUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.usuario.CambiarEstadoCuentaUseCase(get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.usuario.DesbloquearCuentaUseCase(get(), get()) }
     factory { ListarUsuariosUseCase(get()) }
     factory { ObtenerUsuarioUseCase(get()) }
-    factory { ActualizarUsuarioUseCase(get(), get()) }
-    factory { ActualizarUsuarioCompletoUseCase(get(), get(), get()) }
     factory { CambiarPinUsuarioUseCase(get(), get(), get()) }
-    factory { DesactivarUsuarioUseCase(get(), get()) }
-    factory { AsignarRolUseCase(get()) }
-    factory { QuitarRolUseCase(get()) }
 
-    factory { CrearZonaUseCase(get()) }
+    factory { CrearZonaUseCase(get(), get()) }
     factory { ListarZonasUseCase(get()) }
     factory { ObtenerZonaUseCase(get()) }
-    factory { ActualizarZonaUseCase(get()) }
-    factory { DesactivarZonaUseCase(get()) }
+    factory { ActualizarZonaUseCase(get(), get(), get()) }
 
     factory { CrearVehiculoUseCase(get()) }
     factory { ListarVehiculosUseCase(get()) }
     factory { ObtenerVehiculoUseCase(get()) }
-    factory { ActualizarVehiculoUseCase(get()) }
-    factory { DesactivarVehiculoUseCase(get()) }
+    factory { ActualizarVehiculoUseCase(get(), get()) }
 
     factory { CrearProveedorUseCase(get(), get()) }
     factory { ListarProveedoresUseCase(get()) }
     factory { ListarProveedoresPorZonaUseCase(get()) }
     factory { ObtenerProveedorUseCase(get()) }
     factory { ActualizarProveedorUseCase(get(), get()) }
-    factory { RetirarProveedorUseCase(get(), get()) }
-    factory { VincularUsuarioProveedorUseCase(get(), get()) }
 
     factory { EscanearQrProveedorUseCase(get()) }
     factory { ObtenerProveedorAsociadoUseCase(get()) }
-    factory { LoginProveedorUseCase(get(), get(), get()) }
     factory { ObtenerPerfilProveedorUseCase(get()) }
-    factory { ListarMisEntregasUseCase(get()) }
-    factory { ObtenerDetalleEntregaUseCase(get()) }
-    factory { ObtenerResumenEntregasUseCase(get()) }
-    factory { FiltrarMisEntregasUseCase(get()) }
-    factory { ObtenerHistorialProveedorUseCase(get()) }
-    factory { ObtenerEstadoSincronizacionUseCase(get()) }
-    factory { SincronizarDatosProveedorUseCase() }
-    factory { GuardarRutaCacheUseCase(get()) }
-    factory { ObtenerRutaCacheUseCase(get()) }
 
     factory { CrearTrasladoUseCase(get(), get(), get()) }
     factory { ListarTrasladosUseCase(get()) }
@@ -264,6 +231,13 @@ val domainModule = module {
     factory { ListarAuditoriaUseCase(get()) }
 
     factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.ObservarAlertasAdminUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.OcultarAlertaUseCase(get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.ResolverSolicitudUseCase(get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.ObservarLiquidacionesUseCase(get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.AprobarLiquidacionUseCase(get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.MarcarLiquidacionPagadaUseCase(get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.PublicarComunicadoUseCase(get(), get()) }
     factory { ObtenerColaSyncUseCase(get()) }
 
     factory { GuardarUbicacionLocalUseCase(get()) }
@@ -294,43 +268,23 @@ val presentationModule = module {
         SeleccionRolViewModel(usuarioId = usuarioId, obtenerUsuarioUseCase = get(), seleccionarRolUseCase = get())
     }
 
-    viewModel { AdminDashboardViewModel(obtenerResumenAdminUseCase = get()) }
+    viewModel { AdminDashboardViewModel(obtenerResumenAdminUseCase = get(), observarLiquidaciones = get(), obtenerSesion = get()) }
+    viewModel { pe.ecolecta.presentation.admin.alertas.AdminAlertasViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { pe.ecolecta.presentation.admin.reportes.AdminReportesViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { pe.ecolecta.presentation.admin.perfil.AdminPerfilViewModel(get(), get()) }
     viewModel { pe.ecolecta.presentation.admin.supervision.AdminSupervisionViewModel(get(), get(), get(), get(), get()) }
 
-    viewModel { UsuariosViewModel(listarUsuariosUseCase = get(), desactivarUsuarioUseCase = get()) }
-    viewModel { (id: String?) ->
-        UsuarioFormViewModel(
-            id = id,
-            obtenerUsuarioUseCase = get(),
-            crearUsuarioUseCase = get(),
-            actualizarUsuarioCompletoUseCase = get(),
-        )
-    }
+    viewModel { UsuariosViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { (id: String?, fichaId: String?) -> UsuarioFormViewModel(id, fichaId, get(), get(), get(), get(), get(), get(), get(), get()) }
 
-    viewModel { ZonasViewModel(listarZonasUseCase = get(), desactivarZonaUseCase = get()) }
-    viewModel { (id: String?) ->
-        ZonaFormViewModel(id = id, obtenerZonaUseCase = get(), crearZonaUseCase = get(), actualizarZonaUseCase = get())
-    }
+    viewModel { ZonasViewModel(get(), get(), get(), get(), get()) }
+    viewModel { (id: String?) -> ZonaFormViewModel(id, get(), get(), get()) }
 
-    viewModel { VehiculosViewModel(listarVehiculosUseCase = get(), desactivarVehiculoUseCase = get()) }
-    viewModel { (id: String?) ->
-        VehiculoFormViewModel(id = id, obtenerVehiculoUseCase = get(), crearVehiculoUseCase = get(), actualizarVehiculoUseCase = get())
-    }
+    viewModel { VehiculosViewModel(get(), get(), get(), get()) }
+    viewModel { (id: String?) -> VehiculoFormViewModel(id, get(), get(), get()) }
 
-    viewModel {
-        ProveedoresViewModel(listarProveedoresUseCase = get(), listarZonasUseCase = get(), retirarProveedorUseCase = get())
-    }
-    viewModel { (id: String?) ->
-        ProveedorFormViewModel(
-            id = id,
-            obtenerProveedorUseCase = get(),
-            crearProveedorUseCase = get(),
-            actualizarProveedorUseCase = get(),
-            listarZonasUseCase = get(),
-            listarUsuariosUseCase = get(),
-            vincularUsuarioProveedorUseCase = get(),
-        )
-    }
+    viewModel { ProveedoresViewModel(get(), get(), get()) }
+    viewModel { (id: String?) -> ProveedorFormViewModel(id, get(), get(), get(), get(), get()) }
 
     viewModel {
         TrasladosViewModel(
@@ -347,9 +301,11 @@ val presentationModule = module {
     viewModel {
         JornadasViewModel(
             observarJornadasUseCase = get(),
+            observarEntregasUseCase = get(),
             listarUsuariosUseCase = get(),
             listarZonasUseCase = get(),
             listarVehiculosUseCase = get(),
+            reloj = get(),
         )
     }
     viewModel { (id: String) ->
@@ -391,6 +347,14 @@ val presentationModule = module {
             abrirJornadaUseCase = get(),
             obtenerSesionUseCase = get(),
             reloj = get(),
+            cuentas = get(),
+        )
+    }
+
+    viewModel {
+        AcopiadorBadgeViewModel(
+            obtenerSesionUseCase = get(),
+            obtenerColaSyncUseCase = get(),
         )
     }
 
@@ -406,6 +370,9 @@ val presentationModule = module {
             iniciarSeguimientoUseCase = get(),
             detenerSeguimientoUseCase = get(),
             obtenerEstadoSeguimientoUseCase = get(),
+            listarZonasUseCase = get(),
+            listarVehiculosUseCase = get(),
+            cerrarJornadaUseCase = get(),
         )
     }
 
@@ -417,6 +384,7 @@ val presentationModule = module {
             registrarEntregaUseCase = get(),
             corregirEntregaUseCase = get(),
             obtenerSesionUseCase = get(),
+            listarZonasUseCase = get(),
             proveedorIdPreseleccionado = proveedorIdPreseleccionado,
         )
     }
@@ -435,6 +403,14 @@ val presentationModule = module {
             listarProveedoresPorZonaUseCase = get(),
             registrarLoteUseCase = get(),
             obtenerSesionUseCase = get(),
+        )
+    }
+
+    viewModel {
+        EntregasDelDiaViewModel(
+            obtenerJornadaEnCursoUseCase = get(),
+            observarEntregasDeJornadaUseCase = get(),
+            listarProveedoresPorZonaUseCase = get(),
         )
     }
 
@@ -466,57 +442,7 @@ val presentationModule = module {
             cerrarSesionUseCase = get(),
             cerrarJornadaUseCase = get(),
             obtenerIdentidadRemotaUseCase = get(),
-        )
-    }
-
-    viewModel {
-        ProveedorHomeViewModel(
-            obtenerSesionUseCase = get(),
-            obtenerPerfilProveedorUseCase = get(),
-            listarMisEntregasUseCase = get(),
-            reloj = get(),
-        )
-    }
-
-    viewModel {
-        MisEntregasViewModel(
-            obtenerSesionUseCase = get(),
-            obtenerPerfilProveedorUseCase = get(),
-            obtenerHistorialProveedorUseCase = get(),
-            filtrarMisEntregasUseCase = get(),
-            obtenerResumenEntregasUseCase = get(),
-            reloj = get(),
-        )
-    }
-
-    viewModel { (id: String) ->
-        DetalleEntregaProveedorViewModel(
-            entregaId = id,
-            obtenerSesionUseCase = get(),
-            obtenerPerfilProveedorUseCase = get(),
-            obtenerDetalleEntregaUseCase = get(),
-            listarZonasUseCase = get(),
-            listarVehiculosUseCase = get(),
-            listarUsuariosUseCase = get(),
-        )
-    }
-
-    viewModel {
-        PerfilProveedorViewModel(
-            obtenerSesionUseCase = get(),
-            obtenerPerfilProveedorUseCase = get(),
-            listarZonasUseCase = get(),
-            obtenerEstadoSincronizacionUseCase = get(),
-            sincronizarDatosProveedorUseCase = get(),
-            cerrarSesionUseCase = get(),
-        )
-    }
-
-    viewModel {
-        MiQrProveedorViewModel(
-            obtenerSesionUseCase = get(),
-            obtenerPerfilProveedorUseCase = get(),
-            listarZonasUseCase = get(),
+            cambiarPinUsuarioUseCase = get(),
         )
     }
 

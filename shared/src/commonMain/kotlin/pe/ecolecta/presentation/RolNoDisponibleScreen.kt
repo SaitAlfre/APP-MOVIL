@@ -24,7 +24,7 @@ import pe.ecolecta.presentation.design.BotonSecundario
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.Espaciado
 
-/** CALIDAD, ASISTENTE, PRODUCCIÓN y DESPACHO no tienen módulo propio todavía (fuera del alcance de esta fase). */
+/** Cuenta con rol PROVEEDOR que el administrador aún no vinculó a una ficha de proveedor. */
 @Composable
 fun RolNoDisponibleScreen(alCerrarSesion: () -> Unit) {
     Box(Modifier.fillMaxSize().padding(Espaciado.xl), contentAlignment = Alignment.Center) {
@@ -40,13 +40,13 @@ fun RolNoDisponibleScreen(alCerrarSesion: () -> Unit) {
                 Icon(Icons.Filled.Construction, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.size(32.dp))
             }
             Text(
-                "Módulo no disponible",
+                "Cuenta sin ficha de proveedor",
                 style = MaterialTheme.typography.headlineSmall,
                 color = Colores.textPrimary,
                 textAlign = TextAlign.Center,
             )
             Text(
-                "Este rol todavía no tiene una pantalla propia en la app.",
+                "Tu cuenta todavía no está vinculada a una ficha de proveedor. Pide al administrador que la vincule en Usuarios y roles.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Colores.textSecundario,
                 textAlign = TextAlign.Center,

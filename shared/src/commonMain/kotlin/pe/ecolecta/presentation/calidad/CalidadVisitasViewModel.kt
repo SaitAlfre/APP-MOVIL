@@ -20,8 +20,8 @@ import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 import pe.ecolecta.presentation.design.formatearFecha
 
 enum class PasoCalidad(val titulo: String) {
-    INICIO("Control de calidad"), SELECCION("Zona y proveedor"), FORMULARIO("Resultados del análisis"),
-    GUARDADO("Análisis guardado"), HISTORIAL("Historial de análisis"), DETALLE("Detalle del análisis");
+    INICIO("Inicio"), INSPECCIONES("Inspecciones"), SELECCION("Zona y proveedor"), FORMULARIO("Nueva prueba LactoScan"),
+    GUARDADO("Análisis guardado"), HISTORIAL("Historial de controles"), DETALLE("Detalle del análisis"), PERFIL("Perfil");
     val esFormulario get() = this == FORMULARIO
 }
 
@@ -64,6 +64,7 @@ data class BorradorVisita(
     val origen: OrigenCaptura = OrigenCaptura.MANUAL,
     val textoOcr: String? = null,
     val dudosos: Set<String> = emptySet(),
+    val observaciones: String = "",
 ) {
     fun numero(clave: String) = valores[clave].orEmpty().numeroCalidad()
     fun formatoValido(clave: String): Boolean {
@@ -93,6 +94,8 @@ data class CalidadUiState(
     val paso: PasoCalidad = PasoCalidad.INICIO, val cargando: Boolean = true, val guardando: Boolean = false,
     val tecnico: String = "", val usuarioId: String = "", val ahora: Long = 0,
     val zonas: List<Zona> = emptyList(), val proveedores: List<Proveedor> = emptyList(),
+    /** Zona que el administrador asignó al técnico; se propone al iniciar cada prueba. */
+    val zonaAsignadaId: String? = null,
     val controles: List<ControlCalidad> = emptyList(), val borrador: BorradorVisita = BorradorVisita(),
     val busqueda: String = "", val filtro: EstadoControlCalidad? = null, val detalleId: String? = null,
     val volverDetalle: PasoCalidad = PasoCalidad.HISTORIAL, val error: String? = null, val mensaje: String? = null,
@@ -125,6 +128,8 @@ class CalidadViewModel(
                 _uiState.update { it.copy(tecnico = sesion.usuario.nombres, usuarioId = sesion.usuario.id,
                     ahora = reloj.ahora().toEpochMilliseconds(), cargando = false) }
                 launch { observar { listarProveedoresUseCase().collect { l -> _uiState.update { it.copy(proveedores = l) } } } }
+                val asignada = repository.obtenerZonaAsignada(sesion.usuario.id)
+                _uiState.update { it.copy(zonaAsignadaId = asignada) }
                 launch { observar { listarZonasUseCase(true).collect { l -> _uiState.update { it.copy(zonas = l) } } } }
                 launch { observar { repository.observarPorUsuario(sesion.usuario.id).collect { l -> _uiState.update { it.copy(controles = l) } } } }
             }
@@ -144,7 +149,8 @@ class CalidadViewModel(
         val ahora = reloj.ahora().toEpochMilliseconds()
         val id = nuevoId()
         _uiState.update { it.copy(paso = PasoCalidad.SELECCION, busqueda = "", error = null, mensaje = null,
-            borrador = BorradorVisita(id = id, fecha = formatearFecha(ahora), hora = horaDe(ahora))) }
+            borrador = BorradorVisita(id = id, fecha = formatearFecha(ahora), hora = horaDe(ahora),
+                zonaId = it.zonaAsignadaId?.takeIf { z -> it.zonas.any { zona -> zona.id == z } }.orEmpty())) }
     }
     fun descartar() { _uiState.update { it.copy(paso = PasoCalidad.INICIO, borrador = BorradorVisita(), error = null, escaneoPendiente = null) } }
     fun volver() {
@@ -179,7 +185,7 @@ class CalidadViewModel(
     fun confirmarCambioProveedor() {
         val ahora = reloj.ahora().toEpochMilliseconds()
         editar { it.copy(proveedorId = "", valores = emptyMap(), serial = "", modo = "", textoOcr = null,
-            dudosos = emptySet(), origen = OrigenCaptura.MANUAL, unidadCongelacion = "°C",
+            dudosos = emptySet(), origen = OrigenCaptura.MANUAL, unidadCongelacion = "°C", observaciones = "",
             fecha = formatearFecha(ahora), hora = horaDe(ahora)) }
         _uiState.update { it.copy(confirmarCambioProveedor = false, paso = PasoCalidad.SELECCION) }
     }
@@ -190,6 +196,7 @@ class CalidadViewModel(
     fun campo(k: String, v: String) { editar { b -> when(k) {
         "fecha" -> b.copy(fecha = v); "hora" -> b.copy(hora = v)
         "serial" -> b.copy(serial = v); "modo" -> b.copy(modo = v); "unidad" -> b.copy(unidadCongelacion = v)
+        "observaciones" -> b.copy(observaciones = v)
         else -> b.copy(valores = b.valores + (k to v))
     } } }
     fun escanear(texto: String) {
@@ -254,7 +261,7 @@ class CalidadViewModel(
                         densidad = b.numero("densidad"), proteina = b.numero("proteina"), lactosa = b.numero("lactosa"),
                         sales = b.numero("sales"), solidosTotales = b.numero("solidos"), aguaAnadida = b.numero("agua"),
                         puntoCongelacion = b.numero("congelacion"), ph = b.numero("ph"),
-                        apariencia = null, observaciones = null, estado = b.estado, alertas = alertas,
+                        apariencia = null, observaciones = b.observaciones.trim().ifBlank { null }, estado = b.estado, alertas = alertas,
                         textoComprobante = b.textoOcr, registradoEn = registradoEn, updatedAt = ahora, syncState = SyncState.PENDING,
                         visita = DatosVisitaCalidad(
                             proveedorNombre = p.nombres, proveedorCodigo = p.codigo, zonaId = b.zonaId, zonaNombre = s.zona!!.nombre,

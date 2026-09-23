@@ -22,6 +22,7 @@ class SeleccionZonaVehiculoViewModel(
     private val abrirJornadaUseCase: AbrirJornadaUseCase,
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
     private val reloj: Reloj,
+    private val cuentas: pe.ecolecta.domain.repository.CuentasRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SeleccionZonaVehiculoUiState())
     val uiState: StateFlow<SeleccionZonaVehiculoUiState> = _uiState.asStateFlow()
@@ -31,8 +32,12 @@ class SeleccionZonaVehiculoViewModel(
         _uiState.update { it.copy(ciclo = cicloSimuladoDe(reloj.hoy(), zonaNombre = "")) }
 
         viewModelScope.launch {
+            // La zona que el administrador asignó a esta cuenta aparece preseleccionada.
+            val sugerida = obtenerSesionUseCase().first()?.usuario?.id?.let { cuentas.zonaAsignada(it) }
             listarZonasUseCase(soloActivas = true).collect { lista ->
-                _uiState.update { it.copy(zonas = lista, zonaId = it.zonaId ?: lista.firstOrNull()?.id) }
+                _uiState.update { s ->
+                    s.copy(zonas = lista, zonaId = s.zonaId ?: sugerida?.takeIf { id -> lista.any { it.id == id } } ?: lista.firstOrNull()?.id)
+                }
             }
         }
         viewModelScope.launch {

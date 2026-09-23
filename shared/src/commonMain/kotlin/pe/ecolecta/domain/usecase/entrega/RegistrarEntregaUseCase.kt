@@ -7,6 +7,7 @@ import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.Auditoria
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.EstadoProveedor
+import pe.ecolecta.domain.model.ModalidadEntrega
 import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.domain.nuevoId
 import pe.ecolecta.domain.repository.EntregaRepository
@@ -41,6 +42,7 @@ class RegistrarEntregaUseCase(
         tachos: Int,
         observaciones: String?,
         loteId: String? = null,
+        modalidad: ModalidadEntrega = ModalidadEntrega.MEDIANTE_ACOPIADOR,
     ): Result<ResultadoRegistroEntrega> {
         val proveedor = proveedorRepository.obtenerPorId(proveedorId)
             ?: return Result.failure(IllegalStateException("Proveedor no encontrado"))
@@ -69,6 +71,7 @@ class RegistrarEntregaUseCase(
             registradoEn = ahora,
             deviceId = deviceId,
             loteId = loteId,
+            modalidad = modalidad,
         ).getOrElse { return Result.failure(it) }
 
         // obtenerHistorial ya pagina en SQL (LIMIT), a diferencia de filtrar() que traería TODO el

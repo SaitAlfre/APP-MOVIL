@@ -136,6 +136,8 @@ fun App() {
                         )
                         Pantalla.AcopiadorHome,
                         Pantalla.AcopiadorLista,
+                        Pantalla.AcopiadorEntregas,
+                        Pantalla.AcopiadorResumen,
                         is Pantalla.AcopiadorRegistroEntrega,
                         Pantalla.AcopiadorEscanearQr,
                         Pantalla.AcopiadorLote,

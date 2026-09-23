@@ -9,6 +9,8 @@ sealed interface Pantalla {
     data object AcopiadorSeleccionZonaVehiculo : Pantalla
     data object AcopiadorHome : Pantalla
     data object AcopiadorLista : Pantalla
+    data object AcopiadorEntregas : Pantalla
+    data object AcopiadorResumen : Pantalla
 
     /** [proveedorId] llega desde la lista del día, para no volver a elegir a quien ya se seleccionó. */
     data class AcopiadorRegistroEntrega(val proveedorId: String? = null) : Pantalla
@@ -34,7 +36,8 @@ sealed interface Pantalla {
 
     data object AdminDashboard : Pantalla
     data object AdminUsuarios : Pantalla
-    data class AdminUsuarioForm(val id: String? = null) : Pantalla
+    /** [fichaId] prellena una cuenta nueva de proveedor desde su ficha. */
+    data class AdminUsuarioForm(val id: String? = null, val fichaId: String? = null) : Pantalla
     data object AdminZonas : Pantalla
     data class AdminZonaForm(val id: String? = null) : Pantalla
     data object AdminVehiculos : Pantalla
@@ -50,18 +53,7 @@ sealed interface Pantalla {
     data class AdminEntregaDetalle(val id: String, val proveedorOrigenId: String? = null) : Pantalla
     data object AdminConflictos : Pantalla
     data object AdminAuditoria : Pantalla
-}
-
-enum class SeccionAdmin(val pantalla: Pantalla, val etiqueta: String) {
-    DASHBOARD(Pantalla.AdminDashboard, "Inicio"),
-    CALIDAD(Pantalla.AdminCalidad(), "Calidad"),
-    USUARIOS(Pantalla.AdminUsuarios, "Usuarios"),
-    ZONAS(Pantalla.AdminZonas, "Zonas"),
-    VEHICULOS(Pantalla.AdminVehiculos, "Vehículos"),
-    PROVEEDORES(Pantalla.AdminProveedores, "Proveedores"),
-    TRASLADOS(Pantalla.AdminTraslados, "Traslados"),
-    JORNADAS(Pantalla.AdminJornadas, "Jornadas"),
-    ENTREGAS(Pantalla.AdminEntregas, "Entregas"),
-    CONFLICTOS(Pantalla.AdminConflictos, "Conflictos"),
-    AUDITORIA(Pantalla.AdminAuditoria, "Auditoría"),
+    data class AdminAlertas(val filtro: pe.ecolecta.domain.model.TipoAlertaAdmin? = null) : Pantalla
+    data object AdminReportes : Pantalla
+    data object AdminPerfil : Pantalla
 }

@@ -9,6 +9,9 @@ CREATE TABLE jornada (
     sync_state TEXT NOT NULL DEFAULT 'PENDING'
 );
 
+CREATE INDEX jornada_fecha_idx ON jornada(fecha);
+CREATE INDEX jornada_usuario_idx ON jornada(usuario_id);
+
 insertar:
 INSERT INTO jornada(id, usuario_id, zona_id, vehiculo_id, fecha, abierta_en, cerrada_en, sync_state)
 VALUES (:id, :usuario_id, :zona_id, :vehiculo_id, :fecha, :abierta_en, NULL, :sync_state);
@@ -44,3 +47,6 @@ SELECT * FROM jornada WHERE zona_id = :zona_id AND cerrada_en IS NULL LIMIT 1;
 -- siempre la más antigua primero, nunca una elegida arbitrariamente.
 selectAbiertaPorUsuario:
 SELECT * FROM jornada WHERE usuario_id = :usuario_id AND cerrada_en IS NULL ORDER BY abierta_en ASC LIMIT 1;
+
+selectAbiertaPorVehiculo:
+SELECT * FROM jornada WHERE vehiculo_id = :vehiculo_id AND cerrada_en IS NULL LIMIT 1;

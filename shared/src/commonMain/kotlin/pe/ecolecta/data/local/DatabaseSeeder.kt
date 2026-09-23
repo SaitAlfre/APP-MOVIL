@@ -26,8 +26,12 @@ class DatabaseSeeder(
             // quedar un subconjunto de datos a medio sembrar que el guard de arriba ya no complete.
             db.transaction { sembrar() }
         }
-        // Es idempotente y se ejecuta también al actualizar una instalación existente.
-        db.transaction { sembrarDatosMovilesDePrueba() }
+        // Solo la primera vez: si ya existen las cuentas de prueba, no se vuelve a tocar nada. Así el
+        // arranque no calcula hashes de PIN ni consulta tablas, y lo que el administrador cambie
+        // (zonas asignadas, fichas vinculadas, vehículos) no se sobrescribe al reabrir la app.
+        if (db.usuarioQueries.selectPorUsername("acop_faon").executeAsOneOrNull() == null) {
+            db.transaction { sembrarDatosMovilesDePrueba() }
+        }
     }
 
     private fun sembrar() {
@@ -101,7 +105,8 @@ class DatabaseSeeder(
             val id = nuevoId()
             db.entregaQueries.insertar(
                 id = id, jornada_id = jornadaId, proveedor_id = proveedorId, usuario_id = acopiadorId,
-                zona_id = zonaFaon.id, vehiculo_id = vehiculo1, litros = litros, tachos = 1, observaciones = null,
+                zona_id = zonaFaon.id, vehiculo_id = vehiculo1, litros = litros, tachos = 1,
+                modalidad = "MEDIANTE_ACOPIADOR", observaciones = null,
                 registrado_en = ahora - offsetMs, device_id = "seed-device", lote_id = null,
                 sync_state = syncState.name, updated_at = ahora - offsetMs,
             )
@@ -143,9 +148,9 @@ class DatabaseSeeder(
             "COLLANA I-YASIN-HUAN" to "collana",
             "PLANTA-COLLANA II" to "planta",
         ).mapNotNull { (nombre, clave) -> todasLasZonas.firstOrNull { it.nombre == nombre }?.let { it to clave } }
-        val pinProveedor = pinHasher.crearHash("1234")
-        val pinAcopiador = pinHasher.crearHash("2468")
-        val pinCalidad = pinHasher.crearHash("8642")
+        val pinProveedor by lazy { pinHasher.crearHash("1234") }
+        val pinAcopiador by lazy { pinHasher.crearHash("2468") }
+        val pinCalidad by lazy { pinHasher.crearHash("8642") }
 
         fun usuarioSiFalta(
             username: String,
@@ -166,6 +171,7 @@ class DatabaseSeeder(
             return id
         }
 
+        val proveedoresExistentes = db.proveedorQueries.selectTodos().executeAsList()
         zonas.forEachIndexed { zonaIndex, (zona, clave) ->
             val numeroZona = zonaIndex + 1
 
@@ -207,7 +213,7 @@ class DatabaseSeeder(
                     salt = pinProveedor.salt,
                 )
                 val codigo = "PRV-${clave.uppercase()}-$sufijo"
-                val proveedorExistente = db.proveedorQueries.selectTodos().executeAsList().firstOrNull { it.codigo == codigo }
+                val proveedorExistente = proveedoresExistentes.firstOrNull { it.codigo == codigo }
                 val proveedorId = proveedorExistente?.id ?: nuevoId().also { id ->
                     db.proveedorQueries.insertar(
                         id = id, codigo = codigo, nombres = "Proveedor ${zona.nombre} $sufijo",

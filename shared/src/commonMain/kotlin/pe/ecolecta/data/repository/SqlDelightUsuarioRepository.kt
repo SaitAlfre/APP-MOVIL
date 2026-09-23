@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -19,11 +20,15 @@ class SqlDelightUsuarioRepository(
     private val dispatcher: CoroutineDispatcher,
 ) : UsuarioRepository {
 
+    /** Dos consultas en total (usuarios y roles), no una por usuario; reacciona a cambios en ambas tablas. */
     override fun observarTodos(): Flow<List<Usuario>> =
-        db.usuarioQueries.selectTodos().asFlow()
-            .mapToList(dispatcher)
-            .map { filas -> filas.map { it.aDominio(rolesDe(it.id)) } }
-            .flowOn(dispatcher)
+        combine(
+            db.usuarioQueries.selectTodos().asFlow().mapToList(dispatcher),
+            db.usuarioRolQueries.selectTodos().asFlow().mapToList(dispatcher),
+        ) { filas, roles ->
+            val porUsuario = roles.groupBy({ it.usuario_id }, { it.rol }).mapValues { (_, r) -> r.mapNotNull { Rol.desde(it) } }
+            filas.map { it.aDominio(porUsuario[it.id].orEmpty()) }
+        }.flowOn(dispatcher)
 
     override suspend fun obtenerPorId(id: String): Usuario? = withContext(dispatcher) {
         db.usuarioQueries.selectPorId(id).executeAsOneOrNull()?.let { it.aDominio(rolesDe(it.id)) }
@@ -122,5 +127,5 @@ class SqlDelightUsuarioRepository(
     }
 
     private fun rolesDe(usuarioId: String): List<Rol> =
-        db.usuarioRolQueries.selectPorUsuario(usuarioId).executeAsList().map { Rol.valueOf(it) }
+        db.usuarioRolQueries.selectPorUsuario(usuarioId).executeAsList().mapNotNull { Rol.desde(it) }
 }
