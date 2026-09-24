@@ -33,9 +33,15 @@ data class EntregaParaServidor(
 /** El servidor respondió y no aceptó el dato; [mensaje] es el motivo que se muestra en el celular. */
 class RechazoServidorException(mensaje: String, val codigo: String?) : Exception(mensaje)
 
-/** Este usuario no tiene sesión con el servidor en este celular (nunca la tuvo, venció o fue revocada). */
-class SinSesionServidorException(nombre: String?) : Exception(
-    "${nombre ?: "El acopiador"} debe iniciar sesión en este celular con conexión a internet para enlazarse con el servidor.",
+/**
+ * Esta cuenta no tiene sesión con el servidor en este celular (nunca la tuvo, venció o fue revocada). No es
+ * un rechazo del servidor ni se arregla reintentando: la cuenta [nombre] debe volver a iniciar sesión con
+ * conexión (el PIN nunca se guarda). Los datos siguen guardados en el celular.
+ */
+class SinSesionServidorException(val nombre: String?, revocada: Boolean = false) : Exception(
+    "Sin enviar: la cuenta de ${nombre ?: "este usuario"} " +
+        (if (revocada) "ya no tiene sesión válida con el panel web (venció o fue revocada)" else "no está enlazada con el panel web") +
+        ". ${nombre ?: "Esa cuenta"} debe iniciar sesión en este celular con conexión a internet para enlazarla; la entrega sigue guardada aquí.",
 )
 
 /**
@@ -45,6 +51,9 @@ class SinSesionServidorException(nombre: String?) : Exception(
 interface ServidorWebRepository {
     /** false si esta compilación no tiene URL de servidor: la app lo muestra, no finge sincronizar. */
     val configurado: Boolean
+
+    /** Dirección compilada del panel (p. ej. http://10.0.2.2:8000), para diagnosticar "no responde". */
+    val direccion: String? get() = null
 
     /** Valida usuario/PIN en el servidor y guarda el token del usuario local [usuarioId]. */
     suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit>

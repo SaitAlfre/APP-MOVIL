@@ -15,7 +15,11 @@ import pe.ecolecta.domain.usecase.entrega.CorregirEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ObtenerEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ReglaEdicionEntrega
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
+import pe.ecolecta.domain.usecase.sync.PreparadorEntregaServidor
+import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
+import pe.ecolecta.domain.usecase.sync.VincularServidorUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
+import pe.ecolecta.presentation.acopiador.sincronizacion.mensajeSincronizacion
 import pe.ecolecta.presentation.cargaSegura
 import pe.ecolecta.presentation.design.formatearLitros
 
@@ -29,6 +33,9 @@ class EntregaDetalleViewModel(
     private val reglaEdicion: ReglaEdicionEntrega,
     private val listarAuditoria: ListarAuditoriaUseCase,
     private val listarUsuarios: ListarUsuariosUseCase,
+    private val sincronizar: SincronizarRegistrosAcopioUseCase,
+    private val vincularServidor: VincularServidorUseCase,
+    private val preparador: PreparadorEntregaServidor,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EntregaDetalleUiState())
     val uiState: StateFlow<EntregaDetalleUiState> = _uiState.asStateFlow()
@@ -50,7 +57,9 @@ class EntregaDetalleViewModel(
                 val historial = listarAuditoria.filtrar(entidad = "entrega").filter { it.entidadId == entregaId }
                     .sortedByDescending { it.ocurridoEn }
                 val nombres = listarUsuarios().first().associate { it.id to it.nombres }
-                Carga(entrega, proveedor?.nombres, bloqueo, historial, nombres)
+                val remitente = entrega?.let { preparador.remitente(it) }
+                val enlazado = remitente?.takeIf { sincronizar.servidorConfigurado }?.let { vincularServidor.enlazado(it) }
+                Carga(entrega, proveedor?.nombres, bloqueo, historial, nombres, remitente, enlazado)
             }.fold(
                 onSuccess = { c ->
                     _uiState.update {
@@ -61,6 +70,8 @@ class EntregaDetalleViewModel(
                             bloqueo = c.bloqueo,
                             historial = c.historial,
                             nombresUsuarios = c.nombres,
+                            remitenteId = c.remitente,
+                            remitenteEnlazado = c.enlazado,
                             error = if (c.entrega == null) "La entrega ya no existe en este dispositivo." else null,
                         )
                     }
@@ -118,6 +129,24 @@ class EntregaDetalleViewModel(
         }
     }
 
+    /**
+     * Envía ya la cola de este celular (la misma que el ciclo automático). Cada entrega va firmada por la
+     * cuenta de quien la registró o modificó, nunca por ADMIN en nombre del acopiador; el resultado se
+     * muestra tal cual, incluida la cuenta que falte enlazar.
+     */
+    fun reintentarEnvio() {
+        if (_uiState.value.reintentando) return
+        _uiState.update { it.copy(reintentando = true, mensaje = null) }
+        viewModelScope.launch {
+            val mensaje = runCatching { sincronizar() }.fold(
+                onSuccess = ::mensajeSincronizacion,
+                onFailure = { "No se pudo sincronizar: ${it.message}" },
+            )
+            _uiState.update { it.copy(reintentando = false, mensaje = mensaje) }
+            cargar()
+        }
+    }
+
     private fun errorDialogo(texto: String) = _uiState.update { it.copy(errorDialogo = texto) }
 
     private data class Carga(
@@ -126,5 +155,7 @@ class EntregaDetalleViewModel(
         val bloqueo: String?,
         val historial: List<pe.ecolecta.domain.model.Auditoria>,
         val nombres: Map<String, String>,
+        val remitente: String?,
+        val enlazado: Boolean?,
     )
 }

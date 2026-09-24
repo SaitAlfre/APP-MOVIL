@@ -50,6 +50,21 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(6)->by('cuenta:'.hash('sha256', is_string($username) ? mb_strtolower($username) : '')),
             ];
         });
+
+        // App móvil: límites con nombre propio para que el envío de entregas no consuma el cupo de inicio
+        // de sesión (con `throttle:N,1` sin nombre ambos compartían la clave dominio+IP). Por IP holgado,
+        // porque varios celulares de un centro de acopio suelen salir por la misma red.
+        RateLimiter::for('movil-sesion', function (Request $request) {
+            $username = $request->input('username');
+
+            return [
+                Limit::perMinute(30)->by('ip:'.hash('sha256', (string) $request->ip())),
+                Limit::perMinute(10)->by('cuenta:'.hash('sha256', is_string($username) ? mb_strtolower($username) : '')),
+            ];
+        });
+        // Corre después de `movil.token`: el cupo es por cuenta autenticada, no por red.
+        RateLimiter::for('movil-sync', fn (Request $request) => Limit::perMinute(600)
+            ->by('usuario:'.($request->user()?->getKey() ?? hash('sha256', (string) $request->ip()))));
         foreach ([
             ControlCalidad::class,
             Liquidacion::class,

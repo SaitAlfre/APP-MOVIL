@@ -56,7 +56,7 @@ import pe.ecolecta.presentation.design.BotonBorde
 import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.CampoTexto
 import pe.ecolecta.presentation.design.ChipEstado
-import pe.ecolecta.presentation.design.ChipSync
+import pe.ecolecta.presentation.acopiador.ChipSyncAcopiador
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.DialogoMotivo
 import pe.ecolecta.presentation.design.Espaciado
@@ -550,7 +550,7 @@ private fun FilaEntregaDelDia(nombre: String, entrega: Entrega, onClick: (() -> 
                 }
             }
             Spacer(Modifier.width(Espaciado.s))
-            ChipSync(entrega)
+            ChipSyncAcopiador(entrega)
         }
     }
 }

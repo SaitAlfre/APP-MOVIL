@@ -4,8 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.repository.RechazoServidorException
 import pe.ecolecta.domain.repository.ServidorWebRepository
 import pe.ecolecta.domain.repository.SinConexionRemotaException
 
@@ -35,14 +37,22 @@ class VincularServidorUseCase(
                     runCatching { alEnlazar() }
                 },
                 onFailure = { error ->
-                    val motivo = if (error is SinConexionRemotaException) {
-                        "No se pudo contactar al servidor al iniciar sesión. Vuelve a iniciar sesión con conexión para enlazar tu cuenta."
-                    } else {
-                        "El servidor no aceptó tu cuenta: ${error.message}"
+                    val motivo = when {
+                        error is SinConexionRemotaException ->
+                            "Tu cuenta no quedó enlazada con el panel web: al iniciar sesión el servidor no respondió" +
+                                (servidor.direccion?.let { " en $it" } ?: "") + ". Tus entregas siguen guardadas aquí. " +
+                                "Cuando el panel esté disponible, cierra sesión y vuelve a entrar con tu usuario y PIN."
+                        error is RechazoServidorException && error.codigo == "credenciales" ->
+                            "El panel web no reconoce tu usuario o PIN (deben ser los mismos que en el panel). " +
+                                "Pide al administrador que revise tu cuenta allí y vuelve a iniciar sesión. Tus entregas siguen guardadas aquí."
+                        else -> "El panel web no aceptó tu cuenta: ${error.message}"
                     }
                     _errores.update { it + (usuarioId to motivo) }
                 },
             )
         }
     }
+
+    /** true si [usuarioId] tiene un token vigente del panel en este celular (no basta haber entrado offline). */
+    suspend fun enlazado(usuarioId: String): Boolean = servidor.configurado && servidor.observarSesion(usuarioId).first()
 }

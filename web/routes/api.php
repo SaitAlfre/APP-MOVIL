@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Route;
  * AutenticarTokenMovil): el celular nunca lleva credenciales administrativas.
  */
 Route::prefix('movil')->name('api.movil.')->group(function () {
-    Route::post('sesion', [MovilController::class, 'iniciarSesion'])->middleware('throttle:10,1')->name('sesion.store');
+    Route::post('sesion', [MovilController::class, 'iniciarSesion'])->middleware('throttle:movil-sesion')->name('sesion.store');
 
     Route::middleware('movil.token')->group(function () {
         Route::delete('sesion', [MovilController::class, 'cerrarSesion'])->name('sesion.destroy');
     });
 
-    Route::middleware(['movil.token:acopiador,admin', 'throttle:600,1'])->group(function () {
+    Route::middleware(['movil.token:acopiador,admin', 'throttle:movil-sync'])->group(function () {
         Route::put('entregas/{uuid}', [MovilController::class, 'sincronizarEntrega'])->name('entregas.sincronizar');
     });
 

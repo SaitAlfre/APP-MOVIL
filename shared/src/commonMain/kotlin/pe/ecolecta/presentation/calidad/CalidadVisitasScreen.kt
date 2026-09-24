@@ -40,7 +40,6 @@ private enum class PestanaCalidad(val etiqueta: String, val icono: ImageVector) 
     PERFIL("Perfil", Icons.Filled.Person),
 }
 
-private val MODOS_ANALISIS = listOf("Standard", "Cow", "Ultra")
 private val LUGARES = listOf("Campo", "Planta")
 
 @Composable
@@ -443,9 +442,6 @@ private fun LazyListScope.pasoIdentificacion(s: CalidadUiState, vm: CalidadViewM
             }
             CampoTexto(b.serial, { vm.campo("serial", it) }, "Equipo LactoScan (serie)", iconoInicial = Icons.Filled.Science)
 
-            Text("Modo de análisis", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-            SegmentadoCalidad(MODOS_ANALISIS, b.modo.ifBlank { MODOS_ANALISIS.first() }) { vm.campo("modo", it) }
-
             Text("Lugar", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
             SegmentadoCalidad(LUGARES, lugar, onLugarCambia)
 
@@ -703,7 +699,7 @@ private fun LazyListScope.detalle(s: CalidadUiState) {
                 Dato("Proveedor", v.proveedorNombre.ifBlank { "No disponible" })
                 Dato("Zona", v.zonaNombre.ifBlank { "No disponible" })
                 Dato("Técnico", v.tecnicoNombre.ifBlank { "No disponible" })
-                Dato("Analizador / modo", "${c.serialAnalizador.orEmpty()} / ${c.modoAnalizador.orEmpty()}")
+                c.serialAnalizador?.takeIf { it.isNotBlank() }?.let { Dato("Equipo LactoScan (serie)", it) }
                 Dato("Origen", if (c.origenCaptura == OrigenCaptura.ESCANER) "Comprobante escaneado" else "Ingreso manual")
                 c.observaciones?.let { Dato("Observaciones", it) }
             }

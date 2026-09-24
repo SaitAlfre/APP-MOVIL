@@ -37,7 +37,7 @@ import pe.ecolecta.presentation.acopiador.home.AcopiadorHomeViewModel
 import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonBorde
 import pe.ecolecta.presentation.design.CampoTexto
-import pe.ecolecta.presentation.design.ChipSync
+import pe.ecolecta.presentation.acopiador.ChipSyncAcopiador
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.Dato
 import pe.ecolecta.presentation.design.DialogoMotivo
@@ -192,7 +192,7 @@ private fun FilaEntregaEditable(nombre: String, entrega: Entrega, onEditar: (() 
                 Text(nombre, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                     Text(formatearLitros(entrega.litros), style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
-                    ChipSync(entrega)
+                    ChipSyncAcopiador(entrega)
                 }
             }
             if (onEditar != null) {

@@ -94,21 +94,17 @@ fun EntregaDetalleScreen(
                             "Si fue un error, el acopiador puede registrar una entrega nueva con los datos correctos (quedará con la fecha en que se registre).",
                         12, AdminColor.gris, modifier = Modifier.padding(top = 6.dp),
                     )
+                    // La anulación también tiene que llegar al panel: se muestra si falta enviarla.
+                    if (entrega.syncState == SyncState.PENDING || entrega.syncState == SyncState.ERROR) {
+                        AdminTexto(TextosEstado.larga(entrega.syncState), 13, peso = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+                        EstadoEnvio(s, viewModel::reintentarEnvio)
+                    }
                 }
                 else -> {
                     AdminCard(color = AdminColor.grisSuave) {
                         AdminTexto(TextosEstado.larga(entrega.syncState), 13, peso = FontWeight.SemiBold)
                         AdminTexto(TextosEstado.ayuda(entrega.syncState), 12, AdminColor.gris)
-                        if (entrega.syncState == SyncState.ERROR) {
-                            AdminTexto(
-                                "Motivo del fallo: ${entrega.syncError ?: "no quedó registrado en el teléfono"}.",
-                                12, AdminColor.rojo, FontWeight.Medium, Modifier.padding(top = 6.dp),
-                            )
-                            AdminTexto(
-                                "No hay reintento manual: esta versión todavía no envía datos al servidor, así que reintentar no tendría efecto.",
-                                11, AdminColor.gris,
-                            )
-                        }
+                        EstadoEnvio(s, viewModel::reintentarEnvio)
                     }
                     val bloqueo = s.bloqueo
                     if (bloqueo != null) {
@@ -209,5 +205,28 @@ private fun DialogoCorregir(
         AdminCampo(tachos, { tachos = it.filter(Char::isDigit).take(3) }, "Tachos", teclado = KeyboardType.Number)
         AdminCampo(motivo, { motivo = it.take(300) }, "Motivo (obligatorio)", marcador = "Ej: error de digitación")
         (error ?: aviso)?.let { AdminTexto(it, 12, if (error != null) AdminColor.rojo else AdminColor.gris, FontWeight.Medium) }
+    }
+}
+
+/** Motivo del último intento, quién debe enviarla y, solo si serviría, el botón de reintento. */
+@Composable
+private fun EstadoEnvio(s: EntregaDetalleUiState, onReintentar: () -> Unit) {
+    val entrega = s.entrega ?: return
+    if (!s.faltaEnviar) return
+    entrega.syncError?.let {
+        AdminTexto(
+            "Último intento: $it",
+            12, if (entrega.syncState == SyncState.ERROR) AdminColor.rojo else AdminColor.texto, FontWeight.Medium,
+            Modifier.padding(top = 6.dp),
+        )
+    }
+    s.explicacionEnvio?.let { AdminTexto(it, 11, AdminColor.gris, modifier = Modifier.padding(top = 4.dp)) }
+    if (s.puedeReintentar) {
+        AdminBoton(
+            if (s.reintentando) "Enviando…" else "Reintentar envío ahora",
+            onReintentar,
+            Modifier.fillMaxWidth().padding(top = 8.dp),
+            habilitado = !s.reintentando,
+        )
     }
 }

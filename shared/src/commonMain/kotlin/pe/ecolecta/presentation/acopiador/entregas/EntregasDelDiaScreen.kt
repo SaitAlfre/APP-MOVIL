@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.etiqueta
-import pe.ecolecta.presentation.design.ChipSync
+import pe.ecolecta.presentation.acopiador.ChipSyncAcopiador
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
@@ -102,7 +102,7 @@ private fun FilaEntrega(nombre: String, entrega: Entrega) {
                     color = Colores.textPrimary,
                 )
                 Spacer(Modifier.height(2.dp))
-                ChipSync(entrega)
+                ChipSyncAcopiador(entrega)
             }
         }
     }
