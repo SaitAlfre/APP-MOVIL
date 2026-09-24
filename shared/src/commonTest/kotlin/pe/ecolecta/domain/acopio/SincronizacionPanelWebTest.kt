@@ -31,9 +31,10 @@ import pe.ecolecta.domain.usecase.entrega.ReglaEdicionEntrega
 import pe.ecolecta.domain.usecase.sync.PreparadorEntregaServidorLocal
 import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
 import pe.ecolecta.domain.usecase.sync.VincularServidorUseCase
+import pe.ecolecta.presentation.acopiador.sincronizacion.mensajeSincronizacion
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -147,6 +148,7 @@ class SincronizacionPanelWebTest {
         val r = sincronizar()
 
         assertEquals(1, r.sinConexion)
+        assertEquals("1 sin enviar: Sin conexión a internet. Se reintentarán solos.", mensajeSincronizacion(r))
         val local = entregas.filtrar().single()
         assertEquals(SyncState.PENDING, local.syncState)
         assertEquals("Sin conexión a internet", local.syncError)
@@ -163,6 +165,7 @@ class SincronizacionPanelWebTest {
         val r = sincronizar()
 
         assertEquals(1, r.fallidos)
+        assertEquals("1 rechazado(s) por el servidor: revisa el motivo en cada registro.", mensajeSincronizacion(r))
         val local = entregas.filtrar().single()
         assertEquals(SyncState.ERROR, local.syncState)
         assertEquals("El proveedor «PRV-SOLO-EN-CELULAR» no está registrado en el servidor.", local.syncError)
@@ -175,15 +178,69 @@ class SincronizacionPanelWebTest {
     }
 
     @Test
-    fun `una cuenta sin sesion con el panel queda en error explicando que debe iniciar sesion con conexion`() = runTest {
+    fun `una cuenta sin sesion con el panel queda pendiente sin contarse como error del servidor`() = runTest {
         preparar(enlazado = false)
         registrar("j1", "p1", "u1", "z1", "v1", 12.0, 1, null).getOrThrow()
 
+        val r = sincronizar()
+
+        assertEquals(1, r.sinEnlazar)
+        assertEquals(0, r.fallidos, "no es un rechazo del servidor")
+        assertEquals(setOf("Juan Pérez"), r.cuentasSinEnlazar)
+        val local = entregas.filtrar().single()
+        assertEquals(SyncState.PENDING, local.syncState, "el dato no fue rechazado: sigue en cola hasta enlazar")
+        assertTrue(local.syncError!!.contains("iniciar sesión en este celular con conexión"))
+        assertTrue(panel.filas.value.isEmpty())
+
+        val mensaje = mensajeSincronizacion(r)
+        assertFalse(mensaje.contains("error del servidor"), mensaje)
+        assertFalse(mensaje.contains("se reintentar"), "no promete un reintento que no servirá: $mensaje")
+        assertTrue(mensaje.contains("Juan Pérez debe iniciar sesión en este celular con conexión"), mensaje)
+    }
+
+    @Test
+    fun `una entrega que quedo en error por falta de enlace pasa a pendiente y se envia al enlazar sin duplicar`() = runTest {
+        preparar(enlazado = false)
+        val entrega = registrar("j1", "p1", "u1", "z1", "v1", 12.0, 1, null).getOrThrow().entrega
+        // Estado heredado de la versión anterior: ERROR por "sin sesión".
+        entregas.registrarFalloSync(entrega.id, entrega.updatedAt, "sin sesión", definitivo = true)
+        assertEquals(SyncState.ERROR, entregas.obtenerPorId(entrega.id)!!.syncState)
+
+        sincronizar()
+        assertEquals(SyncState.PENDING, entregas.obtenerPorId(entrega.id)!!.syncState)
+
+        panel.vincular("u1", "acop_faon", "2468").getOrThrow()
+        val r = sincronizar()
         sincronizar()
 
-        val local = entregas.filtrar().single()
-        assertEquals(SyncState.ERROR, local.syncState)
-        assertTrue(local.syncError!!.contains("iniciar sesión en este celular con conexión"))
+        assertEquals(1, r.enviados)
+        assertEquals(listOf("crear:${entrega.id}"), panel.auditoria)
+        assertEquals(SyncState.SYNCED, entregas.obtenerPorId(entrega.id)!!.syncState)
+        assertNull(entregas.obtenerPorId(entrega.id)!!.syncError)
+    }
+
+    @Test
+    fun `la entrega del acopiador se firma con su cuenta y la correccion de admin con la de admin`() = runTest {
+        preparar()
+        usuarios.insertar(Usuario("adm", "admin", "Administrador", "9", "", "", true, listOf(Rol.ADMIN), 0))
+        panel.nombres["adm"] = "Administrador"
+        val entrega = registrar("j1", "p1", "u1", "z1", "v1", 30.0, 1, null).getOrThrow().entrega
+        sincronizar()
+        assertEquals(listOf("${entrega.id}:u1"), panel.firmas, "el alta la firma el acopiador, no ADMIN")
+
+        corregir(entrega.id, 27.0, 1, null, "Error de lectura", "adm").getOrThrow()
+        val sinAdmin = sincronizar()
+        assertEquals(1, sinAdmin.sinEnlazar, "ADMIN no enlazado: no se usa el token del acopiador para firmar su corrección")
+        assertEquals(setOf("Administrador"), sinAdmin.cuentasSinEnlazar)
+        assertEquals(30.0, panel.filas.value.getValue(entrega.id).litros)
+
+        panel.vincular("adm", "admin", "1234").getOrThrow()
+        sincronizar()
+        assertEquals(listOf("${entrega.id}:u1", "${entrega.id}:adm"), panel.firmas)
+        val fila = panel.filas.value.getValue(entrega.id)
+        assertEquals(27.0, fila.litros)
+        assertEquals("acop_faon", fila.acopiadorUsername, "la entrega sigue a nombre del acopiador")
+        assertEquals(1, panel.filas.value.size)
     }
 
     @Test
@@ -192,14 +249,22 @@ class SincronizacionPanelWebTest {
         registrar("j1", "p1", "u1", "z1", "v1", 12.0, 1, null).getOrThrow()
         val vincular = VincularServidorUseCase(panel, { sincronizar() }, this)
 
+        assertFalse(vincular.enlazado("u1"), "entrar offline no enlaza la cuenta")
+        panel.enLinea.value = false
+        vincular("u1", "acop_faon", "2468")
+        testScheduler.advanceUntilIdle()
+        assertTrue(vincular.errores.value.getValue("u1").contains("no respondió en http://10.0.2.2:8000"))
+        panel.enLinea.value = true
+
         vincular("u1", "acop_faon", "0000")
         testScheduler.advanceUntilIdle()
-        assertNotNull(vincular.errores.value["u1"], "un PIN rechazado por el servidor se informa")
+        assertTrue(vincular.errores.value.getValue("u1").contains("no reconoce tu usuario o PIN"), "un PIN rechazado por el servidor se informa")
         assertTrue(panel.filas.value.isEmpty())
 
         vincular("u1", "acop_faon", "2468")
         testScheduler.advanceUntilIdle()
         assertNull(vincular.errores.value["u1"])
+        assertTrue(vincular.enlazado("u1"))
         assertEquals(1, panel.filas.value.size)
         assertEquals(SyncState.SYNCED, entregas.filtrar().single().syncState)
     }
@@ -240,7 +305,7 @@ class SincronizacionPanelWebTest {
         val ambos = sincronizador(celulares)
         registrar("j1", "p1", "u1", "z1", "v1", 15.0, 1, null).getOrThrow()
 
-        ambos()
+        assertEquals(1, ambos().parciales)
         assertEquals(1, panel.filas.value.size, "el panel (oficial) ya la tiene")
         val parcial = entregas.filtrar().single()
         assertEquals(SyncState.ERROR, parcial.syncState, "pero falta la copia del proveedor")
@@ -267,7 +332,9 @@ class SincronizacionPanelWebTest {
 
         val r = ambos()
 
-        assertEquals(1, r.sinConexion)
+        assertEquals(1, r.parciales, "el panel la recibió: es un envío parcial, no una falta de conexión total")
+        assertEquals(0, r.sinConexion)
+        assertTrue(mensajeSincronizacion(r).contains("recibido(s) por el panel web, pero falta la copia"))
         val local = entregas.filtrar().single()
         assertEquals(SyncState.PENDING, local.syncState)
         assertEquals("Recibida por el panel web; falta la copia para el celular del proveedor: Sin conexión a internet", local.syncError)

@@ -72,15 +72,13 @@ fun PerfilScreen(
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         EncabezadoSeccion("Perfil", accion = { PildoraPendientes(pendientesSync) })
-        EncabezadoPerfil(nombre = estado.nombres, codigo = estado.usuarioIdLocal)
+        EncabezadoPerfil(nombre = estado.nombres, usuario = estado.username)
 
         Column(
             Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m),
         ) {
             Tarjeta {
-                Dato("Código", estado.usuarioIdLocal.ifBlank { "—" })
-                DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Dato("Rol", estado.rol.ifBlank { "—" })
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Dato("Zona actual", estado.zonaActual)
@@ -225,7 +223,7 @@ internal fun textoConfirmacionCierreSesion(jornadaAbierta: Boolean, pendientesSy
 }
 
 @Composable
-private fun EncabezadoPerfil(nombre: String, codigo: String) {
+private fun EncabezadoPerfil(nombre: String, usuario: String) {
     Surface(color = Colores.brand, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth().padding(Espaciado.l),
@@ -240,7 +238,11 @@ private fun EncabezadoPerfil(nombre: String, codigo: String) {
             }
             Column {
                 Text(nombre.ifBlank { "Acopiador" }, style = MaterialTheme.typography.headlineSmall, color = Colores.onBrand)
-                Text(codigo.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, color = Colores.onBrand.copy(alpha = 0.85f))
+                Text(
+                    usuario.takeIf { it.isNotBlank() }?.let { "@$it" } ?: "Usuario no disponible",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Colores.onBrand.copy(alpha = 0.85f),
+                )
             }
         }
     }

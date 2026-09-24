@@ -45,13 +45,6 @@ fun ProveedoresScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
-                AdminTexto(
-                    "Cada ficha es el registro operativo del proveedor (zona, tachos, entregas y pagos). " +
-                        "Para dar de alta un proveedor nuevo ve a Perfil → Usuarios y roles → + y elige el rol Proveedor: se crean su cuenta y su ficha juntas.",
-                    12, AdminColor.gris,
-                )
-            }
             item { AdminBuscador(s.texto, viewModel::buscar, "Buscar por código, nombre, DNI o responsable") }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

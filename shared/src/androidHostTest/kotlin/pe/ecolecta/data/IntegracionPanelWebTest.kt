@@ -46,11 +46,16 @@ import kotlin.time.Instant
  * Se omite si no se indica el servidor. Para ejecutarla (con una base de prueba, nunca la del usuario):
  *   ECOLECTA_SERVIDOR_PRUEBA=http://127.0.0.1:8765 ECOLECTA_SERVIDOR_BD=/ruta/web-prueba.sqlite \
  *     ./gradlew :shared:testAndroidHostTest --tests '*IntegracionPanelWebTest'
- * La base del servidor debe tener los datos de `php artisan db:seed --class=MovilDemoSeeder`.
+ * La base del servidor debe tener los datos de `php artisan db:seed --class=MovilDemoSeeder`. Con
+ * ECOLECTA_PIN_ADMIN (PIN del admin de la app, igual al del admin de esa base) se prueba además que una
+ * corrección de ADMIN la firma su propia cuenta.
  */
 class IntegracionPanelWebTest {
     private val url = System.getenv("ECOLECTA_SERVIDOR_PRUEBA").orEmpty()
     private val baseWeb = System.getenv("ECOLECTA_SERVIDOR_BD").orEmpty()
+
+    /** PIN del admin de la app (y del admin del panel de prueba). Sin él, se omite el paso 4b y se avisa. */
+    private val pinAdmin = System.getenv("ECOLECTA_PIN_ADMIN").orEmpty()
 
     private val reloj = object : Reloj {
         override fun hoy() = LocalDate(2026, 9, 24)
@@ -98,12 +103,17 @@ class IntegracionPanelWebTest {
             servidor, PreparadorEntregaServidorLocal(proveedores, usuarios, jornadas, zonas, vehiculos, auditoria),
         )
 
-        // 1) Sin sesión con el panel: queda en error visible, nada llega.
+        // 1) Sin sesión con el panel (entró offline): sigue pendiente con el motivo, no es un "error del
+        //    servidor" y nada llega a la base del panel.
         val entrega = RegistrarEntregaUseCase(entregas, proveedores, reloj, dispositivo)(
             jornadaId, proveedor.id, acopiador.id, zona.id, vehiculo.id, 38.5, 2, "Integración",
         ).getOrThrow().entrega
-        sincronizar()
-        assertEquals(SyncState.ERROR, entregas.obtenerPorId(entrega.id)!!.syncState)
+        val sinEnlace = sincronizar()
+        // La semilla local de la app trae además entregas sin enviar de jperez, tampoco enlazado.
+        assertTrue(acopiador.nombres in sinEnlace.cuentasSinEnlazar)
+        assertEquals(0, sinEnlace.fallidos, "ninguna cuenta sin enlazar se cuenta como rechazo del servidor")
+        assertEquals(SyncState.PENDING, entregas.obtenerPorId(entrega.id)!!.syncState)
+        assertEquals(0, consultarWeb("SELECT COUNT(*) FROM entregas WHERE uuid_movil = ?", entrega.id) { it.getInt(1) }.single())
 
         // 2) Login (mismo usuario y PIN que en la app) → token → envío real.
         servidor.vincular(acopiador.id, "acop_faon", "2468").getOrThrow()
@@ -142,6 +152,34 @@ class IntegracionPanelWebTest {
         assertEquals(listOf("crear", "corregir", "anular"), auditoriaWeb.map { it.first })
         assertEquals("Medida mal leída", auditoriaWeb[1].second)
         assertEquals("Registro duplicado", auditoriaWeb[2].second)
+
+        // 4b) ADMIN corrige en este celular una entrega del acopiador: la envía SU cuenta (no la del
+        //     acopiador); el panel la audita a nombre de admin y la entrega sigue siendo del acopiador.
+        //     Requiere que el admin del panel de prueba tenga el mismo PIN que el admin de la app.
+        if (pinAdmin.isBlank()) println("Paso 4b OMITIDO: falta ECOLECTA_PIN_ADMIN") else {
+        val admin = db.usuarioQueries.selectPorUsername("admin").executeAsOne()
+        val deAcopiador = RegistrarEntregaUseCase(entregas, proveedores, reloj, dispositivo)(
+            jornadaId, proveedor.id, acopiador.id, zona.id, vehiculo.id, 20.0, 1, null,
+        ).getOrThrow().entrega
+        sincronizar()
+        CorregirEntregaUseCase(entregas, reloj, dispositivo, regla)(deAcopiador.id, 18.0, 1, null, "Revisión de ADMIN", admin.id).getOrThrow()
+        val adminSinEnlace = sincronizar()
+        assertTrue(admin.nombres in adminSinEnlace.cuentasSinEnlazar, "sin token de ADMIN no se firma su corrección con el token del acopiador")
+        assertEquals(SyncState.PENDING, entregas.obtenerPorId(deAcopiador.id)!!.syncState)
+        assertEquals(20.0, consultarWeb("SELECT litros FROM entregas WHERE uuid_movil = ?", deAcopiador.id) { it.getDouble(1) }.single())
+        servidor.vincular(admin.id, "admin", pinAdmin).getOrThrow()
+        sincronizar()
+        assertEquals(SyncState.SYNCED, entregas.obtenerPorId(deAcopiador.id)!!.syncState)
+        val sqlAutores = """
+            SELECT a.accion, ua.username, ue.username, e.litros FROM auditorias a JOIN entregas e ON e.id = a.entidad_id
+            JOIN usuarios ua ON ua.id = a.usuario_id JOIN usuarios ue ON ue.id = e.usuario_id
+            WHERE a.entidad = 'entrega' AND e.uuid_movil = ? ORDER BY a.id
+        """.trimIndent()
+        assertEquals(
+            listOf(listOf("crear", "acop_faon", "acop_faon", 18.0), listOf("corregir", "admin", "acop_faon", 18.0)),
+            consultarWeb(sqlAutores, deAcopiador.id) { listOf(it.getString(1), it.getString(2), it.getString(3), it.getDouble(4)) },
+        )
+        }
 
         // 5) Servidor inalcanzable: la entrega nueva queda pendiente (no "sincronizada") y el dato se conserva.
         // Mismo token, pero el servidor no responde (puerto cerrado).

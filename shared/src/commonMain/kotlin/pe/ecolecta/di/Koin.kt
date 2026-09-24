@@ -321,6 +321,9 @@ val presentationModule = module {
             reglaEdicion = get(),
             listarAuditoria = get(),
             listarUsuarios = get(),
+            sincronizar = get(),
+            vincularServidor = get(),
+            preparador = get(),
         )
     }
 
