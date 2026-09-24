@@ -27,12 +27,19 @@ class SincronizacionViewModel(
     private val listarProveedoresUseCase: ListarProveedoresUseCase,
     private val sincronizarRegistros: SincronizarRegistrosAcopioUseCase,
     private val vincularServidor: VincularServidorUseCase,
+    private val cambios: pe.ecolecta.domain.repository.CambiosLocalesRepository? = null,
+    private val enviarCambios: pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase? = null,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SincronizacionUiState())
     val uiState: StateFlow<SincronizacionUiState> = _uiState.asStateFlow()
 
     init {
         cargar()
+        cambios?.let { repo ->
+            viewModelScope.launch {
+                repo.observarEstado().collect { e -> _uiState.update { it.copy(avisoCambios = pe.ecolecta.presentation.avisoCambiosServidor(e)) } }
+            }
+        }
         viewModelScope.launch {
             obtenerSesionUseCase().collectLatest { sesion ->
                 val id = sesion?.usuario?.id ?: return@collectLatest
@@ -110,7 +117,7 @@ class SincronizacionViewModel(
                 runCatching { sincronizarRegistros() }.fold(
                     onSuccess = ::mensajeSincronizacion,
                     onFailure = { "No se pudo sincronizar: ${it.message}" },
-                )
+                ).also { runCatching { enviarCambios?.invoke() } }
             }
             _uiState.update { it.copy(mensaje = mensaje) }
             cargar()

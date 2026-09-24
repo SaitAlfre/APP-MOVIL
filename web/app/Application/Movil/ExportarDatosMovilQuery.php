@@ -119,14 +119,14 @@ class ExportarDatosMovilQuery
                 'anulada' => (bool) $e->anulada, 'actualizadoEn' => $e->updated_at?->getTimestampMs() ?? 0,
             ])->values(),
             'controles' => $controles->filter(fn (ControlCalidad $c) => $c->entrega !== null)->map(fn (ControlCalidad $c) => [
-                'id' => $c->id, 'proveedorId' => $c->entrega->proveedor_id, 'usuarioId' => $c->usuario_id,
+                'id' => $c->id, 'uuidMovil' => $c->uuid_movil, 'proveedorId' => $c->entrega->proveedor_id, 'usuarioId' => $c->usuario_id,
                 'resultado' => strtoupper($c->resultado->value),
                 'temperatura' => $c->temperatura_c !== null ? (float) $c->temperatura_c : null,
                 'acidez' => $c->acidez !== null ? (float) $c->acidez : null,
                 'observaciones' => $c->observaciones, 'evaluadoEn' => $c->evaluado_en->getTimestampMs(),
             ])->values(),
             'comunicados' => $comunicados->map(fn (Comunicado $c) => [
-                'id' => $c->id, 'titulo' => $c->titulo, 'contenido' => $c->contenido,
+                'id' => $c->id, 'codigo' => $c->codigo, 'titulo' => $c->titulo, 'contenido' => $c->contenido,
                 'autor' => $autores[$c->autor_id] ?? 'Administración',
                 'publicadoEn' => ($c->publicado_en ?? $c->created_at)->getTimestampMs(),
             ])->values(),

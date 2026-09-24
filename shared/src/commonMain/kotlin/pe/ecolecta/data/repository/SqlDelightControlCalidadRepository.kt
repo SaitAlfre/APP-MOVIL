@@ -16,6 +16,8 @@ import pe.ecolecta.domain.model.EstadoControlCalidad
 import pe.ecolecta.domain.model.OrigenCaptura
 import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.domain.repository.ControlCalidadRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightControlCalidadRepository(
     private val db: EcolectaDatabase,
@@ -52,6 +54,7 @@ class SqlDelightControlCalidadRepository(
             updated_at = control.updatedAt, sync_state = control.syncState.name,
         )
         db.controlCalidadQueries.guardarVisita(Json.encodeToString(control.visita), control.id)
+        db.marcarCambio(EntidadCambio.CALIDAD, control.id)
         }
         Unit
     }

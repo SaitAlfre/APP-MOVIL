@@ -14,6 +14,8 @@ data class SincronizacionUiState(
     /** Estado real del enlace con el panel web (no configurado, sin enlazar o motivo del último rechazo). */
     val avisoServidor: String? = null,
     val cuentaEnlazada: Boolean = false,
+    /** Otros cambios de este celular (jornadas, calidad, cuentas...) aún sin llegar al panel, o rechazados. */
+    val avisoCambios: String? = null,
 ) {
     val todoSincronizado: Boolean
         get() = !cargando && cuentaEnlazada && resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0

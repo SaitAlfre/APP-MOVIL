@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Application\Auth\AutenticarOperadorUseCase;
 use App\Application\Entregas\SincronizarEntregaMovilUseCase;
+use App\Application\Movil\AplicarCambioMovilUseCase;
 use App\Application\Movil\ExportarDatosMovilQuery;
 use App\Domain\Auth\Exceptions\CuentaBloqueadaException;
 use App\Domain\Auth\Exceptions\CuentaInactivaException;
 use App\Domain\Entregas\Exceptions\EntregaMovilRechazadaException;
 use App\Domain\Liquidaciones\EstadoLiquidacion;
+use App\Domain\Movil\CambioMovilRechazadoException;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
@@ -17,6 +19,7 @@ use App\Infrastructure\Persistence\Eloquent\TokenMovil;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * API de sincronización con la app móvil. La base de datos del panel es la fuente oficial de entregas y
@@ -75,6 +78,68 @@ class MovilController extends Controller
     public function datos(Request $request, ExportarDatosMovilQuery $exportar): JsonResponse
     {
         return response()->json($exportar->ejecutar($request->user()));
+    }
+
+    /**
+     * Estado actual de una fila cambiada en la app (ver AplicarCambioMovilUseCase). Responde el id del panel
+     * para que el celular lo recuerde; un rechazo indica si es definitivo o si conviene reintentar.
+     */
+    public function aplicarCambio(Request $request, string $entidad, AplicarCambioMovilUseCase $aplicar): JsonResponse
+    {
+        $datos = $request->validate($this->reglasCambio($entidad));
+        $autor = $request->user();
+        $anterior = auth('operador')->user();
+        // Los casos de uso del panel auditan con la cuenta del operador: aquí es la del token.
+        auth('operador')->setUser($autor);
+
+        try {
+            $id = $aplicar->ejecutar($autor, $entidad, $datos);
+        } catch (CambioMovilRechazadoException $e) {
+            return response()->json(['message' => $e->getMessage(), 'codigo' => $e->codigo, 'definitivo' => $e->definitivo], $e->estadoHttp);
+        } catch (\DomainException|RuntimeException|\InvalidArgumentException|\ValueError $e) {
+            return response()->json(['message' => $this->mensajeSeguro($e), 'codigo' => 'invalido', 'definitivo' => true], 422);
+        } finally {
+            if ($anterior !== null) {
+                auth('operador')->setUser($anterior);
+            } else {
+                auth('operador')->forgetUser();
+            }
+        }
+
+        return response()->json(['id' => $id]);
+    }
+
+    /** @return array<string, list<string>> */
+    private function reglasCambio(string $entidad): array
+    {
+        $servidor = ['servidorId' => ['nullable', 'integer']];
+
+        return match ($entidad) {
+            'zona' => [...$servidor, 'nombre' => ['required', 'string', 'max:100'], 'activo' => ['required', 'boolean']],
+            'vehiculo' => [...$servidor, 'nombre' => ['required', 'string', 'max:100'], 'placa' => ['required', 'string', 'max:20'], 'activo' => ['required', 'boolean']],
+            'usuario' => [...$servidor, 'username' => ['required', 'string', 'max:60'], 'nombres' => ['required', 'string', 'max:150'],
+                'dni' => ['required', 'string', 'max:20'], 'roles' => ['required', 'array', 'min:1'], 'roles.*' => ['string'],
+                'activo' => ['required', 'boolean'], 'pin' => ['nullable', 'string', 'max:8']],
+            'proveedor' => [...$servidor, 'codigo' => ['required', 'string', 'max:60'], 'nombres' => ['required', 'string', 'max:150'],
+                'dni' => ['required', 'string', 'max:20'], 'telefono' => ['nullable', 'string', 'max:30'], 'direccion' => ['nullable', 'string', 'max:255'],
+                'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'], 'tachos' => ['required', 'integer', 'min:1', 'max:1000'],
+                'capacidadTachoL' => ['required', 'numeric', 'gt:0'], 'estado' => ['required', 'string', 'in:ACTIVO,SUSPENDIDO,RETIRADO'],
+                'usuarioUsername' => ['present', 'nullable', 'string', 'max:60']],
+            'jornada' => ['uuid' => ['required', 'string', 'max:64'], 'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'],
+                'vehiculoId' => ['nullable', 'integer'], 'vehiculoPlaca' => ['required', 'string', 'max:20'],
+                'abiertaEn' => ['required', 'integer', 'min:0'], 'cerradaEn' => ['nullable', 'integer', 'min:0']],
+            'comunicado' => [...$servidor, 'uuid' => ['required', 'string', 'max:64'], 'mensaje' => ['nullable', 'string', 'max:2000'],
+                'publicadoEn' => ['required', 'integer', 'min:0'], 'eliminado' => ['required', 'boolean']],
+            'calidad' => ['uuid' => ['required', 'string', 'max:64'], 'proveedorId' => ['nullable', 'integer'], 'proveedorCodigo' => ['required', 'string', 'max:60'],
+                'estado' => ['required', 'string', 'in:APROBADO,OBSERVADO,RECHAZADO,REPETIR'], 'temperatura' => ['nullable', 'numeric', 'between:-5,60'],
+                'acidez' => ['nullable', 'numeric', 'between:0,50'], 'observaciones' => ['nullable', 'string', 'max:2000'],
+                'registradoEn' => ['required', 'integer', 'min:0']],
+            'reclamo' => ['uuid' => ['required', 'string', 'max:64'], 'entregaUuid' => ['nullable', 'string', 'max:64'],
+                'litros' => ['nullable', 'numeric', 'gt:0', 'max:18500'], 'motivo' => ['nullable', 'string', 'max:500'], 'estado' => ['nullable', 'string', 'max:30']],
+            'liquidacion' => ['proveedorId' => ['nullable', 'integer'], 'proveedorCodigo' => ['required', 'string', 'max:60'],
+                'desde' => ['required', 'date_format:Y-m-d'], 'hasta' => ['required', 'date_format:Y-m-d', 'after_or_equal:desde'],
+                'precio' => ['required', 'numeric', 'gt:0', 'max:20'], 'estado' => ['required', 'string', 'in:APROBADA,PAGADA']],
+        };
     }
 
     public function sincronizarEntrega(Request $request, string $uuid, SincronizarEntregaMovilUseCase $sincronizar): JsonResponse

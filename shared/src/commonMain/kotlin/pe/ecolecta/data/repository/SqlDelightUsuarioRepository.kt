@@ -14,6 +14,8 @@ import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.repository.UsuarioRepository
 import pe.ecolecta.domain.security.ParHashPin
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightUsuarioRepository(
     private val db: EcolectaDatabase,
@@ -59,16 +61,19 @@ class SqlDelightUsuarioRepository(
                 updated_at = usuario.updatedAt,
             )
             usuario.roles.forEach { rol -> db.usuarioRolQueries.insertar(usuario_id = usuario.id, rol = rol.name) }
+            db.marcarCambio(EntidadCambio.USUARIO, usuario.id)
         }
     }
 
     override suspend fun actualizar(id: String, nombres: String, dni: String, activo: Boolean, updatedAt: Long) = withContext(dispatcher) {
         db.usuarioQueries.actualizar(nombres = nombres, dni = dni, activo = if (activo) 1 else 0, updated_at = updatedAt, id = id)
+        db.marcarCambio(EntidadCambio.USUARIO, id)
         Unit
     }
 
     override suspend fun actualizarPin(id: String, pinHash: String, pinSalt: String, updatedAt: Long) = withContext(dispatcher) {
         db.usuarioQueries.actualizarPin(pin_hash = pinHash, pin_salt = pinSalt, updated_at = updatedAt, id = id)
+        db.marcarCambio(EntidadCambio.USUARIO, id)
         Unit
     }
 
@@ -89,21 +94,25 @@ class SqlDelightUsuarioRepository(
             if (nuevoPin != null) {
                 db.usuarioQueries.actualizarPin(pin_hash = nuevoPin.hash, pin_salt = nuevoPin.salt, updated_at = updatedAt, id = id)
             }
+            db.marcarCambio(EntidadCambio.USUARIO, id)
         }
     }
 
     override suspend fun desactivar(id: String, updatedAt: Long) = withContext(dispatcher) {
         db.usuarioQueries.desactivar(updated_at = updatedAt, id = id)
+        db.marcarCambio(EntidadCambio.USUARIO, id)
         Unit
     }
 
     override suspend fun asignarRol(usuarioId: String, rol: Rol) = withContext(dispatcher) {
         db.usuarioRolQueries.insertar(usuario_id = usuarioId, rol = rol.name)
+        db.marcarCambio(EntidadCambio.USUARIO, usuarioId)
         Unit
     }
 
     override suspend fun quitarRol(usuarioId: String, rol: Rol) = withContext(dispatcher) {
         db.usuarioRolQueries.eliminar(usuario_id = usuarioId, rol = rol.name)
+        db.marcarCambio(EntidadCambio.USUARIO, usuarioId)
         Unit
     }
 

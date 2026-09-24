@@ -14,3 +14,6 @@ INSERT OR REPLACE INTO servidor_mapa(entidad, servidor_id, local_id) VALUES (:en
 
 localesDe:
 SELECT local_id FROM servidor_mapa WHERE entidad = :entidad;
+
+servidorId:
+SELECT servidor_id FROM servidor_mapa WHERE entidad = :entidad AND local_id = :local_id LIMIT 1;

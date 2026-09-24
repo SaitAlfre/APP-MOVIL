@@ -14,6 +14,8 @@ import pe.ecolecta.domain.model.SolicitudProveedor
 import pe.ecolecta.domain.repository.AlertaDescartadaRepository
 import pe.ecolecta.domain.repository.ComunicadoRepository
 import pe.ecolecta.domain.repository.GestionPortalRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightGestionPortalRepository(
     private val db: EcolectaDatabase,
@@ -31,6 +33,7 @@ class SqlDelightGestionPortalRepository(
 
     override suspend fun actualizarSolicitud(solicitud: SolicitudProveedor) = withContext(dispatcher) {
         db.portalProveedorQueries.actualizarContenido(json.encodeToString(solicitud), solicitud.id)
+        db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
         Unit
     }
 
@@ -44,6 +47,7 @@ class SqlDelightGestionPortalRepository(
                 } else {
                     db.portalProveedorQueries.guardar(pago.id, pago.proveedorId, "PAGO", contenido, en)
                 }
+                db.marcarCambio(EntidadCambio.LIQUIDACION, pago.id)
             }
         }
     }
@@ -60,11 +64,13 @@ class SqlDelightComunicadoRepository(
 
     override suspend fun publicar(comunicado: Comunicado) = withContext(dispatcher) {
         db.comunicadoQueries.insertar(comunicado.id, comunicado.mensaje, comunicado.autorId, comunicado.autorNombre, comunicado.publicadoEn)
+        db.marcarCambio(EntidadCambio.COMUNICADO, comunicado.id)
         Unit
     }
 
     override suspend fun eliminar(id: String) = withContext(dispatcher) {
         db.comunicadoQueries.eliminar(id)
+        db.marcarCambio(EntidadCambio.COMUNICADO, id)
         Unit
     }
 }
@@ -96,8 +102,10 @@ class SqlDelightCuentasRepository(
     override suspend fun guardarAsignaciones(usuarioId: String, zonaId: String?, proveedorId: String?) = withContext(dispatcher) {
         db.transaction {
             if (zonaId == null) db.usuarioZonaQueries.quitar(usuarioId) else db.usuarioZonaQueries.asignar(usuarioId, zonaId)
+            val anterior = db.proveedorQueries.selectPorUsuarioId(usuarioId).executeAsList().map { it.id }
             db.proveedorQueries.desvincularUsuario(usuarioId)
             if (proveedorId != null) db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = proveedorId)
+            (anterior + listOfNotNull(proveedorId)).distinct().forEach { db.marcarCambio(EntidadCambio.PROVEEDOR, it) }
         }
     }
 
@@ -114,6 +122,7 @@ class SqlDelightCuentasRepository(
                 pin_hash = usuario.pinHash, pin_salt = usuario.pinSalt, activo = if (usuario.activo) 1 else 0, updated_at = usuario.updatedAt,
             )
             usuario.roles.forEach { rol -> db.usuarioRolQueries.insertar(usuario_id = usuario.id, rol = rol.name) }
+            db.marcarCambio(EntidadCambio.USUARIO, usuario.id)
             if (zonaId != null) db.usuarioZonaQueries.asignar(usuario.id, zonaId)
             if (fichaNueva != null) {
                 db.proveedorQueries.insertar(
@@ -124,6 +133,7 @@ class SqlDelightCuentasRepository(
                 )
                 db.proveedorQueries.actualizarResponsable(fichaNueva.dueno, fichaNueva.id)
                 db.proveedorQueries.vincularUsuario(usuario_id = usuario.id, id = fichaNueva.id)
+                db.marcarCambio(EntidadCambio.PROVEEDOR, fichaNueva.id)
             }
             if (fichaExistenteId != null) {
                 // Se vuelve a comprobar dentro de la transacción: otra alta pudo tomar la ficha entretanto.
@@ -131,6 +141,7 @@ class SqlDelightCuentasRepository(
                     ?: throw IllegalArgumentException("La ficha de proveedor ya no existe.")
                 if (ficha.usuario_id != null) throw IllegalArgumentException("La ficha ${ficha.codigo} ya está vinculada a otra cuenta.")
                 db.proveedorQueries.vincularUsuario(usuario_id = usuario.id, id = fichaExistenteId)
+                db.marcarCambio(EntidadCambio.PROVEEDOR, fichaExistenteId)
             }
             auditorias.forEach { a ->
                 db.auditoriaQueries.insertar(

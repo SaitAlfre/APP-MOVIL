@@ -11,6 +11,7 @@ use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -55,7 +56,7 @@ final class SincronizarEntregaMovilUseCase
 
         return DB::transaction(function () use ($autor, $acopiador, $datos, $proveedor, $zona, $vehiculo): array {
             $jornada = $this->jornada($acopiador, $datos, $zona, $vehiculo);
-            $existente = Entrega::query()->where('uuid_movil', $datos['id'])->lockForUpdate()->first();
+            $existente = $this->porIdMovil(Entrega::query(), 'web-entrega-', $datos['id'])->lockForUpdate()->first();
 
             if ($existente === null) {
                 return ['estado' => self::CREADA, 'entrega' => $this->crear($autor, $datos, $jornada, $proveedor, $zona, $vehiculo)];
@@ -65,10 +66,28 @@ final class SincronizarEntregaMovilUseCase
         });
     }
 
+    /**
+     * Fila por el id del celular. Las que el celular recibió del panel llevan `web-entrega-N` / `web-jornada-N`
+     * (no tienen `uuid_movil`): se buscan por su id del panel para no duplicarlas al corregirlas en la app.
+     *
+     * @template T of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<T>  $consulta
+     * @return Builder<T>
+     */
+    private function porIdMovil(Builder $consulta, string $prefijo, string $id): Builder
+    {
+        if (str_starts_with($id, $prefijo) && ctype_digit(substr($id, strlen($prefijo)))) {
+            return $consulta->whereKey((int) substr($id, strlen($prefijo)));
+        }
+
+        return $consulta->where('uuid_movil', $id);
+    }
+
     /** @param  array<string, mixed>  $datos */
     private function jornada(Usuario $acopiador, array $datos, Zona $zona, Vehiculo $vehiculo): Jornada
     {
-        $jornada = Jornada::query()->where('uuid_movil', $datos['jornadaId'])->lockForUpdate()->first();
+        $jornada = $this->porIdMovil(Jornada::query(), 'web-jornada-', $datos['jornadaId'])->lockForUpdate()->first();
         $cerradaEn = $datos['jornadaCerradaEn'] !== null ? $this->instante($datos['jornadaCerradaEn']) : null;
 
         if ($jornada === null) {

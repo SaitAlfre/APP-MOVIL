@@ -1,0 +1,42 @@
+-- Fila del celular (zona, usuario, proveedor, jornada...) que cambió y aún no llega al panel web. Se envía su
+-- estado ACTUAL, así que varios cambios seguidos de la misma fila se envían una sola vez. `pin` guarda un PIN
+-- nuevo solo hasta enviarlo (el panel lo necesita para crear o restablecer la cuenta); luego se borra la fila.
+CREATE TABLE cambio_pendiente (
+    entidad TEXT NOT NULL,
+    local_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    pin TEXT,
+    marcado_en INTEGER NOT NULL,
+    intentos INTEGER NOT NULL DEFAULT 0,
+    ultimo_error TEXT,
+    estado TEXT NOT NULL DEFAULT 'PENDING',
+    PRIMARY KEY (entidad, local_id)
+);
+
+porClave:
+SELECT * FROM cambio_pendiente WHERE entidad = :entidad AND local_id = :local_id;
+
+marcar:
+INSERT OR REPLACE INTO cambio_pendiente(entidad, local_id, usuario_id, pin, marcado_en, intentos, ultimo_error, estado)
+VALUES (:entidad, :local_id, :usuario_id, :pin, :marcado_en, 0, NULL, 'PENDING');
+
+-- En orden de dependencia: una zona o cuenta nueva llega antes que el proveedor o la jornada que la usa.
+pendientes:
+SELECT * FROM cambio_pendiente WHERE estado = 'PENDING'
+ORDER BY CASE entidad
+    WHEN 'zona' THEN 0 WHEN 'vehiculo' THEN 1 WHEN 'usuario' THEN 2 WHEN 'proveedor' THEN 3 WHEN 'jornada' THEN 4
+    WHEN 'comunicado' THEN 5 WHEN 'calidad' THEN 6 WHEN 'solicitud' THEN 7 ELSE 8 END, marcado_en ASC;
+
+-- Solo si nadie volvió a cambiar la fila mientras se enviaba (marcado_en igual).
+completar:
+DELETE FROM cambio_pendiente WHERE entidad = :entidad AND local_id = :local_id AND marcado_en = :marcado_en;
+
+registrarFallo:
+UPDATE cambio_pendiente SET estado = :estado, ultimo_error = :ultimo_error, intentos = intentos + 1
+WHERE entidad = :entidad AND local_id = :local_id AND marcado_en = :marcado_en;
+
+contarPorEstado:
+SELECT COUNT(*) FROM cambio_pendiente WHERE estado = :estado;
+
+errores:
+SELECT * FROM cambio_pendiente WHERE estado = 'ERROR' ORDER BY marcado_en DESC;

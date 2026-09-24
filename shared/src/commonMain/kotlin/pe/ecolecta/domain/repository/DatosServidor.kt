@@ -69,6 +69,8 @@ data class EntregaServidor(
 @Serializable
 data class ControlServidor(
     val id: Long,
+    /** Id del análisis en el celular que lo registró; null si se registró en el panel. */
+    val uuidMovil: String? = null,
     val proveedorId: Long,
     val usuarioId: Long,
     /** APROBADO, OBSERVADO o RECHAZADO. */
@@ -80,7 +82,7 @@ data class ControlServidor(
 )
 
 @Serializable
-data class ComunicadoServidor(val id: Long, val titulo: String, val contenido: String, val autor: String, val publicadoEn: Long)
+data class ComunicadoServidor(val id: Long, val titulo: String, val contenido: String, val autor: String, val publicadoEn: Long, val codigo: String = "")
 
 /**
  * Copia de lo que el panel web publica para una cuenta (`GET /api/movil/datos`). El panel es la fuente

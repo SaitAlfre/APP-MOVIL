@@ -11,7 +11,7 @@ class ControlCalidad extends Model
     protected $table = 'controles_calidad';
 
     protected $fillable = [
-        'entrega_id', 'usuario_id', 'resultado', 'temperatura_c', 'acidez', 'observaciones', 'evaluado_en',
+        'entrega_id', 'usuario_id', 'resultado', 'temperatura_c', 'acidez', 'observaciones', 'evaluado_en', 'uuid_movil',
     ];
 
     protected function casts(): array

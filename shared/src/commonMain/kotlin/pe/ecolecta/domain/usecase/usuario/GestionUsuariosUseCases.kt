@@ -129,6 +129,7 @@ class GuardarCuentaUseCase(
     private val pinHasher: PinHasher,
     private val reloj: Reloj,
     private val deviceIdProvider: DeviceIdProvider,
+    private val pines: pe.ecolecta.domain.repository.PinesParaServidor = pe.ecolecta.domain.repository.PinesParaServidor.Ninguno,
 ) {
     suspend operator fun invoke(datos: DatosCuenta, adminId: String): Result<String> = runCatching {
         val username = datos.username.trim().lowercase()
@@ -168,6 +169,7 @@ class GuardarCuentaUseCase(
             anterior.id
         }
         cuentas.guardarAsignaciones(id, zonaId, proveedorId)
+        datos.pin?.takeIf { it.isNotEmpty() }?.let { pines.recordarPin(id, it) }
         auditoria.insertar(
             Auditoria(
                 id = nuevoId(), entidad = "usuario", entidadId = id,
@@ -228,6 +230,7 @@ class GuardarCuentaUseCase(
             )
         }
         cuentas.crearCuenta(usuario, zonaId, ficha, proveedorId, registros)
+        pines.recordarPin(usuario.id, pin)
         return usuario.id
     }
 

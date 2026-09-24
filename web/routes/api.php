@@ -1,5 +1,6 @@
 <?php
 
+use App\Application\Movil\AplicarCambioMovilUseCase;
 use App\Http\Controllers\Api\MovilController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,9 @@ Route::prefix('movil')->name('api.movil.')->group(function () {
         Route::delete('sesion', [MovilController::class, 'cerrarSesion'])->name('sesion.destroy');
         // Copia de lo que el panel publica para la cuenta (web -> celular), según su rol.
         Route::get('datos', [MovilController::class, 'datos'])->middleware('throttle:movil-sync')->name('datos');
+        // Cambios hechos en la app (celular -> panel); cada entidad valida el rol de la cuenta del token.
+        Route::put('cambios/{entidad}', [MovilController::class, 'aplicarCambio'])
+            ->whereIn('entidad', AplicarCambioMovilUseCase::ENTIDADES)->middleware('throttle:movil-sync')->name('cambios');
     });
 
     Route::middleware(['movil.token:acopiador,admin', 'throttle:movil-sync'])->group(function () {

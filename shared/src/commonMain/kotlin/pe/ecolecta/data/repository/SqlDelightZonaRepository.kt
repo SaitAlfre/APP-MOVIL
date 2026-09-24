@@ -10,6 +10,8 @@ import pe.ecolecta.data.local.aDominio
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.Zona
 import pe.ecolecta.domain.repository.ZonaRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightZonaRepository(
     private val db: EcolectaDatabase,
@@ -28,16 +30,19 @@ class SqlDelightZonaRepository(
 
     override suspend fun insertar(zona: Zona) = withContext(dispatcher) {
         db.zonaQueries.insertar(id = zona.id, nombre = zona.nombre, activo = if (zona.activo) 1 else 0)
+        db.marcarCambio(EntidadCambio.ZONA, zona.id)
         Unit
     }
 
     override suspend fun actualizar(zona: Zona) = withContext(dispatcher) {
         db.zonaQueries.actualizar(nombre = zona.nombre, activo = if (zona.activo) 1 else 0, id = zona.id)
+        db.marcarCambio(EntidadCambio.ZONA, zona.id)
         Unit
     }
 
     override suspend fun desactivar(id: String) = withContext(dispatcher) {
         db.zonaQueries.desactivar(id)
+        db.marcarCambio(EntidadCambio.ZONA, id)
         Unit
     }
 

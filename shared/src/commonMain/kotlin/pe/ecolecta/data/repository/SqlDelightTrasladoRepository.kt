@@ -11,6 +11,8 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.Auditoria
 import pe.ecolecta.domain.model.TrasladoZona
 import pe.ecolecta.domain.repository.TrasladoRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightTrasladoRepository(
     private val db: EcolectaDatabase,
@@ -63,6 +65,7 @@ class SqlDelightTrasladoRepository(
                 updated_at = updatedAtProveedor,
                 id = proveedorId,
             )
+            db.marcarCambio(EntidadCambio.PROVEEDOR, proveedorId)
 
             insertarAuditoria(auditoria)
         }

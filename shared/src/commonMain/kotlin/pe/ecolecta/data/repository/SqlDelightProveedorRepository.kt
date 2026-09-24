@@ -11,6 +11,8 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.repository.ProveedorRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightProveedorRepository(
     private val db: EcolectaDatabase,
@@ -36,6 +38,7 @@ class SqlDelightProveedorRepository(
 
     override suspend fun vincularUsuario(proveedorId: String, usuarioId: String) = withContext(dispatcher) {
         db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = proveedorId)
+        db.marcarCambio(EntidadCambio.PROVEEDOR, proveedorId)
         Unit
     }
 
@@ -64,6 +67,7 @@ class SqlDelightProveedorRepository(
             sync_state = proveedor.syncState.name,
         )
         db.proveedorQueries.actualizarResponsable(proveedor.dueno, proveedor.id)
+        db.marcarCambio(EntidadCambio.PROVEEDOR, proveedor.id)
         }
         Unit
     }
@@ -83,12 +87,14 @@ class SqlDelightProveedorRepository(
         )
         db.proveedorQueries.actualizarResponsable(proveedor.dueno, proveedor.id)
         db.proveedorQueries.cambiarEstado(proveedor.estado.name, proveedor.updatedAt, proveedor.id)
+        db.marcarCambio(EntidadCambio.PROVEEDOR, proveedor.id)
         }
         Unit
     }
 
     override suspend fun cambiarEstado(id: String, estado: EstadoProveedor, updatedAt: Long) = withContext(dispatcher) {
         db.proveedorQueries.cambiarEstado(estado = estado.name, updated_at = updatedAt, id = id)
+        db.marcarCambio(EntidadCambio.PROVEEDOR, id)
         Unit
     }
 
@@ -105,6 +111,7 @@ class SqlDelightProveedorRepository(
             updated_at = updatedAt,
             id = id,
         )
+        db.marcarCambio(EntidadCambio.PROVEEDOR, id)
         Unit
     }
 

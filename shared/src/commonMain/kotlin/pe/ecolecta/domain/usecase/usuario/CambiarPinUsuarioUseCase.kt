@@ -2,6 +2,7 @@ package pe.ecolecta.domain.usecase.usuario
 
 import pe.ecolecta.domain.PinInvalidoException
 import pe.ecolecta.domain.Reloj
+import pe.ecolecta.domain.repository.PinesParaServidor
 import pe.ecolecta.domain.repository.UsuarioRepository
 import pe.ecolecta.domain.security.PinHasher
 
@@ -12,6 +13,7 @@ class CambiarPinUsuarioUseCase(
     private val usuarioRepository: UsuarioRepository,
     private val pinHasher: PinHasher,
     private val reloj: Reloj,
+    private val pines: PinesParaServidor = PinesParaServidor.Ninguno,
 ) {
     suspend operator fun invoke(id: String, nuevoPin: String, confirmacionPin: String): Result<Unit> {
         if (!FORMATO_PIN.matches(nuevoPin)) return Result.failure(PinInvalidoException.FormatoInvalido)
@@ -20,6 +22,7 @@ class CambiarPinUsuarioUseCase(
         val parHash = pinHasher.crearHash(nuevoPin)
         return runCatching {
             usuarioRepository.actualizarPin(id, parHash.hash, parHash.salt, reloj.ahora().toEpochMilliseconds())
+            pines.recordarPin(id, nuevoPin)
         }
     }
 }

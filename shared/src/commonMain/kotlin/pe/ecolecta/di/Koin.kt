@@ -139,6 +139,9 @@ val dataModule = module {
     single<pe.ecolecta.domain.repository.ComunicadoRepository> { pe.ecolecta.data.repository.SqlDelightComunicadoRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.AlertaDescartadaRepository> { pe.ecolecta.data.repository.SqlDelightAlertaDescartadaRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.SinRecojoRepository> { pe.ecolecta.data.repository.SqlDelightSinRecojoRepository(get(), Dispatchers.Default) }
+    single { pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository(get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.CambiosLocalesRepository> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
+    single<pe.ecolecta.domain.repository.PinesParaServidor> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
     single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
     // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
@@ -156,14 +159,14 @@ val domainModule = module {
     factory { CerrarSesionUseCase(get()) }
     factory { ObtenerSesionUseCase(get()) }
 
-    factory { CrearUsuarioUseCase(get(), get(), get()) }
+    factory { CrearUsuarioUseCase(get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.usuario.ReglasCuenta(get(), get(), get(), get()) }
-    factory { pe.ecolecta.domain.usecase.usuario.GuardarCuentaUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.usuario.GuardarCuentaUseCase(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.usuario.CambiarEstadoCuentaUseCase(get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.usuario.DesbloquearCuentaUseCase(get(), get()) }
     factory { ListarUsuariosUseCase(get()) }
     factory { ObtenerUsuarioUseCase(get()) }
-    factory { CambiarPinUsuarioUseCase(get(), get(), get()) }
+    factory { CambiarPinUsuarioUseCase(get(), get(), get(), get()) }
 
     factory { CrearZonaUseCase(get(), get()) }
     factory { ListarZonasUseCase(get()) }
@@ -236,11 +239,14 @@ val domainModule = module {
     // single: guarda el último motivo de enlace fallido por usuario y lanza el enlace en el ámbito de la app.
     // single: su Mutex evita dos descargas del panel a la vez (ciclo periódico e inicio de sesión).
     single { pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase(get(), get(), get()) }
+    // single: su Mutex evita enviar el mismo cambio dos veces a la vez (ciclo periódico e inicio de sesión).
+    single { pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase(get(), get()) }
     single {
         val sincronizar = get<pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase>()
         val traerDatos = get<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
+        val enviarCambios = get<pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase>()
         pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
-            get(), { sincronizar(); traerDatos() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
+            get(), { sincronizar(); enviarCambios(); traerDatos() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
         )
     }
     factory { pe.ecolecta.domain.usecase.acopio.MarcarSinRecojoUseCase(get(), get(), get(), get(), get(), get()) }
@@ -262,7 +268,7 @@ val presentationModule = module {
         SeleccionRolViewModel(usuarioId = usuarioId, obtenerUsuarioUseCase = get(), seleccionarRolUseCase = get())
     }
 
-    viewModel { AdminDashboardViewModel(obtenerResumenAdminUseCase = get(), observarLiquidaciones = get(), obtenerSesion = get()) }
+    viewModel { AdminDashboardViewModel(obtenerResumenAdminUseCase = get(), observarLiquidaciones = get(), obtenerSesion = get(), cambios = get()) }
     viewModel { pe.ecolecta.presentation.admin.alertas.AdminAlertasViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { pe.ecolecta.presentation.admin.reportes.AdminReportesViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { pe.ecolecta.presentation.admin.perfil.AdminPerfilViewModel(get(), get()) }
@@ -441,6 +447,8 @@ val presentationModule = module {
             listarProveedoresUseCase = get(),
             sincronizarRegistros = get(),
             vincularServidor = get(),
+            cambios = get(),
+            enviarCambios = get(),
         )
     }
 

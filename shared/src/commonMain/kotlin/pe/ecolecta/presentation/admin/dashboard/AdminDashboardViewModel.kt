@@ -19,6 +19,7 @@ class AdminDashboardViewModel(
     private val obtenerResumenAdminUseCase: ObtenerResumenAdminUseCase,
     private val observarLiquidaciones: ObservarLiquidacionesUseCase,
     private val obtenerSesion: ObtenerSesionUseCase,
+    private val cambios: pe.ecolecta.domain.repository.CambiosLocalesRepository? = null,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AdminDashboardUiState())
     val uiState: StateFlow<AdminDashboardUiState> = _uiState.asStateFlow()
@@ -26,6 +27,15 @@ class AdminDashboardViewModel(
     init {
         viewModelScope.launch {
             obtenerSesion().collect { sesion -> _uiState.update { it.copy(nombreAdmin = sesion?.usuario?.nombres.orEmpty()) } }
+        }
+        cambios?.let { repo ->
+            viewModelScope.launch {
+                cargaSegura {
+                    repo.observarEstado().collect { e ->
+                        _uiState.update { it.copy(avisoCambios = pe.ecolecta.presentation.avisoCambiosServidor(e), avisoCambiosEsError = e.conError > 0) }
+                    }
+                }
+            }
         }
         // Primera carga inmediata: antes las cifras esperaban a la primera emisión de liquidaciones y se veían "—".
         cargar()
@@ -40,6 +50,9 @@ class AdminDashboardViewModel(
             }.onFailure { cargar() }
         }
     }
+
+    /** Oculta el aviso hasta que cambie el estado de la cola. */
+    fun ocultarAvisoCambios() = _uiState.update { it.copy(avisoCambios = null) }
 
     fun cargar() {
         viewModelScope.launch {

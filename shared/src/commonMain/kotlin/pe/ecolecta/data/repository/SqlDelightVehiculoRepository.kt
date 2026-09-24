@@ -10,6 +10,8 @@ import pe.ecolecta.data.local.aDominio
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.Vehiculo
 import pe.ecolecta.domain.repository.VehiculoRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightVehiculoRepository(
     private val db: EcolectaDatabase,
@@ -32,16 +34,19 @@ class SqlDelightVehiculoRepository(
 
     override suspend fun insertar(vehiculo: Vehiculo) = withContext(dispatcher) {
         db.vehiculoQueries.insertar(id = vehiculo.id, nombre = vehiculo.nombre, placa = vehiculo.placa, activo = if (vehiculo.activo) 1 else 0)
+        db.marcarCambio(EntidadCambio.VEHICULO, vehiculo.id)
         Unit
     }
 
     override suspend fun actualizar(vehiculo: Vehiculo) = withContext(dispatcher) {
         db.vehiculoQueries.actualizar(nombre = vehiculo.nombre, placa = vehiculo.placa, activo = if (vehiculo.activo) 1 else 0, id = vehiculo.id)
+        db.marcarCambio(EntidadCambio.VEHICULO, vehiculo.id)
         Unit
     }
 
     override suspend fun desactivar(id: String) = withContext(dispatcher) {
         db.vehiculoQueries.desactivar(id)
+        db.marcarCambio(EntidadCambio.VEHICULO, id)
         Unit
     }
 }

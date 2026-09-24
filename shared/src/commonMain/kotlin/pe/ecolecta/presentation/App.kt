@@ -103,16 +103,19 @@ fun App() {
         val obtenerPerfilProveedorUseCase = koinInject<ObtenerPerfilProveedorUseCase>()
         val sincronizarRegistros = koinInject<SincronizarRegistrosAcopioUseCase>()
         val sincronizarDatos = koinInject<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
+        val enviarCambios = koinInject<pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase>()
         val scope = rememberCoroutineScope()
 
         // Envía entregas y "sin recojo" pendientes de ESTE celular mientras la app está abierta, con o
         // sin sesión (lo guardado no debe quedarse atascado por cerrar sesión). Sin backend configurado
         // no hace nada. Cada documento usa el id del registro: reintentar nunca duplica.
-        // Después trae lo que cambió en el panel web (cuentas, catálogos, entregas, calidad, comunicados)
-        // con la cuenta en sesión: primero se envía, así lo aún no enviado nunca se pisa.
+        // Luego envía los demás cambios hechos aquí (cuentas, catálogos, jornadas, calidad, comunicados,
+        // reclamos, liquidaciones) y al final trae lo que cambió en el panel web con la cuenta en sesión:
+        // primero se envía, así lo aún no enviado nunca se pisa.
         LaunchedEffect(Unit) {
             while (true) {
                 runCatching { sincronizarRegistros() }
+                runCatching { enviarCambios() }
                 runCatching { sincronizarDatos() }
                 delay(INTERVALO_SINCRONIZACION_MS)
             }

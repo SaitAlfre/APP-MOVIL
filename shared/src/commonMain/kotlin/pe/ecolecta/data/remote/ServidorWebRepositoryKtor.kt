@@ -39,7 +39,8 @@ import pe.ecolecta.domain.repository.UsuarioRepository
 
 @Serializable private data class SolicitudSesion(val username: String, val pin: String, val dispositivo: String)
 @Serializable private data class RespuestaSesion(val token: String, val expiraEn: Long, val usuario: CuentaServidor? = null)
-@Serializable private data class RespuestaError(val message: String? = null, val codigo: String? = null)
+@Serializable private data class RespuestaError(val message: String? = null, val codigo: String? = null, val definitivo: Boolean = true)
+@Serializable private data class RespuestaCambio(val id: Long? = null)
 @Serializable private data class LiquidacionServidor(
     val id: Long,
     val desde: String,
@@ -90,6 +91,16 @@ class ServidorWebRepositoryKtor(
         withContext(io) {
             db.tokenServidorQueries.guardar(usuarioId, sesion.token, sesion.expiraEn, reloj.ahora().toEpochMilliseconds())
         }
+    }
+
+    override suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> = llamar {
+        val respuesta = http.put("$api/cambios/$entidad") {
+            bearerAuth(tokenVigente(usuarioId))
+            contentType(ContentType.Application.Json)
+            setBody(cuerpo)
+        }
+        verificar(usuarioId, respuesta)
+        respuesta.body<RespuestaCambio>().id
     }
 
     override suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> = llamar {
@@ -153,6 +164,8 @@ class ServidorWebRepositoryKtor(
         return RechazoServidorException(
             error?.message ?: "El servidor respondió ${respuesta.status.value}.",
             error?.codigo,
+            // 5xx: falla del servidor, no del dato; se reintenta.
+            definitivo = (error?.definitivo ?: true) && respuesta.status.value < 500,
         )
     }
 

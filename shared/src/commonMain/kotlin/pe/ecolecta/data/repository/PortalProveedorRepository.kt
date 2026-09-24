@@ -10,6 +10,8 @@ import kotlinx.serialization.json.Json
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.PagoProveedor
 import pe.ecolecta.domain.model.SolicitudProveedor
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class PortalProveedorRepository(private val db: EcolectaDatabase) : pe.ecolecta.domain.repository.PortalProveedorRepository {
     private val json = Json { ignoreUnknownKeys = true }
@@ -23,6 +25,7 @@ class PortalProveedorRepository(private val db: EcolectaDatabase) : pe.ecolecta.
         }
     override suspend fun guardar(solicitud: SolicitudProveedor) = withContext(Dispatchers.Default) {
         db.portalProveedorQueries.guardar(solicitud.id, solicitud.proveedorId, "SOLICITUD", json.encodeToString(solicitud), solicitud.creadaEn)
+        db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
         Unit
     }
 }

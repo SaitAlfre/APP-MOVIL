@@ -15,6 +15,7 @@ class CrearUsuarioUseCase(
     private val usuarioRepository: UsuarioRepository,
     private val pinHasher: PinHasher,
     private val reloj: Reloj,
+    private val pines: pe.ecolecta.domain.repository.PinesParaServidor = pe.ecolecta.domain.repository.PinesParaServidor.Ninguno,
 ) {
     suspend operator fun invoke(
         username: String,
@@ -49,6 +50,7 @@ class CrearUsuarioUseCase(
 
         return runCatching {
             usuarioRepository.insertar(usuario)
+            pines.recordarPin(usuario.id, pin)
             usuario
         }
     }

@@ -20,3 +20,6 @@ SELECT * FROM portal_proveedor WHERE tipo = ? ORDER BY creado_en DESC;
 
 actualizarContenido:
 UPDATE portal_proveedor SET contenido = ? WHERE id = ?;
+
+porId:
+SELECT * FROM portal_proveedor WHERE id = ?;

@@ -101,6 +101,7 @@ fun AdminDashboardScreen(
 
         Column(Modifier.offset(y = (-12).dp).padding(horizontal = 16.dp)) {
             estado.error?.let { AdminMensaje(it, true, viewModel::cargar, Modifier.padding(bottom = 12.dp)) }
+            estado.avisoCambios?.let { AdminMensaje(it, estado.avisoCambiosEsError, viewModel::ocultarAvisoCambios, Modifier.padding(bottom = 12.dp)) }
             alertas.mensaje?.let { AdminMensaje(it, false, alertasViewModel::limpiarMensaje, Modifier.padding(bottom = 12.dp)) }
             alertas.error?.let { AdminMensaje(it, true, alertasViewModel::limpiarMensaje, Modifier.padding(bottom = 12.dp)) }
 

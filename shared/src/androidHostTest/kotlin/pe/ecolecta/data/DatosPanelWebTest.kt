@@ -73,7 +73,7 @@ class DatosPanelWebTest {
         ),
         jornadas = listOf(JornadaServidor(30, null, 10, 1, 1, "2026-09-23", 1_000, 2_000)),
         entregas = listOf(EntregaServidor(40, null, 30, 21, 10, 2, 1, litros, 1, null, 1_500, anulada)),
-        controles = listOf(ControlServidor(50, 21, 10, "RECHAZADO", 12.0, 23.0, null, 1_600)),
+        controles = listOf(ControlServidor(50, proveedorId = 21, usuarioId = 10, resultado = "RECHAZADO", temperatura = 12.0, acidez = 23.0, evaluadoEn = 1_600)),
         comunicados = comunicados,
     )
 

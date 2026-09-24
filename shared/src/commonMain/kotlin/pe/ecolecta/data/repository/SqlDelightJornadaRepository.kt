@@ -11,6 +11,8 @@ import pe.ecolecta.data.local.aDominio
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.model.Jornada
 import pe.ecolecta.domain.repository.JornadaRepository
+import pe.ecolecta.data.local.EntidadCambio
+import pe.ecolecta.data.local.marcarCambio
 
 class SqlDelightJornadaRepository(
     private val db: EcolectaDatabase,
@@ -46,6 +48,7 @@ class SqlDelightJornadaRepository(
             abierta_en = jornada.abiertaEn,
             sync_state = jornada.syncState.name,
         )
+        db.marcarCambio(EntidadCambio.JORNADA, jornada.id)
         Unit
     }
 
@@ -64,6 +67,7 @@ class SqlDelightJornadaRepository(
                     abierta_en = jornada.abiertaEn,
                     sync_state = jornada.syncState.name,
                 )
+                db.marcarCambio(EntidadCambio.JORNADA, jornada.id)
                 null
             }
         }
@@ -71,6 +75,7 @@ class SqlDelightJornadaRepository(
 
     override suspend fun cerrar(id: String, cerradaEn: Long) = withContext(dispatcher) {
         db.jornadaQueries.cerrar(cerrada_en = cerradaEn, id = id)
+        db.marcarCambio(EntidadCambio.JORNADA, id)
         Unit
     }
 
@@ -82,6 +87,7 @@ class SqlDelightJornadaRepository(
                 ocupante
             } else {
                 db.jornadaQueries.reabrir(id)
+                db.marcarCambio(EntidadCambio.JORNADA, id)
                 null
             }
         }

@@ -2,7 +2,9 @@ package pe.ecolecta.data.repository
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import pe.ecolecta.data.local.EntidadCambio
 import pe.ecolecta.data.local.db.EcolectaDatabase
+import pe.ecolecta.data.local.tieneCambioPendiente
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.EstadoControlCalidad
 import pe.ecolecta.domain.model.EstadoProveedor
@@ -73,6 +75,7 @@ class SqlDelightDatosServidorRepository(
         val id = existente?.id ?: "web-zona-${z.id}"
         when {
             existente == null -> db.zonaQueries.insertar(id = id, nombre = z.nombre, activo = activo)
+            db.tieneCambioPendiente(EntidadCambio.ZONA, id) -> Unit
             existente.nombre != z.nombre || existente.activo != activo ->
                 db.zonaQueries.actualizar(nombre = z.nombre, activo = activo, id = id)
         }
@@ -88,6 +91,7 @@ class SqlDelightDatosServidorRepository(
         val id = existente?.id ?: "web-vehiculo-${v.id}"
         when {
             existente == null -> db.vehiculoQueries.insertar(id = id, nombre = v.nombre, placa = placa, activo = activo)
+            db.tieneCambioPendiente(EntidadCambio.VEHICULO, id) -> Unit
             existente.nombre != v.nombre || existente.placa != placa || existente.activo != activo ->
                 db.vehiculoQueries.actualizar(nombre = v.nombre, placa = placa, activo = activo, id = id)
         }
@@ -113,6 +117,10 @@ class SqlDelightDatosServidorRepository(
                 id = id, username = c.username, nombres = c.nombres, dni = c.dni.orEmpty(),
                 pin_hash = "", pin_salt = "", activo = activo, updated_at = ahora,
             )
+        } else if (!forzar && db.tieneCambioPendiente(EntidadCambio.USUARIO, existente.id)) {
+            // Cambio hecho en el celular aún sin enviar: se respeta hasta que llegue al panel.
+            mapear(USUARIO, c.id, existente.id)
+            return existente.id
         } else {
             id = existente.id
             val dni = c.dni?.takeIf { it.isNotBlank() } ?: existente.dni
@@ -144,6 +152,10 @@ class SqlDelightDatosServidorRepository(
         val existente = local(PROVEEDOR, p.id)?.let { db.proveedorQueries.selectPorId(it).executeAsOneOrNull() }
             ?: db.proveedorQueries.selectPorCodigo(p.codigo).executeAsOneOrNull()
         val id = existente?.id ?: "web-proveedor-${p.id}"
+        if (existente != null && db.tieneCambioPendiente(EntidadCambio.PROVEEDOR, id)) {
+            mapear(PROVEEDOR, p.id, id)
+            return id
+        }
         if (existente == null) {
             db.proveedorQueries.insertar(
                 id = id, codigo = p.codigo, nombres = p.nombres, dni = p.dni, telefono = p.telefono, direccion = p.direccion,
@@ -188,7 +200,7 @@ class SqlDelightDatosServidorRepository(
             abierta_en = j.abiertaEn, cerrada_en = j.cerradaEn,
         )
         val actual = db.jornadaQueries.selectPorId(id).executeAsOneOrNull()
-        if (actual != null && actual.sync_state == "SYNCED" &&
+        if (actual != null && actual.sync_state == "SYNCED" && !db.tieneCambioPendiente(EntidadCambio.JORNADA, id) &&
             (actual.usuario_id != usuarioId || actual.zona_id != zonaId || actual.vehiculo_id != vehiculoId ||
                 actual.fecha != j.fecha || actual.abierta_en != j.abiertaEn || actual.cerrada_en != j.cerradaEn)
         ) {
@@ -227,6 +239,8 @@ class SqlDelightDatosServidorRepository(
 
     private fun control(c: ControlServidor, proveedores: Map<Long, String>, usuarios: Map<Long, String>) {
         val proveedorId = proveedores[c.proveedorId] ?: local(PROVEEDOR, c.proveedorId) ?: return
+        // Análisis hecho en un celular: ese celular ya tiene su copia original (con todas las lecturas).
+        if (c.uuidMovil != null && db.controlCalidadQueries.selectPorId(c.uuidMovil).executeAsOneOrNull() != null) return
         val estado = EstadoControlCalidad.entries.firstOrNull { it.name == c.resultado.uppercase() } ?: return
         val id = "web-control-${c.id}"
         val observaciones = listOfNotNull(c.observaciones?.takeIf { it.isNotBlank() }, c.acidez?.let { "Acidez: $it °D" })
@@ -247,7 +261,10 @@ class SqlDelightDatosServidorRepository(
         val actuales = db.comunicadoQueries.selectTodos().executeAsList()
             .filter { it.id.startsWith(PREFIJO_COMUNICADO) }.associateBy { it.id }
         val vigentes = mutableSetOf<String>()
+        val locales = db.comunicadoQueries.selectTodos().executeAsList().map { it.id }.toSet()
         lista.forEach { c ->
+            // Publicado desde un celular (código MOV-<id local>): si es este, ya tiene su copia.
+            if (c.codigo.startsWith("MOV-") && c.codigo.removePrefix("MOV-") in locales) return@forEach
             val id = "$PREFIJO_COMUNICADO${c.id}"
             vigentes += id
             val mensaje = "${c.titulo}\n${c.contenido}"
@@ -260,10 +277,10 @@ class SqlDelightDatosServidorRepository(
     }
 
     private fun retirarAusentes(zonas: Set<String>, vehiculos: Set<String>, usuarios: Set<String>, proveedores: Set<String>, ahora: Long) {
-        db.zonaQueries.selectActivas().executeAsList().filter { it.id !in zonas }.forEach { db.zonaQueries.desactivar(it.id) }
-        db.vehiculoQueries.selectActivos().executeAsList().filter { it.id !in vehiculos }.forEach { db.vehiculoQueries.desactivar(it.id) }
+        db.zonaQueries.selectActivas().executeAsList().filter { it.id !in zonas && !db.tieneCambioPendiente(EntidadCambio.ZONA, it.id) }.forEach { db.zonaQueries.desactivar(it.id) }
+        db.vehiculoQueries.selectActivos().executeAsList().filter { it.id !in vehiculos && !db.tieneCambioPendiente(EntidadCambio.VEHICULO, it.id) }.forEach { db.vehiculoQueries.desactivar(it.id) }
         db.proveedorQueries.selectTodos().executeAsList()
-            .filter { it.id !in proveedores && it.estado != EstadoProveedor.RETIRADO.name }
+            .filter { it.id !in proveedores && it.estado != EstadoProveedor.RETIRADO.name && !db.tieneCambioPendiente(EntidadCambio.PROVEEDOR, it.id) }
             .forEach { db.proveedorQueries.cambiarEstado(estado = EstadoProveedor.RETIRADO.name, updated_at = ahora, id = it.id) }
         // Cuentas: solo las que vinieron alguna vez del panel. Una cuenta creada solo en este celular no se toca.
         db.servidorMapaQueries.localesDe(USUARIO).executeAsList().filter { it !in usuarios }.forEach { id ->

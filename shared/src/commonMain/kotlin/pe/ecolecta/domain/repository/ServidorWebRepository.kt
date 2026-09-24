@@ -30,8 +30,11 @@ data class EntregaParaServidor(
     val actualizadoEn: Long,
 )
 
-/** El servidor respondió y no aceptó el dato; [mensaje] es el motivo que se muestra en el celular. */
-class RechazoServidorException(mensaje: String, val codigo: String?) : Exception(mensaje)
+/**
+ * El servidor respondió y no aceptó el dato; [mensaje] es el motivo que se muestra en el celular.
+ * [definitivo] = false cuando el panel pide reintentar más tarde (p. ej. aún no tiene la entrega que se evalúa).
+ */
+class RechazoServidorException(mensaje: String, val codigo: String?, val definitivo: Boolean = true) : Exception(mensaje)
 
 /**
  * Esta cuenta no tiene sesión con el servidor en este celular (nunca la tuvo, venció o fue revocada). No es
@@ -79,6 +82,13 @@ interface ServidorWebRepository {
 
     /** Guarda el token de [sesion] para el usuario local [usuarioId]. */
     suspend fun guardarSesion(usuarioId: String, sesion: SesionServidor) = Unit
+
+    /**
+     * Envía el estado actual de una fila cambiada en el celular (`PUT /api/movil/cambios/{entidad}`) con el token
+     * de [usuarioId]. Devuelve el id de esa fila en el panel.
+     */
+    suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> =
+        Result.failure(UnsupportedOperationException("Este celular no tiene servidor configurado."))
 
     /** Lo que el panel publica para la cuenta de [usuarioId] (catálogos y operación reciente). */
     suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> =

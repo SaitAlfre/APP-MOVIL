@@ -92,6 +92,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
             }
 
             estado.avisoServidor?.let { Banner(it, TipoBanner.ADVERTENCIA) }
+            estado.avisoCambios?.let { Banner(it, TipoBanner.ADVERTENCIA) }
             estado.mensaje?.let { Banner(it, TipoBanner.INFO) }
 
             if (estado.todoSincronizado && estado.pendientes.isEmpty()) {

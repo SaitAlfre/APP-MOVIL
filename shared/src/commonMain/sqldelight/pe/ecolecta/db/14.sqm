@@ -1,0 +1,12 @@
+-- Cambios hechos en el celular pendientes de enviar al panel web (celular -> panel). Solo aditiva.
+CREATE TABLE IF NOT EXISTS cambio_pendiente (
+    entidad TEXT NOT NULL,
+    local_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    pin TEXT,
+    marcado_en INTEGER NOT NULL,
+    intentos INTEGER NOT NULL DEFAULT 0,
+    ultimo_error TEXT,
+    estado TEXT NOT NULL DEFAULT 'PENDING',
+    PRIMARY KEY (entidad, local_id)
+);

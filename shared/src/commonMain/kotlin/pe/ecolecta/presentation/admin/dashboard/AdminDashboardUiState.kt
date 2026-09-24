@@ -8,4 +8,7 @@ data class AdminDashboardUiState(
     val nombreAdmin: String = "",
     val liquidacionesPorAprobar: Int = 0,
     val error: String? = null,
+    /** Cambios hechos aquí que aún no llegan al panel web, o que el panel rechazó. */
+    val avisoCambios: String? = null,
+    val avisoCambiosEsError: Boolean = false,
 )
