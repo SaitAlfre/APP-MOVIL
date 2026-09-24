@@ -27,15 +27,18 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.PREFIJO_PAGO_SERVIDOR
 import pe.ecolecta.domain.model.PagoProveedor
+import pe.ecolecta.domain.repository.CuentaServidor
+import pe.ecolecta.domain.repository.DatosServidor
 import pe.ecolecta.domain.repository.EntregaParaServidor
 import pe.ecolecta.domain.repository.RechazoServidorException
 import pe.ecolecta.domain.repository.ServidorWebRepository
+import pe.ecolecta.domain.repository.SesionServidor
 import pe.ecolecta.domain.repository.SinConexionRemotaException
 import pe.ecolecta.domain.repository.SinSesionServidorException
 import pe.ecolecta.domain.repository.UsuarioRepository
 
 @Serializable private data class SolicitudSesion(val username: String, val pin: String, val dispositivo: String)
-@Serializable private data class RespuestaSesion(val token: String, val expiraEn: Long)
+@Serializable private data class RespuestaSesion(val token: String, val expiraEn: Long, val usuario: CuentaServidor? = null)
 @Serializable private data class RespuestaError(val message: String? = null, val codigo: String? = null)
 @Serializable private data class LiquidacionServidor(
     val id: Long,
@@ -70,16 +73,29 @@ class ServidorWebRepositoryKtor(
 
     override val configurado: Boolean = true
 
-    override suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit> = llamar {
+    override suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit> =
+        autenticar(username, pin).map { guardarSesion(usuarioId, it) }
+
+    override suspend fun autenticar(username: String, pin: String): Result<SesionServidor> = llamar {
         val respuesta = http.post("$api/sesion") {
             contentType(ContentType.Application.Json)
             setBody(SolicitudSesion(username, pin, nombreDispositivo))
         }
         if (!respuesta.status.isSuccess()) throw rechazo(respuesta)
         val sesion = respuesta.body<RespuestaSesion>()
+        SesionServidor(sesion.token, sesion.expiraEn, sesion.usuario)
+    }
+
+    override suspend fun guardarSesion(usuarioId: String, sesion: SesionServidor) {
         withContext(io) {
             db.tokenServidorQueries.guardar(usuarioId, sesion.token, sesion.expiraEn, reloj.ahora().toEpochMilliseconds())
         }
+    }
+
+    override suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> = llamar {
+        val respuesta = http.get("$api/datos") { bearerAuth(tokenVigente(usuarioId)) }
+        verificar(usuarioId, respuesta)
+        respuesta.body<DatosServidor>()
     }
 
     override fun observarSesion(usuarioId: String): Flow<Boolean> =

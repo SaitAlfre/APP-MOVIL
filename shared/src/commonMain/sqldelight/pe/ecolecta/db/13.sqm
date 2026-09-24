@@ -1,0 +1,8 @@
+-- Datos que llegan del panel web (web -> celular). Solo aditiva: relaciona el id del servidor con el id
+-- local de cada fila para reconocerla aunque en la web le cambien el nombre, la placa o el código.
+CREATE TABLE IF NOT EXISTS servidor_mapa (
+    entidad TEXT NOT NULL,
+    servidor_id INTEGER NOT NULL,
+    local_id TEXT NOT NULL,
+    PRIMARY KEY (entidad, servidor_id)
+);

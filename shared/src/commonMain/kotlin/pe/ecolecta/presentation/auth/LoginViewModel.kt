@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.PinInvalidoException
-import pe.ecolecta.domain.usecase.auth.LoginOfflineUseCase
+import pe.ecolecta.domain.usecase.auth.IniciarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.SeleccionarRolUseCase
 import pe.ecolecta.domain.usecase.sync.VincularServidorUseCase
 
 class LoginViewModel(
-    private val loginOfflineUseCase: LoginOfflineUseCase,
+    private val iniciarSesion: IniciarSesionUseCase,
     private val seleccionarRolUseCase: SeleccionarRolUseCase,
     private val vincularServidor: VincularServidorUseCase,
 ) : ViewModel() {
@@ -33,10 +33,12 @@ class LoginViewModel(
         if (estado.cargando) return
         viewModelScope.launch {
             _uiState.update { it.copy(cargando = true, error = null) }
-            loginOfflineUseCase(estado.username, estado.pin).fold(
-                onSuccess = { usuario ->
-                    // En segundo plano: el ingreso offline no espera a la red.
-                    vincularServidor(usuario.id, usuario.username, estado.pin)
+            iniciarSesion(estado.username, estado.pin).fold(
+                onSuccess = { inicio ->
+                    val usuario = inicio.usuario
+                    // En segundo plano: el ingreso offline no espera a la red. Si el panel ya validó la
+                    // cuenta (cuenta nueva o PIN cambiado en la web), solo se traen sus datos.
+                    if (inicio.enlazado) vincularServidor.yaEnlazado() else vincularServidor(usuario.id, usuario.username, estado.pin)
                     if (usuario.roles.size == 1) {
                         seleccionarRolUseCase(usuario, usuario.roles.first())
                         _uiState.update { it.copy(cargando = false, sesionIniciada = true) }

@@ -12,6 +12,8 @@ Route::prefix('movil')->name('api.movil.')->group(function () {
 
     Route::middleware('movil.token')->group(function () {
         Route::delete('sesion', [MovilController::class, 'cerrarSesion'])->name('sesion.destroy');
+        // Copia de lo que el panel publica para la cuenta (web -> celular), según su rol.
+        Route::get('datos', [MovilController::class, 'datos'])->middleware('throttle:movil-sync')->name('datos');
     });
 
     Route::middleware(['movil.token:acopiador,admin', 'throttle:movil-sync'])->group(function () {

@@ -14,3 +14,6 @@ INSERT INTO comunicado(id, mensaje, autor_id, autor_nombre, publicado_en) VALUES
 
 eliminar:
 DELETE FROM comunicado WHERE id = ?;
+
+guardar:
+INSERT OR REPLACE INTO comunicado(id, mensaje, autor_id, autor_nombre, publicado_en) VALUES (?, ?, ?, ?, ?);

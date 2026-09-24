@@ -69,4 +69,18 @@ interface ServidorWebRepository {
 
     /** Revoca el token en el servidor (si hay conexión) y lo borra de este celular. */
     suspend fun desvincular(usuarioId: String)
+
+    /**
+     * Valida usuario/PIN en el servidor SIN guardar nada: sirve para entrar con una cuenta creada o
+     * cambiada en el panel que este celular aún no conoce. Luego [guardarSesion] con el id local.
+     */
+    suspend fun autenticar(username: String, pin: String): Result<SesionServidor> =
+        Result.failure(UnsupportedOperationException("Este celular no tiene servidor configurado."))
+
+    /** Guarda el token de [sesion] para el usuario local [usuarioId]. */
+    suspend fun guardarSesion(usuarioId: String, sesion: SesionServidor) = Unit
+
+    /** Lo que el panel publica para la cuenta de [usuarioId] (catálogos y operación reciente). */
+    suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> =
+        Result.failure(UnsupportedOperationException("Este celular no tiene servidor configurado."))
 }

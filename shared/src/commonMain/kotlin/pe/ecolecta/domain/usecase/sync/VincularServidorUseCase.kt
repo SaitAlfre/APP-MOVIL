@@ -21,7 +21,10 @@ import pe.ecolecta.domain.repository.SinConexionRemotaException
  */
 class VincularServidorUseCase(
     private val servidor: ServidorWebRepository,
-    /** Qué hacer tras enlazar (en la app: enviar lo pendiente con [SincronizarRegistrosAcopioUseCase]). */
+    /**
+     * Qué hacer tras enlazar (en la app: enviar lo pendiente con [SincronizarRegistrosAcopioUseCase] y traer
+     * los datos del panel con [SincronizarDatosServidorUseCase]).
+     */
     private val alEnlazar: suspend () -> Unit,
     private val scope: CoroutineScope,
 ) {
@@ -51,6 +54,12 @@ class VincularServidorUseCase(
                 },
             )
         }
+    }
+
+    /** La cuenta ya quedó enlazada al iniciar sesión (validada por el panel): solo corre [alEnlazar]. */
+    fun yaEnlazado() {
+        if (!servidor.configurado) return
+        scope.launch { runCatching { alEnlazar() } }
     }
 
     /** true si [usuarioId] tiene un token vigente del panel en este celular (no basta haber entrado offline). */

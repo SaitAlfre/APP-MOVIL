@@ -47,3 +47,7 @@ UPDATE usuario SET bloqueado_hasta = :bloqueado_hasta, updated_at = :updated_at 
 
 resetIntentos:
 UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, updated_at = :updated_at WHERE id = :id;
+
+-- El panel web cambió el usuario de la cuenta.
+cambiarUsername:
+UPDATE usuario SET username = :username, updated_at = :updated_at WHERE id = :id;

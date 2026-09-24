@@ -25,3 +25,6 @@ SELECT * FROM vehiculo WHERE id = :id;
 
 existePlaca:
 SELECT COUNT(*) FROM vehiculo WHERE placa = :placa AND id != :idExcluido;
+
+selectPorPlaca:
+SELECT * FROM vehiculo WHERE UPPER(placa) = UPPER(:placa) LIMIT 1;

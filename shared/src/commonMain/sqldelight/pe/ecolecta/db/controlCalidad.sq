@@ -66,3 +66,19 @@ SELECT COUNT(*) FROM control_calidad WHERE codigo_muestra = :codigo_muestra;
 
 guardarVisita:
 UPDATE control_calidad SET visita_json = :visita_json WHERE id = :id;
+
+-- Evaluación registrada en el panel web (resultado por entrega).
+guardarDesdeServidor:
+INSERT OR REPLACE INTO control_calidad(
+    id, proveedor_id, usuario_id, codigo_muestra, lote_recipiente, volumen_l,
+    origen_captura, serial_analizador, modo_analizador, temperatura, grasa, sng,
+    densidad, proteina, lactosa, sales, solidos_totales, agua_anadida,
+    punto_congelacion, ph, apariencia, observaciones, estado, alertas,
+    texto_comprobante, registrado_en, updated_at, sync_state
+) VALUES (
+    :id, :proveedor_id, :usuario_id, :codigo_muestra, NULL, NULL,
+    'MANUAL', NULL, NULL, :temperatura, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, :observaciones, :estado, :alertas,
+    NULL, :registrado_en, :registrado_en, 'SYNCED'
+);

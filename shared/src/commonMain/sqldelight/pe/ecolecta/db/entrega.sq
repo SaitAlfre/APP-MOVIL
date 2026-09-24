@@ -110,3 +110,18 @@ WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR
 registrarFalloSync:
 UPDATE entrega SET sync_state = :sync_state, sync_error = :sync_error, intentos = intentos + 1
 WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR');
+
+-- Entrega que llega del panel web (registrada allí o por otro celular).
+insertarDesdeServidor:
+INSERT OR IGNORE INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_id, litros, tachos, modalidad,
+    observaciones, registrado_en, device_id, lote_id, anulada, sync_state, sync_error, intentos, updated_at,
+    litros_servidor, tachos_servidor, motivo_conflicto)
+VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :vehiculo_id, :litros, :tachos, 'MEDIANTE_ACOPIADOR',
+    :observaciones, :registrado_en, 'panel-web', NULL, :anulada, 'SYNCED', NULL, 0, :updated_at, NULL, NULL, NULL);
+
+-- Corrección o anulación hecha en el panel. Solo pisa copias ya sincronizadas: lo que el celular aún no
+-- envió (PENDING/ERROR) o un conflicto por resolver se respeta.
+actualizarDesdeServidor:
+UPDATE entrega SET litros = :litros, tachos = :tachos, observaciones = :observaciones, anulada = :anulada
+WHERE id = :id AND sync_state = 'SYNCED'
+  AND (litros != :litros OR tachos != :tachos OR anulada != :anulada OR COALESCE(observaciones, '') != COALESCE(:observaciones, ''));

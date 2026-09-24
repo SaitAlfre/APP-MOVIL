@@ -52,7 +52,17 @@ class LoginCalidadFaonTest {
         usuarios.insertar(tecnico)
 
         val loginViewModel = LoginViewModel(
-            loginOfflineUseCase = LoginOfflineUseCase(usuarios, pinHasher, auditoria, reloj, FakeDeviceIdProvider()),
+            iniciarSesion = pe.ecolecta.domain.usecase.auth.IniciarSesionUseCase(
+                LoginOfflineUseCase(usuarios, pinHasher, auditoria, reloj, FakeDeviceIdProvider()),
+                pe.ecolecta.data.remote.ServidorWebNoConfigurado(),
+                object : pe.ecolecta.domain.repository.DatosServidorLocalRepository {
+                    override suspend fun aplicar(datos: pe.ecolecta.domain.repository.DatosServidor) = Unit
+                    override suspend fun guardarCuenta(
+                        cuenta: pe.ecolecta.domain.repository.CuentaServidor, pinHash: String, pinSalt: String, ahora: Long,
+                    ): String = error("sin panel web")
+                },
+                usuarios, pinHasher, reloj,
+            ),
             seleccionarRolUseCase = SeleccionarRolUseCase(sesiones),
             vincularServidor = pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
                 pe.ecolecta.data.remote.ServidorWebNoConfigurado(), {}, this,

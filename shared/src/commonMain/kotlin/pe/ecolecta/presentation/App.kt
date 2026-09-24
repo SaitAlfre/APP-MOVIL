@@ -41,7 +41,7 @@ import pe.ecolecta.presentation.design.EscenarioAnimado
 import pe.ecolecta.presentation.navegacion.Pantalla
 import pe.ecolecta.presentation.proveedor.ProveedorShell
 
-private const val INTERVALO_SINCRONIZACION_MS = 30_000L
+private const val INTERVALO_SINCRONIZACION_MS = 15_000L
 
 /** Nunca coincide con un usuario.id real (son UUID) — marca "sin sesión activa". */
 private const val CLAVE_SIN_SESION = "sin-sesion"
@@ -102,14 +102,18 @@ fun App() {
         val resolverInicioAcopiadorUseCase = koinInject<ResolverInicioAcopiadorUseCase>()
         val obtenerPerfilProveedorUseCase = koinInject<ObtenerPerfilProveedorUseCase>()
         val sincronizarRegistros = koinInject<SincronizarRegistrosAcopioUseCase>()
+        val sincronizarDatos = koinInject<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
         val scope = rememberCoroutineScope()
 
         // Envía entregas y "sin recojo" pendientes de ESTE celular mientras la app está abierta, con o
         // sin sesión (lo guardado no debe quedarse atascado por cerrar sesión). Sin backend configurado
         // no hace nada. Cada documento usa el id del registro: reintentar nunca duplica.
+        // Después trae lo que cambió en el panel web (cuentas, catálogos, entregas, calidad, comunicados)
+        // con la cuenta en sesión: primero se envía, así lo aún no enviado nunca se pisa.
         LaunchedEffect(Unit) {
             while (true) {
                 runCatching { sincronizarRegistros() }
+                runCatching { sincronizarDatos() }
                 delay(INTERVALO_SINCRONIZACION_MS)
             }
         }

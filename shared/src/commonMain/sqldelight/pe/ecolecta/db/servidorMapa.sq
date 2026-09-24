@@ -1,0 +1,16 @@
+-- Id del panel web <-> id local, por entidad (zona, vehiculo, usuario, proveedor, jornada, entrega...).
+CREATE TABLE servidor_mapa (
+    entidad TEXT NOT NULL,
+    servidor_id INTEGER NOT NULL,
+    local_id TEXT NOT NULL,
+    PRIMARY KEY (entidad, servidor_id)
+);
+
+localId:
+SELECT local_id FROM servidor_mapa WHERE entidad = :entidad AND servidor_id = :servidor_id;
+
+guardar:
+INSERT OR REPLACE INTO servidor_mapa(entidad, servidor_id, local_id) VALUES (:entidad, :servidor_id, :local_id);
+
+localesDe:
+SELECT local_id FROM servidor_mapa WHERE entidad = :entidad;

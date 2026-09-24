@@ -67,3 +67,10 @@ UPDATE proveedor SET dueno = :dueno WHERE id = :id;
 
 desvincularUsuario:
 UPDATE proveedor SET usuario_id = NULL WHERE usuario_id = :usuario_id;
+
+selectPorCodigo:
+SELECT * FROM proveedor WHERE codigo = :codigo;
+
+-- El panel web cambió el código de la ficha (el envío de entregas identifica al proveedor por código).
+cambiarCodigo:
+UPDATE proveedor SET codigo = :codigo WHERE id = :id;

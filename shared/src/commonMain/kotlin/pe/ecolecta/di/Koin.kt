@@ -139,6 +139,7 @@ val dataModule = module {
     single<pe.ecolecta.domain.repository.ComunicadoRepository> { pe.ecolecta.data.repository.SqlDelightComunicadoRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.AlertaDescartadaRepository> { pe.ecolecta.data.repository.SqlDelightAlertaDescartadaRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.SinRecojoRepository> { pe.ecolecta.data.repository.SqlDelightSinRecojoRepository(get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
     // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
     // plataforma (EcolectaApp.kt / KoinIOS.kt): Firebase es Android-only y la URL del panel web se fija
@@ -150,6 +151,7 @@ val domainModule = module {
     single<PinHasher> { Pbkdf2PinHasher() }
 
     factory { LoginOfflineUseCase(get(), get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.auth.IniciarSesionUseCase(get(), get(), get(), get(), get(), get()) }
     factory { SeleccionarRolUseCase(get()) }
     factory { CerrarSesionUseCase(get()) }
     factory { ObtenerSesionUseCase(get()) }
@@ -232,10 +234,13 @@ val domainModule = module {
         pe.ecolecta.domain.usecase.sync.PreparadorEntregaServidorLocal(get(), get(), get(), get(), get(), get())
     }
     // single: guarda el último motivo de enlace fallido por usuario y lanza el enlace en el ámbito de la app.
+    // single: su Mutex evita dos descargas del panel a la vez (ciclo periódico e inicio de sesión).
+    single { pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase(get(), get(), get()) }
     single {
         val sincronizar = get<pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase>()
+        val traerDatos = get<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
         pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
-            get(), { sincronizar() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
+            get(), { sincronizar(); traerDatos() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
         )
     }
     factory { pe.ecolecta.domain.usecase.acopio.MarcarSinRecojoUseCase(get(), get(), get(), get(), get(), get()) }
@@ -243,7 +248,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
-    viewModel { LoginViewModel(loginOfflineUseCase = get(), seleccionarRolUseCase = get(), vincularServidor = get()) }
+    viewModel { LoginViewModel(iniciarSesion = get(), seleccionarRolUseCase = get(), vincularServidor = get()) }
     viewModel {
         CalidadViewModel(
             repository = get(),

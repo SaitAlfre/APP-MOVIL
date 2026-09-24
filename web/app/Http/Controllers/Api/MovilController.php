@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Application\Auth\AutenticarOperadorUseCase;
 use App\Application\Entregas\SincronizarEntregaMovilUseCase;
+use App\Application\Movil\ExportarDatosMovilQuery;
 use App\Domain\Auth\Exceptions\CuentaBloqueadaException;
 use App\Domain\Auth\Exceptions\CuentaInactivaException;
 use App\Domain\Entregas\Exceptions\EntregaMovilRechazadaException;
@@ -54,7 +55,12 @@ class MovilController extends Controller
         return response()->json([
             'token' => $token,
             'expiraEn' => $registro->expira_en->getTimestampMs(),
-            'usuario' => ['username' => $usuario->username, 'nombres' => $usuario->nombres, 'roles' => $usuario->roles],
+            // El celular crea o actualiza con esto la cuenta local (p. ej. una cuenta creada en el panel).
+            'usuario' => [
+                'id' => $usuario->id, 'username' => $usuario->username, 'nombres' => $usuario->nombres,
+                'dni' => (string) $usuario->dni, 'activo' => (bool) $usuario->activo,
+                'roles' => array_values(array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? [])),
+            ],
         ]);
     }
 
@@ -63,6 +69,12 @@ class MovilController extends Controller
         TokenMovil::query()->where('token_hash', TokenMovil::hash((string) $request->bearerToken()))->delete();
 
         return response()->json(['message' => 'Sesión del celular cerrada.']);
+    }
+
+    /** Lo que el panel publica para la cuenta del token (catálogos y operación reciente), ver ExportarDatosMovilQuery. */
+    public function datos(Request $request, ExportarDatosMovilQuery $exportar): JsonResponse
+    {
+        return response()->json($exportar->ejecutar($request->user()));
     }
 
     public function sincronizarEntrega(Request $request, string $uuid, SincronizarEntregaMovilUseCase $sincronizar): JsonResponse
