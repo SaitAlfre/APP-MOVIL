@@ -15,12 +15,12 @@ if (!localPreview) apply(plugin = "com.google.gms.google-services")
 // URL del panel web (Laravel) al que se envían las entregas y del que se leen las liquidaciones. No es un
 // secreto: cada usuario se autentica con su propio usuario y PIN. Se toma de `-Pecolecta.servidorUrl=...`
 // o de `ecolecta.servidorUrl=...` en local.properties (p. ej. http://10.0.2.2:8000 para el emulador).
-// Vacía = la app muestra "panel web no configurado" y no finge enviar nada.
+// Las APK normales apuntan al panel publicado. Las pruebas pueden cambiar la URL explícitamente.
 val servidorUrl: String = providers.gradleProperty("ecolecta.servidorUrl").orNull
     ?: rootProject.file("local.properties").takeIf { it.exists() }?.let { archivo ->
         Properties().apply { archivo.inputStream().use { load(it) } }.getProperty("ecolecta.servidorUrl")
     }
-    ?: ""
+    ?: "https://ecolecta-5cfec46d4968.herokuapp.com"
 
 kotlin {
     compilerOptions {

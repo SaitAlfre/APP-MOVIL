@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,6 +33,16 @@ class SincronizacionViewModel(
 
     init {
         cargar()
+        viewModelScope.launch {
+            obtenerSesionUseCase().collectLatest { sesion ->
+                val id = sesion?.usuario?.id ?: return@collectLatest
+                combine(
+                    vincularServidor.observarEnlace(id),
+                    vincularServidor.errores,
+                    observarEntregasUseCase(usuarioId = id),
+                ) { _, _, _ -> Unit }.collect { cargar() }
+            }
+        }
     }
 
     fun cargar() {
@@ -54,6 +66,7 @@ class SincronizacionViewModel(
             _uiState.update {
                 it.copy(
                     cargando = false,
+                    cuentaEnlazada = usuarioId?.let { vincularServidor.enlazado(it) } == true,
                     avisoServidor = avisoServidor(usuarioId),
                     resumen = resumen,
                     pendientes = sinEnviar.map { entrega ->
@@ -84,7 +97,8 @@ class SincronizacionViewModel(
     private companion object {
         const val AVISO_SIN_ENLAZAR =
             "Tu cuenta no está enlazada con el panel web en este celular, así que tus entregas no pueden enviarse todavía. " +
-                "Cierra sesión y vuelve a entrar con tu usuario y PIN teniendo conexión: no se pierde ninguna entrega ni tu jornada."
+                "La cuenta debe existir en el panel con el mismo usuario y PIN. " +
+                "Cierra sesión y vuelve a entrar teniendo conexión: no se pierde ninguna entrega ni tu jornada."
     }
 
     /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */

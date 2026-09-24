@@ -13,7 +13,8 @@ data class SincronizacionUiState(
     val mensaje: String? = null,
     /** Estado real del enlace con el panel web (no configurado, sin enlazar o motivo del último rechazo). */
     val avisoServidor: String? = null,
+    val cuentaEnlazada: Boolean = false,
 ) {
     val todoSincronizado: Boolean
-        get() = resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0
+        get() = !cargando && cuentaEnlazada && resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0
 }

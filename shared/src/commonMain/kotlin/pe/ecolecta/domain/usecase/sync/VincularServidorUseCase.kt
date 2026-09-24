@@ -55,4 +55,6 @@ class VincularServidorUseCase(
 
     /** true si [usuarioId] tiene un token vigente del panel en este celular (no basta haber entrado offline). */
     suspend fun enlazado(usuarioId: String): Boolean = servidor.configurado && servidor.observarSesion(usuarioId).first()
+
+    fun observarEnlace(usuarioId: String) = servidor.observarSesion(usuarioId)
 }

@@ -64,6 +64,9 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
             Modifier.padding(horizontal = Espaciado.l),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m),
         ) {
+            if (estado.cuentaEnlazada) {
+                Banner("Cuenta enlazada con el panel web.", TipoBanner.INFO)
+            }
             Tarjeta {
                 Text("Cola de sincronización", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
                 Text(
