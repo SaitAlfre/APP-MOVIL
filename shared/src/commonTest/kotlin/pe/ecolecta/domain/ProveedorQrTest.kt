@@ -6,33 +6,35 @@ import kotlin.test.assertNull
 
 class ProveedorQrTest {
     @Test
-    fun `genera y extrae el mismo id de proveedor`() {
-        val contenido = generarQrProveedor("p-123")
+    fun `genera y lee el mismo codigo de proveedor`() {
+        val contenido = generarQrProveedor("PRV-FAON-01")
 
-        assertEquals("p-123", extraerProveedorIdDeQr(contenido))
+        assertEquals(ReferenciaQrProveedor.PorCodigo("PRV-FAON-01"), leerQrProveedor(contenido))
     }
 
     @Test
-    fun `no incluye datos ademas del id en el contenido generado`() {
-        val contenido = generarQrProveedor("p-123")
-
-        assertEquals("ECOLECTA:PROVEEDOR:p-123", contenido)
+    fun `solo incluye el codigo, con el mismo formato que el panel web`() {
+        assertEquals("ECOLECTA:PROVEEDOR:CODIGO:PRV-FAON-01", generarQrProveedor("PRV-FAON-01"))
     }
 
     @Test
     fun `tolera espacios alrededor del contenido escaneado`() {
-        val contenido = "  ${generarQrProveedor("p-123")}  "
+        assertEquals(ReferenciaQrProveedor.PorCodigo("PRV-001"), leerQrProveedor("  ${generarQrProveedor("PRV-001")}  "))
+    }
 
-        assertEquals("p-123", extraerProveedorIdDeQr(contenido))
+    @Test
+    fun `sigue leyendo QR antiguos con id`() {
+        assertEquals(ReferenciaQrProveedor.PorIdAntiguo("p-123"), leerQrProveedor("ECOLECTA:PROVEEDOR:p-123"))
     }
 
     @Test
     fun `retorna null si el contenido no tiene el prefijo de Ecolecta`() {
-        assertNull(extraerProveedorIdDeQr("https://ejemplo.com/otro-qr"))
+        assertNull(leerQrProveedor("https://ejemplo.com/otro-qr"))
     }
 
     @Test
-    fun `retorna null si el prefijo esta pero el id esta vacio`() {
-        assertNull(extraerProveedorIdDeQr("ECOLECTA:PROVEEDOR:"))
+    fun `retorna null si el prefijo esta pero el valor esta vacio`() {
+        assertNull(leerQrProveedor("ECOLECTA:PROVEEDOR:"))
+        assertNull(leerQrProveedor("ECOLECTA:PROVEEDOR:CODIGO:"))
     }
 }

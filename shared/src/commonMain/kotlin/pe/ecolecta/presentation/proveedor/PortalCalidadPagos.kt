@@ -58,6 +58,8 @@ fun etiquetaCalidad(estado: EstadoControlCalidad) = when(estado) {
 fun etiquetaPago(estado: String) = when(estado.uppercase()) {
     "PAGADA", "PAGADO", "PAID" -> "Pagado"
     "APROBADA", "APPROVED" -> "Aprobado"
+    // Generada en el panel web con monto definitivo, sin pago registrado todavía.
+    "PENDIENTE" -> "Pendiente de pago"
     "BORRADOR", "DRAFT" -> "Borrador"
     "ANULADA", "VOID" -> "Anulada"
     else -> "En revisión"
@@ -68,8 +70,10 @@ fun etiquetaPago(estado: String) = when(estado.uppercase()) {
     val guardar = recordarGuardarComprobante { mensaje = it }
     PaginaProveedor("Mis pagos", "Liquidaciones semanales", { navegar(Pantalla.ProveedorHome) }) {
         mensaje?.let { TextoProveedor(it, 13, ProveedorAzul) }
+        s.avisoPagos?.let { TextoProveedor(it, 12, ProveedorGris) }
         if(s.pagos.isEmpty()) VacioProveedor("Aún no hay liquidaciones disponibles", "Este dispositivo no ha recibido liquidaciones del administrador. Tus litros están disponibles en Mis entregas; no representan un pago confirmado.")
-        s.pagos.sortedByDescending { it.desde }.forEach { pago -> TarjetaProveedor {
+        // Mismo orden y misma lista que resume Inicio (pagosVisibles: más reciente primero).
+        s.pagos.forEach { pago -> TarjetaProveedor {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column(Modifier.weight(1f)) {
                     TextoProveedor("${pago.desde} – ${pago.hasta}", 12, ProveedorGris, true)

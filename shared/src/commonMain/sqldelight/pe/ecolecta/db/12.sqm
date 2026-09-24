@@ -1,0 +1,7 @@
+-- Sesión con el panel web (sincronización de entregas y liquidaciones). Solo aditiva: no toca datos.
+CREATE TABLE IF NOT EXISTS token_servidor (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    token TEXT NOT NULL,
+    expira_en INTEGER NOT NULL,
+    obtenido_en INTEGER NOT NULL
+);

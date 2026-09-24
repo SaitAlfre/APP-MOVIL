@@ -16,7 +16,10 @@ sealed interface EventoRegistrosRemotos {
 }
 
 /** El envío falló por falta de conexión: se conserva el dato y se reintenta sin marcarlo como error. */
-class SinConexionRemotaException(causa: Throwable? = null) : Exception("Sin conexión a internet", causa)
+class SinConexionRemotaException(
+    causa: Throwable? = null,
+    mensaje: String = "Sin conexión a internet",
+) : Exception(mensaje, causa)
 
 /**
  * Canal que comparte entregas y "sin recojo" entre el celular del acopiador y el del proveedor

@@ -67,6 +67,8 @@ ktor-serialization-kotlinxJson = { module = "io.ktor:ktor-serialization-kotlinx-
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 qr-kit = { module = "network.chaintech:qr-kit", version.ref = "qrKit" }
+# Solo pruebas: la misma versión de ZXing que ya trae qr-kit, para decodificar el QR guardado.
+zxing-core = { module = "com.google.zxing:core", version = "3.5.2" }
 mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "mlkitTextRecognition" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebaseGitlive" }
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseGitlive" }

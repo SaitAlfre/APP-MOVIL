@@ -10,10 +10,12 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.PinInvalidoException
 import pe.ecolecta.domain.usecase.auth.LoginOfflineUseCase
 import pe.ecolecta.domain.usecase.auth.SeleccionarRolUseCase
+import pe.ecolecta.domain.usecase.sync.VincularServidorUseCase
 
 class LoginViewModel(
     private val loginOfflineUseCase: LoginOfflineUseCase,
     private val seleccionarRolUseCase: SeleccionarRolUseCase,
+    private val vincularServidor: VincularServidorUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -33,6 +35,8 @@ class LoginViewModel(
             _uiState.update { it.copy(cargando = true, error = null) }
             loginOfflineUseCase(estado.username, estado.pin).fold(
                 onSuccess = { usuario ->
+                    // En segundo plano: el ingreso offline no espera a la red.
+                    vincularServidor(usuario.id, usuario.username, estado.pin)
                     if (usuario.roles.size == 1) {
                         seleccionarRolUseCase(usuario, usuario.roles.first())
                         _uiState.update { it.copy(cargando = false, sesionIniciada = true) }

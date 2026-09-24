@@ -20,6 +20,17 @@ class PortalProveedorViewModelTest {
     private val proveedores = FakeProveedorRepository()
     private val entregas = FakeEntregaRepository()
     private val solicitudes = MutableStateFlow(emptyList<SolicitudProveedor>())
+    private val pagos = MutableStateFlow(emptyList<PagoProveedor>())
+    private val panel = FakeServidorWeb()
+    private val gestion = object : GestionPortalRepository {
+        override fun todasSolicitudes() = solicitudes
+        override fun todosPagos() = pagos
+        override suspend fun actualizarSolicitud(solicitud: SolicitudProveedor) = Unit
+        override suspend fun guardarPagos(pagos: List<PagoProveedor>, en: Long) {
+            val ids = pagos.map { it.id }.toSet()
+            this@PortalProveedorViewModelTest.pagos.value = this@PortalProveedorViewModelTest.pagos.value.filterNot { it.id in ids } + pagos
+        }
+    }
     private var fallo = false
     private val recibidos = FakeRegistroRecibidoRepository()
     private val remoto = FakeRegistroAcopioRemoto()
@@ -27,7 +38,8 @@ class PortalProveedorViewModelTest {
     private val portal = object : PortalProveedorRepository {
         // Devuelve deliberadamente todas las filas para comprobar defensa por propiedad en la presentación.
         override fun solicitudes(proveedorId: String) = solicitudes
-        override fun pagos(proveedorId: String) = flowOf(emptyList<PagoProveedor>())
+        // Igual que la base local: todas las filas PAGO (la presentación filtra por su ficha).
+        override fun pagos(proveedorId: String) = pagos
         override suspend fun guardar(solicitud: SolicitudProveedor) {
             if(fallo) error("Disco no disponible")
             solicitudes.value += solicitud
@@ -59,7 +71,7 @@ class PortalProveedorViewModelTest {
             override suspend fun contarProveedoresEnZona(id: String) = 0L
         }
         return PortalProveedorViewModel(sesiones, ObtenerPerfilProveedorUseCase(proveedores), entregas, calidad, zonas,
-            FakeUsuarioRepository(), portal, FakeReloj(), FakeSinRecojoRepository(), recibidos, remotoForzado ?: remoto).also { store.put("portal", it) }
+            FakeUsuarioRepository(), portal, FakeReloj(), FakeSinRecojoRepository(), recibidos, remotoForzado ?: remoto, panel, gestion).also { store.put("portal", it) }
     }
 
     @Test fun usuarioSinProveedorTerminaCargaConError() = runTest(dispatcher) {
@@ -195,5 +207,64 @@ class PortalProveedorViewModelTest {
         val s = vm.state.value
         assertEquals(pe.ecolecta.domain.acopio.cicloAcopioDe(s.hoy, "cualquiera").dias, s.diasCiclo.map { it.fecha })
         assertEquals(6, s.diasCiclo.size)
+    }
+
+    private fun liquidacion(id: String, desde: String, hasta: String, estado: String, proveedorId: String = "") =
+        PagoProveedor(id, proveedorId, desde, hasta, 100.0, 1.6, 160.0, 10.0, 150.0, estado, if (estado == "PAGADA") "2026-09-18" else null)
+
+    @Test fun inicioYMisPagosMuestranLaMismaLiquidacionPublicadaDelPanel() = runTest(dispatcher) {
+        panel.sesiones.value = setOf("u1")
+        panel.liquidaciones["u1"] = listOf(
+            liquidacion("${PREFIJO_PAGO_SERVIDOR}7", "2026-09-10", "2026-09-16", "PAGADA"),
+            liquidacion("${PREFIJO_PAGO_SERVIDOR}9", "2026-09-03", "2026-09-09", "PENDIENTE"),
+        )
+        val vm = crear()
+        advanceUntilIdle()
+
+        val s = vm.state.value
+        assertEquals(listOf("PAGADA", "PENDIENTE"), s.pagos.map { it.estado }, "Mis pagos: estado real, más reciente primero")
+        val pago = s.pagos.first()
+        assertEquals("${PREFIJO_PAGO_SERVIDOR}7", pago.id)
+        assertEquals("p1", pago.proveedorId, "se guarda con la ficha local de la sesión")
+        assertEquals(pago, s.ultimaLiquidacion, "Inicio resume exactamente lo que muestra Mis pagos")
+        assertEquals(1.6, s.ultimaLiquidacion!!.precio)
+        assertEquals(150.0, s.ultimaLiquidacion!!.total)
+        assertNull(s.avisoPagos)
+    }
+
+    @Test fun sinSesionConElPanelNoInventaLiquidacionesYLoDice() = runTest(dispatcher) {
+        val vm = crear()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.pagos.isEmpty())
+        assertNull(vm.state.value.ultimaLiquidacion)
+        assertNotNull(vm.state.value.avisoPagos)
+
+        // Al enlazarse la cuenta (en segundo plano tras el login) llegan las liquidaciones.
+        panel.liquidaciones["u1"] = listOf(liquidacion("${PREFIJO_PAGO_SERVIDOR}8", "2026-09-10", "2026-09-16", "PENDIENTE"))
+        panel.sesiones.value = setOf("u1")
+        advanceUntilIdle()
+        assertEquals("PENDIENTE", vm.state.value.ultimaLiquidacion!!.estado)
+        assertNull(vm.state.value.ultimaLiquidacion!!.fechaPago)
+    }
+
+    @Test fun sinConexionConservaLasUltimasRecibidasConAvisoHonesto() = runTest(dispatcher) {
+        pagos.value = listOf(liquidacion("${PREFIJO_PAGO_SERVIDOR}5", "2026-09-03", "2026-09-09", "PAGADA", proveedorId = "p1"))
+        panel.sesiones.value = setOf("u1")
+        panel.enLinea.value = false
+        val vm = crear()
+        advanceUntilIdle()
+
+        assertEquals("${PREFIJO_PAGO_SERVIDOR}5", vm.state.value.ultimaLiquidacion!!.id)
+        assertTrue(vm.state.value.avisoPagos!!.contains("Sin conexión"))
+    }
+
+    @Test fun noMuestraLiquidacionesDeOtroProveedorAunqueEstenEnElCelular() = runTest(dispatcher) {
+        pagos.value = listOf(liquidacion("liq-x", "2026-09-10", "2026-09-16", "PAGADA", proveedorId = "otro"))
+        val vm = crear()
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.pagos.isEmpty())
+        assertNull(vm.state.value.ultimaLiquidacion)
     }
 }

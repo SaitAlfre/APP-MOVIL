@@ -28,6 +28,7 @@ import pe.ecolecta.domain.usecase.entrega.ReglaEdicionEntrega
 import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
 import pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository
+import pe.ecolecta.data.remote.ServidorWebNoConfigurado
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -60,7 +61,10 @@ class SinRecojoYSincronizacionTest {
 
     // --- Servidor ---
     private val servidor = FakeRegistroAcopioRemoto()
-    private val sincronizar = SincronizarRegistrosAcopioUseCase(entregas, marcas, proveedores, usuarios, servidor)
+    // Solo Firestore (celular → celular): el panel web se prueba en SincronizacionPanelWebTest.
+    private val sincronizar = SincronizarRegistrosAcopioUseCase(
+        entregas, marcas, proveedores, usuarios, servidor, ServidorWebNoConfigurado(), { error("sin panel web") },
+    )
 
     // --- Celular del proveedor PRV-FAON-01 (su ficha local tiene otro id) ---
     private val fichaProveedor = proveedorDePrueba("id-en-celular-proveedor", codigo = "PRV-FAON-01")
@@ -274,7 +278,7 @@ class SinRecojoYSincronizacionTest {
         registrar("j1", "p1", "u1", "z1", "v1", 10.0, 1, null).getOrThrow()
         val local = FakeRegistroAcopioRemoto(configurado = false)
 
-        SincronizarRegistrosAcopioUseCase(entregas, marcas, proveedores, usuarios, local)()
+        SincronizarRegistrosAcopioUseCase(entregas, marcas, proveedores, usuarios, local, ServidorWebNoConfigurado(), { error("sin panel web") })()
 
         assertEquals(0, local.escrituras)
         val fila = construirFilasAcopio(cicloAcopioDe(hoy, "FAON"), "z1", proveedores.observarActivosPorZona("z1").first(), entregas.filtrar(), emptyList(), remotoDisponible = false)

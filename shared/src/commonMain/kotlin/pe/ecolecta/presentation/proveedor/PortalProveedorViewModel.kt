@@ -39,6 +39,8 @@ data class PortalProveedorState(
     val guardando: Boolean = false,
     val confirmacion: String? = null,
     val hoy: LocalDate = LocalDate(2026, 1, 1),
+    /** Estado real de la consulta de liquidaciones al panel web; null si todo está al día. */
+    val avisoPagos: String? = null,
 ) {
     val zona get() = zonas.firstOrNull { it.id == proveedor?.zonaId }?.nombre ?: "Sin zona disponible"
     val inicioSemana get() = inicioSemanaProveedor(hoy)
@@ -46,8 +48,12 @@ data class PortalProveedorState(
     val semana get() = entregas.filter { !it.anulada && fechaEntrega(it) in inicioSemana..minOf(hoy, finSemana) }
     val litrosHoy get() = entregas.filter { !it.anulada && fechaEntrega(it) == hoy }.sumOf { it.litros }
     val litrosSemana get() = semana.sumOf { it.litros }
-    // No se extrapola un precio histórico ni se inventa una tarifa vigente.
-    val pagoSemana get() = pagos.firstOrNull { it.desde == inicioSemana.toString() && it.hasta == finSemana.toString() && it.estado != "ANULADA" }
+    /**
+     * Última liquidación emitida (la misma que encabeza "Mis pagos"), con su estado real. Antes se buscaba solo la semana
+     * EN CURSO, que nunca tiene liquidación porque solo se liquidan semanas cerradas: Inicio mostraba
+     * "Por confirmar" aunque "Mis pagos" tuviera un pago publicado. No se extrapola ni inventa un precio.
+     */
+    val ultimaLiquidacion: PagoProveedor? get() = ultimaLiquidacionEmitida(pagos)
 
     /** Mismo ciclo de 6 días (y mismas fechas) que ve el acopiador en su lista. */
     val ciclo: CicloAcopio get() = cicloAcopioDe(hoy, zona)
@@ -80,6 +86,8 @@ class PortalProveedorViewModel(
     private val sinRecojoRepository: SinRecojoRepository,
     private val recibidosRepository: RegistroRecibidoRepository,
     private val remoto: RegistroAcopioRemotoRepository,
+    private val servidorWeb: ServidorWebRepository,
+    private val gestionPortal: GestionPortalRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(PortalProveedorState())
     val state = _state.asStateFlow()
@@ -106,6 +114,8 @@ class PortalProveedorViewModel(
                     )
                 }
                 if (remoto.configurado) escucha = launch { escucharServidor(proveedor.codigo) }
+                if (servidorWeb.configurado) launch { recibirLiquidaciones(sesion.usuario.id, proveedor) }
+                else _state.update { it.copy(avisoPagos = "Esta versión no consulta el panel web: solo ves liquidaciones guardadas en este celular.") }
                 val registrosPropios = combine(
                     entregasRepository.observarPorProveedor(proveedor.id),
                     sinRecojoRepository.observarPorProveedor(proveedor.id),
@@ -127,12 +137,36 @@ class PortalProveedorViewModel(
                         sinRecojos = registros.sinRecojos,
                         usuarios = usuarios + registros.acopiadores.filterKeys { it !in usuarios },
                         calidad = calidad.filter { it.proveedorId == proveedor.id }.sortedByDescending { it.registradoEn },
-                        pagos = pagos.filter { it.proveedorId == proveedor.id },
+                        pagos = pagosVisibles(pagos.filter { it.proveedorId == proveedor.id }),
                         solicitudes = solicitudes.filter { it.proveedorId == proveedor.id },
                     )
                 }.collect { _state.value = it }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { _state.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu información.") } }
+        }
+    }
+
+    /**
+     * Liquidaciones generadas en el panel web (fuente oficial), pendientes de pago o pagadas, para la cuenta de la sesión: el servidor
+     * solo devuelve las de SU ficha. Se guardan en este celular para verlas sin conexión. Se consultan
+     * cada vez que la cuenta queda enlazada (el enlace ocurre en segundo plano tras el login).
+     */
+    private suspend fun recibirLiquidaciones(usuarioId: String, proveedor: Proveedor) {
+        servidorWeb.observarSesion(usuarioId).collectLatest { enlazada ->
+            if (!enlazada) {
+                _state.update { it.copy(avisoPagos = "Tu cuenta aún no está enlazada con el panel web: se muestran las liquidaciones guardadas en este celular.") }
+                return@collectLatest
+            }
+            servidorWeb.liquidacionesDelProveedor(usuarioId).fold(
+                onSuccess = { recibidas ->
+                    gestionPortal.guardarPagos(recibidas.map { it.copy(proveedorId = proveedor.id) }, reloj.ahora().toEpochMilliseconds())
+                    _state.update { it.copy(avisoPagos = null) }
+                },
+                onFailure = { error ->
+                    val motivo = if (error is SinConexionRemotaException) "Sin conexión" else (error.message ?: "Error del servidor")
+                    _state.update { it.copy(avisoPagos = "No se pudo consultar el panel web ($motivo): se muestran las últimas liquidaciones recibidas.") }
+                },
+            )
         }
     }
 

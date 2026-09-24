@@ -54,6 +54,9 @@ class LoginCalidadFaonTest {
         val loginViewModel = LoginViewModel(
             loginOfflineUseCase = LoginOfflineUseCase(usuarios, pinHasher, auditoria, reloj, FakeDeviceIdProvider()),
             seleccionarRolUseCase = SeleccionarRolUseCase(sesiones),
+            vincularServidor = pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
+                pe.ecolecta.data.remote.ServidorWebNoConfigurado(), {}, this,
+            ),
         )
 
         // --- Paso 1: la pantalla de login, tal cual la usa el usuario ---

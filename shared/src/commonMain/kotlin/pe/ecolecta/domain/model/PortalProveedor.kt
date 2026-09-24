@@ -62,3 +62,39 @@ data class PagoProveedor(
         Fecha de pago: ${fechaPago ?: "Sin pago registrado"}
     """.trimIndent()
 }
+
+/** Prefijo del id de una liquidación recibida del panel web (fuente oficial de liquidaciones). */
+const val PREFIJO_PAGO_SERVIDOR = "web-"
+
+val PagoProveedor.delServidor: Boolean get() = id.startsWith(PREFIJO_PAGO_SERVIDOR)
+
+/**
+ * Emitida = el administrador ya fijó su importe, con alguno de estos estados reales:
+ * - APROBADA: aprobada por el administrador en el celular (Reportes), aún sin pagar.
+ * - PENDIENTE: generada en el panel web con monto definitivo (no se edita ni se anula), aún sin pagar.
+ *   El panel no tiene un paso de "publicación" aparte de generarla (ver web/.../MovilController).
+ * - PAGADA: pago registrado.
+ * Un borrador, una anulada o un estado desconocido nunca se muestran como importe vigente.
+ */
+val PagoProveedor.emitida: Boolean
+    get() = estado.uppercase() in setOf("APROBADA", "APPROVED", "PENDIENTE", "PAGADA", "PAGADO", "PAID")
+
+/**
+ * Liquidaciones que ve el proveedor. Si el panel web publicó una liquidación para el mismo periodo que
+ * una generada en un celular, se muestra solo la del panel: es la fuente oficial y así no aparecen dos
+ * importes para la misma semana.
+ */
+fun pagosVisibles(pagos: List<PagoProveedor>): List<PagoProveedor> {
+    val periodosDelServidor = pagos.filter { it.delServidor }.map { it.desde to it.hasta }.toSet()
+    return pagos
+        .filter { it.delServidor || (it.desde to it.hasta) !in periodosDelServidor }
+        .sortedWith(compareByDescending<PagoProveedor> { it.hasta }.thenByDescending { it.desde })
+}
+
+/**
+ * La liquidación emitida más reciente: la que Inicio resume, con su estado real (pendiente de pago,
+ * aprobada o pagada). Las liquidaciones se emiten para semanas YA cerradas (nunca para la semana en
+ * curso), así que no se busca la semana actual.
+ */
+fun ultimaLiquidacionEmitida(pagos: List<PagoProveedor>): PagoProveedor? =
+    pagosVisibles(pagos).firstOrNull { it.emitida }

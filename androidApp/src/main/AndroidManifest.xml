@@ -22,6 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar"
+        android:networkSecurityConfig="@xml/seguridad_red"
         tools:replace="android:name">
         <activity
             android:exported="true"
@@ -32,6 +33,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- "Compartir" del QR del proveedor: entrega la imagen a la app elegida con permiso de lectura
+             temporal, sin pedir permisos de almacenamiento (ver ExportadorQr.android.kt). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.qr"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/rutas_compartidas" />
+        </provider>
 
     </application>
 

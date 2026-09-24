@@ -20,7 +20,7 @@ class Entrega extends Model
 
     protected $fillable = [
         'jornada_id', 'proveedor_id', 'usuario_id', 'zona_id', 'vehiculo_id',
-        'litros', 'tachos', 'observaciones', 'registrado_en', 'lote_id', 'anulada',
+        'litros', 'tachos', 'observaciones', 'registrado_en', 'lote_id', 'anulada', 'uuid_movil', 'version_movil',
     ];
 
     protected function casts(): array

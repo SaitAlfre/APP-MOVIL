@@ -28,10 +28,31 @@ class EscanearQrProveedorUseCaseTest {
     fun `resuelve el proveedor cuando el QR es valido y existe`() = runTest {
         val proveedor = insertarProveedor("1")
 
-        val resultado = useCase(generarQrProveedor(proveedor.id))
+        val resultado = useCase(generarQrProveedor(proveedor.codigo))
 
         assertIs<ResultadoEscaneoQr.Encontrado>(resultado)
         assertEquals(proveedor.id, resultado.proveedor.id)
+    }
+
+    @Test
+    fun `un QR generado en otro celular encuentra la misma ficha aunque su id local sea distinto`() = runTest {
+        // El celular del proveedor tiene otro UUID para la misma ficha; solo coincide el código.
+        val enEsteCelular = insertarProveedor("7")
+        val qrDelOtroCelular = generarQrProveedor(enEsteCelular.codigo)
+
+        val resultado = useCase(qrDelOtroCelular)
+
+        assertIs<ResultadoEscaneoQr.Encontrado>(resultado)
+        assertEquals(enEsteCelular.id, resultado.proveedor.id)
+    }
+
+    @Test
+    fun `un QR antiguo con id local se sigue resolviendo en el celular que lo genero`() = runTest {
+        val proveedor = insertarProveedor("3")
+
+        val resultado = useCase("ECOLECTA:PROVEEDOR:${proveedor.id}")
+
+        assertIs<ResultadoEscaneoQr.Encontrado>(resultado)
     }
 
     @Test
@@ -43,7 +64,7 @@ class EscanearQrProveedorUseCaseTest {
 
     @Test
     fun `devuelve ProveedorNoEncontrado si el id no existe en el repositorio local`() = runTest {
-        val resultado = useCase(generarQrProveedor("id-inexistente"))
+        val resultado = useCase(generarQrProveedor("PRV-INEXISTENTE"))
 
         assertIs<ResultadoEscaneoQr.ProveedorNoEncontrado>(resultado)
     }
@@ -52,7 +73,7 @@ class EscanearQrProveedorUseCaseTest {
     fun `resuelve el proveedor sin importar su estado para poder mostrarlo y bloquear despues`() = runTest {
         val proveedor = insertarProveedor("2", estado = EstadoProveedor.SUSPENDIDO)
 
-        val resultado = useCase(generarQrProveedor(proveedor.id))
+        val resultado = useCase(generarQrProveedor(proveedor.codigo))
 
         assertIs<ResultadoEscaneoQr.Encontrado>(resultado)
         assertEquals(EstadoProveedor.SUSPENDIDO, resultado.proveedor.estado)

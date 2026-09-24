@@ -18,6 +18,21 @@ final class AutenticarOperadorUseCase
 
     public function ejecutar(string $username, string $pin): bool
     {
+        return $this->comprobar($username, fn () => $this->authenticator->intentar($username, $pin));
+    }
+
+    /**
+     * Mismas reglas que el login web (cuenta activa, bloqueo manual y por intentos fallidos) pero sin
+     * abrir una sesión: lo usa la app móvil para obtener su token de sincronización.
+     */
+    public function verificarSinSesion(string $username, string $pin): bool
+    {
+        return $this->comprobar($username, fn () => $this->authenticator->validar($username, $pin));
+    }
+
+    /** @param  callable(): bool  $credencialesValidas */
+    private function comprobar(string $username, callable $credencialesValidas): bool
+    {
         $usuario = $this->usuarios->buscarPorUsername($username);
 
         if ($usuario === null) {
@@ -38,7 +53,7 @@ final class AutenticarOperadorUseCase
             throw new CuentaBloqueadaException;
         }
 
-        if (! $this->authenticator->intentar($username, $pin)) {
+        if (! $credencialesValidas()) {
             $maxIntentos = (int) (Configuracion::find('login_intentos_maximos')?->valor ?: 5);
             $minutosBloqueo = (int) (Configuracion::find('login_bloqueo_minutos')?->valor ?: 15);
             $this->usuarios->guardar($usuario->conIntentoFallido($ahora, $maxIntentos, $minutosBloqueo));

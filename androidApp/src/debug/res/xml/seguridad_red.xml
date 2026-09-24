@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Solo en Debug: permite HTTP para probar con el panel web local (php artisan serve), p. ej.
+     http://10.0.2.2:8000 desde el emulador o la IP de la PC en la misma red wifi. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

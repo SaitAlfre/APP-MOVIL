@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pe.ecolecta.domain.repository.ServidorWebRepository
 import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
@@ -28,6 +29,7 @@ class PerfilViewModel(
     private val cerrarJornadaUseCase: CerrarJornadaUseCase,
     private val obtenerIdentidadRemotaUseCase: ObtenerIdentidadRemotaUseCase,
     private val cambiarPinUsuarioUseCase: CambiarPinUsuarioUseCase,
+    private val servidorWeb: ServidorWebRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
@@ -62,6 +64,9 @@ class PerfilViewModel(
                     usuarioIdLocal = sesion.usuario.id,
                 )
             }
+
+            val sesionPanel = if (servidorWeb.configurado) servidorWeb.observarSesion(sesion.usuario.id).first() else null
+            _uiState.update { it.copy(sesionPanelWeb = sesionPanel) }
 
             val uid = obtenerIdentidadRemotaUseCase()
             _uiState.update { it.copy(uidFirebase = uid) }

@@ -19,7 +19,7 @@ class Jornada extends Model
     protected $table = 'jornadas';
 
     protected $fillable = [
-        'usuario_id', 'zona_id', 'vehiculo_id', 'fecha', 'abierta_en', 'cerrada_en', 'seguimiento_activo',
+        'usuario_id', 'zona_id', 'vehiculo_id', 'fecha', 'abierta_en', 'cerrada_en', 'seguimiento_activo', 'uuid_movil',
     ];
 
     protected function casts(): array

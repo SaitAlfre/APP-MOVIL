@@ -117,7 +117,7 @@ import pe.ecolecta.presentation.calidad.CalidadViewModel
 
 val dataModule = module {
     single<pe.ecolecta.domain.repository.PortalProveedorRepository> { pe.ecolecta.data.repository.PortalProveedorRepository(get()) }
-    viewModel { pe.ecolecta.presentation.proveedor.PortalProveedorViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { pe.ecolecta.presentation.proveedor.PortalProveedorViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single<SqlDriver> { get<DatabaseDriverFactory>().crearDriver() }
     single { EcolectaDatabase(get()) }
     single { DatabaseSeeder(get(), get(), get()) }
@@ -140,8 +140,9 @@ val dataModule = module {
     single<pe.ecolecta.domain.repository.AlertaDescartadaRepository> { pe.ecolecta.data.repository.SqlDelightAlertaDescartadaRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.SinRecojoRepository> { pe.ecolecta.data.repository.SqlDelightSinRecojoRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
-    // RegistroAcopioRemotoRepository e IdentidadRemotaProvider se registran por plataforma (EcolectaApp.kt /
-    // KoinIOS.kt): Firebase es Android-only en esta versión, nunca en el módulo común.
+    // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
+    // plataforma (EcolectaApp.kt / KoinIOS.kt): Firebase es Android-only y la URL del panel web se fija
+    // al compilar (BuildConfig), nunca en el módulo común.
 }
 
 val domainModule = module {
@@ -226,13 +227,23 @@ val domainModule = module {
 
     factory { ObtenerIdentidadRemotaUseCase(get()) }
     // single: su Mutex evita que el ciclo periódico y "Sincronizar ahora" envíen lo mismo a la vez.
-    single { pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase(get(), get(), get(), get(), get()) }
+    single { pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    factory<pe.ecolecta.domain.usecase.sync.PreparadorEntregaServidor> {
+        pe.ecolecta.domain.usecase.sync.PreparadorEntregaServidorLocal(get(), get(), get(), get(), get(), get())
+    }
+    // single: guarda el último motivo de enlace fallido por usuario y lanza el enlace en el ámbito de la app.
+    single {
+        val sincronizar = get<pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase>()
+        pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
+            get(), { sincronizar() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
+        )
+    }
     factory { pe.ecolecta.domain.usecase.acopio.MarcarSinRecojoUseCase(get(), get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.acopio.DeshacerSinRecojoUseCase(get(), get(), get(), get()) }
 }
 
 val presentationModule = module {
-    viewModel { LoginViewModel(loginOfflineUseCase = get(), seleccionarRolUseCase = get()) }
+    viewModel { LoginViewModel(loginOfflineUseCase = get(), seleccionarRolUseCase = get(), vincularServidor = get()) }
     viewModel {
         CalidadViewModel(
             repository = get(),
@@ -421,6 +432,7 @@ val presentationModule = module {
             observarEntregasUseCase = get(),
             listarProveedoresUseCase = get(),
             sincronizarRegistros = get(),
+            vincularServidor = get(),
         )
     }
 
@@ -435,9 +447,24 @@ val presentationModule = module {
             cerrarJornadaUseCase = get(),
             obtenerIdentidadRemotaUseCase = get(),
             cambiarPinUsuarioUseCase = get(),
+            servidorWeb = get(),
         )
     }
 
+}
+
+/**
+ * Panel web según la URL fijada al compilar: vacía = [pe.ecolecta.data.remote.ServidorWebNoConfigurado]
+ * (la app lo dice y no finge enviar). Se arma aquí porque el cliente HTTP (Ktor) es interno de `shared`.
+ */
+fun moduloServidorWeb(urlBase: String, nombreDispositivo: String, io: kotlinx.coroutines.CoroutineDispatcher) = module {
+    single<pe.ecolecta.domain.repository.ServidorWebRepository> {
+        if (urlBase.isBlank()) {
+            pe.ecolecta.data.remote.ServidorWebNoConfigurado()
+        } else {
+            pe.ecolecta.data.remote.ServidorWebRepositoryKtor(urlBase, get(), get(), get(), get(), io, nombreDispositivo)
+        }
+    }
 }
 
 fun iniciarKoin(configuracionAdicional: KoinAppDeclaration? = null) {

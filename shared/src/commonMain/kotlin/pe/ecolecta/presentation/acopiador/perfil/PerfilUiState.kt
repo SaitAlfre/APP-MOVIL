@@ -17,6 +17,8 @@ data class PerfilUiState(
     val usuarioIdLocal: String = "",
     /** UID anónimo de Firebase de este dispositivo, o null si aún no se resolvió / no disponible en esta plataforma. */
     val uidFirebase: String? = null,
+    /** null = esta versión no tiene panel web; true/false = la cuenta tiene o no sesión con el panel. */
+    val sesionPanelWeb: Boolean? = null,
     val servidorConectado: Boolean = true,
     val mostrarCambiarPin: Boolean = false,
     val cambiandoPin: Boolean = false,

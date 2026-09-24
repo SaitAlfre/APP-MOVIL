@@ -137,12 +137,13 @@ class PersistenciaListaAcopioTest {
 
     @Test
     fun `migrar una base existente conserva todas sus filas y agrega las tablas nuevas`() = runTest {
-        // 1) Base de la versión anterior: esquema actual SIN las tablas nuevas y con user_version anterior.
+        // 1) Base de la versión anterior a la lista de acopio (antes de 11.sqm y 12.sqm): esquema actual SIN
+        //    las tablas que agregan esas migraciones y con ese user_version.
         val versionNueva = EcolectaDatabase.Schema.version
         var driver = JdbcSqliteDriver(url)
         EcolectaDatabase.Schema.create(driver)
-        listOf("sin_recojo", "registro_recibido").forEach { driver.execute(null, "DROP TABLE $it", 0) }
-        driver.execute(null, "PRAGMA user_version = ${versionNueva - 1}", 0)
+        listOf("sin_recojo", "registro_recibido", "token_servidor").forEach { driver.execute(null, "DROP TABLE $it", 0) }
+        driver.execute(null, "PRAGMA user_version = 11", 0)
 
         // 2) Datos reales de demostración: cuentas, fichas, jornada, entregas (incl. anulada y en
         //    conflicto), auditoría, traslado, calidad… más una liquidación y un análisis.
@@ -154,17 +155,19 @@ class PersistenciaListaAcopioTest {
         assertTrue(antes.getValue("entrega").isNotEmpty(), "la base de prueba debe tener entregas")
         driver.close()
 
-        // 3) Abrir con la app nueva: el driver ve user_version viejo y ejecuta la migración 11.
+        // 3) Abrir con la app nueva: el driver ve user_version viejo y ejecuta las migraciones 11 y 12.
         driver = abrir()
         val despues = instantanea(driver)
         antes.forEach { (tabla, filas) -> assertEquals(filas, despues[tabla], "la tabla $tabla cambió al migrar") }
-        assertTrue("sin_recojo" in despues && "registro_recibido" in despues)
+        assertTrue("sin_recojo" in despues && "registro_recibido" in despues && "token_servidor" in despues)
         assertEquals(versionNueva, versionDe(driver))
 
         // 4) Las tablas nuevas funcionan sobre la base migrada.
         val migrada = EcolectaDatabase(driver)
         migrada.sinRecojoQueries.insertar("m1", "j", proveedorId, "u", "z", "2026-09-24", MotivoSinRecojo.OTRO.name, null, 1, 1)
         assertEquals(1L, migrada.sinRecojoQueries.contarPendientes().executeAsOne())
+        migrada.tokenServidorQueries.guardar("u1", "token", 2, 1)
+        assertEquals("token", migrada.tokenServidorQueries.porUsuario("u1").executeAsOne().token)
         driver.close()
     }
 

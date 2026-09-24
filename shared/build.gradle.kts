@@ -89,6 +89,7 @@ kotlin {
         // Pruebas de persistencia/migración con SQLite real en la JVM (sin emulador).
         getByName("androidHostTest").dependencies {
             implementation(libs.sqldelight.sqlite.driver)
+            implementation(libs.zxing.core)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)

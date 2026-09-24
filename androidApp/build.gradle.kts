@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -10,6 +11,16 @@ plugins {
 // La compilación normal conserva Firebase y falla si su configuración no está disponible.
 val localPreview = providers.gradleProperty("localPreview").orNull == "true"
 if (!localPreview) apply(plugin = "com.google.gms.google-services")
+
+// URL del panel web (Laravel) al que se envían las entregas y del que se leen las liquidaciones. No es un
+// secreto: cada usuario se autentica con su propio usuario y PIN. Se toma de `-Pecolecta.servidorUrl=...`
+// o de `ecolecta.servidorUrl=...` en local.properties (p. ej. http://10.0.2.2:8000 para el emulador).
+// Vacía = la app muestra "panel web no configurado" y no finge enviar nada.
+val servidorUrl: String = providers.gradleProperty("ecolecta.servidorUrl").orNull
+    ?: rootProject.file("local.properties").takeIf { it.exists() }?.let { archivo ->
+        Properties().apply { archivo.inputStream().use { load(it) } }.getProperty("ecolecta.servidorUrl")
+    }
+    ?: ""
 
 kotlin {
     compilerOptions {
@@ -39,6 +50,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("boolean", "LOCAL_PREVIEW", localPreview.toString())
+        buildConfigField("String", "SERVIDOR_URL", "\"${servidorUrl.trim()}\"")
     }
     packaging {
         resources {

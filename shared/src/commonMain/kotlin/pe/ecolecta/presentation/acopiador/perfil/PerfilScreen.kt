@@ -92,9 +92,18 @@ fun PerfilScreen(
                 // Lo necesita el administrador para vincular este celular en Firebase (acopiador_links).
                 Dato("Vinculación de sincronización", estado.uidFirebase ?: "Sin sincronización en este celular")
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
+                Dato(
+                    "Panel web",
+                    when (estado.sesionPanelWeb) {
+                        null -> "No configurado en esta versión"
+                        true -> "Cuenta enlazada"
+                        false -> "Sin enlazar: vuelve a iniciar sesión con conexión"
+                    },
+                )
+                DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Servidor", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
-                    val servidor = estadoServidor(estado.uidFirebase != null, estado.pendientesSync)
+                    val servidor = estadoServidor(estado.uidFirebase != null || estado.sesionPanelWeb == true, estado.pendientesSync)
                     Text(
                         servidor.texto,
                         style = MaterialTheme.typography.bodyLarge,
@@ -197,7 +206,7 @@ internal sealed class EstadoServidor(val texto: String) {
     data object AL_DIA : EstadoServidor("Todo sincronizado")
 }
 
-/** [vinculado]: el celular tiene identidad remota (Firebase disponible). `internal` para probarlo. */
+/** [vinculado]: el celular tiene un destino real (Firebase o sesión con el panel web). `internal` para probarlo. */
 internal fun estadoServidor(vinculado: Boolean, pendientes: Int): EstadoServidor = when {
     !vinculado -> EstadoServidor.SIN_SINCRONIZACION
     pendientes > 0 -> EstadoServidor.PorEnviar(pendientes)

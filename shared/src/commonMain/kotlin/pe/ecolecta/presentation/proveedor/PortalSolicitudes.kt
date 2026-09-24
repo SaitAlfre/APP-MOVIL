@@ -20,7 +20,9 @@ import pe.ecolecta.domain.generarQrProveedor
 import pe.ecolecta.domain.model.motivosReclamo
 import pe.ecolecta.presentation.navegacion.Pantalla
 import qrgenerator.qrkitpainter.rememberQrKitPainter
-import qrgenerator.shareQrCodeImage
+import org.koin.compose.koinInject
+import pe.ecolecta.presentation.qr.ExportadorQr
+import pe.ecolecta.presentation.qr.rememberSolicitadorPermisoAlmacenamiento
 
 @Composable private fun SelectorProveedor(etiqueta: String, valor: String, opciones: List<Pair<String, String>>, cambiar: (String) -> Unit) {
     var abierto by remember { mutableStateOf(false) }
@@ -137,39 +139,68 @@ import qrgenerator.shareQrCodeImage
 }
 
 @Composable fun QrProveedor(s: PortalProveedorState, navegar: (Pantalla) -> Unit) {
+    val proveedor = s.proveedor!!
     var brillo by remember { mutableStateOf(false) }
-    var compartiendo by remember { mutableStateOf(false) }
-    var mensaje by remember { mutableStateOf<String?>(null) }
+    var exportando by remember { mutableStateOf(false) }
+    var mensaje by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
+    val exportador = koinInject<ExportadorQr>()
     val layer = rememberGraphicsLayer()
     val scope = rememberCoroutineScope()
+    val nombreArchivo = "qr-ecolecta-${proveedor.codigo.filter { it.isLetterOrDigit() || it == '-' }}"
+
+    /** Captura la tarjeta del QR y ejecuta [accion]; el resultado real (éxito o error) se muestra debajo. */
+    fun exportar(exito: String, fallo: String, accion: suspend (androidx.compose.ui.graphics.ImageBitmap) -> Result<Unit>) {
+        if (exportando) return
+        exportando = true
+        mensaje = null
+        scope.launch {
+            try {
+                val resultado = try { accion(layer.toImageBitmap()) }
+                    catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                    catch (e: Exception) { Result.failure(e) }
+                mensaje = resultado.fold({ exito to false }, { "$fallo: ${it.message ?: "error desconocido"}" to true })
+            } finally { exportando = false }
+        }
+    }
+
+    val solicitarPermiso = rememberSolicitadorPermisoAlmacenamiento { concedido ->
+        if (concedido) {
+            exportar("QR guardado en tu galería (Imágenes › Ecolecta Huata).", "No se pudo guardar el QR") {
+                exportador.guardarEnGaleria(it, nombreArchivo)
+            }
+        } else {
+            mensaje = "Se necesita permiso de almacenamiento para guardar el QR en tu galería." to true
+        }
+    }
     BrilloProveedor(brillo)
     PaginaProveedor("Mi código QR", volver = { navegar(Pantalla.ProveedorHome) }) {
         Column(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                TextoProveedor(s.proveedor!!.nombres, 18, bold = true)
-                TextoProveedor("${s.proveedor.codigo} · Zona ${s.zona}", 14, ProveedorGris)
+                TextoProveedor(proveedor.nombres, 18, bold = true)
+                TextoProveedor("${proveedor.codigo} · Zona ${s.zona}", 14, ProveedorGris)
             }
             Surface(shape = RoundedCornerShape(20.dp), color = Color.White, shadowElevation = 4.dp, modifier = Modifier.drawWithContent { layer.record { this@drawWithContent.drawContent() }; drawContent() }) {
-                Image(rememberQrKitPainter(data = generarQrProveedor(s.proveedor!!.id)), "Código QR de identificación del proveedor", Modifier.padding(28.dp).size(200.dp))
+                Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    // El código identifica la misma ficha en cualquier celular y en el panel web.
+                    Image(rememberQrKitPainter(data = generarQrProveedor(proveedor.codigo)), "Código QR de identificación del proveedor", Modifier.padding(8.dp).size(200.dp))
+                    TextoProveedor(proveedor.codigo, 14, Color.Black, true)
+                }
             }
             TarjetaProveedor(color = Color(0xFFE3F1E8)) {
                 TextoProveedor("Muestra este código al acopiador", 14, ProveedorVerde, true)
                 TextoProveedor("El escáner identificará tu cuenta automáticamente", 12, ProveedorGris)
             }
+            Button(onClick = { brillo = !brillo }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) { Text(if(brillo) "Restaurar brillo" else "☀ Aumentar brillo") }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = { brillo = !brillo }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text(if(brillo) "Restaurar brillo" else "☀ Aumentar brillo") }
+                OutlinedButton(onClick = { if (!exportando) { mensaje = null; solicitarPermiso() } }, enabled = !exportando, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text("Descargar") }
                 OutlinedButton(onClick = {
-                    scope.launch {
-                        compartiendo = true
-                        try { shareQrCodeImage(layer.toImageBitmap(), "qr-${s.proveedor!!.codigo}") }
-                        catch(e: kotlinx.coroutines.CancellationException) { throw e }
-                        catch(e: Exception) { mensaje = "No se pudo compartir el QR: ${e.message}" }
-                        finally { compartiendo = false }
+                    exportar("Elige la aplicación con la que quieres compartir tu QR.", "No se pudo compartir el QR") {
+                        exportador.compartir(it, nombreArchivo, "QR ${proveedor.codigo}")
                     }
-                }, enabled = !compartiendo, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text(if(compartiendo) "Compartiendo…" else "Compartir") }
+                }, enabled = !exportando, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text(if(exportando) "Preparando…" else "Compartir") }
             }
+            mensaje?.let { (texto, esError) -> TextoProveedor(texto, 13, if (esError) ProveedorRojo else ProveedorVerde) }
             TarjetaProveedor(color = Color(0xFFFFF0D1)) { TextoProveedor("No compartas públicamente este código. Solo identifica tu cuenta, no autoriza operaciones.", 13, Color(0xFF926B22)) }
-            mensaje?.let { TextoProveedor(it, color = ProveedorRojo) }
         }
     }
 }

@@ -7,6 +7,7 @@ import pe.ecolecta.data.auth.FirebaseAuthAnonimoProvider
 import pe.ecolecta.data.local.DatabaseDriverFactory
 import pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryFirebase
 import pe.ecolecta.di.iniciarKoin
+import pe.ecolecta.di.moduloServidorWeb
 import pe.ecolecta.domain.DeviceIdProvider
 import pe.ecolecta.domain.DeviceIdProviderAndroid
 import pe.ecolecta.domain.IdentidadRemotaProvider
@@ -41,6 +42,13 @@ class EcolectaApp : Application() {
                         else RegistroAcopioRemotoRepositoryFirebase(get())
                     }
                 },
+                // Panel web: fuente oficial de entregas y liquidaciones. Sin URL al compilar, la app lo
+                // dice ("panel web no configurado") en vez de fingir que sincroniza.
+                moduloServidorWeb(
+                    urlBase = BuildConfig.SERVIDOR_URL,
+                    nombreDispositivo = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".take(120),
+                    io = kotlinx.coroutines.Dispatchers.IO,
+                ),
             )
         }
     }

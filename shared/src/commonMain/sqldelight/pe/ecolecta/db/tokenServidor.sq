@@ -1,0 +1,17 @@
+-- Token de sesión con el panel web, uno por usuario local de este celular. Lo emite el servidor tras
+-- validar usuario y PIN; no es una credencial administrativa y el servidor puede revocarlo.
+CREATE TABLE token_servidor (
+    usuario_id TEXT NOT NULL PRIMARY KEY,
+    token TEXT NOT NULL,
+    expira_en INTEGER NOT NULL,
+    obtenido_en INTEGER NOT NULL
+);
+
+guardar:
+INSERT OR REPLACE INTO token_servidor(usuario_id, token, expira_en, obtenido_en) VALUES (?, ?, ?, ?);
+
+porUsuario:
+SELECT * FROM token_servidor WHERE usuario_id = ?;
+
+borrar:
+DELETE FROM token_servidor WHERE usuario_id = ?;

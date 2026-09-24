@@ -46,6 +46,9 @@ actual class ExportadorQr {
             )
         }
 
+    actual suspend fun compartir(bitmap: ImageBitmap, nombreArchivo: String, titulo: String): Result<Unit> =
+        runCatching { qrgenerator.shareQrCodeImage(bitmap, nombreArchivo) }
+
     actual fun imprimir(bitmap: ImageBitmap, tituloTrabajo: String) {
         val imagen = bitmap.aUIImage()
         val controlador = UIPrintInteractionController.sharedPrintController() ?: return

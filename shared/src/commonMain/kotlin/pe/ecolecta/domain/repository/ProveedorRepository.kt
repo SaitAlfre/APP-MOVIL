@@ -1,6 +1,7 @@
 package pe.ecolecta.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Proveedor
 
@@ -9,6 +10,9 @@ interface ProveedorRepository {
     fun observarPorZona(zonaId: String): Flow<List<Proveedor>>
     fun observarActivosPorZona(zonaId: String): Flow<List<Proveedor>>
     suspend fun obtenerPorId(id: String): Proveedor?
+
+    /** El código es único y el mismo en todos los celulares y en el panel web (a diferencia del id local). */
+    suspend fun obtenerPorCodigo(codigo: String): Proveedor? = observarTodos().first().firstOrNull { it.codigo == codigo }
 
     /** Único punto de entrada para el módulo PROVEEDOR: resuelve el proveedor a partir del usuario autenticado (§5, §39). */
     suspend fun obtenerPorUsuarioId(usuarioId: String): Proveedor?

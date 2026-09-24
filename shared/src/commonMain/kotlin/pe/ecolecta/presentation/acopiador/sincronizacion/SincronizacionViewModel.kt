@@ -16,6 +16,7 @@ import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.sync.ResumenColaSync
 import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
+import pe.ecolecta.domain.usecase.sync.VincularServidorUseCase
 
 class SincronizacionViewModel(
     private val obtenerColaSyncUseCase: ObtenerColaSyncUseCase,
@@ -23,6 +24,7 @@ class SincronizacionViewModel(
     private val observarEntregasUseCase: ObservarEntregasUseCase,
     private val listarProveedoresUseCase: ListarProveedoresUseCase,
     private val sincronizarRegistros: SincronizarRegistrosAcopioUseCase,
+    private val vincularServidor: VincularServidorUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SincronizacionUiState())
     val uiState: StateFlow<SincronizacionUiState> = _uiState.asStateFlow()
@@ -37,18 +39,22 @@ class SincronizacionViewModel(
             val usuarioId = obtenerSesionUseCase().first()?.usuario?.id
             val resumen = usuarioId?.let { obtenerColaSyncUseCase(it) } ?: ResumenColaSync(0, 0, 0, 0)
 
-            // La cola es de este acopiador: se listan sus propias entregas sin enviar, no las de
-            // toda la zona, que es lo que va a reintentar el botón de abajo.
+            // La cola es de este acopiador: se listan sus propias entregas sin enviar (pendientes y
+            // rechazadas, incluidas correcciones y anulaciones aún no confirmadas), no las de toda la
+            // zona. Las rechazadas muestran el motivo real que devolvió el servidor.
             val sinEnviar = usuarioId
-                ?.let { observarEntregasUseCase(usuarioId = it, syncState = SyncState.PENDING).first() }
+                ?.let { id ->
+                    observarEntregasUseCase(usuarioId = id, syncState = SyncState.PENDING).first() +
+                        observarEntregasUseCase(usuarioId = id, syncState = SyncState.ERROR).first()
+                }
                 .orEmpty()
-                .filterNot(Entrega::anulada)
                 .sortedByDescending(Entrega::registradoEn)
             val proveedores = listarProveedoresUseCase().first()
 
             _uiState.update {
                 it.copy(
                     cargando = false,
+                    avisoServidor = avisoServidor(usuarioId),
                     resumen = resumen,
                     pendientes = sinEnviar.map { entrega ->
                         EntregaPendiente(
@@ -60,6 +66,12 @@ class SincronizacionViewModel(
                 )
             }
         }
+    }
+
+    private fun avisoServidor(usuarioId: String?): String? = when {
+        !sincronizarRegistros.servidorConfigurado ->
+            "Esta versión no tiene el panel web configurado: el administrador no verá estas entregas hasta instalar una versión con servidor."
+        else -> usuarioId?.let { vincularServidor.errores.value[it] }
     }
 
     /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */

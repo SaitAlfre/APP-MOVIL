@@ -86,6 +86,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
                 Banner("No cierres sesión hasta sincronizar los registros pendientes.", TipoBanner.ADVERTENCIA)
             }
 
+            estado.avisoServidor?.let { Banner(it, TipoBanner.ADVERTENCIA) }
             estado.mensaje?.let { Banner(it, TipoBanner.INFO) }
 
             if (estado.todoSincronizado && estado.pendientes.isEmpty()) {
@@ -121,7 +122,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
                                 )
                                 Column {
                                     Text(
-                                        "Entrega · ${pendiente.nombreProveedor}",
+                                        "${if (pendiente.entrega.anulada) "Anulación" else "Entrega"} · ${pendiente.nombreProveedor}",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = Colores.textPrimary,
                                         maxLines = 1,
@@ -133,6 +134,10 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Colores.textSecundario,
                                     )
+                                    // Motivo real del último intento (sin conexión, rechazo del servidor, cuenta sin enlazar).
+                                    pendiente.entrega.syncError?.let { motivo ->
+                                        Text(motivo, style = MaterialTheme.typography.bodySmall, color = Colores.peligro)
+                                    }
                                 }
                             }
                             Spacer(Modifier.width(Espaciado.s))

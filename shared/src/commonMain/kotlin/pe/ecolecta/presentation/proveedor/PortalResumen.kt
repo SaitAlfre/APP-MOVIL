@@ -35,12 +35,13 @@ import pe.ecolecta.presentation.navegacion.Pantalla
             }
             listOf(
                 listOf("Litros hoy" to "${decimalProveedor(s.diaHoy?.totalLitros ?: 0.0)} L", "Litros del ciclo" to "${decimalProveedor(s.totalCiclo)} L"),
-                listOf("Precio por litro" to (s.pagoSemana?.let { "S/ ${decimalProveedor(it.precio)}" } ?: "Por confirmar"), "Total estimado" to (s.pagoSemana?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Por confirmar")),
+                listOf("Precio por litro" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.precio)}" } ?: "Sin liquidación"), "Última liquidación" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Sin liquidación")),
             ).forEach { fila -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 fila.forEach { (etiqueta, valor) -> TarjetaProveedor(Modifier.weight(1f), Color.White.copy(alpha = .15f)) {
                     TextoProveedor(etiqueta, 11, Color.White.copy(alpha = .8f)); TextoProveedor(valor, 20, Color.White, true)
                 } }
             } }
+            s.ultimaLiquidacion?.let { TextoProveedor("Liquidación del ${it.desde} al ${it.hasta} · ${etiquetaPago(it.estado)}", 12, Color.White.copy(alpha = .75f)) }
         }
         Column(Modifier.padding(horizontal = 16.dp).offset(y = (-12).dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             TarjetaHoyProveedor(s, navegar)
@@ -53,8 +54,8 @@ import pe.ecolecta.presentation.navegacion.Pantalla
                 }
                 TarjetaProveedor(Modifier.weight(1f), accion = { navegar(Pantalla.ProveedorPagos) }) {
                     TextoProveedor("PAGO", 11, ProveedorGris, true)
-                    TextoProveedor(s.pagoSemana?.let { etiquetaPago(it.estado) } ?: "Sin liquidación", 14, Color(0xFF926B22), true)
-                    TextoProveedor(s.pagoSemana?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Pendiente de publicación", 12, ProveedorGris)
+                    TextoProveedor(s.ultimaLiquidacion?.let { etiquetaPago(it.estado) } ?: "Sin liquidación", 14, Color(0xFF926B22), true)
+                    TextoProveedor(s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)} · ${it.desde}" } ?: "Aún no hay liquidaciones", 12, ProveedorGris)
                 }
             }
             ComunicadosProveedor()

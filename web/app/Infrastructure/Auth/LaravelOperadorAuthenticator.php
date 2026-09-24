@@ -19,6 +19,11 @@ final class LaravelOperadorAuthenticator implements OperadorAuthenticatorInterfa
         return $this->auth->guard('operador')->attempt(['username' => $username, 'password' => $pin]);
     }
 
+    public function validar(string $username, string $pin): bool
+    {
+        return $this->auth->guard('operador')->validate(['username' => $username, 'password' => $pin]);
+    }
+
     public function usuarioActual(): ?OperadorSesion
     {
         /** @var Usuario|null $usuario */

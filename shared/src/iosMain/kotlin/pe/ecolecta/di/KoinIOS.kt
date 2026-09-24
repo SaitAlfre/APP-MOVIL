@@ -23,6 +23,8 @@ fun iniciarKoinIOS() {
                 single<RegistroAcopioRemotoRepository> { RegistroAcopioRemotoRepositoryPendiente() }
                 single<IdentidadRemotaProvider> { IdentidadRemotaProviderPendiente() }
             },
+            // Sin URL de panel web en iOS en esta versión: se muestra "no configurado", sin fingir envíos.
+            moduloServidorWeb(urlBase = "", nombreDispositivo = "iOS", io = kotlinx.coroutines.Dispatchers.Default),
         )
     }
 }

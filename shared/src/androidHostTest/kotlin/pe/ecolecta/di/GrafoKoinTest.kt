@@ -53,6 +53,7 @@ class GrafoKoinTest {
                     single<DeviceIdProvider> { object : DeviceIdProvider { override fun obtenerId() = "prueba" } }
                     single<IdentidadRemotaProvider> { IdentidadRemotaProviderPendiente() }
                     single<RegistroAcopioRemotoRepository> { RegistroAcopioRemotoRepositoryPendiente() }
+                    single<pe.ecolecta.domain.repository.ServidorWebRepository> { pe.ecolecta.data.remote.ServidorWebNoConfigurado() }
                 },
             )
         }.koin
@@ -69,5 +70,7 @@ class GrafoKoinTest {
         assertNotNull(koin.get<AcopiadorHomeViewModel>())
         assertNotNull(koin.get<PerfilViewModel>())
         assertNotNull(koin.get<SeleccionZonaVehiculoViewModel>())
+        assertNotNull(koin.get<pe.ecolecta.presentation.auth.LoginViewModel>())
+        assertSame(koin.get<pe.ecolecta.domain.usecase.sync.VincularServidorUseCase>(), koin.get<pe.ecolecta.domain.usecase.sync.VincularServidorUseCase>())
     }
 }

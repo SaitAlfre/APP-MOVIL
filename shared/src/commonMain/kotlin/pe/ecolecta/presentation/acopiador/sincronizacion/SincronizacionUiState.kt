@@ -11,6 +11,8 @@ data class SincronizacionUiState(
     val resumen: ResumenColaSync = ResumenColaSync(0, 0, 0, 0),
     val pendientes: List<EntregaPendiente> = emptyList(),
     val mensaje: String? = null,
+    /** Estado real del enlace con el panel web (no configurado, sin enlazar o motivo del último rechazo). */
+    val avisoServidor: String? = null,
 ) {
     val todoSincronizado: Boolean
         get() = resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0
