@@ -22,7 +22,7 @@ interface LoteProduccionRepositoryInterface
 
     public function iniciar(int $id, DateTimeImmutable $ahora, int $usuarioId): LoteProduccion;
 
-    public function finalizar(int $id, float $litrosUsados, float $litrosMermaProceso, DateTimeImmutable $ahora, int $usuarioId): LoteProduccion;
+    public function finalizar(int $id, float $litrosUsados, float $litrosMermaProceso, DateTimeImmutable $ahora, int $usuarioId, ?int $unidadesReales = null): LoteProduccion;
 
     public function cancelar(int $id, string $motivo, DateTimeImmutable $ahora, int $usuarioId): LoteProduccion;
 

@@ -13,7 +13,7 @@ class LoteProduccion extends Model
         'codigo', 'producto_id', 'fecha', 'litros_por_unidad_snapshot', 'litros_asignados',
         'litros_usados', 'litros_merma_proceso', 'litros_sobrantes', 'unidades_estimadas',
         'unidades_producidas', 'estado', 'origen_acopio', 'responsable_id',
-        'iniciado_en', 'finalizado_en', 'cancelado_en', 'motivo_cancelacion',
+        'iniciado_en', 'finalizado_en', 'cancelado_en', 'motivo_cancelacion', 'ingredientes_snapshot',
     ];
 
     protected function casts(): array
@@ -26,6 +26,7 @@ class LoteProduccion extends Model
             'litros_merma_proceso' => 'decimal:3',
             'litros_sobrantes' => 'decimal:3',
             'origen_acopio' => 'array',
+            'ingredientes_snapshot' => 'array',
             'iniciado_en' => 'datetime',
             'finalizado_en' => 'datetime',
             'cancelado_en' => 'datetime',

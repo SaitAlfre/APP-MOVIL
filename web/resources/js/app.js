@@ -3,6 +3,19 @@ import { bindThemeToggle } from './theme';
 document.addEventListener('DOMContentLoaded', () => {
     bindThemeToggle();
 
+    document.querySelectorAll('[data-receta-editor]').forEach((editor) => {
+        const lista = editor.querySelector('[data-ingredientes]');
+        const plantilla = editor.querySelector('[data-ingrediente-template]');
+        let indice = Math.max(-1, ...Array.from(lista.querySelectorAll('select')).map((select) => Number(select.name.match(/\[(\d+)\]/)?.[1] ?? -1))) + 1;
+        editor.querySelector('[data-agregar-ingrediente]')?.addEventListener('click', () => {
+            lista.insertAdjacentHTML('beforeend', plantilla.innerHTML.replaceAll('__INDEX__', String(indice++)));
+            lista.lastElementChild.querySelector('select')?.focus();
+        });
+        editor.addEventListener('click', (event) => {
+            event.target.closest('[data-quitar-ingrediente]')?.closest('[data-ingrediente]')?.remove();
+        });
+    });
+
     document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
         const input = toggle.closest('div')?.querySelector('input[type="password"], input[data-password-field]');
 

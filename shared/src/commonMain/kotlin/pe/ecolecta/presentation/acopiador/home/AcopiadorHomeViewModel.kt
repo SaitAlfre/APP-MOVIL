@@ -32,7 +32,7 @@ import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
-import pe.ecolecta.presentation.design.formatearHora
+import pe.ecolecta.presentation.design.formatearHoraAcopio
 
 class AcopiadorHomeViewModel(
     private val obtenerJornadaEnCursoUseCase: ObtenerJornadaEnCursoUseCase,
@@ -87,7 +87,7 @@ class AcopiadorHomeViewModel(
                             nombreUsuario = sesion?.usuario?.nombres.orEmpty(),
                             zonaNombre = zonaNombre,
                             vehiculoInfo = vehiculo?.let { v -> "${v.nombre} · ${v.placa}" }.orEmpty(),
-                            horaInicio = jornada?.let { j -> formatearHora(j.abiertaEn) }.orEmpty(),
+                            horaInicio = jornada?.let { j -> formatearHoraAcopio(j.abiertaEn) }.orEmpty(),
                             litrosHoy = entregas.filterNot(Entrega::anulada).sumOf(Entrega::litros),
                             entregasHoy = entregas.count { e -> !e.anulada },
                             pendientesSync = pendientes,
@@ -95,7 +95,7 @@ class AcopiadorHomeViewModel(
                             proveedores = proveedores,
                             jornadaId = jornada?.id,
                             jornadaAbierta = jornadaAbierta,
-                            horaCierre = jornada?.cerradaEn?.let(::formatearHora),
+                            horaCierre = jornada?.cerradaEn?.let(::formatearHoraAcopio),
                         )
                     }
                 }

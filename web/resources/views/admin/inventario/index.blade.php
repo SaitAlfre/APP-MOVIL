@@ -9,13 +9,15 @@
 
         $pestanas = collect([
             ['key' => 'resumen', 'label' => 'Resumen'],
+            ['key' => 'materiales', 'label' => 'Materiales e ingredientes'],
             ['key' => 'movimientos', 'label' => 'Movimientos'],
+            ['key' => 'movimientos-materiales', 'label' => 'Movimientos de materiales'],
         ])->map(fn ($item) => $item + ['url' => route('admin.inventario.index', ['tab' => $item['key']])])->all();
 
         $tiposMovimiento = ['produccion' => 'green', 'ajuste' => 'yellow', 'despacho' => 'blue', 'venta' => 'blue'];
     @endphp
 
-    <x-ui.page-header title="Inventario" description="Stock actual de productos lácteos y movimientos registrados">
+    <x-ui.page-header title="Inventario" description="Existencias de productos terminados, leche y materiales de producción">
         @if ($puedeGestionar)
             <x-slot:actions>
                 <x-ui.btn type="button" variant="secondary" icon="pencil" data-modal-open="ajuste-inventario">Registrar ajuste</x-ui.btn>
@@ -69,6 +71,25 @@
                 </p>
             </x-ui.card>
         @endif
+    @elseif ($tab === 'materiales')
+        @include('admin.inventario._materiales')
+    @elseif ($tab === 'movimientos-materiales')
+        <x-ui.card>
+            <x-ui.table :headers="['Fecha', 'Material', 'Tipo', 'Cantidad', 'Referencia / motivo']" caption="Movimientos de materiales">
+                @forelse ($movimientosMateriales as $movimiento)
+                    <tr class="border-b border-eh-border">
+                        <td class="p-3 text-xs">{{ $movimiento->fecha }}</td>
+                        <td class="p-3 text-sm">{{ $movimiento->nombre }}</td>
+                        <td class="p-3 text-xs">{{ ucfirst($movimiento->tipo) }}</td>
+                        <td class="p-3 text-sm {{ $movimiento->cantidad < 0 ? 'text-eh-red' : 'text-eh-primary' }}">{{ $movimiento->cantidad > 0 ? '+' : '' }}{{ number_format($movimiento->cantidad, 3) }} {{ $movimiento->unidad }}</td>
+                        <td class="p-3 text-xs">{{ $movimiento->motivo }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5" class="p-6 text-center text-sm text-eh-text-muted">Sin movimientos de materiales. Registra una entrada para comenzar.</td></tr>
+                @endforelse
+            </x-ui.table>
+            <div class="p-4">{{ $movimientosMateriales->appends(['tab' => 'movimientos-materiales'])->links() }}</div>
+        </x-ui.card>
     @else
         <x-ui.card>
             @if ($movimientos->total() === 0)

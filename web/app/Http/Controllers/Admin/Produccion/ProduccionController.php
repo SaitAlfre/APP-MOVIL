@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Produccion;
 use App\Application\Produccion\CancelarLoteProduccionUseCase;
 use App\Application\Produccion\CrearLoteProduccionUseCase;
 use App\Application\Produccion\FinalizarLoteProduccionUseCase;
+use App\Application\Produccion\GestionIngredientes;
 use App\Application\Produccion\IniciarLoteProduccionUseCase;
 use App\Application\Produccion\ListarDiasConSaldoDisponibleUseCase;
 use App\Application\Produccion\ObtenerSaldoProduccionUseCase;
@@ -24,7 +25,14 @@ class ProduccionController extends Controller
         ListarDiasConSaldoDisponibleUseCase $listarDias,
         ProductoRepositoryInterface $productos,
         ObtenerSaldoProduccionUseCase $obtenerSaldo,
+        GestionIngredientes $ingredientes,
     ): View {
+        $request->validate([
+            'fecha' => ['nullable', 'date_format:Y-m-d'],
+            'producto_id' => ['nullable', 'integer', 'exists:productos,id'],
+            'litros_asignados' => ['nullable', 'numeric', 'min:0.001', 'max:999999999', 'decimal:0,3'],
+            'cantidad_producir' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+        ]);
         $dias = $listarDias->ejecutar();
 
         $fecha = $request->filled('fecha') ? new DateTimeImmutable($request->string('fecha')->toString()) : null;
@@ -32,10 +40,14 @@ class ProduccionController extends Controller
         $litrosAsignados = $request->filled('litros_asignados') ? (float) $request->input('litros_asignados') : null;
 
         $producto = $productoId !== null ? $productos->buscarPorId($productoId) : null;
+        if ($producto !== null && $request->filled('cantidad_producir')) {
+            $litrosAsignados = round($request->integer('cantidad_producir') * $producto->litrosPorUnidad, 3);
+        }
         $saldo = $fecha !== null ? $obtenerSaldo->ejecutar($fecha) : null;
-        $unidadesEstimadas = ($producto !== null && $litrosAsignados !== null && $litrosAsignados > 0)
-            ? (int) floor($litrosAsignados / $producto->litrosPorUnidad)
+        $unidadesEstimadas = ($producto !== null && $fecha !== null && $litrosAsignados !== null && $litrosAsignados > 0)
+            ? (int) floor(round($litrosAsignados / $producto->litrosPorUnidad, 9))
             : null;
+        $necesarios = $unidadesEstimadas !== null ? $ingredientes->calcular($productoId, $litrosAsignados / $producto->litrosPorUnidad) : [];
 
         return view('admin.produccion.produccion.index', [
             'dias' => $dias,
@@ -45,6 +57,10 @@ class ProduccionController extends Controller
             'litrosAsignadosSeleccionados' => $litrosAsignados,
             'saldo' => $saldo,
             'unidadesEstimadas' => $unidadesEstimadas,
+            'ingredientesNecesarios' => $necesarios,
+            'puedeCrear' => $unidadesEstimadas !== null && $unidadesEstimadas > 0 && $producto->activo
+                && $litrosAsignados <= ($saldo?->litrosDisponibles() ?? 0)
+                && ! collect($necesarios)->contains(fn ($i) => $i['faltante'] > 0),
         ]);
     }
 
@@ -53,7 +69,7 @@ class ProduccionController extends Controller
         $request->validate([
             'fecha' => ['required', 'date'],
             'producto_id' => ['required', 'integer'],
-            'litros_asignados' => ['required', 'numeric', 'gt:0'],
+            'litros_asignados' => ['required', 'numeric', 'min:0.001', 'max:999999999', 'decimal:0,3'],
         ]);
 
         try {
@@ -85,8 +101,9 @@ class ProduccionController extends Controller
     public function finalizar(int $lote, Request $request, FinalizarLoteProduccionUseCase $finalizar): RedirectResponse
     {
         $request->validate([
-            'litros_usados' => ['required', 'numeric', 'min:0'],
-            'litros_merma_proceso' => ['nullable', 'numeric', 'min:0'],
+            'litros_usados' => ['required', 'numeric', 'min:0', 'max:999999999', 'decimal:0,3'],
+            'litros_merma_proceso' => ['nullable', 'numeric', 'min:0', 'max:999999999', 'decimal:0,3'],
+            'unidades_producidas' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
         ]);
 
         try {
@@ -95,6 +112,7 @@ class ProduccionController extends Controller
                 litrosUsados: (float) $request->input('litros_usados'),
                 litrosMermaProceso: (float) ($request->input('litros_merma_proceso') ?: 0),
                 usuarioId: auth('operador')->id(),
+                unidadesReales: $request->filled('unidades_producidas') ? $request->integer('unidades_producidas') : null,
             );
         } catch (LoteProduccionInvalidoException|RuntimeException $e) {
             return back()->withErrors(['litros_usados' => $this->mensajeSeguro($e)]);

@@ -94,7 +94,16 @@ fun PerfilScreen(
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Servidor", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
-                    Text("Conectado", style = MaterialTheme.typography.bodyLarge, color = Colores.exito)
+                    val servidor = estadoServidor(estado.uidFirebase != null, estado.pendientesSync)
+                    Text(
+                        servidor.texto,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = when (servidor) {
+                            EstadoServidor.SIN_SINCRONIZACION -> Colores.textSecundario
+                            is EstadoServidor.PorEnviar -> Colores.advertencia
+                            EstadoServidor.AL_DIA -> Colores.exito
+                        },
+                    )
                 }
             }
 
@@ -179,6 +188,20 @@ fun PerfilScreen(
             dismissButton = { TextButton(onClick = viewModel::cancelarCierreSesion) { Text("Cancelar") } },
         )
     }
+}
+
+/** Lo que se muestra en "Servidor": nunca "Conectado" fijo, sino el estado real de este celular. */
+internal sealed class EstadoServidor(val texto: String) {
+    data object SIN_SINCRONIZACION : EstadoServidor("Sin sincronización disponible")
+    data class PorEnviar(val cantidad: Int) : EstadoServidor("$cantidad por enviar")
+    data object AL_DIA : EstadoServidor("Todo sincronizado")
+}
+
+/** [vinculado]: el celular tiene identidad remota (Firebase disponible). `internal` para probarlo. */
+internal fun estadoServidor(vinculado: Boolean, pendientes: Int): EstadoServidor = when {
+    !vinculado -> EstadoServidor.SIN_SINCRONIZACION
+    pendientes > 0 -> EstadoServidor.PorEnviar(pendientes)
+    else -> EstadoServidor.AL_DIA
 }
 
 /** Cerrar sesión no cierra la jornada ni borra datos: el diálogo lo dice explícitamente. `internal` para probarlo. */

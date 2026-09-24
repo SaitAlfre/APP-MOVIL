@@ -64,7 +64,7 @@ import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
-import pe.ecolecta.presentation.design.formatearHora
+import pe.ecolecta.presentation.design.formatearHoraAcopio
 import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
@@ -363,7 +363,7 @@ private fun puedeEditar(entrega: Entrega): Boolean = !entrega.anulada && entrega
 /** Encabezado verde con el saludo del día, la fecha y el contador de pendientes por sincronizar. */
 @Composable
 private fun EncabezadoJornada(nombre: String, pendientesSync: Int) {
-    val ahora = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val ahora = remember { Clock.System.now().toLocalDateTime(pe.ecolecta.domain.acopio.ZONA_ACOPIO) }
     val saludo = when (ahora.hour) {
         in 0..11 -> "Buenos días,"
         in 12..18 -> "Buenas tardes,"
@@ -543,7 +543,7 @@ private fun FilaEntregaDelDia(nombre: String, entrega: Entrega, onClick: (() -> 
                 Column {
                     Text(nombre, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        "${formatearLitros(entrega.litros)} · ${formatearHora(entrega.registradoEn)}",
+                        "${formatearLitros(entrega.litros)} · ${formatearHoraAcopio(entrega.registradoEn)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Colores.textSecundario,
                     )

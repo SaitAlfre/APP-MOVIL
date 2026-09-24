@@ -47,7 +47,7 @@ import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TarjetaEstadistica
 import pe.ecolecta.presentation.design.TipoBanner
-import pe.ecolecta.presentation.design.formatearHora
+import pe.ecolecta.presentation.design.formatearHoraAcopio
 import pe.ecolecta.presentation.design.formatearLitros
 
 /**
@@ -188,7 +188,7 @@ private fun FilaEntregaEditable(nombre: String, entrega: Entrega, onEditar: (() 
     Tarjeta {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f, fill = false)) {
-                Text(formatearHora(entrega.registradoEn), style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
+                Text(formatearHoraAcopio(entrega.registradoEn), style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
                 Text(nombre, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                     Text(formatearLitros(entrega.litros), style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)

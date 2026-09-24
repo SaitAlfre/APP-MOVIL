@@ -14,7 +14,7 @@ final class FinalizarLoteProduccionUseCase
         private readonly LoteProduccionRepositoryInterface $lotes,
     ) {}
 
-    public function ejecutar(int $loteId, float $litrosUsados, float $litrosMermaProceso, int $usuarioId): LoteProduccion
+    public function ejecutar(int $loteId, float $litrosUsados, float $litrosMermaProceso, int $usuarioId, ?int $unidadesReales = null): LoteProduccion
     {
         $lote = $this->lotes->buscarPorId($loteId);
 
@@ -28,6 +28,6 @@ final class FinalizarLoteProduccionUseCase
 
         LoteProduccion::validarFinalizacion($lote->litrosAsignados, $litrosUsados, $litrosMermaProceso);
 
-        return $this->lotes->finalizar($loteId, $litrosUsados, $litrosMermaProceso, new DateTimeImmutable, $usuarioId);
+        return $this->lotes->finalizar($loteId, $litrosUsados, $litrosMermaProceso, new DateTimeImmutable, $usuarioId, $unidadesReales);
     }
 }

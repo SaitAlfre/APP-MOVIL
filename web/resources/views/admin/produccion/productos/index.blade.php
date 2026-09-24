@@ -8,7 +8,7 @@
     <x-ui.page-header title="Producción" description="Productos y recetas que se fabrican en planta">
         @if ($puedeGestionar)
             <x-slot:actions>
-                <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus">Nuevo producto</x-ui.btn>
+                    <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus">Nuevo producto y receta</x-ui.btn>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
@@ -18,7 +18,7 @@
     <x-ui.card>
         @if ($productos->total() === 0)
             <x-ui.empty icon="cube" title="Aún no hay productos ni recetas"
-                description="Una receta define cuántos litros de leche se necesitan por unidad producida.">
+                description="Guarda la leche y los otros ingredientes necesarios para cada unidad del producto. Reutiliza la receta en tus lotes.">
                 @if ($puedeGestionar)
                     <x-slot:action>
                         <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus" size="sm">Nuevo producto</x-ui.btn>

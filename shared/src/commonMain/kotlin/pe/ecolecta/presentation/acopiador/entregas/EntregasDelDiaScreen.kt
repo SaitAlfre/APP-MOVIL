@@ -33,7 +33,7 @@ import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.PildoraPendientes
 import pe.ecolecta.presentation.design.Tarjeta
-import pe.ecolecta.presentation.design.formatearHora
+import pe.ecolecta.presentation.design.formatearHoraAcopio
 import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
@@ -86,7 +86,7 @@ private fun FilaEntrega(nombre: String, entrega: Entrega) {
     Tarjeta {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f, fill = false)) {
-                Text(formatearHora(entrega.registradoEn), style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
+                Text(formatearHoraAcopio(entrega.registradoEn), style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
                 Text(nombre, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     "${entrega.tachos} tachos · ${entrega.modalidad.etiqueta()}",

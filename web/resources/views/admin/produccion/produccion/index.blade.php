@@ -3,7 +3,7 @@
 @section('titulo', 'Producción')
 
 @section('contenido')
-    <x-ui.page-header title="Producción" description="Asigna leche disponible a un lote de producción" />
+    <x-ui.page-header title="Producción" description="Reutiliza una receta, revisa los ingredientes y crea un lote de producción" />
 
     @include('admin.produccion._nav')
 
@@ -35,7 +35,9 @@
                             ])->all()" />
                     </div>
 
-                    <x-ui.field name="litros_asignados" label="Litros a asignar a este lote" type="number" min="0.01" step="0.01" unit="L"
+                    <x-ui.field name="cantidad_producir" label="Cantidad de unidades a producir" type="number" min="1" max="1000000" step="1"
+                        :value="request('cantidad_producir')" hint="Opcional: calcula automáticamente la leche y los otros ingredientes de la receta. Si lo completas, tiene prioridad sobre los litros." />
+                    <x-ui.field name="litros_asignados" label="O indica los litros a asignar" type="number" min="0.001" step="0.001" unit="L"
                         :value="$litrosAsignadosSeleccionados"
                         :max="$saldo?->litrosDisponibles()"
                         :hint="$saldo !== null ? 'Máximo disponible ese día: '.number_format($saldo->litrosDisponibles(), 1).' L.' : null" />
@@ -54,12 +56,30 @@
                                 {{ $fechaSeleccionada->format('d/m/Y') }}. La cantidad real se registra al finalizar el lote.
                             </p>
                         </div>
+                        <div class="mb-4">
+                            <h3 class="mb-2 text-sm font-semibold">Ingredientes necesarios para este lote</h3>
+                            <x-ui.table :headers="['Material', 'Necesario', 'Disponible', 'Estado']">
+                                <tr><td class="p-3">Leche</td><td class="p-3">{{ number_format($litrosAsignadosSeleccionados, 3) }} L</td><td class="p-3">{{ number_format($saldo->litrosDisponibles(), 3) }} L</td><td class="p-3">{{ $litrosAsignadosSeleccionados <= $saldo->litrosDisponibles() ? 'Disponible' : 'Stock insuficiente' }}</td></tr>
+                                @foreach ($ingredientesNecesarios as $ingrediente)
+                                    <tr>
+                                        <td class="p-3">{{ $ingrediente['nombre'] }}</td>
+                                        <td class="p-3">{{ number_format($ingrediente['cantidad'], 3) }} {{ $ingrediente['unidad'] }}</td>
+                                        <td class="p-3">{{ number_format($ingrediente['existencia'], 3) }} {{ $ingrediente['unidad'] }}</td>
+                                        <td class="p-3 {{ $ingrediente['faltante'] > 0 ? 'text-eh-red' : 'text-eh-primary' }}">{{ $ingrediente['faltante'] > 0 ? 'Faltan '.number_format($ingrediente['faltante'], 3).' '.$ingrediente['unidad'] : 'Disponible' }}</td>
+                                    </tr>
+                                @endforeach
+                            </x-ui.table>
+                            <p class="mt-2 text-xs text-eh-text-muted">El borrador reserva la leche. Los otros materiales se descuentan al iniciar el lote, tras comprobar otra vez las existencias.</p>
+                        </div>
+                        @if (! $puedeCrear)
+                            <x-ui.alert type="warning">No se puede crear este lote. Revisa el stock y elige una receta activa con cantidad suficiente para producir al menos una unidad.</x-ui.alert>
+                        @endif
                         <form method="POST" action="{{ route('admin.produccion.producir.store') }}" data-once>
                             @csrf
                             <input type="hidden" name="fecha" value="{{ $fechaSeleccionada->format('Y-m-d') }}">
                             <input type="hidden" name="producto_id" value="{{ $productoSeleccionadoId }}">
                             <input type="hidden" name="litros_asignados" value="{{ $litrosAsignadosSeleccionados }}">
-                            <x-ui.btn type="submit" icon="plus">Crear lote en borrador</x-ui.btn>
+                            <x-ui.btn type="submit" icon="plus" :disabled="! $puedeCrear">Crear lote en borrador</x-ui.btn>
                         </form>
                     </div>
                 @endif

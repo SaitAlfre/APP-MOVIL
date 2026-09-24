@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
+use App\Application\Produccion\GestionIngredientes;
 use App\Domain\Auditoria\AccionAuditoria;
 use App\Domain\Auditoria\Auditoria as AuditoriaDominio;
 use App\Domain\Auditoria\AuditoriaRepositoryInterface;
@@ -16,12 +17,14 @@ use App\Infrastructure\Persistence\Eloquent\Producto as ProductoEloquent;
 use DateTimeImmutable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class EloquentLoteProduccionRepository implements LoteProduccionRepositoryInterface
 {
     public function __construct(
         private readonly EntregaRepositoryInterface $entregas,
         private readonly AuditoriaRepositoryInterface $auditorias,
+        private readonly GestionIngredientes $ingredientes,
     ) {}
 
     public function buscarPorId(int $id): ?LoteProduccionDominio
@@ -44,8 +47,7 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
     {
         return (float) LoteProduccionEloquent::query()
             ->whereDate('fecha', $fecha->format('Y-m-d'))
-            ->where('estado', '!=', EstadoLoteProduccion::Cancelado->value)
-            ->sum('litros_asignados');
+            ->get()->sum(fn ($lote) => $this->litrosOcupados($lote));
     }
 
     public function existeAsignacionEnFecha(DateTimeImmutable $fecha): bool
@@ -65,19 +67,31 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
             $yaAsignado = $this->litrosAsignadosEnFecha($lote->fecha);
             $disponible = round($poolTotal - $yaAsignado, 3);
 
-            if (round($lote->litrosAsignados, 3) > $disponible + 0.001) {
+            if (round($lote->litrosAsignados, 3) > $disponible) {
                 throw LoteProduccionInvalidoException::superaSaldoDisponible(max(0.0, $disponible));
             }
 
             $codigo = $this->generarCodigo($lote->fecha);
 
+            $producto = ProductoEloquent::whereKey($lote->productoId)->lockForUpdate()->firstOrFail();
+            if (! $producto->activo) {
+                throw ValidationException::withMessages(['producto_id' => 'La receta está inactiva. Selecciona una receta activa.']);
+            }
+            $unidadesEstimadas = (int) floor(round($lote->litrosAsignados / (float) $producto->litros_por_unidad, 9));
+            if ($unidadesEstimadas < 1 || $unidadesEstimadas > 1000000) {
+                throw ValidationException::withMessages(['litros_asignados' => 'El lote debe rendir entre 1 y 1 000 000 de unidades de producción.']);
+            }
+            $snapshot = $this->ingredientes->calcular($producto->id, $lote->litrosAsignados / (float) $producto->litros_por_unidad);
+            $this->ingredientes->comprobar($snapshot);
+
             $registro = LoteProduccionEloquent::query()->create([
                 'codigo' => $codigo,
                 'producto_id' => $lote->productoId,
                 'fecha' => $lote->fecha->format('Y-m-d'),
-                'litros_por_unidad_snapshot' => $lote->litrosPorUnidadSnapshot,
+                'litros_por_unidad_snapshot' => $producto->litros_por_unidad,
                 'litros_asignados' => $lote->litrosAsignados,
-                'unidades_estimadas' => $lote->unidadesEstimadas,
+                'unidades_estimadas' => $unidadesEstimadas,
+                'ingredientes_snapshot' => $snapshot,
                 'estado' => EstadoLoteProduccion::Borrador->value,
                 'origen_acopio' => $lote->origenAcopio,
                 'responsable_id' => $lote->responsableId,
@@ -109,6 +123,7 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
                 throw LoteProduccionInvalidoException::transicionInvalida($estadoActual, 'iniciar');
             }
 
+            $this->ingredientes->consumir($registro, $usuarioId);
             $registro->update(['estado' => EstadoLoteProduccion::EnProceso->value, 'iniciado_en' => $ahora]);
 
             $this->auditorias->registrar(new AuditoriaDominio(
@@ -127,9 +142,9 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
         });
     }
 
-    public function finalizar(int $id, float $litrosUsados, float $litrosMermaProceso, DateTimeImmutable $ahora, int $usuarioId): LoteProduccionDominio
+    public function finalizar(int $id, float $litrosUsados, float $litrosMermaProceso, DateTimeImmutable $ahora, int $usuarioId, ?int $unidadesReales = null): LoteProduccionDominio
     {
-        return DB::transaction(function () use ($id, $litrosUsados, $litrosMermaProceso, $ahora, $usuarioId) {
+        return DB::transaction(function () use ($id, $litrosUsados, $litrosMermaProceso, $ahora, $usuarioId, $unidadesReales) {
             $registro = LoteProduccionEloquent::query()->whereKey($id)->lockForUpdate()->firstOrFail();
             $estadoActual = EstadoLoteProduccion::from($registro->estado);
 
@@ -139,7 +154,10 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
 
             LoteProduccionDominio::validarFinalizacion((float) $registro->litros_asignados, $litrosUsados, $litrosMermaProceso);
 
-            $unidadesProducidas = (int) floor($litrosUsados / (float) $registro->litros_por_unidad_snapshot);
+            $unidadesProducidas = $unidadesReales ?? (int) floor(round($litrosUsados / (float) $registro->litros_por_unidad_snapshot, 9));
+            if ($unidadesProducidas < 0 || ($unidadesProducidas > 0 && $litrosUsados <= 0)) {
+                throw ValidationException::withMessages(['unidades_producidas' => 'Registra una cantidad válida y la leche realmente usada.']);
+            }
             $litrosSobrantes = round((float) $registro->litros_asignados - $litrosUsados - $litrosMermaProceso, 3);
 
             $registro->update([
@@ -259,12 +277,23 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
         return LoteProduccionEloquent::query()
             ->whereDate('fecha', '>=', $desde->format('Y-m-d'))
             ->whereDate('fecha', '<=', $hasta->format('Y-m-d'))
-            ->where('estado', '!=', EstadoLoteProduccion::Cancelado->value)
-            ->get(['fecha', 'litros_asignados'])
+            ->get()
             ->groupBy(fn ($fila) => DateTimeImmutable::createFromInterface($fila->fecha)->format('Y-m-d'))
-            ->map(fn ($grupo, $fecha) => ['fecha' => $fecha, 'litros' => (float) $grupo->sum('litros_asignados')])
+            ->map(fn ($grupo, $fecha) => ['fecha' => $fecha, 'litros' => (float) $grupo->sum(fn ($lote) => $this->litrosOcupados($lote))])
             ->values()
             ->all();
+    }
+
+    private function litrosOcupados(LoteProduccionEloquent $lote): float
+    {
+        if ($lote->estado === EstadoLoteProduccion::Cancelado->value && $lote->iniciado_en === null) {
+            return 0.0;
+        }
+        if ($lote->estado === EstadoLoteProduccion::Finalizado->value) {
+            return (float) $lote->litros_usados + (float) $lote->litros_merma_proceso;
+        }
+
+        return (float) $lote->litros_asignados;
     }
 
     /** Se llama con el mutex de vehiculos ya bloqueado por crear(), así que el conteo es estable. */

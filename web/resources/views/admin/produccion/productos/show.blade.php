@@ -29,8 +29,16 @@
     </div>
 
     <x-ui.card padding="p-5">
-        <h2 class="mb-2 text-sm font-semibold text-eh-text">Otros insumos</h2>
-        <p class="text-sm text-eh-text">{{ $producto->otrosInsumos ?? 'Sin otros insumos registrados.' }}</p>
-        <p class="mt-2 text-xs text-eh-text-muted">Información de referencia para planta: no se descuenta de ningún inventario.</p>
+        <h2 class="mb-3 text-sm font-semibold text-eh-text">Receta para 1 {{ $producto->unidadProduccion }}</h2>
+        <x-ui.table :headers="['Ingrediente', 'Cantidad por unidad', 'Origen']">
+            <tr><td class="p-3">Leche</td><td class="p-3">{{ number_format($producto->litrosPorUnidad, 3) }} L</td><td class="p-3">Acopio disponible</td></tr>
+            @foreach ($ingredientes as $ingrediente)
+                <tr><td class="p-3">{{ $ingrediente['nombre'] }}</td><td class="p-3">{{ number_format($ingrediente['cantidad'], 3) }} {{ $ingrediente['unidad'] }}</td><td class="p-3">Inventario de materiales</td></tr>
+            @endforeach
+        </x-ui.table>
+        <p class="mt-3 text-xs text-eh-text-muted">Al iniciar un lote se verifica el stock y se descuentan sus ingredientes. La receta se puede reutilizar para nuevos lotes.</p>
+        @if ($producto->otrosInsumos)
+            <p class="mt-3 text-sm">Notas: {{ $producto->otrosInsumos }}</p>
+        @endif
     </x-ui.card>
 @endsection

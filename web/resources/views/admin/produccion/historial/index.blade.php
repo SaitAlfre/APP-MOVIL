@@ -45,7 +45,17 @@
                     <tr class="border-b border-eh-border align-top last:border-0 hover:bg-eh-surface-alt">
                         <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ $lote->codigo }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $lote->fecha->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $fila['producto']?->nombre ?? '—' }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-eh-text">
+                            {{ $fila['producto']?->nombre ?? '—' }}
+                            <details class="mt-2 text-xs font-normal">
+                                <summary class="cursor-pointer text-eh-blue">Ingredientes del lote</summary>
+                                <p class="mt-2">Leche: {{ number_format($lote->litrosAsignados, 3) }} L</p>
+                                @foreach ($fila['ingredientes'] as $ingrediente)
+                                    <p>{{ $ingrediente['nombre'] }}: {{ number_format($ingrediente['cantidad'], 3) }} {{ $ingrediente['unidad'] }}</p>
+                                @endforeach
+                                <p class="mt-2 text-eh-text-muted">{{ $lote->iniciadoEn ? 'Materiales descontados al iniciar.' : 'Materiales pendientes de consumo.' }}</p>
+                            </details>
+                        </td>
                         <td class="px-4 py-3 text-xs">
                             <p class="mono font-medium text-eh-text">{{ number_format($lote->litrosAsignados, 1) }} L asignados</p>
                             @if ($lote->litrosUsados !== null)
@@ -97,7 +107,7 @@
                                 <div class="flex flex-col items-end gap-1">
                                     @if ($lote->estado === $Estado::Borrador)
                                         <form method="POST" action="{{ route('admin.produccion.lotes.iniciar', $lote->id) }}"
-                                            data-confirm="¿Iniciar el lote {{ $lote->codigo }}? Pasará a estado «en proceso».">
+                                            data-confirm="¿Iniciar el lote {{ $lote->codigo }}? Se verificará el stock y se descontarán los ingredientes de su receta.">
                                             @csrf
                                             @method('PATCH')
                                             <x-ui.btn type="submit" size="sm" variant="accent">Iniciar</x-ui.btn>
@@ -162,8 +172,10 @@
                             </div>
                         </div>
 
+                        <x-ui.field :id="'unidades-'.$lote->id" name="unidades_producidas" label="Cantidad realmente producida" type="number" min="0" max="1000000000" step="1" :value="$lote->unidadesEstimadas" required hint="Esta cantidad ingresará al inventario del producto terminado." />
                         <x-ui.alert type="info">
                             Los litros no usados vuelven a quedar disponibles para otro lote del mismo día.
+                            Los demás ingredientes ya fueron consumidos al iniciar y no se descuentan de nuevo.
                         </x-ui.alert>
 
                         <div class="flex justify-end gap-2">
@@ -179,8 +191,12 @@
                     <form method="POST" action="{{ route('admin.produccion.lotes.cancelar', $lote->id) }}" class="space-y-4" data-once>
                         @csrf
                         <p class="text-sm text-eh-text-muted">
-                            Al cancelar, los {{ number_format($lote->litrosAsignados, 1) }} L asignados vuelven a estar disponibles
-                            para otro lote del {{ $lote->fecha->format('d/m/Y') }}. La acción queda registrada en auditoría.
+                            @if ($lote->estado === $Estado::Borrador)
+                                Se liberan los {{ number_format($lote->litrosAsignados, 1) }} L reservados. No se han consumido otros materiales.
+                            @else
+                                El lote ya fue iniciado. La leche y los ingredientes consumidos no vuelven al inventario al cancelar. Registra por separado cualquier material recuperado y su motivo en Inventario.
+                            @endif
+                            La acción queda registrada en auditoría.
                         </p>
                         <div class="flex flex-col gap-1">
                             <label for="motivo-lote-{{ $lote->id }}" class="text-sm font-medium text-eh-text">

@@ -165,6 +165,8 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::get('inventario', [InventarioController::class, 'index'])->name('inventario.index');
         });
         Route::middleware('permiso:inventario,gestionar')->group(function () {
+            Route::post('inventario/materiales', [InventarioController::class, 'storeMaterial'])->name('inventario.materiales.store');
+            Route::post('inventario/materiales/movimientos', [InventarioController::class, 'storeMovimientoMaterial'])->name('inventario.materiales.movimientos.store');
             Route::post('inventario/ajustes', [InventarioController::class, 'storeAjuste'])->name('inventario.ajustes.store');
         });
 

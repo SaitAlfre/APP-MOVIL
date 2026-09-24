@@ -114,7 +114,7 @@ final class LoteProduccion
             throw LoteProduccionInvalidoException::litrosUsadosInvalidos();
         }
 
-        if (round($litrosUsados + $litrosMermaProceso, 3) > round($litrosAsignados, 3) + 0.001) {
+        if (round($litrosUsados + $litrosMermaProceso, 3) > round($litrosAsignados, 3)) {
             throw LoteProduccionInvalidoException::consumoSuperaAsignado($litrosAsignados);
         }
     }
