@@ -123,6 +123,10 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::get('calidad/nuevo', [CalidadController::class, 'create'])->name('calidad.create');
             Route::post('calidad', [CalidadController::class, 'store'])->name('calidad.store');
         });
+        // Después de «calidad/nuevo» para que esa ruta no se tome como un análisis.
+        Route::middleware('permiso:calidad,ver')->group(function () {
+            Route::get('calidad/{analisis}', [CalidadController::class, 'show'])->name('calidad.show');
+        });
 
         Route::middleware('permiso:entregas,ver')->group(function () {
             Route::get('entregas', [EntregaController::class, 'index'])->name('entregas.index');

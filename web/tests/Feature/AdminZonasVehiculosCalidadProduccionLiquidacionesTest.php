@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
@@ -81,114 +82,82 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
         $this->assertDatabaseHas('vehiculos', ['id' => $vehiculo->id, 'activo' => false]);
     }
 
-    public function test_un_admin_puede_registrar_un_control_de_calidad_para_una_entrega(): void
+    /** @return array<string, mixed> */
+    private function analisis(int $proveedorId, array $valores, array $extra = []): array
     {
-        $this->comoAdmin();
-        $entrega = Entrega::factory()->create();
-
-        $response = $this->post('/admin/calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'aprobado',
-            'temperatura_c' => 4.5,
-            'acidez' => 16.2,
-        ]);
-
-        $response->assertRedirect(route('admin.calidad.index'));
-        $this->assertDatabaseHas('controles_calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'aprobado',
-        ]);
+        return [
+            'proveedor_id' => $proveedorId, 'fecha' => now('America/Lima')->toDateString(), 'hora' => now('America/Lima')->format('H:i'),
+            'unidad_congelacion' => '°C', 'valores' => $valores, ...$extra,
+        ];
     }
 
-    public function test_no_se_puede_registrar_dos_controles_de_calidad_para_la_misma_entrega(): void
+    public function test_un_admin_registra_un_analisis_lactoscan_y_se_califica_como_en_la_app(): void
     {
         $this->comoAdmin();
-        $entrega = Entrega::factory()->create();
+        $proveedor = Proveedor::factory()->create();
 
-        $this->post('/admin/calidad', ['entrega_id' => $entrega->id, 'resultado' => 'aprobado'])
-            ->assertRedirect(route('admin.calidad.index'));
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['temperatura' => '6,0', 'grasa' => '3.5', 'ph' => '6.7']))
+            ->assertSessionHasNoErrors()->assertRedirect();
 
-        $response = $this->post('/admin/calidad', ['entrega_id' => $entrega->id, 'resultado' => 'observado']);
-
-        $response->assertSessionHasErrors('entrega_id');
-        $this->assertDatabaseCount('controles_calidad', 1);
+        $analisis = AnalisisCalidad::query()->sole();
+        $this->assertSame('APROBADO', $analisis->estado->value);
+        $this->assertSame(6.0, $analisis->temperatura);
+        $this->assertSame([], $analisis->alertas);
+        $this->assertStringStartsWith('AN-', $analisis->codigo_muestra);
+        $this->get(route('admin.calidad.show', $analisis->uuid))->assertOk()->assertSee('En referencia');
     }
 
-    public function test_el_listado_de_calidad_muestra_la_cantidad_de_entregas_pendientes(): void
+    public function test_un_parametro_fuera_de_referencia_observa_y_el_agua_anadida_rechaza(): void
     {
         $this->comoAdmin();
-        Entrega::factory()->create();
-        Entrega::factory()->create();
+        $proveedor = Proveedor::factory()->create();
 
-        $response = $this->get('/admin/calidad');
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '2.1', 'ph' => '6.7']))->assertSessionHasNoErrors();
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '3.5', 'agua' => '4']))->assertSessionHasNoErrors();
 
-        $response->assertOk();
-        $response->assertSee('2 entregas pendientes de evaluar');
+        [$observado, $rechazado] = AnalisisCalidad::query()->orderBy('id')->get()->all();
+        $this->assertSame('OBSERVADO', $observado->estado->value);
+        $this->assertSame(['Grasa: 2.1 · Referencia: 3.0 a 6.0 %'], $observado->alertas);
+        $this->assertSame('RECHAZADO', $rechazado->estado->value);
     }
 
-    public function test_no_se_puede_registrar_un_control_con_temperatura_fuera_de_rango(): void
+    public function test_un_analisis_sin_resultados_o_con_valores_invalidos_no_se_guarda(): void
     {
         $this->comoAdmin();
-        $entrega = Entrega::factory()->create();
+        $proveedor = Proveedor::factory()->create();
 
-        $response = $this->post('/admin/calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'aprobado',
-            'temperatura_c' => 75,
-        ]);
-
-        $response->assertSessionHasErrors('temperatura_c');
-        $this->assertDatabaseCount('controles_calidad', 0);
-        $this->assertSame(
-            'La temperatura debe estar entre -5°C y 60°C.',
-            session('errors')->first('temperatura_c'),
-        );
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, []))->assertSessionHasErrors('valores');
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => 'abc']))->assertSessionHasErrors('valores.grasa');
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '-2']))->assertSessionHasErrors('valores.grasa');
+        $this->assertDatabaseCount('analisis_calidad', 0);
     }
 
-    public function test_no_se_puede_registrar_un_control_con_acidez_fuera_de_rango(): void
+    public function test_el_analisis_califica_las_entregas_del_proveedor_de_ese_dia_y_las_que_lleguen_despues(): void
     {
         $this->comoAdmin();
-        $entrega = Entrega::factory()->create();
+        $proveedor = Proveedor::factory()->create();
+        $antes = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()]);
+        $otroDia = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()->subDays(3)]);
 
-        $response = $this->post('/admin/calidad', [
-            'entrega_id' => $entrega->id,
-            'resultado' => 'aprobado',
-            'acidez' => -3,
-        ]);
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '2.1']))->assertSessionHasNoErrors();
+        $despues = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()]);
 
-        $response->assertSessionHasErrors('acidez');
-        $this->assertDatabaseCount('controles_calidad', 0);
+        $this->assertDatabaseHas('controles_calidad', ['entrega_id' => $antes->id, 'resultado' => 'observado']);
+        $this->assertDatabaseHas('controles_calidad', ['entrega_id' => $despues->id, 'resultado' => 'observado']);
+        $this->assertDatabaseMissing('controles_calidad', ['entrega_id' => $otroDia->id]);
     }
 
     public function test_el_listado_de_calidad_muestra_los_conteos_y_la_tasa_de_aprobacion(): void
     {
         $this->comoAdmin();
-        $entregas = Entrega::factory()->count(3)->create();
+        $proveedor = Proveedor::factory()->create();
 
-        $this->post('/admin/calidad', ['entrega_id' => $entregas[0]->id, 'resultado' => 'aprobado']);
-        $this->post('/admin/calidad', ['entrega_id' => $entregas[1]->id, 'resultado' => 'aprobado']);
-        $this->post('/admin/calidad', ['entrega_id' => $entregas[2]->id, 'resultado' => 'rechazado']);
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '3.5']));
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '3.6']));
+        $this->post('/admin/calidad', $this->analisis($proveedor->id, ['agua' => '5']));
 
-        $response = $this->get('/admin/calidad');
-
-        $response->assertOk();
-        $response->assertSee('66.7%');
-    }
-
-    public function test_el_listado_de_calidad_se_puede_filtrar_por_resultado(): void
-    {
-        $this->comoAdmin();
-        $entregaAprobada = Entrega::factory()->create();
-        $entregaRechazada = Entrega::factory()->create();
-
-        $this->post('/admin/calidad', ['entrega_id' => $entregaAprobada->id, 'resultado' => 'aprobado']);
-        $this->post('/admin/calidad', ['entrega_id' => $entregaRechazada->id, 'resultado' => 'rechazado']);
-
-        $response = $this->get('/admin/calidad?resultado=rechazado');
-
-        $response->assertOk();
-        $this->assertCount(1, $response->viewData('filas'));
-        $this->assertSame('rechazado', $response->viewData('filas')->first()['control']->resultado->value);
+        $this->get('/admin/calidad')->assertOk()->assertSee('66.7%')->assertSee($proveedor->nombres);
+        $this->get('/admin/calidad?resultado=rechazado')->assertOk()->assertViewHas('analisis', fn ($p) => $p->total() === 1);
     }
 
     public function test_un_admin_puede_generar_una_liquidacion_calculada_automaticamente(): void

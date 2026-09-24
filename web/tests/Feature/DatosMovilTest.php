@@ -78,4 +78,22 @@ class DatosMovilTest extends TestCase
     {
         $this->getJson('/api/movil/datos')->assertUnauthorized();
     }
+
+    public function test_el_analisis_de_calidad_del_panel_llega_completo_al_celular(): void
+    {
+        Usuario::factory()->create(['username' => 'cal_web', 'pin_hash' => '1357', 'roles' => ['calidad']]);
+        $proveedor = Proveedor::factory()->create();
+        $this->actingAs(Usuario::factory()->create(['roles' => ['admin']]), 'operador');
+        $this->post('/admin/calidad', ['proveedor_id' => $proveedor->id, 'fecha' => now('America/Lima')->toDateString(), 'hora' => '07:00',
+            'unidad_congelacion' => '°C', 'valores' => ['grasa' => '2.1', 'congelacion' => '-0.53']])->assertSessionHasNoErrors();
+        auth('operador')->forgetUser();
+
+        $analisis = $this->withToken($this->token('cal_web'))->getJson('/api/movil/datos')->assertOk()->json('analisis.0');
+
+        $this->assertSame(2.1, $analisis['grasa']);
+        $this->assertSame(-0.53, $analisis['puntoCongelacion']);
+        $this->assertSame('OBSERVADO', $analisis['estado']);
+        $this->assertSame(['grasa'], $analisis['visita']['parametrosAlertados']);
+        $this->assertSame('3.0 a 6.0 %', $analisis['visita']['referencias']['grasa']);
+    }
 }

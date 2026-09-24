@@ -2,7 +2,7 @@
 
 namespace App\Application\Movil;
 
-use App\Application\Calidad\RegistrarControlCalidadUseCase;
+use App\Application\Calidad\GuardarAnalisisCalidadUseCase;
 use App\Application\Liquidaciones\GenerarLiquidacionUseCase;
 use App\Application\Liquidaciones\MarcarLiquidacionPagadaUseCase;
 use App\Application\Proveedores\ActualizarProveedorUseCase;
@@ -21,13 +21,12 @@ use App\Application\Vehiculos\CrearVehiculoUseCase;
 use App\Application\Zonas\ActualizarZonaUseCase;
 use App\Application\Zonas\CambiarEstadoZonaUseCase;
 use App\Application\Zonas\CrearZonaUseCase;
-use App\Domain\Calidad\EstadoCalidad;
+use App\Domain\Calidad\EstadoAnalisis;
 use App\Domain\Liquidaciones\EstadoLiquidacion;
 use App\Domain\Movil\CambioMovilRechazadoException;
 use App\Domain\Proveedores\EstadoProveedor;
 use App\Domain\Usuarios\Rol;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
-use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
@@ -234,42 +233,38 @@ class AplicarCambioMovilUseCase
     }
 
     /**
-     * El análisis del celular es por proveedor; en el panel la calidad se registra por entrega, así que se
-     * asocia a la entrega de ese proveedor del mismo día (hora de Perú) que aún no tenga evaluación.
+     * Análisis LactoScan hecho en la app: se guarda completo (mismos 11 parámetros, estado, alertas y datos de la
+     * visita) con el id del celular, y califica las entregas de ese proveedor del mismo día.
+     *
+     * @param  array<string, mixed>  $datos
      */
     private function calidad(Usuario $autor, array $datos): int
     {
-        $resultado = EstadoCalidad::from(match (strtoupper($datos['estado'])) {
-            'APROBADO' => 'aprobado', 'RECHAZADO' => 'rechazado', default => 'observado',
-        });
-        $valores = [
-            'resultado' => $resultado, 'temperatura_c' => $datos['temperatura'] ?? null, 'acidez' => $datos['acidez'] ?? null,
-            'observaciones' => isset($datos['observaciones']) ? mb_strimwidth($datos['observaciones'], 0, 255, '…') : null,
-        ];
-        $control = ControlCalidad::query()->where('uuid_movil', $datos['uuid'])->first();
-        if ($control !== null) {
-            $control->update($valores);
-
-            return $control->id;
-        }
-
         $proveedor = $this->porServidorId(Proveedor::class, $datos, 'proveedorId')
             ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'])->first()
             ?? throw CambioMovilRechazadoException::noExiste('El proveedor', $datos['proveedorCodigo']);
-        $registradoEn = $this->instante($datos['registradoEn']);
-        $dia = $registradoEn->setTimezone('America/Lima');
-        $entrega = Entrega::query()->where('proveedor_id', $proveedor->id)->where('anulada', false)
-            ->whereBetween('registrado_en', [$dia->startOfDay()->utc(), $dia->endOfDay()->utc()])
-            ->whereNotIn('id', ControlCalidad::query()->select('entrega_id'))
-            ->orderByDesc('registrado_en')->first()
-            ?? throw CambioMovilRechazadoException::esperando("El análisis de {$proveedor->codigo} se enviará cuando el panel tenga su entrega del {$dia->toDateString()}.");
+        $columnas = [
+            'temperatura' => 'temperatura', 'grasa' => 'grasa', 'sng' => 'sng', 'densidad' => 'densidad', 'proteina' => 'proteina',
+            'lactosa' => 'lactosa', 'sales' => 'sales', 'solidos' => 'solidosTotales', 'agua' => 'aguaAnadida',
+            'congelacion' => 'puntoCongelacion', 'ph' => 'ph',
+        ];
+        $valores = collect($columnas)->map(fn (string $campo) => isset($datos[$campo]) ? (float) $datos[$campo] : null)->all();
+        $visita = is_array($datos['visita'] ?? null) ? $datos['visita'] : [];
 
-        $control = app(RegistrarControlCalidadUseCase::class)->ejecutar(
-            $entrega->id, $autor->id, $resultado, $valores['temperatura_c'], $valores['acidez'], $valores['observaciones'],
-        );
-        ControlCalidad::query()->whereKey($control->id)->update(['uuid_movil' => $datos['uuid'], 'evaluado_en' => $registradoEn]);
-
-        return $control->id;
+        try {
+            return app(GuardarAnalisisCalidadUseCase::class)->ejecutar([
+                'uuid' => $datos['uuid'], 'proveedor_id' => $proveedor->id, 'registrado_en' => $this->instante($datos['registradoEn']),
+                'valores' => $valores, 'unidad_congelacion' => $visita['unidadCongelacion'] ?? '°C',
+                'serial' => $datos['serialAnalizador'] ?? null, 'modo' => $datos['modoAnalizador'] ?? null,
+                'observaciones' => $datos['observaciones'] ?? null, 'origen' => $datos['origenCaptura'] ?? 'MANUAL',
+                'texto_comprobante' => $datos['textoComprobante'] ?? null, 'codigo_muestra' => $datos['codigoMuestra'] ?? null,
+                'lote_recipiente' => $datos['loteRecipiente'] ?? null, 'volumen_l' => $datos['volumenL'] ?? null,
+                'apariencia' => $datos['apariencia'] ?? null, 'estado' => EstadoAnalisis::from(strtoupper($datos['estado'])),
+                'alertas' => array_values($datos['alertas'] ?? []), 'visita' => $visita,
+            ], $autor)->id;
+        } catch (\InvalidArgumentException $e) {
+            throw new CambioMovilRechazadoException($e->getMessage());
+        }
     }
 
     /** Reclamo de una entrega hecho por el proveedor en el portal; el admin lo resuelve desde la app o la web. */

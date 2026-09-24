@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -89,7 +90,7 @@ class SqlDelightCambiosLocalesRepository(
             buildJsonObject {
                 putServidor(c.entidad, u.id)
                 put("username", u.username); put("nombres", u.nombres); put("dni", u.dni); put("activo", u.activo == 1L)
-                putJsonArray("roles") { roles.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) } }
+                putJsonArray("roles") { roles.forEach { add(JsonPrimitive(it)) } }
                 c.pin?.let { put("pin", it) }
             }
         }
@@ -126,15 +127,18 @@ class SqlDelightCambiosLocalesRepository(
         EntidadCambio.CALIDAD -> db.controlCalidadQueries.selectPorId(c.local_id).executeAsOneOrNull()
             ?.takeIf { !it.id.startsWith("web-") }?.let { cc ->
                 val proveedor = db.proveedorQueries.selectPorId(cc.proveedor_id).executeAsOneOrNull() ?: return null
-                val lectura = listOfNotNull(
-                    cc.grasa?.let { "Grasa $it %" }, cc.sng?.let { "SNG $it %" }, cc.densidad?.let { "Densidad $it" },
-                    cc.proteina?.let { "Proteína $it %" }, cc.agua_anadida?.let { "Agua añadida $it %" }, cc.ph?.let { "pH $it" },
-                    cc.observaciones?.takeIf { it.isNotBlank() }, "Muestra ${cc.codigo_muestra}",
-                ).joinToString(" · ")
                 buildJsonObject {
                     put("uuid", cc.id)
                     putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId"); put("proveedorCodigo", proveedor.codigo)
-                    put("estado", cc.estado); put("temperatura", cc.temperatura); put("observaciones", lectura)
+                    put("codigoMuestra", cc.codigo_muestra); put("loteRecipiente", cc.lote_recipiente); put("volumenL", cc.volumen_l)
+                    put("origenCaptura", cc.origen_captura); put("serialAnalizador", cc.serial_analizador); put("modoAnalizador", cc.modo_analizador)
+                    put("temperatura", cc.temperatura); put("grasa", cc.grasa); put("sng", cc.sng); put("densidad", cc.densidad)
+                    put("proteina", cc.proteina); put("lactosa", cc.lactosa); put("sales", cc.sales); put("solidosTotales", cc.solidos_totales)
+                    put("aguaAnadida", cc.agua_anadida); put("puntoCongelacion", cc.punto_congelacion); put("ph", cc.ph)
+                    put("apariencia", cc.apariencia); put("observaciones", cc.observaciones); put("estado", cc.estado)
+                    putJsonArray("alertas") { cc.alertas.lines().filter { it.isNotBlank() }.forEach { add(JsonPrimitive(it)) } }
+                    put("textoComprobante", cc.texto_comprobante)
+                    put("visita", runCatching { json.parseToJsonElement(cc.visita_json) }.getOrNull() as? JsonObject ?: JsonObject(emptyMap()))
                     put("registradoEn", cc.registrado_en)
                 }
             }

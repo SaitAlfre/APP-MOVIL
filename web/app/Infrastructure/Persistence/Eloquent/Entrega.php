@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Application\Calidad\CalificarEntregasConAnalisis;
 use Database\Factories\EntregaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,12 @@ class Entrega extends Model
         'jornada_id', 'proveedor_id', 'usuario_id', 'zona_id', 'vehiculo_id',
         'litros', 'tachos', 'observaciones', 'registrado_en', 'lote_id', 'anulada', 'uuid_movil', 'version_movil',
     ];
+
+    /** Una entrega que llega después del análisis de calidad del día se califica con él (ver CalificarEntregasConAnalisis). */
+    protected static function booted(): void
+    {
+        static::created(fn (Entrega $entrega) => app(CalificarEntregasConAnalisis::class)->porEntrega($entrega));
+    }
 
     protected function casts(): array
     {

@@ -12,6 +12,7 @@
         'inactivo' => ['Inactivo', 'gray'],
         'inactiva' => ['Inactiva', 'gray'],
         'observado' => ['Observado', 'yellow'],
+        'repetir' => ['Repetir prueba', 'yellow'],
         'aprobado' => ['Aprobado', 'green'],
         'aceptable' => ['Aceptable', 'green'],
         'rechazado' => ['Rechazado', 'red'],

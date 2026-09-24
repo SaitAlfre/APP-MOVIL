@@ -15,7 +15,7 @@ import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.PagoProveedor
 import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.repository.ComunicadoServidor
-import pe.ecolecta.domain.repository.ControlServidor
+import pe.ecolecta.domain.repository.AnalisisServidor
 import pe.ecolecta.domain.repository.CuentaServidor
 import pe.ecolecta.domain.repository.DatosServidor
 import pe.ecolecta.domain.repository.EntregaParaServidor
@@ -73,7 +73,17 @@ class DatosPanelWebTest {
         ),
         jornadas = listOf(JornadaServidor(30, null, 10, 1, 1, "2026-09-23", 1_000, 2_000)),
         entregas = listOf(EntregaServidor(40, null, 30, 21, 10, 2, 1, litros, 1, null, 1_500, anulada)),
-        controles = listOf(ControlServidor(50, proveedorId = 21, usuarioId = 10, resultado = "RECHAZADO", temperatura = 12.0, acidez = 23.0, evaluadoEn = 1_600)),
+        analisis = listOf(
+            AnalisisServidor(
+                50, uuid = "an-web-50", proveedorId = 21, usuarioId = 10, codigoMuestra = "AN-WEB50", grasa = 3.5, aguaAnadida = 4.0,
+                estado = "RECHAZADO", alertas = listOf("Agua añadida: 4.0 · Referencia: 0.0 %"),
+                visita = kotlinx.serialization.json.buildJsonObject {
+                    put("tecnicoNombre", kotlinx.serialization.json.JsonPrimitive("Rosa Apaza"))
+                    put("parametrosAlertados", kotlinx.serialization.json.JsonArray(listOf(kotlinx.serialization.json.JsonPrimitive("agua"))))
+                },
+                registradoEn = 1_600,
+            ),
+        ),
         comunicados = comunicados,
     )
 
@@ -110,7 +120,11 @@ class DatosPanelWebTest {
         assertEquals("SYNCED", corregida.sync_state)
 
         // Calidad y comunicados; un comunicado despublicado en la web desaparece del celular.
-        assertEquals("RECHAZADO", db.controlCalidadQueries.selectPorId("web-control-50").executeAsOne().estado)
+        val analisis = db.controlCalidadQueries.selectPorId("an-web-50").executeAsOne()
+        assertEquals("RECHAZADO", analisis.estado)
+        assertEquals(3.5, analisis.grasa)
+        assertEquals("AN-WEB50", analisis.codigo_muestra)
+        assertTrue("Rosa Apaza" in analisis.visita_json)
         assertEquals(1, db.comunicadoQueries.selectTodos().executeAsList().count { it.id == "web-comunicado-7" })
         local.aplicar(datos(comunicados = emptyList()))
         assertTrue(db.comunicadoQueries.selectTodos().executeAsList().none { it.id.startsWith("web-comunicado-") })

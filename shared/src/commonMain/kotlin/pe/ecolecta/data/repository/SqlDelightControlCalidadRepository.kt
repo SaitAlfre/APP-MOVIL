@@ -76,5 +76,6 @@ private fun Control_calidad.aDominio() = ControlCalidad(
     estado = EstadoControlCalidad.valueOf(estado), alertas = alertas.lines().filter { it.isNotBlank() },
     textoComprobante = texto_comprobante, registradoEn = registrado_en, updatedAt = updated_at,
     syncState = SyncState.valueOf(sync_state),
-    visita = visitaJson.decodeFromString<DatosVisitaCalidad>(visita_json),
+    // Una visita ilegible (p. ej. llegada de otra versión) no debe impedir ver el análisis.
+    visita = runCatching { visitaJson.decodeFromString<DatosVisitaCalidad>(visita_json) }.getOrDefault(DatosVisitaCalidad()),
 )

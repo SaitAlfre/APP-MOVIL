@@ -67,18 +67,23 @@ SELECT COUNT(*) FROM control_calidad WHERE codigo_muestra = :codigo_muestra;
 guardarVisita:
 UPDATE control_calidad SET visita_json = :visita_json WHERE id = :id;
 
--- Evaluación registrada en el panel web (resultado por entrega).
-guardarDesdeServidor:
-INSERT OR REPLACE INTO control_calidad(
+-- Análisis que llega del panel web (hecho allí o en otro celular), completo y con el mismo id. Si ya está
+-- en este celular no se toca: los análisis no se editan después de guardarse.
+insertarDesdeServidor:
+INSERT OR IGNORE INTO control_calidad(
     id, proveedor_id, usuario_id, codigo_muestra, lote_recipiente, volumen_l,
     origen_captura, serial_analizador, modo_analizador, temperatura, grasa, sng,
     densidad, proteina, lactosa, sales, solidos_totales, agua_anadida,
     punto_congelacion, ph, apariencia, observaciones, estado, alertas,
-    texto_comprobante, registrado_en, updated_at, sync_state
+    texto_comprobante, registrado_en, updated_at, sync_state, visita_json
 ) VALUES (
-    :id, :proveedor_id, :usuario_id, :codigo_muestra, NULL, NULL,
-    'MANUAL', NULL, NULL, :temperatura, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, :observaciones, :estado, :alertas,
-    NULL, :registrado_en, :registrado_en, 'SYNCED'
+    :id, :proveedor_id, :usuario_id, :codigo_muestra, :lote_recipiente, :volumen_l,
+    :origen_captura, :serial_analizador, :modo_analizador, :temperatura, :grasa, :sng,
+    :densidad, :proteina, :lactosa, :sales, :solidos_totales, :agua_anadida,
+    :punto_congelacion, :ph, :apariencia, :observaciones, :estado, :alertas,
+    :texto_comprobante, :registrado_en, :registrado_en, 'SYNCED', :visita_json
 );
+
+-- Copias resumidas que dejaba una versión anterior de la sincronización (reemplazadas por el análisis completo).
+borrarResumenesAntiguos:
+DELETE FROM control_calidad WHERE id LIKE 'web-control-%';

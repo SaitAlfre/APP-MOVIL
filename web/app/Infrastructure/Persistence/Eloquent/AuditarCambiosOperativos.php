@@ -12,6 +12,7 @@ class AuditarCambiosOperativos
 {
     /** Solo campos operativos: nunca se serializa el modelo completo ni el request. */
     private const CAMPOS = [
+        AnalisisCalidad::class => ['analisis_calidad', ['uuid', 'proveedor_id', 'codigo_muestra', 'estado', 'temperatura', 'grasa', 'sng', 'densidad', 'proteina', 'lactosa', 'sales', 'solidos_totales', 'agua_anadida', 'punto_congelacion', 'ph', 'registrado_en']],
         ControlCalidad::class => ['control_calidad', ['entrega_id', 'resultado', 'temperatura_c', 'acidez', 'observaciones', 'evaluado_en']],
         Liquidacion::class => ['liquidacion', ['proveedor_id', 'periodo_inicio', 'periodo_fin', 'litros_totales', 'precio_litro', 'monto_total', 'estado', 'pagada_en']],
         Producto::class => ['producto', ['nombre', 'presentacion', 'unidad_produccion', 'litros_por_unidad', 'otros_insumos', 'existencia', 'activo']],

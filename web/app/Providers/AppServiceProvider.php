@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\AuditarCambiosOperativos;
 use App\Infrastructure\Persistence\Eloquent\Cliente;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
@@ -66,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('movil-sync', fn (Request $request) => Limit::perMinute(600)
             ->by('usuario:'.($request->user()?->getKey() ?? hash('sha256', (string) $request->ip()))));
         foreach ([
+            AnalisisCalidad::class,
             ControlCalidad::class,
             Liquidacion::class,
             Producto::class,

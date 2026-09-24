@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Cliente;
-use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
-use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\MovimientoProducto;
 use App\Infrastructure\Persistence\Eloquent\Producto;
+use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Venta;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,34 +115,30 @@ class AdminPestanasModulosTest extends TestCase
         $clientes->assertSee('CLI-007');
     }
 
-    public function test_la_pestana_de_reglas_de_calidad_publica_los_rangos_que_usa_el_sistema(): void
+    public function test_la_pestana_de_reglas_de_calidad_publica_las_referencias_de_la_app(): void
     {
         $respuesta = $this->get('/admin/calidad?tab=reglas');
 
         $respuesta->assertOk();
         $respuesta->assertViewHas('pestana', 'reglas');
-        $respuesta->assertSee('Temperatura');
-        $respuesta->assertSee('≤ 4.0', false);
-        $respuesta->assertSee('14.0 – 18.0', false);
-        $respuesta->assertSee('La sugerencia no es vinculante', false);
+        $respuesta->assertSee('Punto de congelación');
+        $respuesta->assertSee('0.0 a 8.0 °C', false);
+        $respuesta->assertSee('-0.555 a -0.515 °C', false);
+        $respuesta->assertSee('mismas referencias que usa la app de calidad', false);
     }
 
     public function test_un_valor_fuera_de_rango_se_resalta_en_vez_de_ocultarse(): void
     {
-        $entrega = Entrega::factory()->create(['registrado_en' => now()]);
-        ControlCalidad::query()->create([
-            'entrega_id' => $entrega->id, 'usuario_id' => $this->admin->id, 'resultado' => 'observado',
-            'temperatura_c' => 7.5, 'acidez' => 21, 'observaciones' => 'Llegó tibia', 'evaluado_en' => now(),
-        ]);
+        $proveedor = Proveedor::factory()->create();
+        $this->post('/admin/calidad', [
+            'proveedor_id' => $proveedor->id, 'fecha' => now('America/Lima')->toDateString(), 'hora' => '07:30',
+            'unidad_congelacion' => '°C', 'valores' => ['temperatura' => '9.5', 'grasa' => '3.5'], 'observaciones' => 'Llegó tibia',
+        ])->assertSessionHasNoErrors();
+        $analisis = AnalisisCalidad::query()->sole();
 
-        $respuesta = $this->get('/admin/calidad');
-
-        $respuesta->assertOk();
-        // El valor medido se conserva tal cual y se marca en rojo.
-        $respuesta->assertSee('7.5 °C', false);
-        $respuesta->assertSee('21.0 °D', false);
-        $respuesta->assertSee('text-eh-red', false);
-        $respuesta->assertSee('Llegó tibia', false);
+        $this->get('/admin/calidad')->assertOk()->assertSee('1 fuera de referencia')->assertSee('text-eh-red', false);
+        $this->get(route('admin.calidad.show', $analisis->uuid))->assertOk()
+            ->assertSee('9.5 °C', false)->assertSee('Fuera de referencia')->assertSee('Llegó tibia');
     }
 
     public function test_la_navegacion_de_produccion_marca_la_subpagina_activa(): void

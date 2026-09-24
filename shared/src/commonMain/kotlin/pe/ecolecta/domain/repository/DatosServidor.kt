@@ -66,19 +66,39 @@ data class EntregaServidor(
     val actualizadoEn: Long = 0,
 )
 
+/** Análisis LactoScan del panel, con los mismos campos que `control_calidad` del celular; [uuid] es su id común. */
 @Serializable
-data class ControlServidor(
+data class AnalisisServidor(
     val id: Long,
-    /** Id del análisis en el celular que lo registró; null si se registró en el panel. */
-    val uuidMovil: String? = null,
+    val uuid: String,
     val proveedorId: Long,
     val usuarioId: Long,
-    /** APROBADO, OBSERVADO o RECHAZADO. */
-    val resultado: String,
+    val codigoMuestra: String,
+    val loteRecipiente: String? = null,
+    val volumenL: Double? = null,
+    val origenCaptura: String = "MANUAL",
+    val serialAnalizador: String? = null,
+    val modoAnalizador: String? = null,
     val temperatura: Double? = null,
-    val acidez: Double? = null,
+    val grasa: Double? = null,
+    val sng: Double? = null,
+    val densidad: Double? = null,
+    val proteina: Double? = null,
+    val lactosa: Double? = null,
+    val sales: Double? = null,
+    val solidosTotales: Double? = null,
+    val aguaAnadida: Double? = null,
+    val puntoCongelacion: Double? = null,
+    val ph: Double? = null,
+    val apariencia: String? = null,
     val observaciones: String? = null,
-    val evaluadoEn: Long,
+    /** APROBADO, OBSERVADO, RECHAZADO o REPETIR. */
+    val estado: String,
+    val alertas: List<String> = emptyList(),
+    val textoComprobante: String? = null,
+    /** Mismos campos que DatosVisitaCalidad. */
+    val visita: kotlinx.serialization.json.JsonObject = kotlinx.serialization.json.JsonObject(emptyMap()),
+    val registradoEn: Long,
 )
 
 @Serializable
@@ -99,7 +119,7 @@ data class DatosServidor(
     val proveedores: List<ProveedorServidor> = emptyList(),
     val jornadas: List<JornadaServidor> = emptyList(),
     val entregas: List<EntregaServidor> = emptyList(),
-    val controles: List<ControlServidor> = emptyList(),
+    val analisis: List<AnalisisServidor> = emptyList(),
     val comunicados: List<ComunicadoServidor> = emptyList(),
 )
 

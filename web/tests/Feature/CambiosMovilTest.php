@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
-use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
@@ -123,23 +123,31 @@ class CambiosMovilTest extends TestCase
         $this->assertSame('borrador', Comunicado::query()->where('codigo', 'MOV-com-1')->value('estado'));
     }
 
-    public function test_el_analisis_de_calidad_se_asocia_a_la_entrega_del_dia_o_espera_a_que_llegue(): void
+    public function test_el_analisis_de_la_app_llega_completo_y_califica_las_entregas_del_dia(): void
     {
-        Usuario::factory()->create(['username' => 'cal_app', 'pin_hash' => '1357', 'roles' => ['calidad']]);
+        $tecnico = Usuario::factory()->create(['username' => 'cal_app', 'pin_hash' => '1357', 'roles' => ['calidad']]);
         $proveedor = Proveedor::factory()->create(['codigo' => 'PRV-CAL', 'zona_id' => $this->zona->id]);
         $token = $this->token('cal_app');
-        $datos = ['uuid' => 'cc-1', 'proveedorCodigo' => 'PRV-CAL', 'estado' => 'RECHAZADO', 'temperatura' => 12, 'acidez' => 23,
-            'observaciones' => 'Grasa baja', 'registradoEn' => now()->getTimestampMs()];
+        $datos = ['uuid' => 'cc-1', 'proveedorCodigo' => 'PRV-CAL', 'codigoMuestra' => 'AN-CC1', 'origenCaptura' => 'ESCANER',
+            'serialAnalizador' => 'LS-900', 'temperatura' => 6.0, 'grasa' => 2.1, 'sng' => 8.7, 'aguaAnadida' => 0.0, 'puntoCongelacion' => -0.53,
+            'estado' => 'OBSERVADO', 'alertas' => ['Grasa: 2.1 · Referencia: 3.0 a 6.0 %'], 'observaciones' => 'Revisar alimentación',
+            'visita' => ['tecnicoNombre' => 'Rosa Apaza', 'unidadCongelacion' => '°C', 'parametrosAlertados' => ['grasa']],
+            'registradoEn' => now()->getTimestampMs()];
 
-        $this->cambiar($token, 'calidad', $datos)->assertStatus(409)->assertJsonPath('definitivo', false);
-
+        // Sin entrega todavía: el análisis igual se guarda; la entrega se califica cuando llega.
+        $id = $this->cambiar($token, 'calidad', $datos)->assertOk()->json('id');
+        $this->cambiar($token, 'calidad', $datos)->assertOk()->assertJsonPath('id', $id);
         $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()->subHour()]);
-        $this->cambiar($token, 'calidad', $datos)->assertOk();
-        $this->cambiar($token, 'calidad', [...$datos, 'estado' => 'OBSERVADO'])->assertOk();
 
-        $control = ControlCalidad::query()->where('uuid_movil', 'cc-1')->sole();
-        $this->assertSame($entrega->id, $control->entrega_id);
-        $this->assertSame('observado', $control->resultado->value);
+        $analisis = AnalisisCalidad::query()->sole();
+        $this->assertSame('cc-1', $analisis->uuid);
+        $this->assertSame('AN-CC1', $analisis->codigo_muestra);
+        $this->assertSame(2.1, $analisis->grasa);
+        $this->assertSame(-0.53, $analisis->punto_congelacion);
+        $this->assertSame('OBSERVADO', $analisis->estado->value);
+        $this->assertSame($tecnico->id, $analisis->usuario_id);
+        $this->assertSame('Rosa Apaza', $analisis->visita['tecnicoNombre']);
+        $this->assertDatabaseHas('controles_calidad', ['entrega_id' => $entrega->id, 'resultado' => 'observado', 'analisis_calidad_id' => $analisis->id]);
     }
 
     public function test_reclamo_del_proveedor_y_su_resolucion_por_el_admin(): void

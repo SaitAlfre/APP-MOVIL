@@ -4,112 +4,117 @@
 
 @section('contenido')
     @php
+        use App\Domain\Calidad\ParametrosCalidad;
+
         $operador = auth('operador')->user();
         $puedeGestionar = $operador->puede('calidad', 'gestionar');
+        $filtros = array_filter(['resultado' => $filtroActual ? strtolower($filtroActual->value) : null, 'q' => $busqueda ?: null, 'zona' => $zonaActual]);
 
         $pestanas = collect([
-            ['key' => 'controles', 'label' => 'Controles'],
-            ['key' => 'reglas', 'label' => 'Reglas de calidad'],
-        ])->map(fn ($tab) => $tab + ['url' => route('admin.calidad.index', array_filter(['tab' => $tab['key'], 'resultado' => $filtroActual?->value]))])->all();
-
-        /** Rangos que usa la sugerencia automática de ControlCalidad::sugerirPorValores(). */
-        $reglas = [
-            ['parametro' => 'Temperatura', 'unidad' => '°C', 'aprobado' => '≤ 4.0', 'observado' => '4.1 – 8.0', 'rechazado' => '> 8.0', 'accion' => 'Revisar cadena de frío'],
-            ['parametro' => 'Acidez', 'unidad' => '°D', 'aprobado' => '14.0 – 18.0', 'observado' => '12.0 – 13.9 y 18.1 – 20.0', 'rechazado' => '< 12.0 o > 20.0', 'accion' => 'Proponer sanción al proveedor'],
-        ];
+            ['key' => 'analisis', 'label' => 'Historial de análisis'],
+            ['key' => 'reglas', 'label' => 'Parámetros y referencias'],
+        ])->map(fn ($tab) => $tab + ['url' => route('admin.calidad.index', ['tab' => $tab['key']] + $filtros)])->all();
+        $total = array_sum($conteos);
     @endphp
 
-    <x-ui.page-header title="Control de calidad"
-        :description="'Controles registrados sobre las entregas'.($pendientes > 0 ? ' · '.$pendientes.' '.($pendientes === 1 ? 'entrega pendiente' : 'entregas pendientes').' de evaluar' : '')">
+    <x-ui.page-header title="Control de calidad" eyebrow="Análisis LactoScan"
+        :description="'Análisis de leche por proveedor, igual que en la app de calidad'.($deHoy > 0 ? ' · '.$deHoy.' '.($deHoy === 1 ? 'análisis' : 'análisis').' hoy' : '')">
         @if ($puedeGestionar)
             <x-slot:actions>
-                <x-ui.btn :href="route('admin.calidad.create')" icon="plus">Nuevo control</x-ui.btn>
+                <x-ui.btn :href="route('admin.calidad.create')" icon="plus">Nueva prueba LactoScan</x-ui.btn>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
 
     <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <x-ui.kpi label="Aprobados" :value="$conteos['aprobado']" icon="check" color="green" hint="Controles con resultado aprobado (histórico)." />
-        <x-ui.kpi label="Observados" :value="$conteos['observado']" icon="exclamation" color="yellow" hint="Controles con observaciones registradas." />
-        <x-ui.kpi label="Rechazados" :value="$conteos['rechazado']" icon="xMark" color="red" hint="Controles rechazados: la leche no pasa a producción." />
-        <x-ui.kpi label="Pendientes de evaluar" :value="$pendientes" icon="beaker" color="blue" hint="Entregas sin ningún control de calidad registrado." />
+        <x-ui.kpi label="Análisis de hoy" :value="$deHoy" icon="beaker" dark hint="Pruebas registradas hoy (hora de Perú), en la app o en el panel." />
+        <x-ui.kpi label="Aprobados" :value="$conteos['aprobado']" icon="check" color="green" hint="Todos los parámetros medidos dentro de referencia." />
+        <x-ui.kpi label="Observados" :value="$conteos['observado']" icon="exclamation" color="yellow" hint="Algún parámetro fuera de referencia (incluye «repetir prueba»)." />
+        <x-ui.kpi label="Rechazados" :value="$conteos['rechazado']" icon="xMark" color="red" hint="Agua añadida mayor a 0 %: la leche no pasa a producción." />
     </div>
 
     <x-ui.card>
         <x-ui.tabs :tabs="$pestanas" :active="$pestana" class="mb-0 px-2" />
 
-        @if ($pestana === 'controles')
-            <div class="flex flex-wrap items-center gap-2 border-b border-eh-border px-4 py-3">
-                <form method="GET" action="{{ route('admin.calidad.index') }}" class="flex flex-wrap items-center gap-2">
-                    <input type="hidden" name="tab" value="controles">
-                    <label for="resultado-filtro" class="text-xs font-medium text-eh-text-muted">Filtrar por resultado</label>
-                    <x-ui.select id="resultado-filtro" name="resultado" placeholder="Todos" class="w-44"
-                        :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado']" :selected="$filtroActual?->value" />
-                    <x-ui.btn type="submit" variant="secondary" size="sm" icon="filter">Filtrar</x-ui.btn>
-                    @if ($filtroActual)
-                        <x-ui.btn :href="route('admin.calidad.index')" variant="ghost" size="sm" icon="xMark">Limpiar</x-ui.btn>
-                    @endif
-                </form>
-                <span class="ml-auto text-xs text-eh-text-muted">
-                    Tasa de aprobación: <strong class="mono text-eh-text">{{ $tasaAprobacion !== null ? $tasaAprobacion.'%' : '—' }}</strong>
+        @if ($pestana === 'analisis')
+            <form method="GET" action="{{ route('admin.calidad.index') }}" class="flex flex-wrap items-end gap-2 border-b border-eh-border px-4 py-3">
+                <input type="hidden" name="tab" value="analisis">
+                <div class="w-56"><x-ui.field name="q" label="Proveedor o muestra" :value="$busqueda" placeholder="Nombre, código o AN-…" /></div>
+                <div class="w-48"><x-ui.select id="zona-filtro" name="zona" label="Zona" placeholder="Todas" :options="$zonas" :selected="$zonaActual" /></div>
+                <div class="w-44"><x-ui.select id="resultado-filtro" name="resultado" label="Estado" placeholder="Todos"
+                    :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado']" :selected="$filtroActual ? strtolower($filtroActual->value) : null" /></div>
+                <x-ui.btn type="submit" variant="secondary" size="sm" icon="filter">Filtrar</x-ui.btn>
+                @if ($filtros)
+                    <x-ui.btn :href="route('admin.calidad.index')" variant="ghost" size="sm" icon="xMark">Limpiar</x-ui.btn>
+                @endif
+                <span class="ml-auto self-center text-xs text-eh-text-muted">
+                    Tasa de aprobación: <strong class="mono text-eh-text">{{ $total > 0 ? round($conteos['aprobado'] / $total * 100, 1).'%' : '—' }}</strong>
                 </span>
-            </div>
+            </form>
 
-            @if ($filas->isEmpty())
+            @if ($analisis->isEmpty())
                 <x-ui.empty icon="beaker"
-                    :title="$filtroActual ? 'No hay controles con ese resultado' : 'Aún no hay controles de calidad'"
-                    :description="$filtroActual ? 'Prueba con otro resultado o limpia el filtro.' : 'Registra el primero con el botón «Nuevo control».'" />
+                    :title="$filtros ? 'No hay análisis con esos filtros' : 'Aún no hay análisis de calidad'"
+                    :description="$filtros ? 'Prueba con otros filtros o límpialos.' : 'Registra el primero aquí con «Nueva prueba LactoScan» o desde la app de calidad.'" />
             @else
-                <x-ui.table :headers="['Fecha y hora', 'Proveedor', 'Entrega', 'Técnico', 'Temperatura', 'Acidez', 'Resultado', 'Observaciones']"
-                    caption="Controles de calidad registrados">
-                    @foreach ($filas as $fila)
+                <x-ui.table :headers="['Fecha y hora', 'Muestra', 'Proveedor', 'Zona', 'Técnico', 'Parámetros', 'Estado', '']" caption="Análisis de calidad registrados">
+                    @foreach ($analisis as $fila)
                         @php
-                            $control = $fila['control'];
-                            $tempFuera = $control->temperaturaC !== null && $control->temperaturaC > 4;
-                            $acidezFuera = $control->acidez !== null && ($control->acidez < 14 || $control->acidez > 18);
+                            $alertados = count($fila->visita['parametrosAlertados'] ?? []);
+                            $medidos = collect($fila->valores())->filter(fn ($v) => $v !== null)->count();
                         @endphp
                         <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
-                            <td class="mono px-4 py-3 text-xs text-eh-text">{{ $control->evaluadoEn->format('d/m/Y H:i') }}</td>
-                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $fila['proveedor']?->nombres ?? '—' }}</td>
-                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">#{{ $control->entregaId }}</td>
-                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila['usuario']?->nombres ?? '—' }}</td>
+                            <td class="mono px-4 py-3 text-xs text-eh-text">{{ $fila->registrado_en->setTimezone('America/Lima')->format('d/m/Y H:i') }}</td>
+                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $fila->codigo_muestra }}</td>
                             <td class="px-4 py-3">
-                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $tempFuera, 'text-eh-text' => ! $tempFuera])>
-                                    {{ $control->temperaturaC !== null ? number_format($control->temperaturaC, 1).' °C' : '—' }}
-                                </span>
+                                <p class="text-sm font-medium text-eh-text">{{ $fila->proveedor?->nombres ?? ($fila->visita['proveedorNombre'] ?? '—') }}</p>
+                                <p class="mono text-[11px] text-eh-text-muted">{{ $fila->proveedor?->codigo }}</p>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila->proveedor?->zona?->nombre ?? ($fila->visita['zonaNombre'] ?? '—') }}</td>
+                            <td class="px-4 py-3 text-xs text-eh-text-muted">
+                                {{ $fila->usuario?->nombres ?? '—' }}
+                                @if ($fila->origen_captura === 'ESCANER')<span class="ml-1 rounded bg-eh-surface-alt px-1.5 py-0.5 text-[10px]">escáner</span>@endif
                             </td>
                             <td class="px-4 py-3">
-                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $acidezFuera, 'text-eh-text' => ! $acidezFuera])>
-                                    {{ $control->acidez !== null ? number_format($control->acidez, 1).' °D' : '—' }}
+                                <span @class(['mono text-xs font-medium', 'text-eh-red' => $alertados > 0, 'text-eh-success' => $alertados === 0])>
+                                    {{ $alertados > 0 ? $alertados.' fuera de referencia' : $medidos.' en referencia' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3"><x-ui.estado :estado="$control->resultado->value" /></td>
-                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $control->observaciones ?: '—' }}</td>
+                            <td class="px-4 py-3"><x-ui.estado :estado="strtolower($fila->estado->value)" /></td>
+                            <td class="px-4 py-3 text-right">
+                                <x-ui.btn :href="route('admin.calidad.show', $fila->uuid)" variant="ghost" size="sm">Ver detalle</x-ui.btn>
+                            </td>
                         </tr>
                     @endforeach
                 </x-ui.table>
 
                 <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
-                    <span>Mostrando {{ $paginador->count() }} de {{ $paginador->total() }} controles</span>
-                    <div>{{ $paginador->onEachSide(1)->links() }}</div>
+                    <span>Mostrando {{ $analisis->count() }} de {{ $analisis->total() }} análisis</span>
+                    <div>{{ $analisis->onEachSide(1)->links() }}</div>
                 </div>
             @endif
-
         @else
             <div class="p-4">
                 <p class="mb-4 text-sm text-eh-text-muted">
-                    Estos son los rangos que usa el sistema para <strong class="text-eh-text">sugerir</strong> un resultado al registrar un control.
-                    La sugerencia no es vinculante: el técnico siempre decide el resultado final, y el valor medido se conserva tal cual para trazabilidad.
+                    Son las <strong class="text-eh-text">mismas referencias que usa la app de calidad</strong>. Un análisis queda
+                    <strong class="text-eh-success">aprobado</strong> si todo lo medido está en referencia,
+                    <strong class="text-eh-gold">observado</strong> si algún parámetro sale de ella y
+                    <strong class="text-eh-red">rechazado</strong> si hay agua añadida. Los valores se guardan tal cual, sin corregirlos.
+                    Referencias iniciales del proyecto; no constituyen una certificación de calidad.
                 </p>
-                <x-ui.table :headers="['Parámetro', 'Unidad', 'Aprobado', 'Observado', 'Rechazado', 'Acción propuesta']" caption="Rangos de referencia del control de calidad">
-                    @foreach ($reglas as $regla)
+                <x-ui.table :headers="['Parámetro', 'Unidad', 'Referencia', 'Si sale de la referencia']" caption="Parámetros del análisis LactoScan">
+                    @foreach (ParametrosCalidad::PARAMETROS as $clave => $parametro)
                         <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
-                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $regla['parametro'] }}</td>
-                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $regla['unidad'] }}</td>
-                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-primary-soft px-2 py-1 text-xs font-medium text-eh-primary">{{ $regla['aprobado'] }}</span></td>
-                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-gold-soft px-2 py-1 text-xs font-medium text-eh-gold">{{ $regla['observado'] }}</span></td>
-                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-red-soft px-2 py-1 text-xs font-medium text-eh-red">{{ $regla['rechazado'] }}</span></td>
-                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $regla['accion'] }}</td>
+                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $parametro[0] }}</td>
+                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $parametro[1] ?: '—' }}</td>
+                            <td class="px-4 py-3"><span class="mono rounded-lg bg-eh-primary-soft px-2 py-1 text-xs font-medium text-eh-primary">{{ ParametrosCalidad::referencia($clave) }}</span></td>
+                            <td class="px-4 py-3">
+                                @if ($clave === 'agua')
+                                    <span class="mono rounded-lg bg-eh-red-soft px-2 py-1 text-xs font-medium text-eh-red">Rechazado</span>
+                                @else
+                                    <span class="mono rounded-lg bg-eh-gold-soft px-2 py-1 text-xs font-medium text-eh-gold">Observado</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </x-ui.table>

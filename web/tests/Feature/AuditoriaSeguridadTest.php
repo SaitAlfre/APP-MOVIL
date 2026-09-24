@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Producto;
+use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -150,17 +151,37 @@ class AuditoriaSeguridadTest extends TestCase
         app(ActualizarUsuarioUseCase::class)->ejecutar($admin->id, $admin->nombres, $admin->dni, [Rol::Consulta], false, $admin->id);
     }
 
+    /** @return array<string, mixed> */
+    private function analisisCalidad(int $proveedorId): array
+    {
+        return ['proveedor_id' => $proveedorId, 'fecha' => now('America/Lima')->toDateString(), 'hora' => '08:00',
+            'unidad_congelacion' => '°C', 'valores' => ['grasa' => '3.5']];
+    }
+
     public function test_calidad_se_audita_y_no_se_guarda_si_falla_la_auditoria(): void
     {
         $admin = $this->admin();
-        $entrega = Entrega::factory()->create();
-        $this->post(route('admin.calidad.store'), ['entrega_id' => $entrega->id, 'resultado' => 'aprobado'])->assertSessionHasNoErrors();
-        $this->assertDatabaseHas('auditorias', ['entidad' => 'control_calidad', 'usuario_id' => $admin->id, 'accion' => 'crear']);
+        $proveedor = Proveedor::factory()->create();
+        $this->post(route('admin.calidad.store'), $this->analisisCalidad($proveedor->id))->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('auditorias', ['entidad' => 'analisis_calidad', 'usuario_id' => $admin->id, 'accion' => 'crear']);
 
-        $otra = Entrega::factory()->create();
+        $otro = Proveedor::factory()->create();
         $this->mock(AuditoriaRepositoryInterface::class)->shouldReceive('registrar')->andThrow(new \RuntimeException('Auditoría no disponible'));
-        $this->post(route('admin.calidad.store'), ['entrega_id' => $otra->id, 'resultado' => 'aprobado'])->assertSessionHasErrors('entrega_id');
-        $this->assertDatabaseMissing('controles_calidad', ['entrega_id' => $otra->id]);
+        $this->post(route('admin.calidad.store'), $this->analisisCalidad($otro->id))->assertSessionHasErrors('valores');
+        $this->assertDatabaseMissing('analisis_calidad', ['proveedor_id' => $otro->id]);
+    }
+
+    public function test_errores_de_base_de_datos_no_exponen_consultas_ni_bindings(): void
+    {
+        $this->admin();
+        $proveedor = Proveedor::factory()->create();
+        Log::spy();
+        $error = new QueryException('sqlite', 'INSERT secreto_sql', ['pin-secreto'], new \PDOException('Error con credenciales'));
+        $this->mock(AuditoriaRepositoryInterface::class)->shouldReceive('registrar')->andThrow($error);
+        $this->post(route('admin.calidad.store'), $this->analisisCalidad($proveedor->id))->assertSessionHasErrors('valores');
+        $this->assertStringNotContainsString('secreto_sql', session('errors')->first('valores'));
+        Log::shouldHaveReceived('error')->with('Error de persistencia', \Mockery::on(fn ($context) => ! str_contains(json_encode($context), 'secreto')))->once();
+        $this->assertDatabaseMissing('analisis_calidad', ['proveedor_id' => $proveedor->id]);
     }
 
     public function test_liquidacion_y_pago_registran_valor_anterior_y_nuevo(): void
@@ -184,19 +205,6 @@ class AuditoriaSeguridadTest extends TestCase
         $lote = LoteProduccion::query()->create(['codigo' => 'LOTE-AUDIT', 'producto_id' => $producto->id, 'fecha' => now()->toDateString(), 'litros_por_unidad_snapshot' => 10, 'litros_asignados' => 100, 'unidades_estimadas' => 10, 'estado' => 'borrador', 'responsable_id' => $creador->id, 'origen_acopio' => []]);
         $this->patch(route('admin.produccion.lotes.iniciar', $lote->id))->assertSessionHasNoErrors();
         $this->assertDatabaseHas('auditorias', ['entidad' => 'lote_produccion', 'entidad_id' => $lote->id, 'usuario_id' => $admin->id, 'valor_despues' => 'estado=en_proceso']);
-    }
-
-    public function test_errores_de_base_de_datos_no_exponen_consultas_ni_bindings(): void
-    {
-        $this->admin();
-        $entrega = Entrega::factory()->create();
-        Log::spy();
-        $error = new QueryException('sqlite', 'INSERT secreto_sql', ['pin-secreto'], new \PDOException('Error con credenciales'));
-        $this->mock(AuditoriaRepositoryInterface::class)->shouldReceive('registrar')->andThrow($error);
-        $this->post(route('admin.calidad.store'), ['entrega_id' => $entrega->id, 'resultado' => 'aprobado'])->assertSessionHasErrors('entrega_id');
-        $this->assertStringNotContainsString('secreto_sql', session('errors')->first('entrega_id'));
-        Log::shouldHaveReceived('error')->with('Error de persistencia', \Mockery::on(fn ($context) => ! str_contains(json_encode($context), 'secreto')))->once();
-        $this->assertDatabaseMissing('controles_calidad', ['entrega_id' => $entrega->id]);
     }
 
     public function test_rutas_nuevo_no_se_interpretan_como_identificadores(): void

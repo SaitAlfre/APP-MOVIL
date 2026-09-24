@@ -10,7 +10,7 @@ import pe.ecolecta.domain.model.EstadoControlCalidad
 import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.repository.ComunicadoServidor
-import pe.ecolecta.domain.repository.ControlServidor
+import pe.ecolecta.domain.repository.AnalisisServidor
 import pe.ecolecta.domain.repository.CuentaServidor
 import pe.ecolecta.domain.repository.DatosServidor
 import pe.ecolecta.domain.repository.DatosServidorLocalRepository
@@ -45,7 +45,8 @@ class SqlDelightDatosServidorRepository(
             }.toMap()
             val jornadas = datos.jornadas.mapNotNull { j -> jornada(j, zonas, vehiculos, usuarios)?.let { j.id to it } }.toMap()
             datos.entregas.forEach { entrega(it, jornadas, proveedores, zonas, vehiculos, usuarios) }
-            datos.controles.forEach { control(it, proveedores, usuarios) }
+            db.controlCalidadQueries.borrarResumenesAntiguos()
+            datos.analisis.forEach { analisis(it, proveedores, usuarios) }
             comunicados(datos.comunicados)
             if (datos.completo) retirarAusentes(zonas.values.toSet(), vehiculos.values.toSet(), usuarios.values.toSet(), proveedores.values.toSet(), ahora)
         }
@@ -237,22 +238,20 @@ class SqlDelightDatosServidorRepository(
         )
     }
 
-    private fun control(c: ControlServidor, proveedores: Map<Long, String>, usuarios: Map<Long, String>) {
-        val proveedorId = proveedores[c.proveedorId] ?: local(PROVEEDOR, c.proveedorId) ?: return
-        // Análisis hecho en un celular: ese celular ya tiene su copia original (con todas las lecturas).
-        if (c.uuidMovil != null && db.controlCalidadQueries.selectPorId(c.uuidMovil).executeAsOneOrNull() != null) return
-        val estado = EstadoControlCalidad.entries.firstOrNull { it.name == c.resultado.uppercase() } ?: return
-        val id = "web-control-${c.id}"
-        val observaciones = listOfNotNull(c.observaciones?.takeIf { it.isNotBlank() }, c.acidez?.let { "Acidez: $it °D" })
-            .joinToString(" · ").ifBlank { null }
-        val actual = db.controlCalidadQueries.selectPorId(id).executeAsOneOrNull()
-        if (actual != null && actual.estado == estado.name && actual.temperatura == c.temperatura &&
-            actual.observaciones == observaciones && actual.registrado_en == c.evaluadoEn && actual.proveedor_id == proveedorId
-        ) return
-        db.controlCalidadQueries.guardarDesdeServidor(
-            id = id, proveedor_id = proveedorId, usuario_id = usuarioLocal(c.usuarioId, usuarios), codigo_muestra = "WEB-${c.id}",
-            temperatura = c.temperatura, observaciones = observaciones, estado = estado.name, alertas = "",
-            registrado_en = c.evaluadoEn,
+    /** Análisis del panel o de otro celular: se guarda completo con su id común; si ya está aquí, no se toca. */
+    private fun analisis(a: AnalisisServidor, proveedores: Map<Long, String>, usuarios: Map<Long, String>) {
+        val proveedorId = proveedores[a.proveedorId] ?: local(PROVEEDOR, a.proveedorId) ?: return
+        val estado = EstadoControlCalidad.entries.firstOrNull { it.name == a.estado.uppercase() } ?: return
+        db.controlCalidadQueries.insertarDesdeServidor(
+            id = a.uuid, proveedor_id = proveedorId, usuario_id = usuarioLocal(a.usuarioId, usuarios),
+            codigo_muestra = a.codigoMuestra, lote_recipiente = a.loteRecipiente, volumen_l = a.volumenL,
+            origen_captura = if (a.origenCaptura == "ESCANER") "ESCANER" else "MANUAL",
+            serial_analizador = a.serialAnalizador, modo_analizador = a.modoAnalizador,
+            temperatura = a.temperatura, grasa = a.grasa, sng = a.sng, densidad = a.densidad, proteina = a.proteina,
+            lactosa = a.lactosa, sales = a.sales, solidos_totales = a.solidosTotales, agua_anadida = a.aguaAnadida,
+            punto_congelacion = a.puntoCongelacion, ph = a.ph, apariencia = a.apariencia, observaciones = a.observaciones,
+            estado = estado.name, alertas = a.alertas.joinToString("\n"), texto_comprobante = a.textoComprobante,
+            registrado_en = a.registradoEn, visita_json = a.visita.toString(),
         )
     }
 

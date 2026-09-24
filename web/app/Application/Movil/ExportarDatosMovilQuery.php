@@ -2,8 +2,8 @@
 
 namespace App\Application\Movil;
 
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
-use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
@@ -55,11 +55,11 @@ class ExportarDatosMovilQuery
             }
         })->orderBy('id')->get();
 
-        $controles = collect();
+        // Análisis de calidad (LactoScan): el admin y calidad ven todos; el proveedor, solo los suyos.
+        $analisis = collect();
         if ($admin || $usuario->tieneRol('calidad') || $miFicha !== null) {
-            $controles = ControlCalidad::query()->with('entrega:id,proveedor_id')
-                ->where('evaluado_en', '>=', $desde)
-                ->when(! $admin && ! $usuario->tieneRol('calidad'), fn ($q) => $q->whereHas('entrega', fn ($e) => $e->where('proveedor_id', $miFicha->id)))
+            $analisis = AnalisisCalidad::query()->where('registrado_en', '>=', $desde)
+                ->when(! $admin && ! $usuario->tieneRol('calidad'), fn ($q) => $q->where('proveedor_id', $miFicha->id))
                 ->orderBy('id')->get();
         }
 
@@ -77,7 +77,7 @@ class ExportarDatosMovilQuery
         // Cuentas: el admin ve todas las que usan la app; los demás, la suya y los nombres de quienes
         // aparecen en su operación (sin DNI), para que la app muestre "registrado por".
         $idsReferidos = $jornadas->pluck('usuario_id')->merge($entregas->pluck('usuario_id'))
-            ->merge($proveedores->pluck('usuario_id'))->filter()->unique();
+            ->merge($proveedores->pluck('usuario_id'))->merge($analisis->pluck('usuario_id'))->filter()->unique();
         $usuarios = Usuario::query()
             ->when(! $admin, fn ($q) => $q->whereIn('id', $idsReferidos->push($usuario->id)))
             ->orderBy('id')->get()
@@ -118,12 +118,16 @@ class ExportarDatosMovilQuery
                 'observaciones' => $e->observaciones, 'registradoEn' => $e->registrado_en->getTimestampMs(),
                 'anulada' => (bool) $e->anulada, 'actualizadoEn' => $e->updated_at?->getTimestampMs() ?? 0,
             ])->values(),
-            'controles' => $controles->filter(fn (ControlCalidad $c) => $c->entrega !== null)->map(fn (ControlCalidad $c) => [
-                'id' => $c->id, 'uuidMovil' => $c->uuid_movil, 'proveedorId' => $c->entrega->proveedor_id, 'usuarioId' => $c->usuario_id,
-                'resultado' => strtoupper($c->resultado->value),
-                'temperatura' => $c->temperatura_c !== null ? (float) $c->temperatura_c : null,
-                'acidez' => $c->acidez !== null ? (float) $c->acidez : null,
-                'observaciones' => $c->observaciones, 'evaluadoEn' => $c->evaluado_en->getTimestampMs(),
+            'analisis' => $analisis->map(fn (AnalisisCalidad $a) => [
+                'id' => $a->id, 'uuid' => $a->uuid, 'proveedorId' => $a->proveedor_id, 'usuarioId' => $a->usuario_id,
+                'codigoMuestra' => $a->codigo_muestra, 'loteRecipiente' => $a->lote_recipiente, 'volumenL' => $a->volumen_l,
+                'origenCaptura' => $a->origen_captura, 'serialAnalizador' => $a->serial_analizador, 'modoAnalizador' => $a->modo_analizador,
+                'temperatura' => $a->temperatura, 'grasa' => $a->grasa, 'sng' => $a->sng, 'densidad' => $a->densidad,
+                'proteina' => $a->proteina, 'lactosa' => $a->lactosa, 'sales' => $a->sales, 'solidosTotales' => $a->solidos_totales,
+                'aguaAnadida' => $a->agua_anadida, 'puntoCongelacion' => $a->punto_congelacion, 'ph' => $a->ph,
+                'apariencia' => $a->apariencia, 'observaciones' => $a->observaciones, 'estado' => $a->estado->value,
+                'alertas' => $a->alertas ?? [], 'textoComprobante' => $a->texto_comprobante, 'visita' => (object) ($a->visita ?? []),
+                'registradoEn' => $a->registrado_en->getTimestampMs(),
             ])->values(),
             'comunicados' => $comunicados->map(fn (Comunicado $c) => [
                 'id' => $c->id, 'codigo' => $c->codigo, 'titulo' => $c->titulo, 'contenido' => $c->contenido,

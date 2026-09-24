@@ -2,98 +2,124 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Calidad\ListarControlesCalidadUseCase;
-use App\Application\Calidad\RegistrarControlCalidadUseCase;
-use App\Domain\Calidad\ControlCalidadRepositoryInterface;
-use App\Domain\Calidad\EstadoCalidad;
-use App\Domain\Calidad\Exceptions\ControlCalidadInvalidoException;
-use App\Domain\Entregas\EntregaRepositoryInterface;
-use App\Domain\Proveedores\ProveedorRepositoryInterface;
-use App\Domain\Usuarios\UsuarioRepositoryInterface;
+use App\Application\Calidad\GuardarAnalisisCalidadUseCase;
+use App\Domain\Calidad\EstadoAnalisis;
+use App\Domain\Calidad\ParametrosCalidad;
+use App\Domain\Proveedores\EstadoProveedor;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
+use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Zona;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * Control de calidad igual al de la app móvil: análisis LactoScan por proveedor (11 parámetros con sus
+ * referencias), historial con filtros y detalle. Los análisis del celular y del panel son los mismos
+ * registros (se sincronizan en ambos sentidos por `uuid`).
+ */
 class CalidadController extends Controller
 {
-    public function index(
-        Request $request,
-        ListarControlesCalidadUseCase $listar,
-        ControlCalidadRepositoryInterface $controlCalidad,
-        EntregaRepositoryInterface $entregas,
-        ProveedorRepositoryInterface $proveedores,
-        UsuarioRepositoryInterface $usuarios,
-    ): View {
-        $filtro = $request->string('resultado')->toString();
-        $resultado = $filtro !== '' ? EstadoCalidad::tryFrom($filtro) : null;
+    public function index(Request $request): View
+    {
+        $filtro = strtoupper($request->string('resultado')->toString());
+        $estado = EstadoAnalisis::tryFrom($filtro);
+        $busqueda = trim($request->string('q')->toString());
+        $zonaId = $request->integer('zona') ?: null;
 
-        $controles = $listar->ejecutar(resultado: $resultado);
+        $consulta = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario'])
+            ->when($estado === EstadoAnalisis::Observado, fn ($q) => $q->whereIn('estado', [EstadoAnalisis::Observado, EstadoAnalisis::Repetir]))
+            ->when($estado !== null && $estado !== EstadoAnalisis::Observado, fn ($q) => $q->where('estado', $estado))
+            ->when($zonaId !== null, fn ($q) => $q->whereHas('proveedor', fn ($p) => $p->where('zona_id', $zonaId)))
+            ->when($busqueda !== '', fn ($q) => $q->where(fn ($w) => $w->where('codigo_muestra', 'like', "%{$busqueda}%")
+                ->orWhereHas('proveedor', fn ($p) => $p->where('nombres', 'like', "%{$busqueda}%")->orWhere('codigo', 'like', "%{$busqueda}%"))))
+            ->latest('registrado_en');
 
-        $filas = collect($controles->items())->map(function ($control) use ($entregas, $proveedores, $usuarios) {
-            $entrega = $entregas->buscarPorId($control->entregaId);
-
-            return [
-                'control' => $control,
-                'proveedor' => $entrega !== null ? $proveedores->buscarPorId($entrega->proveedorId) : null,
-                'usuario' => $usuarios->buscarPorId($control->usuarioId),
-            ];
-        });
-
-        $conteos = $controlCalidad->contarPorResultado();
-        $totalEvaluadas = array_sum($conteos);
-
-        $pestanas = ['controles', 'reglas'];
-        $pestana = $request->string('tab')->toString();
+        $conteos = AnalisisCalidad::query()->selectRaw('estado, COUNT(*) as total')->groupBy('estado')->pluck('total', 'estado');
+        $hoy = now('America/Lima');
+        $pestana = $request->string('tab')->toString() === 'reglas' ? 'reglas' : 'analisis';
 
         return view('admin.calidad.index', [
-            'filas' => $filas,
-            'paginador' => $controles,
-            'pendientes' => count($entregas->sinControlCalidad()),
-            'conteos' => $conteos,
-            'tasaAprobacion' => $totalEvaluadas > 0 ? round(($conteos['aprobado'] / $totalEvaluadas) * 100, 1) : null,
-            'filtroActual' => $resultado,
-            'pestana' => in_array($pestana, $pestanas, true) ? $pestana : 'controles',
+            'analisis' => $consulta->paginate(15)->withQueryString(),
+            'conteos' => [
+                'aprobado' => (int) ($conteos[EstadoAnalisis::Aprobado->value] ?? 0),
+                'observado' => (int) ($conteos[EstadoAnalisis::Observado->value] ?? 0) + (int) ($conteos[EstadoAnalisis::Repetir->value] ?? 0),
+                'rechazado' => (int) ($conteos[EstadoAnalisis::Rechazado->value] ?? 0),
+            ],
+            'deHoy' => AnalisisCalidad::query()->whereBetween('registrado_en', [$hoy->copy()->startOfDay()->utc(), $hoy->copy()->endOfDay()->utc()])->count(),
+            'zonas' => Zona::query()->orderBy('nombre')->pluck('nombre', 'id')->all(),
+            'filtroActual' => $estado,
+            'busqueda' => $busqueda,
+            'zonaActual' => $zonaId,
+            'pestana' => $pestana,
         ]);
     }
 
-    public function create(EntregaRepositoryInterface $entregas, ProveedorRepositoryInterface $proveedores): View
+    public function create(): View
     {
-        $pendientes = collect($entregas->sinControlCalidad())->map(fn ($entrega) => [
-            'entrega' => $entrega,
-            'proveedor' => $proveedores->buscarPorId($entrega->proveedorId),
-        ]);
+        $ahora = now('America/Lima');
 
-        return view('admin.calidad.create', ['pendientes' => $pendientes]);
+        return view('admin.calidad.create', [
+            'zonas' => Zona::query()->where('activo', true)->orderBy('nombre')->get(['id', 'nombre']),
+            'proveedores' => Proveedor::query()->where('estado', EstadoProveedor::Activo)->orderBy('nombres')->get(['id', 'codigo', 'nombres', 'zona_id']),
+            'fecha' => $ahora->toDateString(),
+            'hora' => $ahora->format('H:i'),
+        ]);
     }
 
-    public function store(Request $request, RegistrarControlCalidadUseCase $registrar): RedirectResponse
+    public function store(Request $request, GuardarAnalisisCalidadUseCase $guardar): RedirectResponse
     {
-        $request->validate([
-            'entrega_id' => ['required', 'integer'],
-            'resultado' => ['required', 'string', 'in:aprobado,observado,rechazado'],
-            'temperatura_c' => ['nullable', 'numeric', 'between:-5,60'],
-            'acidez' => ['nullable', 'numeric', 'between:0,50'],
-            'observaciones' => ['nullable', 'string', 'max:255'],
-        ], [
-            'temperatura_c.between' => 'La temperatura debe estar entre -5°C y 60°C.',
-            'acidez.between' => 'La acidez debe estar entre 0°D y 50°D.',
+        $reglas = [
+            'proveedor_id' => ['required', 'integer', 'exists:proveedores,id'],
+            'fecha' => ['required', 'date_format:Y-m-d'],
+            'hora' => ['required', 'date_format:H:i'],
+            'serial' => ['nullable', 'string', 'max:60'],
+            'modo' => ['nullable', 'string', 'max:60'],
+            'unidad_congelacion' => ['required', 'in:°C,°H'],
+            'observaciones' => ['nullable', 'string', 'max:1000'],
+        ];
+        // Como en la app: se acepta coma o punto decimal.
+        $request->merge(['valores' => array_map(fn ($v) => is_string($v) ? str_replace(',', '.', trim($v)) : $v, (array) $request->input('valores', []))]);
+        foreach (array_keys(ParametrosCalidad::PARAMETROS) as $clave) {
+            $reglas["valores.{$clave}"] = ['nullable', 'numeric', ParametrosCalidad::permiteNegativo($clave) ? 'between:-5,5' : 'min:0'];
+        }
+        $datos = $request->validate($reglas, [
+            'valores.*.numeric' => 'Usa solo números, con punto decimal.',
+            'valores.*.min' => 'El valor no puede ser negativo.',
         ]);
 
-        try {
-            $registrar->ejecutar(
-                entregaId: $request->integer('entrega_id'),
-                usuarioId: auth('operador')->id(),
-                resultado: EstadoCalidad::from($request->string('resultado')->toString()),
-                temperaturaC: $request->filled('temperatura_c') ? (float) $request->input('temperatura_c') : null,
-                acidez: $request->filled('acidez') ? (float) $request->input('acidez') : null,
-                observaciones: $request->string('observaciones')->toString() ?: null,
-            );
-        } catch (ControlCalidadInvalidoException|RuntimeException $e) {
-            return back()->withErrors(['entrega_id' => $this->mensajeSeguro($e)])->withInput();
+        $proveedor = Proveedor::query()->findOrFail($datos['proveedor_id']);
+        if ($proveedor->estado !== EstadoProveedor::Activo) {
+            return back()->withErrors(['proveedor_id' => 'El proveedor ya no está activo.'])->withInput();
         }
 
-        return redirect()->route('admin.calidad.index')->with('estado', 'Control de calidad registrado correctamente.');
+        try {
+            $analisis = $guardar->ejecutar([
+                'proveedor_id' => $proveedor->id,
+                'registrado_en' => CarbonImmutable::createFromFormat('Y-m-d H:i', $datos['fecha'].' '.$datos['hora'], 'America/Lima')->utc(),
+                'valores' => collect($datos['valores'] ?? [])->map(fn ($v) => $v === null || $v === '' ? null : (float) $v)->all(),
+                'unidad_congelacion' => $datos['unidad_congelacion'],
+                'serial' => $datos['serial'] ?? null,
+                'modo' => $datos['modo'] ?? null,
+                'observaciones' => $datos['observaciones'] ?? null,
+            ], auth('operador')->user());
+        } catch (InvalidArgumentException|RuntimeException|QueryException $e) {
+            return back()->withErrors(['valores' => $this->mensajeSeguro($e)])->withInput();
+        }
+
+        return redirect()->route('admin.calidad.show', $analisis->uuid)
+            ->with('estado', "Análisis {$analisis->codigo_muestra} guardado: {$analisis->estado->etiqueta()}.");
+    }
+
+    public function show(string $analisis): View
+    {
+        $registro = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario', 'controles.entrega'])->where('uuid', $analisis)->firstOrFail();
+
+        return view('admin.calidad.show', ['analisis' => $registro]);
     }
 }

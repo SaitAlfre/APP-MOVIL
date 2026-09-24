@@ -125,4 +125,33 @@ class CambiosPanelWebTest {
 
         assertEquals("FAON CAMBIADA EN EL CELULAR", db.zonaQueries.selectPorId(faon.id).executeAsOne().nombre)
     }
+
+    @Test
+    fun `un analisis de calidad del celular viaja completo al panel`() = runBlocking {
+        val tecnico = db.usuarioQueries.selectPorUsername("calidad_faon").executeAsOne()
+        db.sesionQueries.establecer(tecnico.id, "CALIDAD")
+        val proveedor = db.proveedorQueries.selectPorCodigo("PRV-FAON-01").executeAsOne()
+        val control = pe.ecolecta.domain.model.ControlCalidad(
+            id = "an-local-1", proveedorId = proveedor.id, usuarioId = tecnico.id, codigoMuestra = "AN-LOCAL1", loteRecipiente = null,
+            volumenL = null, origenCaptura = pe.ecolecta.domain.model.OrigenCaptura.ESCANER, serialAnalizador = "LS-9", modoAnalizador = null,
+            temperatura = 6.0, grasa = 2.1, sng = 8.7, densidad = null, proteina = null, lactosa = null, sales = null, solidosTotales = null,
+            aguaAnadida = 0.0, puntoCongelacion = -0.53, ph = null, apariencia = null, observaciones = "Revisar",
+            estado = pe.ecolecta.domain.model.EstadoControlCalidad.OBSERVADO, alertas = listOf("Grasa: 2.1 · Referencia: 3.0 a 6.0 %"),
+            textoComprobante = null, registradoEn = 1_000, updatedAt = 1_000, syncState = pe.ecolecta.domain.model.SyncState.PENDING,
+            visita = pe.ecolecta.domain.model.DatosVisitaCalidad(tecnicoNombre = "Miguel Vargas", parametrosAlertados = listOf("grasa")),
+        )
+        pe.ecolecta.data.repository.SqlDelightControlCalidadRepository(db, Dispatchers.IO).insertar(control)
+        val panel = PanelFalso()
+
+        EnviarCambiosServidorUseCase(panel, cola)()
+
+        val (autor, entidad, cuerpo) = panel.recibidos.single { it.second == "calidad" }
+        assertEquals(tecnico.id, autor)
+        assertEquals("calidad", entidad)
+        assertEquals("an-local-1", cuerpo["uuid"]!!.jsonPrimitive.content)
+        assertEquals("2.1", cuerpo["grasa"]!!.jsonPrimitive.content)
+        assertEquals("-0.53", cuerpo["puntoCongelacion"]!!.jsonPrimitive.content)
+        assertEquals("OBSERVADO", cuerpo["estado"]!!.jsonPrimitive.content)
+        assertEquals("Miguel Vargas", (cuerpo["visita"] as JsonObject)["tecnicoNombre"]!!.jsonPrimitive.content)
+    }
 }
