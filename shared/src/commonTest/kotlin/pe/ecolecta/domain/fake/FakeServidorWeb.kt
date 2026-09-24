@@ -26,6 +26,13 @@ class FakeServidorWeb(override val configurado: Boolean = true) : ServidorWebRep
     var escrituras = 0
         private set
 
+    /** "idEntrega:usuarioLocal" de cada escritura aceptada: qué cuenta firmó cada envío. */
+    val firmas = mutableListOf<String>()
+
+    /** Nombre que muestra el aviso de cuenta sin enlazar, por usuario local. */
+    val nombres = mutableMapOf<String, String>()
+    override val direccion: String = "http://10.0.2.2:8000"
+
     /** Simula que la escritura SÍ llega pero la respuesta se pierde (el caso más delicado del reintento). */
     var perderRespuesta = false
 
@@ -40,7 +47,7 @@ class FakeServidorWeb(override val configurado: Boolean = true) : ServidorWebRep
 
     override suspend fun enviarEntrega(usuarioId: String, entrega: EntregaParaServidor): Result<Unit> {
         if (!enLinea.value) return Result.failure(SinConexionRemotaException())
-        if (usuarioId !in sesiones.value) return Result.failure(SinSesionServidorException("Juan Pérez"))
+        if (usuarioId !in sesiones.value) return Result.failure(SinSesionServidorException(nombres[usuarioId] ?: "Juan Pérez"))
         if (entrega.proveedorCodigo !in proveedoresRegistrados) {
             return Result.failure(RechazoServidorException("El proveedor «${entrega.proveedorCodigo}» no está registrado en el servidor.", "dato_no_registrado"))
         }
@@ -57,6 +64,7 @@ class FakeServidorWeb(override val configurado: Boolean = true) : ServidorWebRep
         }
         filas.value = filas.value + (entrega.id to entrega)
         escrituras++
+        firmas += "${entrega.id}:$usuarioId"
         if (perderRespuesta) return Result.failure(SinConexionRemotaException())
         return Result.success(Unit)
     }

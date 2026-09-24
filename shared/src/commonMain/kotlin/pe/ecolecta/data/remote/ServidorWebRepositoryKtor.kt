@@ -65,7 +65,8 @@ class ServidorWebRepositoryKtor(
     private val io: CoroutineDispatcher,
     private val nombreDispositivo: String = "App Ecolecta",
 ) : ServidorWebRepository {
-    private val api = urlBase.trimEnd('/') + "/api/movil"
+    override val direccion: String = urlBase.trimEnd('/')
+    private val api = "$direccion/api/movil"
 
     override val configurado: Boolean = true
 
@@ -126,7 +127,7 @@ class ServidorWebRepositoryKtor(
         if (respuesta.status.isSuccess()) return
         if (respuesta.status == HttpStatusCode.Unauthorized) {
             withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
-            throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres)
+            throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres, revocada = true)
         }
         throw rechazo(respuesta)
     }
@@ -146,7 +147,7 @@ class ServidorWebRepositoryKtor(
     private suspend fun <T> llamar(bloque: suspend () -> T): Result<T> = try {
         Result.success(withTimeout(ESPERA_MS) { bloque() })
     } catch (e: TimeoutCancellationException) {
-        Result.failure(SinConexionRemotaException(e, SIN_RESPUESTA))
+        Result.failure(SinConexionRemotaException(e, "$SIN_RESPUESTA en $direccion"))
     } catch (e: CancellationException) {
         throw e
     } catch (e: RechazoServidorException) {
@@ -154,7 +155,7 @@ class ServidorWebRepositoryKtor(
     } catch (e: SinSesionServidorException) {
         Result.failure(e)
     } catch (e: Exception) {
-        Result.failure(SinConexionRemotaException(e, SIN_RESPUESTA))
+        Result.failure(SinConexionRemotaException(e, "$SIN_RESPUESTA en $direccion"))
     }
 
     private companion object {

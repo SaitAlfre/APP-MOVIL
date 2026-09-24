@@ -68,10 +68,23 @@ class SincronizacionViewModel(
         }
     }
 
-    private fun avisoServidor(usuarioId: String?): String? = when {
+    /**
+     * Estado REAL del enlace de esta cuenta: se consulta el token guardado, no basta con haber entrado
+     * offline. El último motivo del intento de enlace (servidor sin respuesta, PIN distinto) solo vive en
+     * memoria; tras reiniciar la app se sigue avisando por el token ausente.
+     */
+    private suspend fun avisoServidor(usuarioId: String?): String? = when {
         !sincronizarRegistros.servidorConfigurado ->
             "Esta versión no tiene el panel web configurado: el administrador no verá estas entregas hasta instalar una versión con servidor."
-        else -> usuarioId?.let { vincularServidor.errores.value[it] }
+        usuarioId == null -> null
+        else -> vincularServidor.errores.value[usuarioId]
+            ?: if (vincularServidor.enlazado(usuarioId)) null else AVISO_SIN_ENLAZAR
+    }
+
+    private companion object {
+        const val AVISO_SIN_ENLAZAR =
+            "Tu cuenta no está enlazada con el panel web en este celular, así que tus entregas no pueden enviarse todavía. " +
+                "Cierra sesión y vuelve a entrar con tu usuario y PIN teniendo conexión: no se pierde ninguna entrega ni tu jornada."
     }
 
     /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */
@@ -81,14 +94,7 @@ class SincronizacionViewModel(
                 "Este celular no tiene sincronización configurada. Tus datos están guardados solo en este dispositivo."
             } else {
                 runCatching { sincronizarRegistros() }.fold(
-                    onSuccess = { r ->
-                        when {
-                            r.total == 0 -> "No hay registros pendientes de envío."
-                            r.sinConexion > 0 -> "Sin conexión: ${r.sinConexion} registro(s) siguen guardados aquí y se reintentarán solos."
-                            r.fallidos > 0 -> "${r.enviados} enviado(s); ${r.fallidos} con error del servidor (se reintentarán)."
-                            else -> "${r.enviados} registro(s) sincronizado(s)."
-                        }
-                    },
+                    onSuccess = ::mensajeSincronizacion,
                     onFailure = { "No se pudo sincronizar: ${it.message}" },
                 )
             }

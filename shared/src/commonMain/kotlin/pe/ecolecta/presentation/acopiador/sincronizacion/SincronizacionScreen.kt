@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonPrimario
-import pe.ecolecta.presentation.design.ChipSync
+import pe.ecolecta.presentation.acopiador.ChipSyncAcopiador
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
@@ -67,7 +67,8 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
             Tarjeta {
                 Text("Cola de sincronización", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
                 Text(
-                    "La sincronización se ejecuta automáticamente al tener conexión.",
+                    "La sincronización se ejecuta automáticamente al tener conexión. «Sincronizar ahora» envía todo lo " +
+                        "guardado en este celular, cada entrega con la cuenta de quien la registró o modificó; los contadores son solo tuyos.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Colores.textSecundario,
                 )
@@ -82,7 +83,8 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
                 BotonPrimario("Sincronizar ahora", viewModel::reintentar, icono = Icons.Filled.Sync)
             }
 
-            if (resumen.pendientes > 0) {
+            // Sin enlace, el aviso del servidor pide justamente volver a iniciar sesión: no contradecirlo.
+            if (resumen.pendientes > 0 && estado.avisoServidor == null) {
                 Banner("No cierres sesión hasta sincronizar los registros pendientes.", TipoBanner.ADVERTENCIA)
             }
 
@@ -141,7 +143,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
                                 }
                             }
                             Spacer(Modifier.width(Espaciado.s))
-                            ChipSync(pendiente.entrega)
+                            ChipSyncAcopiador(pendiente.entrega)
                         }
                     }
                 }

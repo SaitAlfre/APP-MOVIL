@@ -15,12 +15,30 @@ import pe.ecolecta.domain.repository.RegistroAcopioRemotoRepository
 import pe.ecolecta.domain.repository.ServidorWebRepository
 import pe.ecolecta.domain.repository.SinConexionRemotaException
 import pe.ecolecta.domain.repository.SinRecojoRepository
+import pe.ecolecta.domain.repository.SinSesionServidorException
 import pe.ecolecta.domain.repository.UsuarioRepository
 import pe.ecolecta.domain.repository.VehiculoRepository
 import pe.ecolecta.domain.repository.ZonaRepository
 
-data class ResultadoSincronizacion(val enviados: Int, val sinConexion: Int, val fallidos: Int) {
-    val total: Int get() = enviados + sinConexion + fallidos
+/**
+ * Resultado real de un envío. Cada registro cae en UNA categoría:
+ * - [enviados]: todos los destinos configurados confirmaron.
+ * - [sinConexion]: el servidor no respondió; se reintenta solo.
+ * - [sinEnlazar]: la cuenta que debe enviarlo no tiene sesión con el panel en este celular. No es un error
+ *   del servidor ni se arregla reintentando: [cuentasSinEnlazar] deben iniciar sesión con conexión.
+ * - [parciales]: el panel web la recibió pero falta la copia para el celular del proveedor (Firestore).
+ * - [fallidos]: el servidor (o Firestore) respondió y NO aceptó el dato; el motivo queda en el registro.
+ */
+data class ResultadoSincronizacion(
+    val enviados: Int,
+    val sinConexion: Int,
+    val fallidos: Int,
+    val sinEnlazar: Int = 0,
+    val parciales: Int = 0,
+    val cuentasSinEnlazar: Set<String> = emptySet(),
+    val motivoSinConexion: String? = null,
+) {
+    val total: Int get() = enviados + sinConexion + fallidos + sinEnlazar + parciales
 }
 
 /**
@@ -35,8 +53,11 @@ data class ResultadoSincronizacion(val enviados: Int, val sinConexion: Int, val 
  * solo si no cambió mientras se enviaba, para no dar por sincronizada una corrección que no salió.
  *
  * - Sin conexión: el registro sigue PENDING (con el motivo en `sync_error`) y se reintenta después.
- * - Otro error (servidor rechazó el dato, cuenta sin sesión con el servidor, dispositivo sin vincular):
- *   queda en ERROR con el motivo visible, y también se reintenta.
+ * - Cuenta sin sesión con el panel en este celular: sigue PENDING con el motivo; se enviará cuando esa
+ *   cuenta inicie sesión con conexión (el enlace dispara un envío). No se presenta como error del servidor.
+ * - Rechazo (el servidor respondió y no aceptó el dato): queda en ERROR con el motivo visible, y se
+ *   reintenta; si el panel la recibió pero Firestore no, queda como envío parcial con ambos destinos dichos.
+ * - El token que firma es el del autor del último cambio (ver [PreparadorEntregaServidor.remitente]).
  * - Cada destino usa el id del registro como clave, así que un reintento sobrescribe el mismo
  *   documento / la misma fila y nunca crea duplicados, aunque el primer envío sí hubiera llegado.
  * - Sin ningún destino configurado no hace nada: los datos quedan "guardados en este celular", que es
@@ -71,6 +92,10 @@ class SincronizarRegistrosAcopioUseCase(
         var enviados = 0
         var sinConexion = 0
         var fallidos = 0
+        var sinEnlazar = 0
+        var parciales = 0
+        val cuentasSinEnlazar = linkedSetOf<String>()
+        var motivoSinConexion: String? = null
         val codigos = mutableMapOf<String, String?>()
         val nombres = mutableMapOf<String, String>()
 
@@ -103,14 +128,28 @@ class SincronizarRegistrosAcopioUseCase(
             resultado.fold(
                 onSuccess = { alExito(); enviados++ },
                 onFailure = { error ->
-                    val faltaConexion = error is SinConexionRemotaException ||
-                        (error is EnvioParcialException && error.cause is SinConexionRemotaException)
-                    if (faltaConexion) {
-                        alFallar(error.message ?: "Sin conexión", false)
-                        sinConexion++
-                    } else {
-                        alFallar(error.message ?: "El servidor rechazó el envío.", true)
-                        fallidos++
+                    when {
+                        error is SinConexionRemotaException -> {
+                            alFallar(error.message ?: "Sin conexión", false)
+                            motivoSinConexion = error.message
+                            sinConexion++
+                        }
+                        // Cuenta sin token: el dato no fue rechazado. Sigue PENDING (con el motivo) hasta
+                        // que esa cuenta inicie sesión con conexión; no se cuenta como error del servidor.
+                        error is SinSesionServidorException -> {
+                            alFallar(error.message ?: "Cuenta sin enlazar con el panel web.", false)
+                            error.nombre?.let(cuentasSinEnlazar::add)
+                            sinEnlazar++
+                        }
+                        // El panel ya la tiene; falta Firestore. Se reintenta (el panel responde "sin cambios").
+                        error is EnvioParcialException -> {
+                            alFallar(error.message ?: "Envío parcial.", error.cause !is SinConexionRemotaException)
+                            parciales++
+                        }
+                        else -> {
+                            alFallar(error.message ?: "El servidor rechazó el envío.", true)
+                            fallidos++
+                        }
                     }
                 },
             )
@@ -141,7 +180,7 @@ class SincronizarRegistrosAcopioUseCase(
             )
         }
 
-        return ResultadoSincronizacion(enviados, sinConexion, fallidos)
+        return ResultadoSincronizacion(enviados, sinConexion, fallidos, sinEnlazar, parciales, cuentasSinEnlazar, motivoSinConexion)
     }
 
     /** Primero el panel (oficial); si falla no se sigue, y el reintento reenvía ambos sin duplicar. */
@@ -154,7 +193,7 @@ class SincronizarRegistrosAcopioUseCase(
             } catch (e: Exception) {
                 return Result.failure(e)
             }
-            servidor.enviarEntrega(entrega.usuarioId, datos).onFailure { return Result.failure(it) }
+            servidor.enviarEntrega(preparador.remitente(entrega), datos).onFailure { return Result.failure(it) }
         }
         if (!remoto.configurado) return Result.success(Unit)
         return remoto.publicar(entrega.aCompartido(codigo, nombre)).recoverCatching { error ->
@@ -174,6 +213,13 @@ class EnvioParcialException(causa: Throwable) : Exception(
 /** Traduce una entrega local a lo que entiende el panel web. */
 fun interface PreparadorEntregaServidor {
     suspend fun preparar(entrega: Entrega): EntregaParaServidor
+
+    /**
+     * Usuario local cuyo token firma el envío: quien hizo el último cambio. Por defecto, el acopiador que
+     * la registró. El panel siempre guarda la entrega a nombre del acopiador ([EntregaParaServidor.acopiadorUsername]);
+     * el remitente solo figura como autor de esa acción en su auditoría.
+     */
+    suspend fun remitente(entrega: Entrega): String = entrega.usuarioId
 }
 
 /**
@@ -195,10 +241,7 @@ class PreparadorEntregaServidorLocal(
         val jornada = jornadas.obtenerPorId(entrega.jornadaId) ?: error("Jornada no encontrada en este celular.")
         val zona = zonas.obtenerPorId(entrega.zonaId) ?: error("Zona no encontrada en este celular.")
         val vehiculo = vehiculos.obtenerPorId(entrega.vehiculoId) ?: error("Vehículo no encontrado en este celular.")
-        val motivo = auditoria.filtrar(entidad = "entrega")
-            .filter { it.entidadId == entrega.id && it.accion in setOf(AccionAuditoria.CORREGIR, AccionAuditoria.ANULAR) }
-            .maxByOrNull { it.ocurridoEn }
-            ?.motivo
+        val motivo = ultimoCambio(entrega)?.motivo
         return EntregaParaServidor(
             id = entrega.id,
             jornadaId = jornada.id,
@@ -217,4 +260,15 @@ class PreparadorEntregaServidorLocal(
             actualizadoEn = entrega.updatedAt,
         )
     }
+
+    /**
+     * Si ADMIN corrigió o anuló, lo envía su propia cuenta (el panel lo audita a su nombre y la entrega
+     * sigue siendo del acopiador); si no, la del acopiador. Nunca se usa el token de otra persona para
+     * firmar un cambio que no hizo.
+     */
+    override suspend fun remitente(entrega: Entrega): String = ultimoCambio(entrega)?.usuarioId ?: entrega.usuarioId
+
+    private suspend fun ultimoCambio(entrega: Entrega) = auditoria.filtrar(entidad = "entrega")
+        .filter { it.entidadId == entrega.id && it.accion in setOf(AccionAuditoria.CORREGIR, AccionAuditoria.ANULAR) }
+        .maxByOrNull { it.ocurridoEn }
 }

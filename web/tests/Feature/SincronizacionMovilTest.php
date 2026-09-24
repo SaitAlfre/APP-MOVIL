@@ -283,4 +283,42 @@ class SincronizacionMovilTest extends TestCase
         $this->assertSame(0, TokenMovil::query()->count());
         $this->enviar($token, $this->entrega())->assertStatus(401);
     }
+
+    public function test_una_correccion_enviada_por_admin_se_audita_a_su_nombre_y_la_entrega_sigue_siendo_del_acopiador(): void
+    {
+        $admin = Usuario::factory()->create(['username' => 'admin_movil', 'pin_hash' => '1234', 'roles' => ['admin']]);
+        $this->enviar($this->token(), $this->entrega())->assertCreated();
+
+        $this->enviar($this->token('admin_movil', '1234'), $this->entrega(['litros' => 36, 'actualizadoEn' => 1_790_000_200_000, 'motivo' => 'Revisión de ADMIN']))
+            ->assertOk()->assertJson(['estado' => 'actualizada']);
+
+        $entrega = Entrega::query()->sole();
+        $this->assertSame($this->acopiador->id, $entrega->usuario_id, 'ADMIN no pasa a ser el autor de la entrega');
+        $this->assertEquals(36.0, (float) $entrega->litros);
+        $auditoria = Auditoria::query()->where('entidad', 'entrega')->where('entidad_id', $entrega->id)->orderBy('id')->get();
+        $this->assertSame(['crear', 'corregir'], $auditoria->pluck('accion')->all());
+        $this->assertSame([$this->acopiador->id, $admin->id], $auditoria->pluck('usuario_id')->all());
+    }
+
+    public function test_un_token_vencido_se_rechaza_como_sesion_invalida_sin_crear_nada(): void
+    {
+        $token = $this->token();
+        TokenMovil::query()->update(['expira_en' => now()->subMinute()]);
+
+        $this->enviar($token, $this->entrega())->assertStatus(401)->assertJson(['codigo' => 'token_invalido']);
+
+        $this->assertSame(0, Entrega::query()->count());
+    }
+
+    public function test_enviar_muchas_entregas_no_agota_el_limite_de_inicio_de_sesion(): void
+    {
+        $token = $this->token();
+
+        foreach (range(1, 12) as $i) {
+            $this->enviar($token, $this->entrega(['id' => "ent-lote-{$i}"]), "ent-lote-{$i}")->assertCreated();
+        }
+
+        // Otro celular (u otra cuenta) en la misma red debe poder enlazarse igual.
+        $this->postJson('/api/movil/sesion', ['username' => 'acop_faon', 'pin' => '2468', 'dispositivo' => 'Otro'])->assertOk();
+    }
 }
