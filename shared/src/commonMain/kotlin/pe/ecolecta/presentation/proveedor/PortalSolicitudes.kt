@@ -38,7 +38,7 @@ import qrgenerator.shareQrCodeImage
 }
 
 @Composable private fun ResultadoSolicitud(s: PortalProveedorState, navegar: (Pantalla) -> Unit) {
-    TarjetaProveedor(color = Color(0xFFE8F4EC)) {
+    TarjetaProveedor(color = Color(0xFFE3F1E8)) {
         TextoProveedor("✓ Solicitud guardada", 20, ProveedorVerde, true)
         TextoProveedor(s.confirmacion.orEmpty(), 14, ProveedorGris)
     }
@@ -62,7 +62,7 @@ import qrgenerator.shareQrCodeImage
             SelectorProveedor("Motivo del reclamo", motivo, motivosReclamo.map { it to it }) { motivo = it }
             if(motivo != "Entrega no registrada") {
                 SelectorProveedor("Entrega de referencia", entregaId, s.entregas.filterNot { it.anulada }.map { it.id to "${fechaProveedor(it.registradoEn)} · ${decimalProveedor(it.litros)} L" }) { entregaId = it }
-                s.entregas.firstOrNull { it.id == entregaId }?.let { e -> TarjetaProveedor(color = Color(0xFFE8F4EC)) {
+                s.entregas.firstOrNull { it.id == entregaId }?.let { e -> TarjetaProveedor(color = Color(0xFFE3F1E8)) {
                     TextoProveedor("ENTREGA DE REFERENCIA", 11, ProveedorVerde, true)
                     TextoProveedor(fechaProveedor(e.registradoEn), 15, bold = true)
                     TextoProveedor("${decimalProveedor(e.litros)} L", 22, bold = true)
@@ -90,7 +90,7 @@ import qrgenerator.shareQrCodeImage
     PaginaProveedor("Solicitar traslado", volver = { navegar(Pantalla.ProveedorHome) }) {
         if(s.confirmacion != null) ResultadoSolicitud(s, navegar)
         else {
-            TarjetaProveedor(color = Color(0xFFE8F4EC)) { TextoProveedor("ZONA ACTUAL", 11, ProveedorVerde, true); TextoProveedor(s.zona, 18, bold = true) }
+            TarjetaProveedor(color = Color(0xFFE3F1E8)) { TextoProveedor("ZONA ACTUAL", 11, ProveedorVerde, true); TextoProveedor(s.zona, 18, bold = true) }
             val destinos = s.zonas.filter { it.activo && it.id != s.proveedor?.zonaId }
             if(destinos.isEmpty()) VacioProveedor("Sin zonas de destino", "No hay otra zona activa descargada para solicitar un traslado.")
             else SelectorProveedor("Zona de destino", zona, destinos.map { it.id to it.nombre }) { zona = it }
@@ -152,7 +152,7 @@ import qrgenerator.shareQrCodeImage
             Surface(shape = RoundedCornerShape(20.dp), color = Color.White, shadowElevation = 4.dp, modifier = Modifier.drawWithContent { layer.record { this@drawWithContent.drawContent() }; drawContent() }) {
                 Image(rememberQrKitPainter(data = generarQrProveedor(s.proveedor!!.id)), "Código QR de identificación del proveedor", Modifier.padding(28.dp).size(200.dp))
             }
-            TarjetaProveedor(color = Color(0xFFE8F4EC)) {
+            TarjetaProveedor(color = Color(0xFFE3F1E8)) {
                 TextoProveedor("Muestra este código al acopiador", 14, ProveedorVerde, true)
                 TextoProveedor("El escáner identificará tu cuenta automáticamente", 12, ProveedorGris)
             }
@@ -168,7 +168,7 @@ import qrgenerator.shareQrCodeImage
                     }
                 }, enabled = !compartiendo, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text(if(compartiendo) "Compartiendo…" else "Compartir") }
             }
-            TarjetaProveedor(color = Color(0xFFFFF8E7)) { TextoProveedor("No compartas públicamente este código. Solo identifica tu cuenta, no autoriza operaciones.", 13, Color(0xFF9C720A)) }
+            TarjetaProveedor(color = Color(0xFFFFF0D1)) { TextoProveedor("No compartas públicamente este código. Solo identifica tu cuenta, no autoriza operaciones.", 13, Color(0xFF926B22)) }
             mensaje?.let { TextoProveedor(it, color = ProveedorRojo) }
         }
     }

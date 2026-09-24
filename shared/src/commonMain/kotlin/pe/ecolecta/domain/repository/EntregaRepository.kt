@@ -54,4 +54,13 @@ interface EntregaRepository {
     suspend fun contarPendientes(): Long
     suspend fun contarError(): Long
     suspend fun contarConflicto(): Long
+
+    /** PENDING y ERROR (nunca CONFLICT), de la más antigua a la más reciente. */
+    suspend fun pendientesDeSincronizar(): List<Entrega>
+
+    /** Marca SYNCED solo si la fila no cambió desde que se leyó ([updatedAt]). */
+    suspend fun marcarSincronizada(id: String, updatedAt: Long)
+
+    /** [definitivo] = false (sin conexión) la deja PENDING; true la pasa a ERROR. Ambas se reintentan. */
+    suspend fun registrarFalloSync(id: String, updatedAt: Long, error: String, definitivo: Boolean)
 }

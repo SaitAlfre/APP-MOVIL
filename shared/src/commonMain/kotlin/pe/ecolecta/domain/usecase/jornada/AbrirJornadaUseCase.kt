@@ -1,5 +1,6 @@
 package pe.ecolecta.domain.usecase.jornada
 
+import pe.ecolecta.domain.JornadaDelDiaCerradaException
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.model.Jornada
@@ -10,6 +11,8 @@ import pe.ecolecta.domain.repository.JornadaRepository
 
 /**
  * Una jornada abierta por usuario y día (§20): si ya existe una para hoy, se retoma en vez de crear otra.
+ * Si la de hoy ya está cerrada no se retoma ni se reabre: falla con [JornadaDelDiaCerradaException] —
+ * devolverla como éxito dejaba una jornada cerrada como "en curso" y la UI sin forma de continuar.
  * Una zona solo admite una jornada abierta a la vez: es la asignación explícita acopiador↔zona que permite
  * al PROVEEDOR identificar sin ambigüedad a su acopiador (ver ZonaOcupadaException).
  */
@@ -20,7 +23,9 @@ class AbrirJornadaUseCase(
 ) {
     suspend operator fun invoke(usuarioId: String, zonaId: String, vehiculoId: String): Result<Jornada> = runCatching {
         val hoy = reloj.hoy()
-        val jornada = jornadaRepository.obtenerPorUsuarioYFecha(usuarioId, hoy) ?: run {
+        val existente = jornadaRepository.obtenerPorUsuarioYFecha(usuarioId, hoy)
+        if (existente != null && !existente.estaAbierta) throw JornadaDelDiaCerradaException(existente.id)
+        val jornada = existente ?: run {
             val nueva = Jornada(
                 id = nuevoId(),
                 usuarioId = usuarioId,

@@ -171,8 +171,8 @@ fun ResumenJornadaScreen(viewModel: AcopiadorHomeViewModel = koinViewModel()) {
             title = { Text("¿Cerrar la jornada?") },
             text = {
                 Text(
-                    "Se finalizará tu jornada de hoy y se detendrá el seguimiento de ubicación. " +
-                        "Tus entregas y los pendientes por sincronizar no se pierden.",
+                    "Se finalizará tu jornada de hoy. Tus entregas, los \"sin recojo\" y los pendientes por " +
+                        "sincronizar no se pierden; después del cierre, cualquier corrección queda auditada.",
                 )
             },
             confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Cerrar jornada", color = Colores.peligro) } },

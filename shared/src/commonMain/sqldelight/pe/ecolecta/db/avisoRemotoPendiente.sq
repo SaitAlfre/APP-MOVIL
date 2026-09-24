@@ -1,7 +1,5 @@
--- Aviso de "detener seguimiento" o "cerrar jornada" que no se pudo publicar en Firestore (sin conexión
--- o falla de red). Se reintenta cuando la app vuelva a ejecutarse y tenga conexión (§ Grupo 5, punto 1).
--- Una sola fila por usuario: un aviso más nuevo siempre reemplaza al pendiente (cerrar jornada ya incluye
--- el efecto de detener seguimiento, así que nunca hace falta encadenar dos filas).
+-- OBSOLETA: pertenecía al seguimiento GPS ("Mi ruta"), retirado y reemplazado por la lista de acopio.
+-- La tabla se conserva sin consultas para no borrar datos de dispositivos ya instalados.
 CREATE TABLE aviso_remoto_pendiente (
     usuario_id TEXT NOT NULL PRIMARY KEY,
     zona_id TEXT NOT NULL,
@@ -11,13 +9,3 @@ CREATE TABLE aviso_remoto_pendiente (
     jornada_abierta INTEGER,
     creado_en INTEGER NOT NULL
 );
-
-guardar:
-INSERT OR REPLACE INTO aviso_remoto_pendiente(usuario_id, zona_id, jornada_id, jornada_abierta_en, secuencia_en, jornada_abierta, creado_en)
-VALUES (:usuario_id, :zona_id, :jornada_id, :jornada_abierta_en, :secuencia_en, :jornada_abierta, :creado_en);
-
-selectPorUsuario:
-SELECT * FROM aviso_remoto_pendiente WHERE usuario_id = :usuario_id;
-
-eliminar:
-DELETE FROM aviso_remoto_pendiente WHERE usuario_id = :usuario_id;

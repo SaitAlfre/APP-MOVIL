@@ -21,6 +21,9 @@ class PortalProveedorViewModelTest {
     private val entregas = FakeEntregaRepository()
     private val solicitudes = MutableStateFlow(emptyList<SolicitudProveedor>())
     private var fallo = false
+    private val recibidos = FakeRegistroRecibidoRepository()
+    private val remoto = FakeRegistroAcopioRemoto()
+    private var remotoForzado: RegistroAcopioRemotoRepository? = null
     private val portal = object : PortalProveedorRepository {
         // Devuelve deliberadamente todas las filas para comprobar defensa por propiedad en la presentación.
         override fun solicitudes(proveedorId: String) = solicitudes
@@ -55,13 +58,8 @@ class PortalProveedorViewModelTest {
             override suspend fun desactivar(id: String) = Unit
             override suspend fun contarProveedoresEnZona(id: String) = 0L
         }
-        val rutas = object : RutaProveedorCacheRepository {
-            override suspend fun guardar(usuarioId: String, ubicacion: UbicacionAcopiador) = Unit
-            override suspend fun obtener(usuarioId: String): UbicacionAcopiador? = null
-            override suspend fun eliminar(usuarioId: String) = Unit
-        }
         return PortalProveedorViewModel(sesiones, ObtenerPerfilProveedorUseCase(proveedores), entregas, calidad, zonas,
-            FakeUsuarioRepository(), rutas, portal, FakeReloj()).also { store.put("portal", it) }
+            FakeUsuarioRepository(), portal, FakeReloj(), FakeSinRecojoRepository(), recibidos, remotoForzado ?: remoto).also { store.put("portal", it) }
     }
 
     @Test fun usuarioSinProveedorTerminaCargaConError() = runTest(dispatcher) {
@@ -139,5 +137,63 @@ class PortalProveedorViewModelTest {
         advanceUntilIdle()
         assertEquals(1, solicitudes.value.size)
         assertNotNull(vm.state.value.error)
+    }
+
+    // ---- Lista de acopio compartida ("Mi ciclo") ----
+
+    private fun doc(id: String, codigo: String, litros: Double, tipo: pe.ecolecta.domain.acopio.TipoRegistroCompartido = pe.ecolecta.domain.acopio.TipoRegistroCompartido.ENTREGA) =
+        pe.ecolecta.domain.acopio.RegistroAcopioCompartido(
+            id = id, tipo = tipo, proveedorCodigo = codigo, zonaId = "z1", jornadaId = "j", acopiadorId = "acop-remoto",
+            acopiadorNombre = "Juan Pérez", fecha = "2023-11-14", registradoEn = FakeReloj().ahora().toEpochMilliseconds(),
+            litros = litros, tachos = 1, actualizadoEn = 1,
+        )
+
+    @Test fun recibeLoSincronizadoYNuncaDatosDeOtroProveedor() = runTest(dispatcher) {
+        // Servidor "mal configurado" que devolviera documentos ajenos: el portal los descarta igual.
+        val todos = listOf(doc("r1", "P1", 12.5), doc("r2", "P2", 80.0), doc("r3", "P3", 7.0))
+        remotoForzado = object : RegistroAcopioRemotoRepository {
+            override val configurado = true
+            override suspend fun publicar(registro: pe.ecolecta.domain.acopio.RegistroAcopioCompartido) = Result.success(Unit)
+            override fun observarDeProveedor(proveedorCodigo: String) = flowOf(EventoRegistrosRemotos.Recibidos(todos))
+        }
+        val vm = crear()
+        advanceUntilIdle()
+        val s = vm.state.value
+        assertEquals(pe.ecolecta.presentation.proveedor.ConexionPortal.EN_LINEA, s.conexion)
+        assertEquals(setOf("e1", "r1"), s.recojos.map { it.id }.toSet(), "su entrega local y la recibida; nunca r2/r3")
+        assertTrue(s.entregas.none { it.id == "r2" || it.id == "r3" })
+        assertEquals(12.5, s.diaHoy!!.totalLitros)
+        assertEquals(pe.ecolecta.domain.acopio.EstadoSincronizacion.SINCRONIZADO, s.diaHoy!!.sincronizacion)
+        assertEquals(setOf("P1"), recibidos.filas.value.values.map { it.first.proveedorCodigo }.toSet(), "la copia local solo guarda lo propio")
+        assertEquals("Juan Pérez", s.usuarios["acop-remoto"])
+    }
+
+    @Test fun sinConexionMuestraEstadoHonestoYLoUltimoRecibido() = runTest(dispatcher) {
+        recibidos.guardar(listOf(doc("r1", "P1", 9.0)), recibidoEn = 5)
+        remoto.enLinea.value = false
+        val vm = crear()
+        advanceUntilIdle()
+        assertEquals(pe.ecolecta.presentation.proveedor.ConexionPortal.SIN_CONEXION, vm.state.value.conexion)
+        assertEquals(9.0, vm.state.value.diaHoy!!.totalLitros, "se muestra la última copia recibida")
+        assertEquals(5L, vm.state.value.ultimaRecepcion)
+    }
+
+    @Test fun unaEntregaLocalPendienteNoSePresentaComoConfirmada() = runTest(dispatcher) {
+        remotoForzado = FakeRegistroAcopioRemoto(configurado = false)
+        entregas.sembrar(Entrega.crear("local", "j", "p1", "a", "z1", "v", 20.0, 1, null, FakeReloj().ahora().toEpochMilliseconds(), "d", null).getOrThrow())
+        val vm = crear()
+        advanceUntilIdle()
+        val dia = vm.state.value.diaHoy!!
+        assertEquals(pe.ecolecta.domain.acopio.EstadoSincronizacion.EN_ESTE_CELULAR, dia.sincronizacion)
+        assertTrue(pe.ecolecta.presentation.proveedor.textoDiaProveedor(dia).startsWith("Por confirmar"))
+        assertEquals(pe.ecolecta.presentation.proveedor.ConexionPortal.NO_CONFIGURADA, vm.state.value.conexion)
+    }
+
+    @Test fun elCicloDelProveedorTieneLasMismasSeisFechasQueElAcopiador() = runTest(dispatcher) {
+        val vm = crear()
+        advanceUntilIdle()
+        val s = vm.state.value
+        assertEquals(pe.ecolecta.domain.acopio.cicloAcopioDe(s.hoy, "cualquiera").dias, s.diasCiclo.map { it.fecha })
+        assertEquals(6, s.diasCiclo.size)
     }
 }

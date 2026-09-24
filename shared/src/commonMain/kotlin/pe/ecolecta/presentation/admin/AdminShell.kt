@@ -1,5 +1,6 @@
 package pe.ecolecta.presentation.admin
 
+import pe.ecolecta.presentation.design.entradaPantalla
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,7 +78,7 @@ fun AdminShell(
     CalidadBackHandler(pantalla != Pantalla.AdminDashboard) { volver() }
 
     Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
-        Box(Modifier.weight(1f).fillMaxWidth().statusBarsPadding()) {
+        Box(Modifier.weight(1f).fillMaxWidth().statusBarsPadding().entradaPantalla(pantalla)) {
             // Cada pantalla recibe su propio ViewModelStoreOwner: al navegar a otra, el anterior se
             // limpia, así los ViewModels de admin no se acumulan durante la sesión (§rendimiento).
             ConAlcancePorPantalla(pantalla) {
@@ -117,7 +118,6 @@ private fun ContenidoAdmin(
             alEntrega = { navegar(Pantalla.AdminEntregaDetalle(it, pantalla.id)) },
         )
         Pantalla.AdminProveedores -> ProveedoresScreen(
-            alCrear = { navegar(Pantalla.AdminProveedorForm()) },
             alEditar = { navegar(Pantalla.AdminProveedorDetalle(it)) },
             alVolver = volver,
         )

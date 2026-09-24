@@ -44,6 +44,13 @@ fun AdminCalidadScreen(proveedorId: String?, alVolver: () -> Unit, vm: AdminSupe
             }
             else -> {
                 if (proveedorId != null) item { Text("Proveedor: ${datos.proveedores.find { it.id == proveedorId }?.nombres ?: "No disponible"}", style = MaterialTheme.typography.titleMedium) }
+                item {
+                    pe.ecolecta.presentation.admin.design.AdminTexto(
+                        "Administración consulta los análisis que registra el técnico; no los recalifica. " +
+                            "El resultado y las alertas son los que se guardaron al registrar el análisis.",
+                        12, AdminColor.gris,
+                    )
+                }
                 item { CampoTexto(busqueda, { busqueda = it }, "Proveedor, código o técnico") }
                 item { CampoTexto(fecha, { fecha = it }, "Fecha (dd/mm/aaaa)", ayuda = "Déjala vacía para ver todas las fechas") }
                 item {

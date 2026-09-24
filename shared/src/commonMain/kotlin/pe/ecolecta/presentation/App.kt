@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -24,9 +25,10 @@ import pe.ecolecta.domain.model.Rol
 import pe.ecolecta.domain.model.Sesion
 import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
-import pe.ecolecta.domain.usecase.jornada.ReanudarJornadaSiExisteUseCase
+import pe.ecolecta.domain.usecase.jornada.InicioAcopiador
+import pe.ecolecta.domain.usecase.jornada.ResolverInicioAcopiadorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
-import pe.ecolecta.domain.usecase.seguimiento.ReintentarAvisoPendienteUseCase
+import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
 import pe.ecolecta.presentation.acopiador.AcopiadorShell
 import pe.ecolecta.presentation.acopiador.onboarding.SeleccionZonaVehiculoScreen
 import pe.ecolecta.presentation.admin.AdminShell
@@ -35,8 +37,11 @@ import pe.ecolecta.presentation.auth.SeleccionRolScreen
 import pe.ecolecta.presentation.calidad.CalidadShell
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EcolectaTheme
+import pe.ecolecta.presentation.design.EscenarioAnimado
 import pe.ecolecta.presentation.navegacion.Pantalla
 import pe.ecolecta.presentation.proveedor.ProveedorShell
+
+private const val INTERVALO_SINCRONIZACION_MS = 30_000L
 
 /** Nunca coincide con un usuario.id real (son UUID) — marca "sin sesión activa". */
 private const val CLAVE_SIN_SESION = "sin-sesion"
@@ -47,6 +52,16 @@ private const val CLAVE_SIN_SESION = "sin-sesion"
  * infraestructura de test de Compose, que este repo no tiene.
  */
 internal fun claveSesionDe(sesion: Sesion?): String = sesion?.usuario?.id ?: CLAVE_SIN_SESION
+
+/**
+ * Pantalla con la que arranca el ACOPIADOR. Una jornada abierta o ya terminada hoy van al inicio
+ * (que muestra la activa o el resumen de la terminada); sin jornada, a la selección, que explica
+ * por sí misma el caso "sin zonas activas". `internal` para probarla sin Compose.
+ */
+internal fun pantallaInicialAcopiador(inicio: InicioAcopiador): Pantalla = when (inicio) {
+    is InicioAcopiador.JornadaAbierta, is InicioAcopiador.JornadaTerminadaHoy -> Pantalla.AcopiadorHome
+    InicioAcopiador.SinZonaActiva, InicioAcopiador.SeleccionarZonaVehiculo -> Pantalla.AcopiadorSeleccionZonaVehiculo
+}
 
 /**
  * `koinViewModel()` resuelve cada ViewModel contra el [ViewModelStoreOwner] más cercano en la
@@ -84,10 +99,20 @@ fun App() {
         var claveSesion by remember { mutableStateOf(CLAVE_SIN_SESION) }
         val obtenerSesionUseCase = koinInject<ObtenerSesionUseCase>()
         val cerrarSesionUseCase = koinInject<CerrarSesionUseCase>()
-        val reanudarJornadaSiExisteUseCase = koinInject<ReanudarJornadaSiExisteUseCase>()
+        val resolverInicioAcopiadorUseCase = koinInject<ResolverInicioAcopiadorUseCase>()
         val obtenerPerfilProveedorUseCase = koinInject<ObtenerPerfilProveedorUseCase>()
-        val reintentarAvisoPendienteUseCase = koinInject<ReintentarAvisoPendienteUseCase>()
+        val sincronizarRegistros = koinInject<SincronizarRegistrosAcopioUseCase>()
         val scope = rememberCoroutineScope()
+
+        // Envía entregas y "sin recojo" pendientes de ESTE celular mientras la app está abierta, con o
+        // sin sesión (lo guardado no debe quedarse atascado por cerrar sesión). Sin backend configurado
+        // no hace nada. Cada documento usa el id del registro: reintentar nunca duplica.
+        LaunchedEffect(Unit) {
+            while (true) {
+                runCatching { sincronizarRegistros() }
+                delay(INTERVALO_SINCRONIZACION_MS)
+            }
+        }
 
         LaunchedEffect(Unit) {
             obtenerSesionUseCase().collectLatest { sesion ->
@@ -96,11 +121,7 @@ fun App() {
                     sesion == null -> pantalla = Pantalla.Login
                     sesion.rolActivo == Rol.ADMIN -> pantalla = Pantalla.AdminDashboard
                     sesion.rolActivo == Rol.ACOPIADOR -> {
-                        // Aviso de "detener"/"cerrar" que no se pudo publicar la última vez: se
-                        // reintenta al reanudar la app (§ Grupo 5, punto 1). No bloquea la navegación.
-                        launch { reintentarAvisoPendienteUseCase(sesion.usuario.id) }
-                        val jornada = reanudarJornadaSiExisteUseCase(sesion.usuario.id)
-                        pantalla = if (jornada != null) Pantalla.AcopiadorHome else Pantalla.AcopiadorSeleccionZonaVehiculo
+                        pantalla = pantallaInicialAcopiador(resolverInicioAcopiadorUseCase(sesion.usuario.id))
                     }
                     sesion.rolActivo == Rol.PROVEEDOR -> {
                         val proveedor = obtenerPerfilProveedorUseCase(sesion.usuario.id)
@@ -119,7 +140,7 @@ fun App() {
         val sesionViewModelStoreOwner = rememberSesionViewModelStoreOwner(claveSesion)
         CompositionLocalProvider(LocalViewModelStoreOwner provides sesionViewModelStoreOwner) {
             key(claveSesion) {
-                Box(Modifier.fillMaxSize().background(Colores.bgBase)) {
+                Box(Modifier.fillMaxSize().background(Colores.bgBase)) { EscenarioAnimado(pantalla) {
                     when (val actual = pantalla) {
                         Pantalla.Splash -> SplashScreen()
                         Pantalla.Login -> LoginScreen(
@@ -147,7 +168,7 @@ fun App() {
                         Pantalla.ProveedorHome,
                         Pantalla.ProveedorEntregas,
                         is Pantalla.ProveedorEntregaDetalle,
-                        Pantalla.ProveedorMiRuta,
+                        Pantalla.ProveedorMiCiclo,
                         Pantalla.ProveedorMiQr,
                         Pantalla.ProveedorPerfil,
                         Pantalla.ProveedorCalidad,
@@ -169,7 +190,7 @@ fun App() {
                             onCerrarSesion = ::cerrarSesion,
                         )
                     }
-                }
+                } }
             }
         }
     }

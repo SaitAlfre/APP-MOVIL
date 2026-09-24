@@ -51,7 +51,6 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.play.services.location)
             implementation(libs.androidx.activity.compose)
             implementation(libs.mlkit.text.recognition)
             // Firebase (GitLive) solo aquí: nunca en commonMain/iosMain, para no requerir Xcode
@@ -87,6 +86,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
         }
+        // Pruebas de persistencia/migración con SQLite real en la JVM (sin emulador).
+        getByName("androidHostTest").dependencies {
+            implementation(libs.sqldelight.sqlite.driver)
+        }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
             implementation(libs.ktor.client.darwin)
@@ -104,4 +107,9 @@ sqldelight {
             packageName.set("pe.ecolecta.data.local.db")
         }
     }
+}
+
+// Recursos visuales compartidos (tipografía Inter del panel web).
+compose.resources {
+    packageOfResClass = "pe.ecolecta.shared.resources"
 }

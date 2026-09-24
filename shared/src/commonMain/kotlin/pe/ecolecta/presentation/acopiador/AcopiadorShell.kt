@@ -1,5 +1,6 @@
 package pe.ecolecta.presentation.acopiador
 
+import pe.ecolecta.presentation.design.entradaPantalla
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -33,12 +34,12 @@ fun AcopiadorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
     when (pantalla) {
         is Pantalla.AcopiadorRegistroEntrega -> PantallaApilada(
             titulo = "Registrar entrega",
-            alVolver = { onCambiarPantalla(Pantalla.AcopiadorHome) },
+            alVolver = { onCambiarPantalla(if (pantalla.volverALista) Pantalla.AcopiadorLista else Pantalla.AcopiadorHome) },
             pendientesSync = pendientesSync,
         ) {
             RegistroEntregaScreen(
                 proveedorIdPreseleccionado = pantalla.proveedorId,
-                alGuardar = { onCambiarPantalla(Pantalla.AcopiadorHome) },
+                alGuardar = { onCambiarPantalla(if (pantalla.volverALista) Pantalla.AcopiadorLista else Pantalla.AcopiadorHome) },
                 alEscanearQr = { onCambiarPantalla(Pantalla.AcopiadorEscanearQr) },
             )
         }
@@ -79,7 +80,7 @@ private fun PantallaApilada(titulo: String, alVolver: () -> Unit, pendientesSync
             )
         },
     ) { padding ->
-        Box(Modifier.padding(padding)) { contenido() }
+        Box(Modifier.padding(padding).entradaPantalla(titulo)) { contenido() }
     }
 }
 
@@ -112,11 +113,11 @@ private fun PantallaConPestanas(pantalla: Pantalla, onCambiarPantalla: (Pantalla
             )
         },
     ) { padding ->
-        Box(Modifier.padding(padding)) {
+        Box(Modifier.padding(padding).entradaPantalla(pantalla)) {
             when (pantalla) {
                 Pantalla.AcopiadorLista -> ListaProveedoresScreen(
                     alRegistrarEntrega = { proveedorId ->
-                        onCambiarPantalla(Pantalla.AcopiadorRegistroEntrega(proveedorId))
+                        onCambiarPantalla(Pantalla.AcopiadorRegistroEntrega(proveedorId, volverALista = true))
                     },
                     pendientesSync = pendientesSync,
                 )

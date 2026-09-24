@@ -12,14 +12,13 @@ import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.model.Zona
 import pe.ecolecta.domain.usecase.proveedor.ActualizarProveedorUseCase
-import pe.ecolecta.domain.usecase.proveedor.CrearProveedorUseCase
 import pe.ecolecta.domain.usecase.proveedor.ObtenerProveedorUseCase
 import pe.ecolecta.domain.usecase.usuario.ListarUsuariosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
 import pe.ecolecta.presentation.cargaSegura
 
+/** Edición de una ficha existente; el alta se hace junto con su cuenta en Usuarios y roles. */
 data class ProveedorFormUiState(
-    val esEdicion: Boolean = false,
     val codigo: String = "",
     val nombres: String = "",
     val dueno: String = "",
@@ -50,14 +49,13 @@ data class ProveedorFormUiState(
 }
 
 class ProveedorFormViewModel(
-    private val id: String?,
+    private val id: String,
     private val obtenerProveedor: ObtenerProveedorUseCase,
-    private val crearProveedor: CrearProveedorUseCase,
     private val actualizarProveedor: ActualizarProveedorUseCase,
     private val listarZonas: ListarZonasUseCase,
     private val listarUsuarios: ListarUsuariosUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(ProveedorFormUiState(esEdicion = id != null))
+    private val _uiState = MutableStateFlow(ProveedorFormUiState())
     val uiState: StateFlow<ProveedorFormUiState> = _uiState.asStateFlow()
     private var usuarioVinculado: String? = null
     private var usuarios: List<Usuario> = emptyList()
@@ -77,7 +75,7 @@ class ProveedorFormViewModel(
                 }
             }
         }
-        if (id != null) viewModelScope.launch {
+        viewModelScope.launch {
             cargaSegura { obtenerProveedor(id) }.onSuccess { p ->
                 if (p == null) return@onSuccess
                 usuarioVinculado = p.usuarioId
@@ -112,11 +110,9 @@ class ProveedorFormViewModel(
         val capacidad = s.capacidadTachoL.replace(',', '.').toDouble()
         _uiState.update { it.copy(guardando = true, error = null) }
         viewModelScope.launch {
-            val r = if (id == null) {
-                crearProveedor(s.codigo, s.nombres, s.dni, s.telefono.ifBlank { null }, s.direccion.ifBlank { null }, s.zonaId, tachos, capacidad, s.dueno).map { }
-            } else {
-                actualizarProveedor(id, s.codigo, s.nombres, s.dni, s.telefono.ifBlank { null }, s.direccion.ifBlank { null }, s.zonaId, tachos, capacidad, s.estado, s.dueno)
-            }
+            val r = actualizarProveedor(
+                id, s.codigo, s.nombres, s.dni, s.telefono.ifBlank { null }, s.direccion.ifBlank { null }, s.zonaId, tachos, capacidad, s.estado, s.dueno,
+            )
             _uiState.update { it.copy(guardando = false, guardado = r.isSuccess, error = r.exceptionOrNull()?.message) }
         }
     }

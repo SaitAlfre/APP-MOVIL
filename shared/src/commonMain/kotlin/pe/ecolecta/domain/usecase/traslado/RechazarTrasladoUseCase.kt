@@ -16,6 +16,7 @@ class RechazarTrasladoUseCase(
     private val deviceIdProvider: DeviceIdProvider,
 ) {
     suspend operator fun invoke(trasladoId: String, rechazadoPor: String, motivo: String): Result<Unit> {
+        if (motivo.isBlank()) return Result.failure(TrasladoInvalidoException.MotivoObligatorio)
         val traslado = trasladoRepository.obtenerPorId(trasladoId)
             ?: return Result.failure(IllegalStateException("Traslado no encontrado"))
         if (traslado.estado != EstadoTraslado.PENDIENTE) return Result.failure(TrasladoInvalidoException.NoPendiente)

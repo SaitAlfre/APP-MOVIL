@@ -1,0 +1,46 @@
+-- Última copia de los registros compartidos (entregas / sin recojo) recibida del servidor en el
+-- celular del PROVEEDOR, para mostrarla sin conexión. Siempre se consulta filtrando por el código del
+-- proveedor de la sesión: nunca se listan registros de otros proveedores.
+CREATE TABLE registro_recibido (
+    id TEXT NOT NULL PRIMARY KEY,
+    tipo TEXT NOT NULL,
+    proveedor_codigo TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    jornada_id TEXT NOT NULL,
+    acopiador_id TEXT NOT NULL,
+    acopiador_nombre TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    registrado_en INTEGER NOT NULL,
+    litros REAL,
+    tachos INTEGER,
+    anulada INTEGER NOT NULL DEFAULT 0,
+    motivo TEXT,
+    detalle TEXT,
+    deshecha INTEGER NOT NULL DEFAULT 0,
+    actualizado_en INTEGER NOT NULL,
+    recibido_en INTEGER NOT NULL
+);
+
+CREATE INDEX registro_recibido_codigo_idx ON registro_recibido(proveedor_codigo);
+
+-- "Upsert" compatible con el SQLite de Android 7+ (sin ON CONFLICT DO UPDATE): insertarSiFalta y luego
+-- actualizar, en una transacción. Un documento que vuelve a llegar reemplaza su copia, nunca se
+-- duplica, y una copia más vieja (actualizado_en menor) no pisa a una más nueva.
+insertarSiFalta:
+INSERT OR IGNORE INTO registro_recibido(id, tipo, proveedor_codigo, zona_id, jornada_id, acopiador_id, acopiador_nombre, fecha,
+    registrado_en, litros, tachos, anulada, motivo, detalle, deshecha, actualizado_en, recibido_en)
+VALUES (:id, :tipo, :proveedor_codigo, :zona_id, :jornada_id, :acopiador_id, :acopiador_nombre, :fecha,
+    :registrado_en, :litros, :tachos, :anulada, :motivo, :detalle, :deshecha, :actualizado_en, :recibido_en);
+
+actualizar:
+UPDATE registro_recibido SET tipo = :tipo, proveedor_codigo = :proveedor_codigo, zona_id = :zona_id,
+    jornada_id = :jornada_id, acopiador_id = :acopiador_id, acopiador_nombre = :acopiador_nombre, fecha = :fecha,
+    registrado_en = :registrado_en, litros = :litros, tachos = :tachos, anulada = :anulada, motivo = :motivo,
+    detalle = :detalle, deshecha = :deshecha, actualizado_en = :actualizado_en, recibido_en = :recibido_en
+WHERE id = :id AND actualizado_en <= :actualizado_en;
+
+selectPorCodigo:
+SELECT * FROM registro_recibido WHERE proveedor_codigo = :proveedor_codigo ORDER BY registrado_en DESC;
+
+ultimaRecepcion:
+SELECT MAX(recibido_en) AS ultima FROM registro_recibido WHERE proveedor_codigo = :proveedor_codigo;

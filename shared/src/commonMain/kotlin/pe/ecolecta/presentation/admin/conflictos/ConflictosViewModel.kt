@@ -24,7 +24,6 @@ class ConflictosViewModel(
     val uiState: StateFlow<ConflictosUiState> = _uiState.asStateFlow()
 
     private var usuarioActualId: String? = null
-    private var resolviendo = false
 
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
@@ -39,21 +38,37 @@ class ConflictosViewModel(
         }
     }
 
-    fun resolver(entregaId: String, origen: OrigenValorConflicto, motivo: String) {
+    fun pedirMotivo(entregaId: String, origen: OrigenValorConflicto) {
+        if (_uiState.value.procesando) return
+        _uiState.update { it.copy(resolucion = entregaId to origen, errorDialogo = null, mensaje = null) }
+    }
+
+    fun cancelar() {
+        if (!_uiState.value.procesando) _uiState.update { it.copy(resolucion = null, errorDialogo = null) }
+    }
+
+    fun limpiarMensaje() = _uiState.update { it.copy(mensaje = null) }
+
+    fun resolver(motivo: String) {
+        val (entregaId, origen) = _uiState.value.resolucion ?: return
         val usuarioId = usuarioActualId ?: run {
-            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            _uiState.update { it.copy(errorDialogo = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
             return
         }
-        if (resolviendo) return
-        resolviendo = true
+        if (_uiState.value.procesando) return
+        _uiState.update { it.copy(procesando = true, errorDialogo = null) }
         viewModelScope.launch {
-            cargaSegura { resolverConflictoUseCase(entregaId, origen, motivo, usuarioId) }.fold(
-                onSuccess = { resultado ->
-                    resultado.onFailure { error -> _uiState.update { it.copy(error = error.message ?: "No se pudo resolver el conflicto.") } }
+            val resultado = cargaSegura { resolverConflictoUseCase(entregaId, origen, motivo, usuarioId).getOrThrow() }
+            resultado.fold(
+                onSuccess = {
+                    val texto = when (origen) {
+                        OrigenValorConflicto.LOCAL -> "Se conservó el valor del teléfono. La entrega quedó pendiente de envío para reemplazar el del servidor."
+                        OrigenValorConflicto.SERVIDOR -> "Se aplicó el valor del servidor. La entrega quedó sincronizada."
+                    }
+                    _uiState.update { it.copy(procesando = false, resolucion = null, mensaje = "$texto Quedó registrado en Auditoría.") }
                 },
-                onFailure = { e -> _uiState.update { it.copy(error = e.message ?: "No se pudo resolver el conflicto.") } },
+                onFailure = { e -> _uiState.update { it.copy(procesando = false, errorDialogo = e.message ?: "No se pudo resolver el conflicto.") } },
             )
-            resolviendo = false
         }
     }
 }

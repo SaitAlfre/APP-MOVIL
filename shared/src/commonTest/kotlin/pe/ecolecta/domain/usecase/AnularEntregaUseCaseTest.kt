@@ -4,11 +4,13 @@ import kotlinx.coroutines.test.runTest
 import pe.ecolecta.domain.EntregaInvalidaException
 import pe.ecolecta.domain.fake.FakeAuditoriaRepository
 import pe.ecolecta.domain.fake.FakeDeviceIdProvider
+import pe.ecolecta.domain.fake.FakeGestionPortalRepository
 import pe.ecolecta.domain.fake.FakeEntregaRepository
 import pe.ecolecta.domain.fake.FakeReloj
 import pe.ecolecta.domain.model.AccionAuditoria
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.usecase.entrega.AnularEntregaUseCase
+import pe.ecolecta.domain.usecase.entrega.ReglaEdicionEntrega
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -17,7 +19,7 @@ import kotlin.test.assertTrue
 class AnularEntregaUseCaseTest {
     private val auditoriaRepository = FakeAuditoriaRepository()
     private val entregaRepository = FakeEntregaRepository(auditoriaRepository)
-    private val useCase = AnularEntregaUseCase(entregaRepository, FakeReloj(), FakeDeviceIdProvider())
+    private val useCase = AnularEntregaUseCase(entregaRepository, FakeReloj(), FakeDeviceIdProvider(), ReglaEdicionEntrega(FakeGestionPortalRepository()))
 
     private suspend fun sembrarEntrega(): Entrega {
         val entrega = Entrega.crear(

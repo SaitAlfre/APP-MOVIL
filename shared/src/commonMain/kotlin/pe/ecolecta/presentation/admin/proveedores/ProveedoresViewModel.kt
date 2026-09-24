@@ -27,7 +27,8 @@ data class ProveedoresUiState(
     val zonas: List<Zona> = emptyList(),
     val texto: String = "",
     val zonaId: String? = null,
-    val estado: EstadoProveedor? = EstadoProveedor.ACTIVO,
+    /** Empieza en "Todos": filtrar Activo de entrada ocultaba suspendidos y retirados sin que se notara. */
+    val estado: EstadoProveedor? = null,
     val sinCuenta: Boolean = false,
     val error: String? = null,
 ) {
@@ -38,6 +39,14 @@ data class ProveedoresUiState(
             (estado == null || p.estado == estado) &&
             (!sinCuenta || f.cuenta == null)
     }
+
+    /** Filtros aplicados en palabras, para que un resultado vacío explique por qué lo está. */
+    val resumenFiltros: String get() = listOfNotNull(
+        texto.trim().takeIf { it.isNotEmpty() }?.let { "búsqueda «$it»" },
+        zonaId?.let { id -> zonas.firstOrNull { it.id == id }?.nombre ?: "zona elegida" },
+        estado?.etiqueta(),
+        "sin cuenta".takeIf { sinCuenta },
+    ).joinToString(", ").ifEmpty { "ninguno" }
 }
 
 class ProveedoresViewModel(

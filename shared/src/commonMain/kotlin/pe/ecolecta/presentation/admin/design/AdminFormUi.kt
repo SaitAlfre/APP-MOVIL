@@ -1,5 +1,13 @@
 package pe.ecolecta.presentation.admin.design
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import pe.ecolecta.presentation.design.CurvaLumen
+import pe.ecolecta.presentation.design.efectoPresion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,24 +45,32 @@ import androidx.compose.ui.unit.sp
 /** Chip de filtro con contador opcional (Alertas, Usuarios, Jornadas…). */
 @Composable
 fun AdminChip(texto: String, activo: Boolean, color: Color = AdminColor.verdeOscuro, cantidad: Int? = null, onClick: () -> Unit) {
+    val curva = tween<Color>(220, easing = CurvaLumen)
+    val fondo by animateColorAsState(if (activo) color else AdminColor.blanco, curva, label = "chipFondo")
+    val tinta by animateColorAsState(if (activo) AdminColor.blanco else AdminColor.texto, curva, label = "chipTexto")
+    val interaccion = remember { MutableInteractionSource() }
     Row(
-        Modifier.clip(RoundedCornerShape(20.dp)).background(if (activo) color else AdminColor.blanco)
-            .clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp),
+        Modifier.efectoPresion(interaccion, 0.95f).clip(RoundedCornerShape(50)).background(fondo)
+            .border(1.dp, if (activo) color else BordeCampo, RoundedCornerShape(50))
+            .clickable(interactionSource = interaccion, indication = ripple(), onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        AdminTexto(texto, 13, if (activo) AdminColor.blanco else AdminColor.texto, FontWeight.SemiBold, maxLineas = 1)
-        cantidad?.let { AdminTexto(it.toString(), 12, if (activo) AdminColor.blanco.copy(alpha = 0.8f) else AdminColor.gris, FontWeight.Bold) }
+        AdminTexto(texto, 12, tinta, FontWeight.SemiBold, maxLineas = 1)
+        cantidad?.let { AdminTexto(it.toString(), 11, if (activo) AdminColor.lima else AdminColor.gris, FontWeight.Bold) }
     }
 }
+
+/** Borde de campos de la web (`--eh-border-strong`). */
+private val BordeCampo = Color(0x2617231E)
 
 @Composable
 private fun coloresCampo(fondo: Color) = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = fondo, focusedContainerColor = AdminColor.blanco,
     disabledContainerColor = AdminColor.grisSuave, disabledTextColor = AdminColor.gris,
-    unfocusedBorderColor = AdminColor.borde, focusedBorderColor = AdminColor.verde, disabledBorderColor = AdminColor.borde,
+    unfocusedBorderColor = BordeCampo, focusedBorderColor = AdminColor.salvia, disabledBorderColor = AdminColor.borde,
     focusedTextColor = AdminColor.texto, unfocusedTextColor = AdminColor.texto,
-    focusedLeadingIconColor = AdminColor.verde, unfocusedLeadingIconColor = AdminColor.gris,
+    focusedLeadingIconColor = AdminColor.salvia, cursorColor = AdminColor.salvia, unfocusedLeadingIconColor = AdminColor.gris,
 )
 
 /** Campo de texto del prototipo (.input-field): crema, borde suave y verde al enfocar. */
@@ -72,7 +88,7 @@ fun AdminCampo(
     icono: ImageVector? = null,
 ) {
     Column(modifier.fillMaxWidth()) {
-        AdminTexto(etiqueta, 13, AdminColor.texto, FontWeight.SemiBold, modifier = Modifier.padding(bottom = 6.dp))
+        AdminTexto(etiqueta, 12, AdminColor.texto, FontWeight.SemiBold, modifier = Modifier.padding(bottom = 6.dp))
         OutlinedTextField(
             value = valor,
             onValueChange = onCambio,
@@ -84,7 +100,7 @@ fun AdminCampo(
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(keyboardType = teclado),
             visualTransformation = if (esPin) PasswordVisualTransformation() else VisualTransformation.None,
-            colors = coloresCampo(AdminColor.crema),
+            colors = coloresCampo(AdminColor.blanco),
         )
         ayuda?.let { AdminTexto(it, 11, AdminColor.gris, modifier = Modifier.padding(top = 4.dp)) }
     }
@@ -131,9 +147,9 @@ fun AdminOpcion(
     habilitada: Boolean = true,
 ) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
             .background(if (seleccionada) color.copy(alpha = 0.08f) else AdminColor.blanco)
-            .border(1.5.dp, if (seleccionada) color else AdminColor.borde, RoundedCornerShape(12.dp))
+            .border(if (seleccionada) 1.5.dp else 1.dp, if (seleccionada) color else BordeCampo, RoundedCornerShape(14.dp))
             .clickable(enabled = habilitada, onClick = onClick).padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

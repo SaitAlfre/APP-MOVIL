@@ -17,13 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarViewWeek
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,7 +40,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
-import pe.ecolecta.presentation.acopiador.ciclo.CicloAcopio
+import pe.ecolecta.domain.acopio.CicloAcopio
+import pe.ecolecta.domain.acopio.DiaAcopio
+import pe.ecolecta.domain.acopio.EstadoRecojo
+import pe.ecolecta.domain.acopio.EstadoSincronizacion
+import pe.ecolecta.domain.acopio.FilaAcopio
+import pe.ecolecta.domain.acopio.MotivoSinRecojo
+import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.CampoBusqueda
 import pe.ecolecta.presentation.design.CampoTexto
 import pe.ecolecta.presentation.design.ChipEstado
@@ -55,7 +59,8 @@ import pe.ecolecta.presentation.design.EstadoVacio
 import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.PildoraPendientes
 import pe.ecolecta.presentation.design.Tarjeta
-import pe.ecolecta.presentation.design.formatearHora
+import pe.ecolecta.presentation.design.TipoBanner
+import pe.ecolecta.presentation.design.formatearHoraAcopio
 import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
@@ -72,181 +77,239 @@ fun ListaProveedoresScreen(
     }
 
     val ciclo = estado.ciclo
-    if (ciclo == null) {
+    val hoy = estado.hoy
+    if (ciclo == null || hoy == null) {
         EstadoVacio(
             titulo = "No tienes una jornada abierta",
-            descripcion = "Abre tu jornada para ver a los proveedores que te toca visitar hoy.",
+            descripcion = "Abre tu jornada para ver a los proveedores asignados a tu zona.",
         )
         return
     }
 
-    when (estado.modo) {
-        ModoLista.HOY -> VistaHoy(estado, ciclo, viewModel, alRegistrarEntrega, pendientesSync)
-        ModoLista.SEMANA -> VistaCiclo(estado, ciclo, viewModel)
+    var paraSinRecojo by remember { mutableStateOf<FilaAcopio?>(null) }
+
+    Column(Modifier.fillMaxSize()) {
+        EncabezadoSeccion(
+            "Lista de acopio",
+            subtitulo = ciclo.resumenCorto,
+            accion = { PildoraPendientes(pendientesSync) },
+        )
+        Column(
+            Modifier.padding(horizontal = Espaciado.l),
+            verticalArrangement = Arrangement.spacedBy(Espaciado.s),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                ChipSeleccionable("Hoy", estado.modo == ModoLista.HOY) { viewModel.cambiarModo(ModoLista.HOY) }
+                ChipSeleccionable("Ciclo (6 días)", estado.modo == ModoLista.CICLO) { viewModel.cambiarModo(ModoLista.CICLO) }
+            }
+            if (!estado.remotoConfigurado) {
+                Banner(
+                    "Este celular no tiene sincronización configurada: los registros quedan guardados solo aquí " +
+                        "y el proveedor no los verá en su celular.",
+                    TipoBanner.INFO,
+                )
+            }
+            if (!estado.jornadaAbierta) {
+                Banner("Tu jornada está cerrada. Para corregir, reábrela desde Jornada (queda auditado).", TipoBanner.ADVERTENCIA)
+            }
+            estado.error?.let { Banner(it, TipoBanner.ERROR) }
+        }
+
+        when (estado.modo) {
+            ModoLista.HOY -> VistaHoy(estado, ciclo, hoy, viewModel, alRegistrarEntrega) { paraSinRecojo = it }
+            ModoLista.CICLO -> VistaCiclo(estado, ciclo, viewModel)
+        }
+    }
+
+    paraSinRecojo?.let { fila ->
+        DialogoSinRecojo(
+            fila = fila,
+            ciclo = ciclo,
+            onConfirmar = { motivo, detalle ->
+                viewModel.marcarSinRecojo(fila.proveedor.id, motivo, detalle)
+                paraSinRecojo = null
+            },
+            onCancelar = { paraSinRecojo = null },
+        )
+    }
+
+    estado.detalle?.let { fila ->
+        DialogoDetalle(
+            fila = fila,
+            hoy = hoy,
+            ciclo = ciclo,
+            puedeRegistrar = estado.jornadaAbierta,
+            onRegistrarOtra = {
+                viewModel.cerrarDetalle()
+                alRegistrarEntrega(fila.proveedor.id)
+            },
+            onCerrar = viewModel::cerrarDetalle,
+        )
     }
 }
 
 // ---------------------------------------------------------------------------------------------
-// Hoy: a quién falta visitar
+// Hoy: la lista de trabajo del día
 // ---------------------------------------------------------------------------------------------
 
 @Composable
 private fun VistaHoy(
     estado: ListaProveedoresUiState,
     ciclo: CicloAcopio,
+    hoy: LocalDate,
     viewModel: ListaProveedoresViewModel,
     alRegistrarEntrega: (String) -> Unit,
-    pendientesSync: Int,
+    alMarcarSinRecojo: (FilaAcopio) -> Unit,
 ) {
-    var paraMarcarSinEntrega by remember { mutableStateOf<ProveedorDelDia?>(null) }
-
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
-            EncabezadoSeccion(
-                "Mis proveedores",
-                subtitulo = ciclo.resumenCorto,
-                accion = { PildoraPendientes(pendientesSync) },
-            )
-
-            Column(
-                Modifier.padding(horizontal = Espaciado.l),
-                verticalArrangement = Arrangement.spacedBy(Espaciado.s),
-            ) {
-                TarjetaCiclo(ciclo)
-
-                CampoBusqueda(estado.busqueda, viewModel::buscar, "Buscar proveedor o código")
-
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(Espaciado.xs),
-                ) {
-                    FiltroLista.entries.forEach { filtro ->
-                        ChipSeleccionable(filtro.etiqueta, estado.filtro == filtro) { viewModel.filtrar(filtro) }
-                    }
-                }
-
-                Text(estado.resumen, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
-            }
-
-            if (estado.visibles.isEmpty()) {
-                EstadoVacio(
-                    titulo = "Ningún proveedor coincide",
-                    descripcion = "Prueba con otro filtro o borra la búsqueda.",
-                )
-            } else {
-                LazyColumn(
-                    Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.xs),
-                    verticalArrangement = Arrangement.spacedBy(Espaciado.s),
-                    contentPadding = PaddingValues(bottom = 88.dp),
-                ) {
-                    items(estado.visibles, key = { it.proveedor.id }) { fila ->
-                        FilaProveedorDelDia(
-                            fila = fila,
-                            onClick = when (fila.estado) {
-                                EstadoProveedorDia.POR_REGISTRAR -> ({ alRegistrarEntrega(fila.proveedor.id) })
-                                EstadoProveedorDia.SIN_ENTREGA -> ({ viewModel.deshacerSinEntrega(fila.proveedor.id) })
-                                else -> null
-                            },
-                            onMarcarSinEntrega = { paraMarcarSinEntrega = fila },
-                        )
-                    }
-                }
-            }
-        }
-
-        FloatingActionButton(
-            onClick = { viewModel.cambiarModo(ModoLista.SEMANA) },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(Espaciado.l),
-            containerColor = Colores.brand,
-            contentColor = Colores.onBrand,
-            shape = MaterialTheme.shapes.medium,
+    Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs),
+            verticalArrangement = Arrangement.spacedBy(Espaciado.s),
         ) {
-            Icon(Icons.Filled.CalendarViewWeek, contentDescription = "Ver el registro del ciclo")
+            TarjetaCiclo(ciclo)
+            TarjetaAvance(estado)
+            CampoBusqueda(estado.busqueda, viewModel::buscar, "Buscar proveedor o código")
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(Espaciado.xs),
+            ) {
+                FiltroLista.entries.forEach { filtro ->
+                    ChipSeleccionable(filtro.etiqueta, estado.filtro == filtro) { viewModel.filtrar(filtro) }
+                }
+            }
         }
-    }
 
-    paraMarcarSinEntrega?.let { fila ->
-        DialogoSinEntrega(
-            fila = fila,
-            ciclo = ciclo,
-            onConfirmar = { motivo ->
-                viewModel.marcarSinEntrega(fila.proveedor.id, motivo)
-                paraMarcarSinEntrega = null
-            },
-            onCancelar = { paraMarcarSinEntrega = null },
-        )
+        if (estado.filas.isEmpty()) {
+            EstadoVacio(
+                titulo = "Sin proveedores asignados",
+                descripcion = "No hay proveedores activos asignados a la zona ${estado.zonaNombre}.",
+            )
+        } else if (estado.visibles.isEmpty()) {
+            EstadoVacio(titulo = "Ningún proveedor coincide", descripcion = "Prueba con otro filtro o borra la búsqueda.")
+        } else {
+            LazyColumn(
+                Modifier.fillMaxSize().padding(horizontal = Espaciado.l, vertical = Espaciado.xs),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.s),
+                contentPadding = PaddingValues(bottom = Espaciado.xl),
+            ) {
+                items(estado.visibles, key = { it.proveedor.id }) { fila ->
+                    FilaDeHoy(
+                        fila = fila,
+                        dia = fila.dia(hoy),
+                        jornadaAbierta = estado.jornadaAbierta,
+                        procesando = estado.procesando,
+                        onRegistrar = { alRegistrarEntrega(fila.proveedor.id) },
+                        onSinRecojo = { alMarcarSinRecojo(fila) },
+                        onDeshacer = { marcaId -> viewModel.deshacerSinRecojo(marcaId) },
+                        onDetalle = { viewModel.abrirDetalle(fila.proveedor.id) },
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun FilaProveedorDelDia(fila: ProveedorDelDia, onClick: (() -> Unit)?, onMarcarSinEntrega: () -> Unit) {
-    val entrega = fila.entrega
-    val detalle = when (fila.estado) {
-        EstadoProveedorDia.POR_REGISTRAR -> "Pendiente de entrega"
-        EstadoProveedorDia.REGISTRADO -> entrega?.let { "${it.tachos} tachos · ${formatearHora(it.registradoEn)}" }.orEmpty()
-        EstadoProveedorDia.POR_SINCRONIZAR -> entrega?.let { "Registrado localmente · ${formatearHora(it.registradoEn)}" }.orEmpty()
-        EstadoProveedorDia.SIN_ENTREGA -> listOfNotNull("Sin entrega", fila.motivoSinEntrega).joinToString(" · ")
+private fun TarjetaAvance(estado: ListaProveedoresUiState) {
+    val avance = estado.avance
+    Tarjeta {
+        Text("AVANCE DE HOY · ZONA ${estado.zonaNombre.uppercase()}", color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
+        Spacer(Modifier.height(Espaciado.xxs))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Cifra("${avance.asignados}", "Asignados", Colores.textPrimary)
+            Cifra("${avance.registrados}", "Registrados", Colores.exito)
+            Cifra("${avance.pendientes}", "Pendientes", Colores.info)
+            Cifra("${avance.sinRecojo}", "Sin recojo", Colores.advertencia)
+        }
+    }
+}
+
+@Composable
+private fun Cifra(valor: String, etiqueta: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(valor, color = color, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun FilaDeHoy(
+    fila: FilaAcopio,
+    dia: DiaAcopio?,
+    jornadaAbierta: Boolean,
+    procesando: Boolean,
+    onRegistrar: () -> Unit,
+    onSinRecojo: () -> Unit,
+    onDeshacer: (String) -> Unit,
+    onDetalle: () -> Unit,
+) {
+    val estadoRecojo = dia?.estado ?: EstadoRecojo.PENDIENTE
+    val detalle = when (estadoRecojo) {
+        EstadoRecojo.PENDIENTE -> "Pendiente · todavía no registrado"
+        EstadoRecojo.REGISTRADO -> dia!!.let { d ->
+            val veces = if (d.recojos.size > 1) " · ${d.recojos.size} entregas" else ""
+            "Último registro ${formatearHoraAcopio(d.horaUltima!!)}$veces"
+        }
+        EstadoRecojo.SIN_RECOJO -> "Sin recojo · ${dia!!.sinRecojo!!.textoMotivo}"
     }
 
-    Tarjeta(onClick = onClick) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f, fill = false)) {
+    Tarjeta(onClick = onDetalle) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
                 Text(fila.proveedor.codigo, color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
-                Text(
-                    fila.proveedor.nombres,
-                    color = Colores.textPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                // Nombre completo tal como está guardado (no se separa en apellido/nombre).
+                Text(fila.proveedor.nombres, color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                fila.proveedor.dueno?.let { Text(it, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall) }
                 Text(detalle, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.width(Espaciado.s))
-            Column(horizontalAlignment = Alignment.End) {
-                if (entrega != null) {
-                    Text(formatearLitros(entrega.litros), color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(Espaciado.xxs))
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Espaciado.xxs)) {
+                when (estadoRecojo) {
+                    EstadoRecojo.PENDIENTE -> ChipEstado("Pendiente", Colores.info, mostrarPunto = false)
+                    EstadoRecojo.REGISTRADO -> {
+                        Text(formatearLitros(dia!!.totalLitros), color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
+                        ChipEstado("Registrado", Colores.exito, mostrarPunto = false)
+                    }
+                    EstadoRecojo.SIN_RECOJO -> ChipEstado("Sin recojo", Colores.advertencia, mostrarPunto = false)
                 }
-                EstadoAccionProveedor(fila.estado, onClick)
+                dia?.sincronizacion?.let { ChipSincronizacion(it) }
             }
         }
-        if (fila.estado == EstadoProveedorDia.POR_REGISTRAR) {
+        if (jornadaAbierta) {
             Spacer(Modifier.height(Espaciado.xs))
-            Text(
-                "Marcar sin entrega",
-                color = Colores.advertencia,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier
-                    .clickable(onClick = onMarcarSinEntrega)
-                    .padding(vertical = Espaciado.xxs),
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                when (estadoRecojo) {
+                    EstadoRecojo.PENDIENTE -> {
+                        BotonPildora("Registrar", Colores.brand, Colores.onBrand, onRegistrar)
+                        BotonPildora("Sin recojo", Colores.advertencia, Colores.onSecundario, if (procesando) null else onSinRecojo)
+                    }
+                    EstadoRecojo.REGISTRADO -> BotonPildora("Registrar otra entrega", Colores.brandContainer, Colores.onBrandContainer, onRegistrar)
+                    EstadoRecojo.SIN_RECOJO -> {
+                        val marcaId = dia!!.sinRecojo!!.id
+                        BotonPildora("Deshacer sin recojo", Colores.advertencia, Colores.onSecundario, if (procesando) null else ({ onDeshacer(marcaId) }))
+                    }
+                }
+            }
         }
     }
 }
 
-/**
- * A la derecha de cada fila: un botón sólido cuando falta actuar (Registrar/Deshacer) y una
- * pastilla tenue de solo lectura cuando ya está resuelto (Atendido), igual que el diseño.
- */
 @Composable
-private fun EstadoAccionProveedor(estado: EstadoProveedorDia, onClick: (() -> Unit)?) {
-    when (estado) {
-        EstadoProveedorDia.POR_REGISTRAR -> BotonPildora("Registrar", Colores.brand, Colores.onBrand, onClick)
-        EstadoProveedorDia.SIN_ENTREGA -> BotonPildora("Deshacer", Colores.advertencia, Colores.onSecundario, onClick)
-        EstadoProveedorDia.REGISTRADO -> ChipEstado("✓ Atendido", Colores.exito, mostrarPunto = false)
-        EstadoProveedorDia.POR_SINCRONIZAR -> ChipEstado("Pendiente", Colores.info, mostrarPunto = false)
+private fun ChipSincronizacion(estado: EstadoSincronizacion) {
+    val color = when (estado) {
+        EstadoSincronizacion.SINCRONIZADO -> Colores.exito
+        EstadoSincronizacion.PENDIENTE -> Colores.info
+        EstadoSincronizacion.EN_ESTE_CELULAR -> Colores.textSecundario
+        EstadoSincronizacion.ERROR -> Colores.peligro
     }
+    ChipEstado(estado.etiqueta, color, mostrarPunto = true)
 }
 
 @Composable
 private fun BotonPildora(texto: String, contenedor: Color, contenido: Color, onClick: (() -> Unit)?) {
     Surface(
         shape = MaterialTheme.shapes.small,
-        color = contenedor,
+        color = if (onClick == null) contenedor.copy(alpha = 0.5f) else contenedor,
         contentColor = contenido,
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
     ) {
@@ -259,151 +322,192 @@ private fun BotonPildora(texto: String, contenedor: Color, contenido: Color, onC
     }
 }
 
-/**
- * Confirmación de "sin entrega". Insiste en que la acción es reversible porque el acopiador la usa
- * en la puerta del proveedor, con prisa y a veces antes de que la persona llegue.
- */
+/** "Sin recojo" exige elegir un motivo; el detalle libre es opcional. Se puede deshacer mientras la jornada siga abierta. */
 @Composable
-private fun DialogoSinEntrega(
-    fila: ProveedorDelDia,
+private fun DialogoSinRecojo(
+    fila: FilaAcopio,
     ciclo: CicloAcopio,
-    onConfirmar: (String?) -> Unit,
+    onConfirmar: (MotivoSinRecojo, String?) -> Unit,
     onCancelar: () -> Unit,
 ) {
-    var motivo by remember { mutableStateOf("") }
+    var motivo by remember { mutableStateOf<MotivoSinRecojo?>(null) }
+    var detalle by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onCancelar,
         shape = MaterialTheme.shapes.large,
-        title = { Text("¿Marcar como sin entrega?", style = MaterialTheme.typography.titleLarge) },
+        title = { Text("Marcar sin recojo", style = MaterialTheme.typography.titleLarge) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                Text(
-                    "${fila.proveedor.codigo} · ${fila.proveedor.nombres}",
-                    color = Colores.textPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    "Pendiente de entrega · Día ${ciclo.dia} de ${ciclo.totalDias}",
-                    color = Colores.textSecundario,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    "Puedes deshacerlo si llega más tarde.",
-                    color = Colores.textSecundario,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                CampoTexto(
-                    valor = motivo,
-                    onValorCambia = { motivo = it },
-                    etiqueta = "Motivo (opcional)",
-                )
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                Text("${fila.proveedor.codigo} · ${fila.proveedor.nombres}", color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
+                Text("Día ${ciclo.dia} de ${ciclo.totalDias}. Elige el motivo:", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
+                MotivoSinRecojo.entries.forEach { opcion ->
+                    Row(
+                        Modifier.fillMaxWidth().selectable(selected = motivo == opcion, onClick = { motivo = opcion }),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = motivo == opcion, onClick = { motivo = opcion })
+                        Text(opcion.etiqueta, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                CampoTexto(valor = detalle, onValorCambia = { detalle = it }, etiqueta = "Detalle (opcional)")
+                Text("Puedes deshacerlo mientras tu jornada siga abierta.", color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirmar(motivo) }) {
-                Text("Marcar sin entrega", color = Colores.peligro)
+            TextButton(onClick = { motivo?.let { onConfirmar(it, detalle) } }, enabled = motivo != null) {
+                Text("Marcar sin recojo", color = if (motivo != null) Colores.peligro else Colores.textSecundario)
             }
         },
-        dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } },
+    )
+}
+
+/** Detalle del proveedor en el ciclo: cada entrega por separado, su hora y el total del día. Solo lectura. */
+@Composable
+private fun DialogoDetalle(
+    fila: FilaAcopio,
+    hoy: LocalDate,
+    ciclo: CicloAcopio,
+    puedeRegistrar: Boolean,
+    onRegistrarOtra: () -> Unit,
+    onCerrar: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        shape = MaterialTheme.shapes.large,
+        title = { Text(fila.proveedor.nombres, style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                Text("${fila.proveedor.codigo} · ${ciclo.resumenPago}", color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
+                fila.dias.forEachIndexed { indice, dia ->
+                    Column {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                "Día ${indice + 1} · ${fechaCorta(dia.fecha)}${if (dia.fecha == hoy) " (hoy)" else ""}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Colores.textPrimary,
+                            )
+                            Text(
+                                when (dia.estado) {
+                                    EstadoRecojo.REGISTRADO -> "Total ${formatearLitros(dia.totalLitros)}"
+                                    EstadoRecojo.SIN_RECOJO -> "Sin recojo"
+                                    EstadoRecojo.PENDIENTE -> "Pendiente"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Colores.textSecundario,
+                            )
+                        }
+                        dia.recojos.forEach { r ->
+                            Text(
+                                "• ${formatearHoraAcopio(r.registradoEn)} · ${formatearLitros(r.litros)} · ${r.tachos} tachos · ${r.sincronizacion.etiqueta}",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                        dia.sinRecojo?.let { m ->
+                            if (dia.recojos.isEmpty()) {
+                                Text(
+                                    "• ${formatearHoraAcopio(m.registradaEn)} · ${m.textoMotivo} · ${m.sincronizacion.etiqueta}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                        }
+                    }
+                }
+                Text("Total del ciclo: ${formatearLitros(fila.totalCicloLitros)}", style = MaterialTheme.typography.titleMedium)
+            }
         },
+        confirmButton = {
+            if (puedeRegistrar) TextButton(onClick = onRegistrarOtra) { Text("Registrar otra entrega") }
+        },
+        dismissButton = { TextButton(onClick = onCerrar) { Text("Cerrar") } },
     )
 }
 
 // ---------------------------------------------------------------------------------------------
-// Ciclo: la tabla de los 6 días
+// Ciclo: la hoja Zona | Proveedor | Día 1 … Día 6
 // ---------------------------------------------------------------------------------------------
 
-private val ANCHO_PROVEEDOR = 116.dp
-private val ANCHO_DIA = 56.dp
-private val ALTO_FILA = 48.dp
+private val ANCHO_ZONA = 84.dp
+private val ANCHO_PROVEEDOR = 132.dp
+private val ANCHO_DIA = 64.dp
+private val ALTO_FILA = 52.dp
 
 @Composable
 private fun VistaCiclo(estado: ListaProveedoresUiState, ciclo: CicloAcopio, viewModel: ListaProveedoresViewModel) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        EncabezadoSeccion("Registro semanal", subtitulo = ciclo.resumenPago)
-
-        Column(
-            Modifier.padding(horizontal = Espaciado.l),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.s),
-        ) {
-            TarjetaCiclo(ciclo)
-
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                ChipSeleccionable("Hoy", false) { viewModel.cambiarModo(ModoLista.HOY) }
-                ChipSeleccionable("Semana", true) { }
-            }
-
-            Text(
-                "Desliza para ver los ${ciclo.totalDias} días →",
-                color = Colores.textSecundario,
-                style = MaterialTheme.typography.bodySmall,
-            )
-
-            TablaCiclo(estado.filasCiclo, ciclo.dias)
-
-            Text(
-                "El día ${ciclo.totalDias} incluye recolección y pago.",
-                color = Colores.textSecundario,
-                style = MaterialTheme.typography.bodySmall,
-            )
-
-            Tarjeta {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Total del ciclo registrado", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        formatearLitros(estado.totalCicloL),
-                        color = Colores.textPrimary,
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(Espaciado.l))
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Espaciado.l, vertical = Espaciado.xs),
+        verticalArrangement = Arrangement.spacedBy(Espaciado.s),
+    ) {
+        TarjetaCiclo(ciclo)
+        Text(
+            "Litros por día. \"—\" = pendiente (aún sin registro), \"SR\" = sin recojo, \"•\" = falta sincronizar. " +
+                "Toca una fila para ver cada entrega.",
+            color = Colores.textSecundario,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (estado.filas.isEmpty()) {
+            EstadoVacio(titulo = "Sin proveedores asignados", descripcion = "No hay proveedores activos en esta zona.")
+        } else {
+            TablaCiclo(estado.filas, ciclo, estado.hoy, viewModel::abrirDetalle)
         }
+        Text("El día ${ciclo.totalDias} incluye recolección y pago.", color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
+        Tarjeta {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Total del ciclo registrado", color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
+                Text(formatearLitros(estado.totalCicloL), color = Colores.textPrimary, style = MaterialTheme.typography.headlineSmall)
+            }
+        }
+        Spacer(Modifier.height(Espaciado.l))
     }
 }
 
-/**
- * La columna del proveedor queda fija y solo se desplazan los días: en una pantalla de 390px no
- * caben 6 columnas, y sin el nombre a la vista los números no significan nada.
- */
+/** Zona y proveedor quedan fijos; solo se desplazan los 6 días (en 390 px no caben todas las columnas). */
 @Composable
-private fun TablaCiclo(filas: List<FilaCiclo>, dias: List<LocalDate>) {
-    val scroll = rememberScrollState()
-
+private fun TablaCiclo(filas: List<FilaAcopio>, ciclo: CicloAcopio, hoy: LocalDate?, onFila: (String) -> Unit) {
     Tarjeta(padding = 0.dp) {
         Row(Modifier.fillMaxWidth()) {
-            Column(Modifier.width(ANCHO_PROVEEDOR)) {
-                CeldaEncabezado("PROVEEDOR", Modifier.fillMaxWidth(), alineacion = TextAlign.Start)
+            Column(Modifier.width(ANCHO_ZONA + ANCHO_PROVEEDOR)) {
+                Row {
+                    CeldaEncabezado("ZONA", Modifier.width(ANCHO_ZONA), TextAlign.Start)
+                    CeldaEncabezado("PROVEEDOR", Modifier.width(ANCHO_PROVEEDOR), TextAlign.Start)
+                }
                 filas.forEach { fila ->
                     DivisorSutil()
-                    Box(Modifier.height(ALTO_FILA).padding(horizontal = Espaciado.s), contentAlignment = Alignment.CenterStart) {
+                    Row(Modifier.height(ALTO_FILA).clickable { onFila(fila.proveedor.id) }, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            ciclo.zonaNombre,
+                            color = Colores.textSecundario,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.width(ANCHO_ZONA).padding(horizontal = Espaciado.s),
+                        )
                         Text(
                             fila.proveedor.nombres,
                             color = Colores.textPrimary,
                             style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.width(ANCHO_PROVEEDOR).padding(end = Espaciado.s),
                         )
                     }
                 }
             }
-
-            Column(Modifier.horizontalScroll(scroll)) {
+            Column(Modifier.horizontalScroll(rememberScrollState())) {
                 Row {
-                    dias.forEach { dia ->
-                        CeldaEncabezado("${dia.day.toString().padStart(2, '0')}\n${mesCorto(dia.monthNumber)}", Modifier.width(ANCHO_DIA))
+                    ciclo.dias.forEachIndexed { i, dia ->
+                        CeldaEncabezado(
+                            "Día ${i + 1}\n${fechaCorta(dia)}",
+                            Modifier.width(ANCHO_DIA),
+                            destacada = dia == hoy,
+                        )
                     }
                 }
                 filas.forEach { fila ->
                     DivisorSutil()
-                    Row {
-                        fila.celdas.forEach { celda -> CeldaValor(celda) }
+                    Row(Modifier.clickable { onFila(fila.proveedor.id) }) {
+                        fila.dias.forEach { dia -> CeldaDia(dia) }
                     }
                 }
             }
@@ -412,29 +516,36 @@ private fun TablaCiclo(filas: List<FilaCiclo>, dias: List<LocalDate>) {
 }
 
 @Composable
-private fun CeldaEncabezado(texto: String, modifier: Modifier = Modifier, alineacion: TextAlign = TextAlign.Center) {
+private fun CeldaEncabezado(texto: String, modifier: Modifier = Modifier, alineacion: TextAlign = TextAlign.Center, destacada: Boolean = false) {
     Box(
         modifier.height(ALTO_FILA).padding(horizontal = Espaciado.xs),
         contentAlignment = if (alineacion == TextAlign.Start) Alignment.CenterStart else Alignment.Center,
     ) {
         Text(
             texto,
-            color = Colores.textSecundario,
+            color = if (destacada) Colores.brandText else Colores.textSecundario,
             style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (destacada) FontWeight.Bold else null,
             textAlign = alineacion,
         )
     }
 }
 
 @Composable
-private fun CeldaValor(celda: CeldaCiclo) {
-    val (texto, color) = when {
-        celda.litros != null -> formatearLitros(celda.litros).removeSuffix(" L") to Colores.brandText
-        celda.sinEntrega -> "SD" to Colores.advertencia
-        else -> "—" to Colores.textSecundario
+private fun CeldaDia(dia: DiaAcopio) {
+    val (texto, color) = when (dia.estado) {
+        EstadoRecojo.REGISTRADO -> formatearLitros(dia.totalLitros).removeSuffix(" L") to Colores.brandText
+        EstadoRecojo.SIN_RECOJO -> "SR" to Colores.advertencia
+        EstadoRecojo.PENDIENTE -> "—" to Colores.textSecundario
     }
+    val faltaSincronizar = dia.sincronizacion != null && dia.sincronizacion != EstadoSincronizacion.SINCRONIZADO
     Box(Modifier.width(ANCHO_DIA).height(ALTO_FILA), contentAlignment = Alignment.Center) {
-        Text(texto, color = color, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            if (faltaSincronizar) "$texto•" else texto,
+            color = if (dia.sincronizacion == EstadoSincronizacion.ERROR) Colores.peligro else color,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -449,6 +560,8 @@ private fun TarjetaCiclo(ciclo: CicloAcopio) {
         Text(ciclo.detalle, color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
     }
 }
+
+private fun fechaCorta(fecha: LocalDate): String = "${fecha.day.toString().padStart(2, '0')} ${mesCorto(fecha.monthNumber)}"
 
 private fun mesCorto(mes: Int): String = when (mes) {
     1 -> "ene"; 2 -> "feb"; 3 -> "mar"; 4 -> "abr"; 5 -> "may"; 6 -> "jun"

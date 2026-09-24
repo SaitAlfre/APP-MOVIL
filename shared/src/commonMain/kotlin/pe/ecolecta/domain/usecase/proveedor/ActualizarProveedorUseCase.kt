@@ -23,11 +23,12 @@ class ActualizarProveedorUseCase(
         estado: EstadoProveedor,
         dueno: String? = null,
     ): Result<Unit> {
-        if (proveedorRepository.existeDni(dni.trim(), id)) {
+        val anterior = proveedorRepository.obtenerPorId(id)
+        // Solo se valida si el documento cambia: hay fichas antiguas con documento repetido y, si no,
+        // no se podría corregir ni su teléfono. Un documento nuevo sí debe ser único.
+        if (dni.trim() != anterior?.dni && proveedorRepository.existeDni(dni.trim(), id)) {
             return Result.failure(ProveedorInvalidoException.DniDuplicado)
         }
-
-        val anterior = proveedorRepository.obtenerPorId(id)
         val proveedor = Proveedor.crear(
             id = id,
             codigo = codigoActual,

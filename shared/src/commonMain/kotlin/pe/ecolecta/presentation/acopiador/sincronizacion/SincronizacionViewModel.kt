@@ -15,12 +15,14 @@ import pe.ecolecta.domain.usecase.entrega.ObservarEntregasUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.sync.ResumenColaSync
+import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
 
 class SincronizacionViewModel(
     private val obtenerColaSyncUseCase: ObtenerColaSyncUseCase,
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
     private val observarEntregasUseCase: ObservarEntregasUseCase,
     private val listarProveedoresUseCase: ListarProveedoresUseCase,
+    private val sincronizarRegistros: SincronizarRegistrosAcopioUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SincronizacionUiState())
     val uiState: StateFlow<SincronizacionUiState> = _uiState.asStateFlow()
@@ -60,10 +62,26 @@ class SincronizacionViewModel(
         }
     }
 
-    /** No hay backend todavía (Fase 4): esto solo confirma que los datos ya están a salvo localmente. */
+    /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */
     fun reintentar() {
-        _uiState.update {
-            it.copy(mensaje = "La sincronización con el servidor llega en la Fase 4. Tus datos ya están guardados en este dispositivo.")
+        viewModelScope.launch {
+            val mensaje = if (!sincronizarRegistros.configurado) {
+                "Este celular no tiene sincronización configurada. Tus datos están guardados solo en este dispositivo."
+            } else {
+                runCatching { sincronizarRegistros() }.fold(
+                    onSuccess = { r ->
+                        when {
+                            r.total == 0 -> "No hay registros pendientes de envío."
+                            r.sinConexion > 0 -> "Sin conexión: ${r.sinConexion} registro(s) siguen guardados aquí y se reintentarán solos."
+                            r.fallidos > 0 -> "${r.enviados} enviado(s); ${r.fallidos} con error del servidor (se reintentarán)."
+                            else -> "${r.enviados} registro(s) sincronizado(s)."
+                        }
+                    },
+                    onFailure = { "No se pudo sincronizar: ${it.message}" },
+                )
+            }
+            _uiState.update { it.copy(mensaje = mensaje) }
+            cargar()
         }
     }
 }

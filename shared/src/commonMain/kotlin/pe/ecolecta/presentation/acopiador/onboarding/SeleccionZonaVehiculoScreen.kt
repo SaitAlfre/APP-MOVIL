@@ -15,13 +15,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,10 +36,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.presentation.design.Banner
+import pe.ecolecta.presentation.design.BotonBorde
 import pe.ecolecta.presentation.design.BotonPrimario
 import pe.ecolecta.presentation.design.Colores
 import pe.ecolecta.presentation.design.EncabezadoSeccion
 import pe.ecolecta.presentation.design.Espaciado
+import pe.ecolecta.presentation.design.IndicadorCarga
 import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
 
@@ -48,28 +53,56 @@ fun SeleccionZonaVehiculoScreen(
     val estado by viewModel.uiState.collectAsState()
 
     LaunchedEffect(estado.jornadaAbierta) {
-        if (estado.jornadaAbierta) alJornadaAbierta()
+        if (estado.jornadaAbierta) {
+            // Se consume antes de navegar: el ViewModel sobrevive a esta pantalla durante la sesión.
+            viewModel.navegacionAJornadaAtendida()
+            alJornadaAbierta()
+        }
+    }
+
+    if (estado.cargandoCatalogo) {
+        IndicadorCarga(mensaje = "Cargando zonas y vehículos…")
+        return
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         EncabezadoSeccion("Iniciar jornada", subtitulo = "Elige tu zona y vehículo de hoy")
 
         Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.l)) {
-            Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                Text("Zona de recolección", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                estado.zonas.forEach { zona ->
-                    FilaSeleccionable(
-                        titulo = zona.nombre,
-                        detalle = null,
-                        icono = Icons.Filled.LocationOn,
-                        seleccionado = zona.id == estado.zonaId,
-                        onClick = { viewModel.seleccionarZona(zona.id) },
+            if (estado.sinZonasActivas) {
+                Banner(
+                    "No hay zonas de recolección activas, así que no puedes abrir una jornada. Pide al " +
+                        "administrador que active o te asigne una zona. Mientras tanto puedes cerrar sesión: " +
+                        "tus registros guardados se conservan.",
+                    TipoBanner.ADVERTENCIA,
+                )
+            } else {
+                if (estado.zonaAsignadaInactiva) {
+                    Banner(
+                        "La zona que te asignaron está desactivada. Puedes elegir otra zona activa o pedir al " +
+                            "administrador que la reactive.",
+                        TipoBanner.INFO,
                     )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                    Text("Zona de recolección", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
+                    estado.zonas.forEach { zona ->
+                        FilaSeleccionable(
+                            titulo = zona.nombre,
+                            detalle = null,
+                            icono = Icons.Filled.LocationOn,
+                            seleccionado = zona.id == estado.zonaId,
+                            onClick = { viewModel.seleccionarZona(zona.id) },
+                        )
+                    }
                 }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                 Text("Vehículo", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
+                if (estado.sinVehiculosActivos) {
+                    Banner("No hay vehículos activos. Pide al administrador que active uno.", TipoBanner.ADVERTENCIA)
+                }
                 estado.vehiculos.forEach { vehiculo ->
                     FilaSeleccionable(
                         titulo = vehiculo.nombre,
@@ -96,8 +129,33 @@ fun SeleccionZonaVehiculoScreen(
                 habilitado = estado.puedeContinuar && !estado.cargando,
             )
 
+            BotonBorde(
+                texto = if (estado.cerrandoSesion) "Cerrando sesión…" else "Cerrar sesión",
+                color = Colores.peligro,
+                icono = Icons.AutoMirrored.Filled.Logout,
+                habilitado = !estado.cerrandoSesion,
+                cargando = estado.cerrandoSesion,
+                onClick = viewModel::solicitarCierreSesion,
+            )
+
             Spacer(Modifier.height(Espaciado.l))
         }
+    }
+
+    if (estado.mostrarConfirmacionCierreSesion) {
+        AlertDialog(
+            onDismissRequest = viewModel::cancelarCierreSesion,
+            shape = MaterialTheme.shapes.large,
+            title = { Text("¿Cerrar sesión?") },
+            text = {
+                Text(
+                    "No se borra nada: tus entregas y los registros pendientes de sincronizar se quedan " +
+                        "guardados en este teléfono y se enviarán cuando vuelvas a entrar con tu cuenta.",
+                )
+            },
+            confirmButton = { TextButton(onClick = viewModel::confirmarCierreSesion) { Text("Cerrar sesión", color = Colores.peligro) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelarCierreSesion) { Text("Cancelar") } },
+        )
     }
 }
 

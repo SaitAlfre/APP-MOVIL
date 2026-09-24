@@ -12,7 +12,7 @@ import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
-import pe.ecolecta.domain.usecase.seguimiento.ObtenerIdentidadRemotaUseCase
+import pe.ecolecta.domain.usecase.sync.ObtenerIdentidadRemotaUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.usuario.CambiarPinUsuarioUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
@@ -69,7 +69,8 @@ class PerfilViewModel(
     }
 
     fun solicitarCierreSesion() {
-        if (_uiState.value.pendientesSync > 0) {
+        // Con jornada abierta también se confirma: hay que explicar que la jornada se conserva.
+        if (_uiState.value.pendientesSync > 0 || _uiState.value.jornadaAbierta) {
             _uiState.update { it.copy(mostrarConfirmacionCierre = true) }
         } else {
             cerrarSesion()
@@ -97,6 +98,7 @@ class PerfilViewModel(
     }
 
     fun confirmarCierreJornada() {
+        if (_uiState.value.cerrandoJornada) return
         val jornadaId = _uiState.value.jornadaId ?: return
         _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false, cerrandoJornada = true, errorCierreJornada = null) }
         viewModelScope.launch {
@@ -148,9 +150,9 @@ class PerfilViewModel(
 
     fun descartarPinCambiado() = _uiState.update { it.copy(pinCambiadoExitosamente = false) }
 
-    /** "Descargar datos de ruta": vuelve a consultar zona/vehículo/cola por si algo cambió en el servidor. */
-    fun descargarDatosDeRuta() {
+    /** "Actualizar mis datos": vuelve a leer zona, vehículo y cola de sincronización de este celular. */
+    fun actualizarDatos() {
         cargar()
-        _uiState.update { it.copy(mensajeDescarga = "Datos de ruta actualizados.") }
+        _uiState.update { it.copy(mensajeDescarga = "Datos actualizados.") }
     }
 }

@@ -6,6 +6,14 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.*
 import pe.ecolecta.domain.Reloj
+import pe.ecolecta.domain.acopio.CicloAcopio
+import pe.ecolecta.domain.acopio.DiaAcopio
+import pe.ecolecta.domain.acopio.RecojoDelDia
+import pe.ecolecta.domain.acopio.SinRecojoDelDia
+import pe.ecolecta.domain.acopio.cicloAcopioDe
+import pe.ecolecta.domain.acopio.combinarRegistrosProveedor
+import pe.ecolecta.domain.acopio.construirDiasDelCiclo
+import pe.ecolecta.domain.acopio.fechaAcopioDe
 import pe.ecolecta.domain.model.*
 import pe.ecolecta.domain.repository.*
 import pe.ecolecta.domain.usecase.proveedor.ObtenerPerfilProveedorUseCase
@@ -20,7 +28,13 @@ data class PortalProveedorState(
     val calidad: List<ControlCalidad> = emptyList(),
     val pagos: List<PagoProveedor> = emptyList(),
     val solicitudes: List<SolicitudProveedor> = emptyList(),
-    val ruta: UbicacionAcopiador? = null,
+    /** Entregas y "sin recojo" propios (locales + recibidos del servidor), para "Mi ciclo". */
+    val recojos: List<RecojoDelDia> = emptyList(),
+    val sinRecojos: List<SinRecojoDelDia> = emptyList(),
+    val conexion: ConexionPortal = ConexionPortal.NO_CONFIGURADA,
+    val motivoConexion: String? = null,
+    /** Última vez que llegó una copia del servidor a este celular (epoch ms). */
+    val ultimaRecepcion: Long? = null,
     val error: String? = null,
     val guardando: Boolean = false,
     val confirmacion: String? = null,
@@ -34,10 +48,25 @@ data class PortalProveedorState(
     val litrosSemana get() = semana.sumOf { it.litros }
     // No se extrapola un precio histórico ni se inventa una tarifa vigente.
     val pagoSemana get() = pagos.firstOrNull { it.desde == inicioSemana.toString() && it.hasta == finSemana.toString() && it.estado != "ANULADA" }
+
+    /** Mismo ciclo de 6 días (y mismas fechas) que ve el acopiador en su lista. */
+    val ciclo: CicloAcopio get() = cicloAcopioDe(hoy, zona)
+    val diasCiclo: List<DiaAcopio> get() = construirDiasDelCiclo(ciclo, recojos, sinRecojos)
+    val diaHoy: DiaAcopio? get() = diasCiclo.firstOrNull { it.fecha == hoy }
+    val entregasCiclo: List<Entrega> get() = entregas.filter { !it.anulada && ciclo.contiene(fechaEntrega(it)) }
+    val totalCiclo: Double get() = diasCiclo.sumOf { it.totalLitros }
 }
 
-fun fechaEntrega(entrega: Entrega) = kotlin.time.Instant.fromEpochMilliseconds(entrega.registradoEn)
-    .toLocalDateTime(TimeZone.of("America/Lima")).date
+/** Estado honesto del canal con el servidor, independiente del estado de cada registro. */
+enum class ConexionPortal(val etiqueta: String) {
+    NO_CONFIGURADA("Este celular no tiene sincronización configurada: solo ves lo guardado aquí."),
+    CONECTANDO("Conectando con el servidor…"),
+    EN_LINEA("Conectado: tus registros están al día."),
+    SIN_CONEXION("Sin conexión: se muestra lo último recibido. Lo nuevo aparecerá al reconectar."),
+    NO_DISPONIBLE("No se pudo consultar el servidor."),
+}
+
+fun fechaEntrega(entrega: Entrega) = fechaAcopioDe(entrega.registradoEn)
 
 class PortalProveedorViewModel(
     private val sesiones: SesionRepository,
@@ -46,17 +75,21 @@ class PortalProveedorViewModel(
     private val calidadRepository: ControlCalidadRepository,
     private val zonasRepository: ZonaRepository,
     private val usuariosRepository: UsuarioRepository,
-    private val rutaRepository: RutaProveedorCacheRepository,
     private val portal: PortalProveedorRepository,
     private val reloj: Reloj,
+    private val sinRecojoRepository: SinRecojoRepository,
+    private val recibidosRepository: RegistroRecibidoRepository,
+    private val remoto: RegistroAcopioRemotoRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(PortalProveedorState())
     val state = _state.asStateFlow()
     private var carga: Job? = null
+    private var escucha: Job? = null
     init { recargar() }
 
     fun recargar() {
         carga?.cancel()
+        escucha?.cancel()
         carga = viewModelScope.launch {
             _state.value = PortalProveedorState(hoy = reloj.ahora().toLocalDateTime(TimeZone.of("America/Lima")).date)
             try {
@@ -65,17 +98,34 @@ class PortalProveedorViewModel(
                 val proveedor = perfil(sesion.usuario.id) ?: error("Tu usuario no tiene un proveedor vinculado.")
                 val zonas = zonasRepository.observarTodas().first()
                 val usuarios = usuariosRepository.observarTodos().first().associate { it.id to it.nombres }
-                val ruta = rutaRepository.obtener(sesion.usuario.id)?.takeIf { it.zonaId == proveedor.zonaId }
-                _state.update { it.copy(proveedor = proveedor, zonas = zonas, usuarios = usuarios, ruta = ruta) }
-                combine(
+                _state.update {
+                    it.copy(
+                        proveedor = proveedor, zonas = zonas, usuarios = usuarios,
+                        conexion = if (remoto.configurado) ConexionPortal.CONECTANDO else ConexionPortal.NO_CONFIGURADA,
+                        ultimaRecepcion = recibidosRepository.ultimaRecepcion(proveedor.codigo),
+                    )
+                }
+                if (remoto.configurado) escucha = launch { escucharServidor(proveedor.codigo) }
+                val registrosPropios = combine(
                     entregasRepository.observarPorProveedor(proveedor.id),
+                    sinRecojoRepository.observarPorProveedor(proveedor.id),
+                    recibidosRepository.observarPorCodigo(proveedor.codigo),
+                ) { entregas, marcas, recibidos ->
+                    // Solo la ficha de la sesión: se descarta cualquier fila ajena aunque llegue.
+                    combinarRegistrosProveedor(proveedor, entregas, marcas, recibidos, remoto.configurado)
+                }
+                combine(
+                    registrosPropios,
                     calidadRepository.observarTodos(),
                     portal.pagos(proveedor.id),
                     portal.solicitudes(proveedor.id),
-                ) { entregas, calidad, pagos, solicitudes ->
+                ) { registros, calidad, pagos, solicitudes ->
                     _state.value.copy(
                         cargando = false,
-                        entregas = entregas.filter { it.proveedorId == proveedor.id }.sortedByDescending { it.registradoEn },
+                        entregas = registros.entregas,
+                        recojos = registros.recojos,
+                        sinRecojos = registros.sinRecojos,
+                        usuarios = usuarios + registros.acopiadores.filterKeys { it !in usuarios },
                         calidad = calidad.filter { it.proveedorId == proveedor.id }.sortedByDescending { it.registradoEn },
                         pagos = pagos.filter { it.proveedorId == proveedor.id },
                         solicitudes = solicitudes.filter { it.proveedorId == proveedor.id },
@@ -83,6 +133,28 @@ class PortalProveedorViewModel(
                 }.collect { _state.value = it }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { _state.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar tu información.") } }
+        }
+    }
+
+    /** Escucha los registros del propio código y guarda la copia para verla sin conexión. */
+    private suspend fun escucharServidor(codigo: String) {
+        remoto.observarDeProveedor(codigo).collect { evento ->
+            when (evento) {
+                is EventoRegistrosRemotos.Recibidos -> {
+                    val ahora = reloj.ahora().toEpochMilliseconds()
+                    val propios = evento.registros.filter { it.proveedorCodigo == codigo }
+                    if (!evento.desdeCache) recibidosRepository.guardar(propios, ahora)
+                    _state.update {
+                        it.copy(
+                            conexion = if (evento.desdeCache) ConexionPortal.SIN_CONEXION else ConexionPortal.EN_LINEA,
+                            motivoConexion = null,
+                            ultimaRecepcion = if (evento.desdeCache) it.ultimaRecepcion else ahora,
+                        )
+                    }
+                }
+                EventoRegistrosRemotos.SinConexion -> _state.update { it.copy(conexion = ConexionPortal.SIN_CONEXION, motivoConexion = null) }
+                is EventoRegistrosRemotos.NoDisponible -> _state.update { it.copy(conexion = ConexionPortal.NO_DISPONIBLE, motivoConexion = evento.motivo) }
+            }
         }
     }
 

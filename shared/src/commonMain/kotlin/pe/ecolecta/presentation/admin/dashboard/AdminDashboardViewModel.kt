@@ -27,6 +27,8 @@ class AdminDashboardViewModel(
         viewModelScope.launch {
             obtenerSesion().collect { sesion -> _uiState.update { it.copy(nombreAdmin = sesion?.usuario?.nombres.orEmpty()) } }
         }
+        // Primera carga inmediata: antes las cifras esperaban a la primera emisión de liquidaciones y se veían "—".
+        cargar()
         // Las liquidaciones observan todas las entregas: cualquier registro, corrección o
         // resolución vuelve a calcular también las cifras del resumen.
         viewModelScope.launch {

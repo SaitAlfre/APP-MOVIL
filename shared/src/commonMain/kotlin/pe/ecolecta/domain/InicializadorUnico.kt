@@ -6,7 +6,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * Coordina la inicialización perezosa de un recurso compartido (p. ej. una sesión anónima remota)
  * entre corrutinas concurrentes que no tienen ninguna coordinación previa entre sí — como el job de
- * captura GPS y el job de reintento periódico del servicio de seguimiento, o la pantalla de Perfil.
+ * sincronización periódica de registros, la escucha del portal del proveedor, o la pantalla de Perfil.
  *
  * Sin este candado, dos llamadas concurrentes pueden ver el recurso como "todavía no existe" a la
  * vez y disparar [inicializar] por duplicado. Para una sesión anónima de Firebase eso es

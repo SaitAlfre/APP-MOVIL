@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Pruebas de firestore.rules con el Firebase Emulator Suite. No forma parte de la app (Android/iOS); solo se usa en desarrollo para verificar las reglas antes de publicarlas.",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore \"node --test rutas-activas.rules.test.mjs\""
+    "test": "firebase emulators:exec --only firestore --project demo-no-project \"node --test registros-acopio.rules.test.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

@@ -1,0 +1,48 @@
+-- Lista de acopio (reemplaza el seguimiento GPS). Migración solo aditiva: no borra ni modifica filas
+-- existentes de entregas, jornadas, fichas, análisis, liquidaciones ni cuentas.
+-- Las tablas del seguimiento GPS (ubicacion_acopiador_local, ruta_proveedor_cache,
+-- aviso_remoto_pendiente) se conservan tal cual para no eliminar datos del dispositivo.
+
+CREATE TABLE IF NOT EXISTS sin_recojo (
+    id TEXT NOT NULL PRIMARY KEY,
+    jornada_id TEXT NOT NULL,
+    proveedor_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    motivo TEXT NOT NULL,
+    detalle TEXT,
+    registrada_en INTEGER NOT NULL,
+    deshecha INTEGER NOT NULL DEFAULT 0,
+    deshecha_en INTEGER,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING',
+    sync_error TEXT,
+    intentos INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS sin_recojo_zona_fecha_idx ON sin_recojo(zona_id, fecha);
+CREATE INDEX IF NOT EXISTS sin_recojo_proveedor_idx ON sin_recojo(proveedor_id);
+CREATE INDEX IF NOT EXISTS sin_recojo_sync_state_idx ON sin_recojo(sync_state);
+
+CREATE TABLE IF NOT EXISTS registro_recibido (
+    id TEXT NOT NULL PRIMARY KEY,
+    tipo TEXT NOT NULL,
+    proveedor_codigo TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    jornada_id TEXT NOT NULL,
+    acopiador_id TEXT NOT NULL,
+    acopiador_nombre TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    registrado_en INTEGER NOT NULL,
+    litros REAL,
+    tachos INTEGER,
+    anulada INTEGER NOT NULL DEFAULT 0,
+    motivo TEXT,
+    detalle TEXT,
+    deshecha INTEGER NOT NULL DEFAULT 0,
+    actualizado_en INTEGER NOT NULL,
+    recibido_en INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS registro_recibido_codigo_idx ON registro_recibido(proveedor_codigo);

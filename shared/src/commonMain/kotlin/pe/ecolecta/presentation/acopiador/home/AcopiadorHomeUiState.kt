@@ -1,7 +1,6 @@
 package pe.ecolecta.presentation.acopiador.home
 
 import pe.ecolecta.domain.model.Entrega
-import pe.ecolecta.domain.model.EstadoSeguimiento
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.model.SyncState
 
@@ -18,12 +17,22 @@ data class AcopiadorHomeUiState(
     val proveedores: List<Proveedor> = emptyList(),
     val jornadaId: String? = null,
     val jornadaAbierta: Boolean = false,
-    val estadoSeguimiento: EstadoSeguimiento = EstadoSeguimiento.INACTIVO,
-    val mostrarAvisoPermisoDenegado: Boolean = false,
     val mostrarConfirmacionCierreJornada: Boolean = false,
     val cerrandoJornada: Boolean = false,
     val errorCierreJornada: String? = null,
+    /** "HH:mm" del cierre si lo mostrado es la jornada de hoy ya terminada. */
+    val horaCierre: String? = null,
+    val mostrarDialogoReapertura: Boolean = false,
+    val reaperturaRequiereAdmin: Boolean = false,
+    val plazoReaperturaMinutos: Int = 0,
+    val reabriendo: Boolean = false,
+    val errorReapertura: String? = null,
+    val mostrarConfirmacionCierreSesion: Boolean = false,
+    val cerrandoSesion: Boolean = false,
 ) {
+    /** Hay jornada de hoy pero ya cerrada: se muestra su resumen, no "Abrir jornada". */
+    val jornadaTerminada: Boolean get() = jornadaId != null && !jornadaAbierta
+
     fun nombreProveedor(id: String): String = proveedores.firstOrNull { it.id == id }?.nombres ?: id
 
     /** Las últimas entregas de la jornada, para la lista corta de la pantalla de inicio. */

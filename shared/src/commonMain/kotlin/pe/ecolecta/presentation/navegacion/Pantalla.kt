@@ -12,8 +12,11 @@ sealed interface Pantalla {
     data object AcopiadorEntregas : Pantalla
     data object AcopiadorResumen : Pantalla
 
-    /** [proveedorId] llega desde la lista del día, para no volver a elegir a quien ya se seleccionó. */
-    data class AcopiadorRegistroEntrega(val proveedorId: String? = null) : Pantalla
+    /**
+     * [proveedorId] llega desde la lista del día, para no volver a elegir a quien ya se seleccionó.
+     * [volverALista]: al guardar o volver se regresa a la lista de acopio en vez del inicio.
+     */
+    data class AcopiadorRegistroEntrega(val proveedorId: String? = null, val volverALista: Boolean = false) : Pantalla
     data object AcopiadorEscanearQr : Pantalla
     data object AcopiadorLote : Pantalla
     data object AcopiadorSincronizacion : Pantalla
@@ -22,7 +25,8 @@ sealed interface Pantalla {
     data object ProveedorHome : Pantalla
     data object ProveedorEntregas : Pantalla
     data class ProveedorEntregaDetalle(val id: String) : Pantalla
-    data object ProveedorMiRuta : Pantalla
+    /** Mi ciclo: estado de hoy y los 6 días del ciclo del propio proveedor (reemplaza "Mi ruta"). */
+    data object ProveedorMiCiclo : Pantalla
     data object ProveedorMiQr : Pantalla
     data object ProveedorPerfil : Pantalla
     data object ProveedorCalidad : Pantalla
@@ -45,7 +49,8 @@ sealed interface Pantalla {
     data object AdminProveedores : Pantalla
     data class AdminProveedorDetalle(val id: String) : Pantalla
     data class AdminCalidad(val proveedorId: String? = null) : Pantalla
-    data class AdminProveedorForm(val id: String? = null) : Pantalla
+    /** Edición de una ficha existente; el alta de proveedores se hace en Usuarios y roles. */
+    data class AdminProveedorForm(val id: String) : Pantalla
     data object AdminTraslados : Pantalla
     data object AdminJornadas : Pantalla
     data class AdminJornadaDetalle(val id: String) : Pantalla

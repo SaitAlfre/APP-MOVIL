@@ -43,6 +43,9 @@ import pe.ecolecta.presentation.admin.design.AdminCard
 import pe.ecolecta.presentation.admin.design.AdminCargando
 import pe.ecolecta.presentation.admin.design.AdminCifras
 import pe.ecolecta.presentation.admin.design.AdminColor
+import pe.ecolecta.presentation.admin.design.AdminDialogo
+import pe.ecolecta.presentation.admin.design.AdminCampo
+import pe.ecolecta.presentation.admin.design.AdminVacio
 import pe.ecolecta.presentation.admin.design.AdminEtiqueta
 import pe.ecolecta.presentation.admin.design.AdminMensaje
 import pe.ecolecta.presentation.admin.design.AdminSeccion
@@ -117,7 +120,10 @@ fun AdminReportesScreen(alVolver: () -> Unit, viewModel: AdminReportesViewModel 
                         unfocusedBorderColor = AdminColor.borde, focusedBorderColor = AdminColor.verde,
                     ),
                 )
-                AdminTexto("${aviso.length}/500 · Se muestra en el inicio del portal de cada proveedor.", 11, AdminColor.gris, modifier = Modifier.padding(vertical = 6.dp))
+                AdminTexto(
+                    "${aviso.length}/500 · Se muestra en el inicio del portal de cada proveedor. No llega a Alertas ni a los acopiadores.",
+                    11, AdminColor.gris, modifier = Modifier.padding(vertical = 6.dp),
+                )
                 AdminBoton(
                     if (estado.procesando) "Publicando…" else "Publicar comunicado",
                     { viewModel.publicar(aviso) { aviso = "" } },
@@ -126,9 +132,11 @@ fun AdminReportesScreen(alVolver: () -> Unit, viewModel: AdminReportesViewModel 
                 )
             }
 
-            if (estado.comunicados.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                AdminSeccion("Avisos publicados")
+            Spacer(Modifier.height(16.dp))
+            AdminSeccion("Avisos publicados")
+            if (estado.comunicados.isEmpty()) {
+                AdminVacio("Sin avisos publicados", "Los comunicados que publiques aparecerán aquí; puedes retirarlos cuando ya no apliquen.")
+            } else {
                 estado.comunicados.take(10).forEach { c ->
                     AdminCard(Modifier.padding(bottom = 10.dp), radio = 14, acento = AdminColor.verde, padding = 14) {
                         AdminTexto(c.mensaje, 14)
@@ -146,39 +154,36 @@ fun AdminReportesScreen(alVolver: () -> Unit, viewModel: AdminReportesViewModel 
     aprobando?.let { semana ->
         var precio by remember(semana) { mutableStateOf(estado.ultimoPrecio?.let { soles(it).removePrefix("S/ ") } ?: "") }
         val valor = precio.replace(',', '.').toDoubleOrNull()
-        AlertDialog(
-            onDismissRequest = { aprobando = null },
-            title = { Text("Aprobar liquidación") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AdminTexto("${rangoSemana(semana.desde, semana.hasta)} · ${cifra(semana.litros)} L de ${semana.proveedores} proveedores", 14)
-                    OutlinedTextField(
-                        value = precio,
-                        onValueChange = { precio = it },
-                        label = { Text("Precio por litro (S/)") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    valor?.let { AdminTexto("Total a liquidar: ${soles(semana.litros * it)}", 15, AdminColor.verde, FontWeight.Bold) }
-                    AdminTexto("Se genera una liquidación por proveedor con sus litros de la semana. Cada proveedor la verá en «Mis pagos».", 12, AdminColor.gris)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.aprobar(semana.desde, precio); aprobando = null }, enabled = valor != null && valor > 0) { Text("Aprobar") }
-            },
-            dismissButton = { TextButton(onClick = { aprobando = null }) { Text("Cancelar") } },
-        )
+        AdminDialogo(
+            titulo = "Aprobar liquidación",
+            textoConfirmar = "Aprobar",
+            onConfirmar = { viewModel.aprobar(semana.desde, precio); aprobando = null },
+            onCancelar = { aprobando = null },
+            habilitado = valor != null && valor > 0,
+        ) {
+            AdminTexto("${rangoSemana(semana.desde, semana.hasta)} · ${cifra(semana.litros)} L de ${semana.proveedores} proveedores", 14, peso = FontWeight.SemiBold)
+            AdminCampo(precio, { precio = it }, "Precio por litro (S/)", teclado = KeyboardType.Decimal)
+            valor?.let { AdminTexto("Total a liquidar: ${soles(semana.litros * it)}", 15, AdminColor.verde, FontWeight.Bold) }
+            AdminTexto("Se genera una liquidación por proveedor con sus litros de la semana. Cada proveedor la verá en «Mis pagos».", 12, AdminColor.gris)
+            AdminTexto(
+                "Al aprobarla, las entregas de esta semana quedan bloqueadas: ya no se podrán corregir ni anular, para que el pago no quede desactualizado.",
+                12, AdminColor.ambarTexto, FontWeight.Medium,
+            )
+        }
     }
 
     pagando?.let { semana ->
-        AlertDialog(
-            onDismissRequest = { pagando = null },
-            title = { Text("¿Marcar como pagada?") },
-            text = { AdminTexto("${rangoSemana(semana.desde, semana.hasta)} · ${semana.total?.let { soles(it) } ?: ""}. Los proveedores verán su pago como «Pagado» y podrán descargar su comprobante.", 14) },
-            confirmButton = { TextButton(onClick = { viewModel.pagar(semana.desde); pagando = null }) { Text("Marcar pagada") } },
-            dismissButton = { TextButton(onClick = { pagando = null }) { Text("Cancelar") } },
-        )
+        AdminDialogo(
+            titulo = "¿Marcar como pagada?",
+            textoConfirmar = "Marcar pagada",
+            onConfirmar = { viewModel.pagar(semana.desde); pagando = null },
+            onCancelar = { pagando = null },
+        ) {
+            AdminTexto(
+                "${rangoSemana(semana.desde, semana.hasta)} · ${semana.total?.let { soles(it) } ?: ""}. Los proveedores verán su pago como «Pagado» y podrán descargar su comprobante.",
+                14,
+            )
+        }
     }
 }
 

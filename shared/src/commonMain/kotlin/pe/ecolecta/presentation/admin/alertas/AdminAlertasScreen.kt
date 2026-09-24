@@ -195,12 +195,23 @@ fun AdminAlertasScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            item {
+                AdminTexto(
+                    "Asuntos que esperan una decisión tuya. En conflictos y calidad, «Ocultar» solo la quita de esta bandeja: " +
+                        "no resuelve ni borra el registro original. En reclamos y traslados, «Descartar» es un rechazo con motivo. " +
+                        "Los avisos que publicas en Reportes no aparecen aquí.",
+                    12, AdminColor.gris,
+                )
+            }
             estado.mensaje?.let { item { AdminMensaje(it, false, viewModel::limpiarMensaje) } }
             estado.error?.let { item { AdminMensaje(it, true, viewModel::limpiarMensaje) } }
             when {
                 estado.cargando -> item { AdminCargando() }
                 visibles.isEmpty() -> item {
-                    AdminVacio("Sin alertas pendientes", "Los conflictos, reclamos, traslados y controles de calidad que requieran tu decisión aparecerán aquí.")
+                    AdminVacio(
+                        "Sin alertas pendientes",
+                        "Es un estado normal: los conflictos, reclamos, traslados y controles de calidad que requieran tu decisión aparecerán aquí.",
+                    )
                 }
                 else -> items(visibles, key = { it.id }) { alerta ->
                     TarjetaAlerta(alerta, ahora, alerta.id in estado.procesando, acciones)

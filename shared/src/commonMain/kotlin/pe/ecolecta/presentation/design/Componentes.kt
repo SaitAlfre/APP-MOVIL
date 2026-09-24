@@ -1,22 +1,29 @@
 package pe.ecolecta.presentation.design
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -35,9 +42,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,19 +55,45 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+
+/** Forma de campos y botones de la web (`rounded-xl`). */
+private val FormaControl = RoundedCornerShape(12.dp)
+
+/** Sombra "tinta" de los botones principales de la web (`--eh-shadow-ink`). */
+private fun Modifier.sombraTinta(forma: Shape, color: Color, activa: Boolean): Modifier =
+    if (activa) shadow(10.dp, forma, clip = false, ambientColor = color.copy(alpha = 0.35f), spotColor = color.copy(alpha = 0.45f)) else this
 
 /**
- * Encabezado estándar de sección/pantalla: título con jerarquía tipográfica clara y una acción
- * opcional a la derecha (botón, filtro, etc.). Usado por ADMIN, ACOPIADOR y PROVEEDOR por igual.
+ * Antetítulo de la web (`text-xs font-semibold uppercase tracking-[.18em] text-eh-sage`): la
+ * pequeña línea que va sobre los títulos de página y de sección.
+ */
+@Composable
+fun Antetitulo(texto: String, modifier: Modifier = Modifier, color: Color? = null) {
+    Text(
+        texto.uppercase(),
+        modifier = modifier,
+        color = color ?: Colores.salvia,
+        style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.18.em),
+    )
+}
+
+/**
+ * Encabezado de página como `x-ui.page-header` de la web: antetítulo opcional en salvia, título
+ * grande con tracking negativo y una acción opcional a la derecha.
  */
 @Composable
 fun EncabezadoSeccion(
@@ -66,14 +101,19 @@ fun EncabezadoSeccion(
     modifier: Modifier = Modifier,
     subtitulo: String? = null,
     accion: (@Composable () -> Unit)? = null,
+    antetitulo: String? = null,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = Espaciado.l, vertical = Espaciado.m),
+        modifier = modifier.fillMaxWidth().padding(horizontal = Espaciado.l, vertical = Espaciado.m).aparicionEscalonada(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f, fill = false)) {
-            Text(titulo, style = MaterialTheme.typography.headlineSmall, color = Colores.textPrimary)
+            if (antetitulo != null) {
+                Antetitulo(antetitulo)
+                Spacer(Modifier.height(4.dp))
+            }
+            Text(titulo, style = MaterialTheme.typography.headlineMedium, color = Colores.textPrimary)
             if (subtitulo != null) {
                 Spacer(Modifier.height(2.dp))
                 Text(subtitulo, style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
@@ -83,7 +123,28 @@ fun EncabezadoSeccion(
     }
 }
 
-/** Barra superior con flecha de retroceso, para pantallas de detalle/formulario apiladas sobre un tab. */
+/** Botón cuadrado con borde de la cabecera web (tema, notificaciones, volver). */
+@Composable
+fun BotonIconoBorde(icono: ImageVector, descripcion: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaccion = remember { MutableInteractionSource() }
+    Box(
+        modifier
+            .size(40.dp)
+            .efectoPresion(interaccion, 0.92f)
+            .clip(FormaControl)
+            .background(Colores.surface.copy(alpha = 0.65f))
+            .border(1.dp, Colores.bordeFuerte, FormaControl)
+            .clickable(interactionSource = interaccion, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icono, contentDescription = descripcion, tint = Colores.textPrimary, modifier = Modifier.size(18.dp))
+    }
+}
+
+/**
+ * Cabecera de las pantallas apiladas, como el header de la web: fondo crema translúcido, línea
+ * inferior tenue y botón de retroceso cuadrado con borde.
+ */
 @Composable
 fun BarraSuperior(
     titulo: String,
@@ -91,29 +152,49 @@ fun BarraSuperior(
     alVolver: (() -> Unit)? = null,
     accion: (@Composable () -> Unit)? = null,
 ) {
-    Surface(color = Colores.surface, modifier = modifier.fillMaxWidth()) {
+    Column(modifier.fillMaxWidth().background(Colores.bgBase)) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = Espaciado.xs, vertical = Espaciado.xxs),
+            Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = Espaciado.m, vertical = Espaciado.xs),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
         ) {
             if (alVolver != null) {
-                IconButton(onClick = alVolver) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Colores.textPrimary)
-                }
-            } else {
-                Spacer(Modifier.width(Espaciado.m))
+                BotonIconoBorde(Icons.AutoMirrored.Filled.ArrowBack, "Volver", alVolver)
             }
             Text(
                 titulo,
                 style = MaterialTheme.typography.titleLarge,
                 color = Colores.textPrimary,
-                modifier = Modifier.weight(1f).padding(vertical = Espaciado.s),
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
             )
             accion?.invoke()
-            Spacer(Modifier.width(Espaciado.xs))
         }
+        DivisorSutil()
     }
 }
+
+/** Colores de campo de la web: borde tenue, foco salvia y fondo de superficie. */
+@Composable
+fun coloresCampo(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = Colores.salvia,
+    unfocusedBorderColor = Colores.bordeFuerte,
+    disabledBorderColor = Colores.borde,
+    errorBorderColor = Colores.peligro,
+    focusedContainerColor = Colores.surface,
+    unfocusedContainerColor = Colores.surface,
+    disabledContainerColor = Colores.surfaceAlta,
+    errorContainerColor = Colores.surface,
+    focusedLabelColor = Colores.salvia,
+    unfocusedLabelColor = Colores.textSecundario,
+    focusedLeadingIconColor = Colores.salvia,
+    unfocusedLeadingIconColor = Colores.textSecundario,
+    focusedTrailingIconColor = Colores.textPrimary,
+    unfocusedTrailingIconColor = Colores.textSecundario,
+    cursorColor = Colores.salvia,
+    focusedTextColor = Colores.textPrimary,
+    unfocusedTextColor = Colores.textPrimary,
+)
 
 @Composable
 fun CampoTexto(
@@ -139,8 +220,10 @@ fun CampoTexto(
             isError = error != null,
             readOnly = soloLectura,
             singleLine = true,
-            shape = MaterialTheme.shapes.small,
-            leadingIcon = iconoInicial?.let { { Icon(it, contentDescription = null) } },
+            shape = FormaControl,
+            colors = coloresCampo(),
+            textStyle = MaterialTheme.typography.bodyLarge,
+            leadingIcon = iconoInicial?.let { { Icon(it, contentDescription = null, modifier = Modifier.size(20.dp)) } },
             visualTransformation = if (esPin && !pinVisible) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = if (esPin) KeyboardOptions(keyboardType = KeyboardType.NumberPassword) else KeyboardOptions.Default,
             trailingIcon = if (esPin) {
@@ -149,6 +232,7 @@ fun CampoTexto(
                         Icon(
                             imageVector = if (pinVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                             contentDescription = if (pinVisible) "Ocultar PIN" else "Mostrar PIN",
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 }
@@ -164,6 +248,7 @@ fun CampoTexto(
     }
 }
 
+/** `x-ui.btn variant=primary` de la web: tinta, sombra tinta y leve hundimiento al presionar. */
 @Composable
 fun BotonPrimario(
     texto: String,
@@ -173,25 +258,38 @@ fun BotonPrimario(
     icono: ImageVector? = null,
     cargando: Boolean = false,
 ) {
+    val interaccion = remember { MutableInteractionSource() }
+    val activo = habilitado && !cargando
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(52.dp),
-        enabled = habilitado && !cargando,
-        shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.buttonColors(containerColor = Colores.brand, contentColor = Colores.onBrand),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .efectoPresion(interaccion)
+            .sombraTinta(FormaControl, Colores.tinta, activo),
+        enabled = activo,
+        shape = FormaControl,
+        interactionSource = interaccion,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Colores.brand,
+            contentColor = Colores.onBrand,
+            disabledContainerColor = Colores.brand.copy(alpha = 0.35f),
+            disabledContentColor = Colores.onBrand.copy(alpha = 0.8f),
+        ),
     ) {
         if (cargando) {
-            CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Colores.onBrand, strokeWidth = 2.dp)
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Colores.onBrand, strokeWidth = 2.dp)
         } else {
             if (icono != null) {
-                Icon(icono, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(icono, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(Espaciado.xs))
             }
-            Text(texto, style = MaterialTheme.typography.titleMedium)
+            Text(texto, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp))
         }
     }
 }
 
+/** `x-ui.btn variant=secondary` de la web: relleno gris-salvia suave, sin borde. */
 @Composable
 fun BotonSecundario(
     texto: String,
@@ -200,17 +298,26 @@ fun BotonSecundario(
     habilitado: Boolean = true,
     icono: ImageVector? = null,
 ) {
-    OutlinedButton(
+    val interaccion = remember { MutableInteractionSource() }
+    Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(52.dp),
+        modifier = modifier.fillMaxWidth().height(52.dp).efectoPresion(interaccion),
         enabled = habilitado,
-        shape = MaterialTheme.shapes.medium,
+        shape = FormaControl,
+        interactionSource = interaccion,
+        elevation = null,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Colores.surfaceAlta,
+            contentColor = Colores.textPrimary,
+            disabledContainerColor = Colores.surfaceAlta.copy(alpha = 0.5f),
+            disabledContentColor = Colores.textSecundario,
+        ),
     ) {
         if (icono != null) {
-            Icon(icono, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(icono, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(Espaciado.xs))
         }
-        Text(texto, style = MaterialTheme.typography.titleMedium)
+        Text(texto, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp))
     }
 }
 
@@ -222,16 +329,18 @@ fun BotonSecundario(
  */
 @Composable
 fun BotonAccion(texto: String, onClick: () -> Unit, modifier: Modifier = Modifier, icono: ImageVector? = null) {
+    val interaccion = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
-        modifier = modifier.height(40.dp),
-        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.height(40.dp).efectoPresion(interaccion).sombraTinta(FormaControl, Colores.tinta, true),
+        shape = FormaControl,
+        interactionSource = interaccion,
         contentPadding = PaddingValues(horizontal = Espaciado.m, vertical = Espaciado.xs),
         colors = ButtonDefaults.buttonColors(containerColor = Colores.brand, contentColor = Colores.onBrand),
     ) {
         if (icono != null) {
-            Icon(icono, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(Espaciado.xxs))
+            Icon(icono, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
         }
         Text(texto, style = MaterialTheme.typography.labelLarge)
     }
@@ -251,20 +360,23 @@ fun BotonBorde(
     habilitado: Boolean = true,
     cargando: Boolean = false,
 ) {
+    val interaccion = remember { MutableInteractionSource() }
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(52.dp),
-        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.fillMaxWidth().height(52.dp).efectoPresion(interaccion),
+        shape = FormaControl,
         enabled = habilitado,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
+        interactionSource = interaccion,
+        border = BorderStroke(1.dp, if (habilitado) color.copy(alpha = 0.4f) else Colores.borde),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Colores.surface.copy(alpha = 0.65f), contentColor = color),
     ) {
         if (cargando) {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = color, strokeWidth = 2.dp)
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = color, strokeWidth = 2.dp)
         } else if (icono != null) {
-            Icon(icono, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(icono, contentDescription = null, modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(Espaciado.xs))
-        Text(texto, style = MaterialTheme.typography.titleMedium)
+        Text(texto, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp))
     }
 }
 
@@ -275,42 +387,56 @@ fun EnlaceTexto(texto: String, onClick: () -> Unit, modifier: Modifier = Modifie
         texto,
         color = color ?: Colores.brandText,
         style = MaterialTheme.typography.labelLarge,
-        modifier = modifier.clickable(onClick = onClick).padding(vertical = Espaciado.xxs, horizontal = Espaciado.xxs),
+        modifier = modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(vertical = Espaciado.xxs, horizontal = Espaciado.xxs),
     )
 }
 
-/** Contenedor tipo tarjeta consistente (elevación sutil, esquinas redondeadas, padding interno estándar). */
+/**
+ * `x-ui.card` de la web: superficie con borde tenue de 1 dp y radio 22, sin sombra. Entra con el
+ * `rise` escalonado de la página y se hunde levemente al tocarla si es interactiva.
+ */
 @Composable
 fun Tarjeta(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    padding: androidx.compose.ui.unit.Dp = Espaciado.m,
-    contenido: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+    padding: Dp = Espaciado.m,
+    contenido: @Composable ColumnScope.() -> Unit,
 ) {
+    val forma = MaterialTheme.shapes.large
+    val interaccion = remember { MutableInteractionSource() }
     Surface(
-        modifier = if (onClick != null) {
-            modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).clickable(onClick = onClick)
-        } else {
-            modifier.fillMaxWidth()
-        },
-        shape = MaterialTheme.shapes.medium,
+        modifier = modifier
+            .fillMaxWidth()
+            .aparicionEscalonada()
+            .let { if (onClick != null) it.efectoPresion(interaccion, 0.985f) else it }
+            .clip(forma)
+            .let { if (onClick != null) it.clickable(interactionSource = interaccion, indication = androidx.compose.material3.ripple(), onClick = onClick) else it },
+        shape = forma,
         color = Colores.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, Colores.borde),
     ) {
         Column(Modifier.padding(padding), content = contenido)
     }
 }
 
+/** Fondo suave del recuadro de ícono de un KPI según su color de acento (`x-ui.kpi` de la web). */
+@Composable
+private fun fondoSuaveDe(acento: Color): Color = when (acento) {
+    Colores.exito, Colores.brandText -> Colores.exitoSuave
+    Colores.info -> Colores.infoSuave
+    Colores.advertencia, Colores.secundario -> Colores.advertenciaSuave
+    Colores.peligro -> Colores.peligroSuave
+    Colores.violeta -> Colores.violetaSuave
+    Colores.brand -> Colores.brandContainer
+    else -> acento.copy(alpha = 0.14f)
+}
+
 /**
- * Tarjeta de estadística para dashboards (ADMIN/ACOPIADOR/PROVEEDOR): valor grande + etiqueta +
- * ícono de color.
+ * Tarjeta de estadística con el formato `x-ui.kpi` de la web: etiqueta pequeña arriba, recuadro
+ * de ícono tintado a la derecha y la cifra grande con tracking negativo.
  *
- * Admite las dos presentaciones del diseño con una sola definición: por defecto el ícono va a la
- * derecha dentro de un círculo tenue (tableros densos de ADMIN), y con [iconoEnLinea] va suelto a
- * la izquierda de la etiqueta, que es como se ven las métricas en las pantallas de móvil.
- * [colorValor] tiñe la cifra cuando esa métrica es la protagonista de la pantalla — el resto de
- * las tarjetas dejan el valor en el color de texto normal para no competir entre sí.
+ * Con [iconoEnLinea] el ícono va suelto a la izquierda de la etiqueta (métricas compactas de
+ * móvil). [colorValor] tiñe la cifra cuando esa métrica es la protagonista de la pantalla.
  */
 @Composable
 fun TarjetaEstadistica(
@@ -321,41 +447,48 @@ fun TarjetaEstadistica(
     color: Color? = null,
     colorValor: Color? = null,
     iconoEnLinea: Boolean = false,
-    estiloValor: androidx.compose.ui.text.TextStyle? = null,
+    estiloValor: TextStyle? = null,
 ) {
-    val acento = color ?: Colores.brand
+    val acento = color ?: Colores.exito
+    val forma = MaterialTheme.shapes.medium
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.fillMaxWidth().aparicionEscalonada(),
+        shape = forma,
         color = Colores.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, Colores.borde),
     ) {
         Column(Modifier.padding(Espaciado.m)) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = if (iconoEnLinea) Alignment.CenterVertically else Alignment.Top,
                 horizontalArrangement = if (iconoEnLinea) Arrangement.spacedBy(Espaciado.xs) else Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (iconoEnLinea && icono != null) {
-                    Icon(icono, contentDescription = null, tint = acento, modifier = Modifier.size(18.dp))
+                    Icon(icono, contentDescription = null, tint = acento, modifier = Modifier.size(16.dp))
                 }
-                Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario, modifier = Modifier.weight(1f))
+                Text(
+                    etiqueta,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = Colores.textSecundario,
+                    modifier = Modifier.weight(1f),
+                )
                 if (!iconoEnLinea && icono != null) {
                     Box(
-                        Modifier.size(28.dp).clip(CircleShape).background(acento.copy(alpha = 0.14f)),
+                        Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(fondoSuaveDe(acento)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(icono, contentDescription = null, tint = acento, modifier = Modifier.size(16.dp))
                     }
                 }
             }
-            Spacer(Modifier.height(Espaciado.xxs))
+            Spacer(Modifier.height(if (iconoEnLinea) Espaciado.xs else Espaciado.m))
             Text(
                 valor,
-                style = estiloValor ?: MaterialTheme.typography.headlineMedium,
+                style = estiloValor ?: MaterialTheme.typography.headlineMedium.copy(letterSpacing = (-0.04).em),
                 color = colorValor ?: Colores.textPrimary,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
             )
         }
     }
@@ -369,62 +502,61 @@ fun TarjetaEstadistica(
 @Composable
 fun PildoraPendientes(cantidad: Int, modifier: Modifier = Modifier) {
     if (cantidad <= 0) return
-    Row(
-        modifier
-            .clip(RoundedCornerShape(50))
-            .background(Colores.advertencia.copy(alpha = 0.14f))
-            .padding(horizontal = Espaciado.s, vertical = Espaciado.xxs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Box(Modifier.size(6.dp).clip(CircleShape).background(Colores.advertencia))
-        Text("$cantidad pendientes", color = Colores.advertencia, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-    }
+    ChipEstado("$cantidad pendientes", Colores.advertencia, modifier.aparicionPop())
 }
 
 /**
- * Insignia de estado (SYNCED/PENDING/ERROR/CONFLICT, ACTIVO/INACTIVO, etc.): pastilla con fondo
- * tenue y texto del mismo color. [mostrarPunto] antepone un punto sólido; las pantallas de ADMIN
- * lo usan para distinguir estados de un vistazo en tablas densas, mientras que ACOPIADOR y
- * PROVEEDOR lo omiten siguiendo el diseño de móvil, donde la pastilla ya va suelta y aireada.
+ * `x-ui.badge` de la web: pastilla con fondo suave del mismo tono, punto del color del texto y
+ * letra pequeña en semibold.
  */
 @Composable
 fun ChipEstado(texto: String, color: Color, modifier: Modifier = Modifier, mostrarPunto: Boolean = true) {
     Row(
         modifier
             .clip(RoundedCornerShape(50))
-            .background(color.copy(alpha = 0.14f))
-            .padding(horizontal = Espaciado.s, vertical = Espaciado.xxs),
+            .background(fondoSuaveDe(color))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (mostrarPunto) {
-            Box(Modifier.size(6.dp).clip(CircleShape).background(color))
+            Box(Modifier.size(5.dp).clip(CircleShape).background(color))
         }
-        Text(texto, color = color, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+        Text(texto, color = color, style = MaterialTheme.typography.labelMedium, maxLines = 1)
     }
 }
 
-/** Chip de filtro/selección (única elección entre varias opciones: zona, estado, rol, etc.). */
+/**
+ * Chip de filtro/selección, como las pestañas de periodo de la web: la opción activa se rellena de
+ * tinta y el cambio de color se anima.
+ */
 @Composable
 fun ChipSeleccionable(texto: String, seleccionado: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val fondo by animateColorAsState(if (seleccionado) Colores.brand else Colores.surface, tween(220, easing = CurvaLumen), label = "chipFondo")
+    val tinta by animateColorAsState(if (seleccionado) Colores.onBrand else Colores.textSecundario, tween(220, easing = CurvaLumen), label = "chipTexto")
+    val borde by animateColorAsState(if (seleccionado) Colores.brand else Colores.bordeFuerte, tween(220, easing = CurvaLumen), label = "chipBorde")
+    val interaccion = remember { MutableInteractionSource() }
     Surface(
-        modifier = modifier.clip(RoundedCornerShape(50)).clickable(onClick = onClick),
+        modifier = modifier
+            .efectoPresion(interaccion, 0.95f)
+            .clip(RoundedCornerShape(50))
+            .clickable(interactionSource = interaccion, indication = androidx.compose.material3.ripple(), onClick = onClick),
         shape = RoundedCornerShape(50),
-        color = if (seleccionado) Colores.brand else Colores.surfaceAlta,
-        contentColor = if (seleccionado) Colores.onBrand else Colores.textSecundario,
+        color = fondo,
+        contentColor = tinta,
+        border = BorderStroke(1.dp, borde),
     ) {
         Text(
             texto,
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.xs),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
         )
     }
 }
 
 enum class TipoBanner { EXITO, ERROR, ADVERTENCIA, INFO }
 
-/** Mensaje de éxito/error/advertencia/información en línea (formularios, listas, resultados de acciones). */
+/** `x-ui.alert` de la web: fondo suave, borde del mismo tono y el ícono en un círculo. Entra con `pop`. */
 @Composable
 fun Banner(mensaje: String, tipo: TipoBanner, modifier: Modifier = Modifier) {
     val (color, icono) = when (tipo) {
@@ -433,24 +565,27 @@ fun Banner(mensaje: String, tipo: TipoBanner, modifier: Modifier = Modifier) {
         TipoBanner.ADVERTENCIA -> Colores.advertencia to Icons.Filled.WarningAmber
         TipoBanner.INFO -> Colores.info to Icons.Filled.Info
     }
+    val forma = RoundedCornerShape(16.dp)
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        color = color.copy(alpha = 0.12f),
+        modifier = modifier.fillMaxWidth().aparicionPop(),
+        shape = forma,
+        color = fondoSuaveDe(color),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.2f)),
     ) {
         Row(
             Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.s),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Espaciado.xs),
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
         ) {
-            Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
-            Text(mensaje, color = color, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Box(Modifier.size(26.dp).clip(CircleShape).background(color.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
+            }
+            Text(mensaje, color = color, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
         }
     }
 }
 
-/** Estado vacío simple, mantiene la firma histórica usada en ~15 listas. */
-/** Estado vacío enriquecido: ícono + título + descripción opcional + acción opcional (CTA). */
+/** `x-ui.empty` de la web: recuadro de ícono salvia, título y descripción centrados, acción opcional. */
 @Composable
 fun EstadoVacio(
     titulo: String,
@@ -461,22 +596,22 @@ fun EstadoVacio(
     alPresionarAccion: (() -> Unit)? = null,
 ) {
     Column(
-        modifier.fillMaxWidth().padding(Espaciado.xxl),
+        modifier.fillMaxWidth().padding(horizontal = Espaciado.xl, vertical = Espaciado.xxxl).aparicionEscalonada(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (icono != null) {
             Box(
-                Modifier.size(56.dp).clip(CircleShape).background(Colores.surfaceAlta),
+                Modifier.size(48.dp).clip(RoundedCornerShape(16.dp)).background(Colores.surfaceAlta),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icono, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.size(28.dp))
+                Icon(icono, contentDescription = null, tint = Colores.salvia, modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.height(Espaciado.m))
         }
-        Text(titulo, color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Text(titulo, color = Colores.textPrimary, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
         if (descripcion != null) {
             Spacer(Modifier.height(Espaciado.xxs))
-            Text(descripcion, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            Text(descripcion, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
         }
         if (textoAccion != null && alPresionarAccion != null) {
             Spacer(Modifier.height(Espaciado.m))
@@ -490,7 +625,7 @@ fun EstadoVacio(
 fun IndicadorCarga(modifier: Modifier = Modifier, mensaje: String? = null) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(color = Colores.brand)
+            CircularProgressIndicator(color = Colores.salvia, trackColor = Colores.surfaceAlta, strokeWidth = 3.dp, modifier = Modifier.size(36.dp))
             if (mensaje != null) {
                 Spacer(Modifier.height(Espaciado.s))
                 Text(mensaje, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium)
@@ -517,7 +652,8 @@ fun DialogoMotivo(
     AlertDialog(
         onDismissRequest = onCancelar,
         shape = MaterialTheme.shapes.large,
-        title = { Text(titulo, style = MaterialTheme.typography.titleLarge) },
+        containerColor = Colores.surface,
+        title = { Text(titulo, style = MaterialTheme.typography.titleLarge, color = Colores.textPrimary) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 contenidoExtra?.invoke()
@@ -528,9 +664,9 @@ fun DialogoMotivo(
             TextButton(
                 onClick = { enviando = true; onConfirmar(motivo) },
                 enabled = motivo.isNotBlank() && !enviando,
-            ) { Text(textoConfirmar) }
+            ) { Text(textoConfirmar, color = if (motivo.isNotBlank() && !enviando) Colores.textPrimary else Colores.textSecundario) }
         },
-        dismissButton = { TextButton(onClick = onCancelar, enabled = !enviando) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onCancelar, enabled = !enviando) { Text("Cancelar", color = Colores.textSecundario) } },
     )
 }
 
@@ -557,7 +693,12 @@ fun Dato(
         horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
     ) {
         if (icono != null) {
-            Icon(icono, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.padding(top = 2.dp).size(20.dp))
+            Box(
+                Modifier.size(32.dp).clip(RoundedCornerShape(10.dp)).background(Colores.surfaceAlta),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icono, contentDescription = null, tint = Colores.salvia, modifier = Modifier.size(17.dp))
+            }
         }
         Column {
             Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
@@ -566,7 +707,7 @@ fun Dato(
     }
 }
 
-/** Campo de búsqueda redondeado con lupa, para filtrar listas largas (proveedores, entregas…). */
+/** Campo de búsqueda redondeado con lupa (`x-ui.search` de la web), para filtrar listas largas. */
 @Composable
 fun CampoBusqueda(
     valor: String,
@@ -578,9 +719,11 @@ fun CampoBusqueda(
         value = valor,
         onValueChange = onValorCambia,
         modifier = modifier.fillMaxWidth(),
-        placeholder = { Text(marcador, style = MaterialTheme.typography.bodyMedium) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.size(20.dp)) },
+        placeholder = { Text(marcador, style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario.copy(alpha = 0.7f)) },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = Colores.textSecundario, modifier = Modifier.size(19.dp)) },
         singleLine = true,
-        shape = MaterialTheme.shapes.medium,
+        textStyle = MaterialTheme.typography.bodyMedium,
+        shape = FormaControl,
+        colors = coloresCampo(),
     )
 }

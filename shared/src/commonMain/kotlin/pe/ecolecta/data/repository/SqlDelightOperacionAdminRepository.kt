@@ -101,6 +101,47 @@ class SqlDelightCuentasRepository(
         }
     }
 
+    override suspend fun crearCuenta(
+        usuario: pe.ecolecta.domain.model.Usuario,
+        zonaId: String?,
+        fichaNueva: pe.ecolecta.domain.model.Proveedor?,
+        fichaExistenteId: String?,
+        auditorias: List<pe.ecolecta.domain.model.Auditoria>,
+    ) = withContext(dispatcher) {
+        db.transaction {
+            db.usuarioQueries.insertar(
+                id = usuario.id, username = usuario.username, nombres = usuario.nombres, dni = usuario.dni,
+                pin_hash = usuario.pinHash, pin_salt = usuario.pinSalt, activo = if (usuario.activo) 1 else 0, updated_at = usuario.updatedAt,
+            )
+            usuario.roles.forEach { rol -> db.usuarioRolQueries.insertar(usuario_id = usuario.id, rol = rol.name) }
+            if (zonaId != null) db.usuarioZonaQueries.asignar(usuario.id, zonaId)
+            if (fichaNueva != null) {
+                db.proveedorQueries.insertar(
+                    id = fichaNueva.id, codigo = fichaNueva.codigo, nombres = fichaNueva.nombres, dni = fichaNueva.dni,
+                    telefono = fichaNueva.telefono, direccion = fichaNueva.direccion, zona_id = fichaNueva.zonaId,
+                    tachos = fichaNueva.tachos.toLong(), capacidad_tacho_l = fichaNueva.capacidadTachoL,
+                    estado = fichaNueva.estado.name, updated_at = fichaNueva.updatedAt, sync_state = fichaNueva.syncState.name,
+                )
+                db.proveedorQueries.actualizarResponsable(fichaNueva.dueno, fichaNueva.id)
+                db.proveedorQueries.vincularUsuario(usuario_id = usuario.id, id = fichaNueva.id)
+            }
+            if (fichaExistenteId != null) {
+                // Se vuelve a comprobar dentro de la transacción: otra alta pudo tomar la ficha entretanto.
+                val ficha = db.proveedorQueries.selectPorId(fichaExistenteId).executeAsOneOrNull()
+                    ?: throw IllegalArgumentException("La ficha de proveedor ya no existe.")
+                if (ficha.usuario_id != null) throw IllegalArgumentException("La ficha ${ficha.codigo} ya está vinculada a otra cuenta.")
+                db.proveedorQueries.vincularUsuario(usuario_id = usuario.id, id = fichaExistenteId)
+            }
+            auditorias.forEach { a ->
+                db.auditoriaQueries.insertar(
+                    id = a.id, entidad = a.entidad, entidad_id = a.entidadId, accion = a.accion.name,
+                    valor_antes = a.valorAntes, valor_despues = a.valorDespues, motivo = a.motivo, usuario_id = a.usuarioId,
+                    ocurrido_en = a.ocurridoEn, device_id = a.deviceId, sync_state = a.syncState.name,
+                )
+            }
+        }
+    }
+
     override suspend fun existeNombreZona(nombre: String, idExcluido: String): Boolean = withContext(dispatcher) {
         db.zonaQueries.existeNombre(nombre, idExcluido).executeAsOne() > 0
     }

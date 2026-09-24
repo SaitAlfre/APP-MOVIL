@@ -29,7 +29,6 @@ class TrasladosViewModel(
     val uiState: StateFlow<TrasladosUiState> = _uiState.asStateFlow()
 
     private var usuarioActualId: String? = null
-    private var accionEnCurso = false
 
     init {
         viewModelScope.launch { obtenerSesionUseCase().collect { usuarioActualId = it?.usuario?.id } }
@@ -42,49 +41,43 @@ class TrasladosViewModel(
                 .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
         viewModelScope.launch {
-            cargaSegura { listarZonasUseCase(soloActivas = true).collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
+            // Todas las zonas, para nombrar también el origen de traslados antiguos; el diálogo ofrece solo las activas.
+            cargaSegura { listarZonasUseCase(soloActivas = false).collect { lista -> _uiState.update { it.copy(zonas = lista) } } }
                 .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
     }
 
-    fun mostrarDialogoCrear(mostrar: Boolean) {
-        _uiState.update { it.copy(mostrarDialogoCrear = mostrar, error = null) }
+    fun abrir(dialogo: DialogoTraslado?) {
+        if (_uiState.value.procesando) return
+        _uiState.update { it.copy(dialogo = dialogo, errorDialogo = null, mensaje = null) }
     }
 
-    fun crear(proveedorId: String, zonaDestinoId: String, motivo: String) {
-        if (accionEnCurso) return
-        accionEnCurso = true
-        viewModelScope.launch {
-            crearTrasladoUseCase(proveedorId, zonaDestinoId, motivo)
-                .onSuccess { _uiState.update { it.copy(mostrarDialogoCrear = false) } }
-                .onFailure { error -> _uiState.update { it.copy(error = error.message) } }
-            accionEnCurso = false
-        }
+    fun limpiarMensaje() = _uiState.update { it.copy(mensaje = null) }
+
+    fun crear(proveedorId: String, zonaDestinoId: String, motivo: String) = ejecutar("El cambio de zona quedó por autorizar.") {
+        crearTrasladoUseCase(proveedorId, zonaDestinoId, motivo).map { }
     }
 
-    fun autorizar(id: String) {
+    fun autorizar(id: String) = ejecutar("Traslado autorizado: el proveedor ya pertenece a la nueva zona. Quedó en Auditoría.") { adminId ->
+        autorizarTrasladoUseCase(id, adminId)
+    }
+
+    fun rechazar(id: String, motivo: String) = ejecutar("Traslado rechazado. El proveedor sigue en su zona actual.") { adminId ->
+        rechazarTrasladoUseCase(id, adminId, motivo)
+    }
+
+    private fun ejecutar(exito: String, accion: suspend (adminId: String) -> Result<Unit>) {
         val adminId = usuarioActualId ?: run {
-            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
+            _uiState.update { it.copy(errorDialogo = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
             return
         }
-        if (accionEnCurso) return
-        accionEnCurso = true
+        if (_uiState.value.procesando) return
+        _uiState.update { it.copy(procesando = true, errorDialogo = null) }
         viewModelScope.launch {
-            autorizarTrasladoUseCase(id, adminId).onFailure { error -> _uiState.update { it.copy(error = error.message) } }
-            accionEnCurso = false
-        }
-    }
-
-    fun rechazar(id: String, motivo: String) {
-        val adminId = usuarioActualId ?: run {
-            _uiState.update { it.copy(error = "Todavía no se cargó tu sesión. Intenta de nuevo en un momento.") }
-            return
-        }
-        if (accionEnCurso) return
-        accionEnCurso = true
-        viewModelScope.launch {
-            rechazarTrasladoUseCase(id, adminId, motivo).onFailure { error -> _uiState.update { it.copy(error = error.message) } }
-            accionEnCurso = false
+            cargaSegura { accion(adminId).getOrThrow() }.fold(
+                onSuccess = { _uiState.update { it.copy(procesando = false, dialogo = null, mensaje = exito) } },
+                onFailure = { e -> _uiState.update { it.copy(procesando = false, errorDialogo = e.message ?: "No se pudo completar la acción.") } },
+            )
         }
     }
 }

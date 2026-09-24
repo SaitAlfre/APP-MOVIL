@@ -28,6 +28,12 @@ fun formatearHora(epochMs: Long): String {
     return "${ldt.hour.dosDigitos()}:${ldt.minute.dosDigitos()}"
 }
 
+/** Hora en Perú ("06:38") para la lista de acopio: no depende de la zona horaria del teléfono. */
+fun formatearHoraAcopio(epochMs: Long): String {
+    val ldt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(pe.ecolecta.domain.acopio.ZONA_ACOPIO)
+    return "${ldt.hour.dosDigitos()}:${ldt.minute.dosDigitos()}"
+}
+
 fun formatearFecha(epochMs: Long): String {
     val ldt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault())
     return "${ldt.day.toString().padStart(2, '0')}/${ldt.monthNumber.toString().padStart(2, '0')}/${ldt.year}"

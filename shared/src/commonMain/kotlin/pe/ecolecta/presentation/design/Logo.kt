@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,12 +30,13 @@ fun EcolectaLogo(
     colorFondo: Color? = null,
     colorSimbolo: Color? = null,
     conFondo: Boolean = true,
+    forma: Shape = CircleShape,
 ) {
     val fondo = colorFondo ?: Colores.brand
     val simbolo = colorSimbolo ?: Colores.onBrand
 
     Box(
-        modifier = if (conFondo) modifier.size(tamano).clip(CircleShape).background(color = fondo) else modifier.size(tamano),
+        modifier = if (conFondo) modifier.size(tamano).clip(forma).background(color = fondo) else modifier.size(tamano),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(tamano * 0.62f)) {

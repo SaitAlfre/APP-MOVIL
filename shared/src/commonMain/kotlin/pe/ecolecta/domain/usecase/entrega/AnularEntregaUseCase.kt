@@ -9,16 +9,22 @@ import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.domain.nuevoId
 import pe.ecolecta.domain.repository.EntregaRepository
 
-/** anulada = true, nunca DELETE; UPDATE + INSERT auditoria en una sola transacción (§13). */
+/**
+ * anulada = true, nunca DELETE; UPDATE + INSERT auditoria en una sola transacción (§13).
+ * Es terminal: una entrega anulada no vuelve a anularse ni se corrige.
+ */
 class AnularEntregaUseCase(
     private val entregaRepository: EntregaRepository,
     private val reloj: Reloj,
     private val deviceIdProvider: DeviceIdProvider,
+    private val regla: ReglaEdicionEntrega,
 ) {
     suspend operator fun invoke(entregaId: String, motivo: String, usuarioId: String): Result<Unit> {
         if (motivo.isBlank()) return Result.failure(EntregaInvalidaException.MotivoObligatorio)
 
-        entregaRepository.obtenerPorId(entregaId) ?: return Result.failure(IllegalStateException("Entrega no encontrada"))
+        val entrega = entregaRepository.obtenerPorId(entregaId)
+            ?: return Result.failure(IllegalStateException("Entrega no encontrada"))
+        regla.bloqueo(entrega)?.let { return Result.failure(it) }
 
         val ahora = reloj.ahora().toEpochMilliseconds()
         val auditoria = Auditoria(
@@ -26,9 +32,9 @@ class AnularEntregaUseCase(
             entidad = "entrega",
             entidadId = entregaId,
             accion = AccionAuditoria.ANULAR,
-            valorAntes = null,
-            valorDespues = null,
-            motivo = motivo,
+            valorAntes = "litros=${entrega.litros};tachos=${entrega.tachos}",
+            valorDespues = "anulada",
+            motivo = motivo.trim(),
             usuarioId = usuarioId,
             ocurridoEn = ahora,
             deviceId = deviceIdProvider.obtenerId(),

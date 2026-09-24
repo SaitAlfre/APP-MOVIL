@@ -97,9 +97,9 @@ fun CalidadShell(
     ) { padding ->
         if (s.cargando) {
             Box(Modifier.padding(padding)) { IndicadorCarga() }
-        } else key(s.paso) {
+        } else key(s.paso) { EscenarioAnimado(s.paso) {
             LazyColumn(
-                Modifier.fillMaxSize().padding(padding).imePadding(),
+                Modifier.fillMaxSize().padding(padding).imePadding().entradaPantalla(s.paso),
                 contentPadding = PaddingValues(bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
@@ -127,7 +127,7 @@ fun CalidadShell(
                     ) { Text("Descartar análisis", color = Colores.peligro) }
                 }
             }
-        }
+        } }
     }
     if (descartar) AlertDialog(
         onDismissRequest = { descartar = false }, title = { Text("¿Descartar este análisis?") },
@@ -151,24 +151,13 @@ fun CalidadShell(
 
 @Composable
 private fun CalidadBottomNav(pestanaActual: PestanaCalidad, habilitado: Boolean, onSeleccionar: (PestanaCalidad) -> Unit) {
-    NavigationBar(containerColor = Colores.surface) {
-        PestanaCalidad.entries.forEach { pestana ->
-            NavigationBarItem(
-                selected = pestana == pestanaActual,
-                enabled = habilitado,
-                onClick = { onSeleccionar(pestana) },
-                icon = { Icon(pestana.icono, contentDescription = pestana.etiqueta) },
-                label = { Text(pestana.etiqueta) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = CalidadMorado,
-                    indicatorColor = Color.Transparent,
-                    selectedTextColor = CalidadMorado,
-                    unselectedIconColor = Colores.textSecundario,
-                    unselectedTextColor = Colores.textSecundario,
-                ),
-            )
-        }
-    }
+    val pestanas = PestanaCalidad.entries
+    BarraNavegacionInferior(
+        items = pestanas.map { ItemNavegacion(it.etiqueta, it.icono) },
+        seleccionado = pestanas.indexOf(pestanaActual),
+        onSeleccionar = { onSeleccionar(pestanas[it]) },
+        habilitado = habilitado,
+    )
 }
 
 // ---------------------------------------------------------------------------------------------

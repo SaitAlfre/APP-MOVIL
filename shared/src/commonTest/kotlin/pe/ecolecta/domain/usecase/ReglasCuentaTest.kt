@@ -82,4 +82,25 @@ class ReglasCuentaTest {
         assertFailsWith<IllegalArgumentException> { reglas.validarAsignaciones("nueva", setOf(Rol.PROVEEDOR), null, "p") }
         reglas.validarAsignaciones("otra", setOf(Rol.PROVEEDOR), null, "p")
     }
+
+    @Test
+    fun `una cuenta nueva tiene un solo rol`() = runTest {
+        val e = assertFailsWith<IllegalArgumentException> { reglas.validarAsignaciones(null, setOf(Rol.ADMIN, Rol.ACOPIADOR), null, null) }
+        assertEquals("Cada cuenta tiene un solo rol. Si una persona necesita otro perfil, créale una cuenta aparte.", e.message)
+        reglas.validarAsignaciones(null, setOf(Rol.ACOPIADOR), null, null)
+    }
+
+    @Test
+    fun `una cuenta anterior con varios roles se conserva si no se cambian`() = runTest {
+        val legado = setOf(Rol.ADMIN, Rol.ACOPIADOR)
+        reglas.validarAsignaciones("u1", legado, null, null, rolesAnteriores = legado)
+    }
+
+    @Test
+    fun `una cuenta anterior con varios roles no puede cambiar a otra combinacion`() = runTest {
+        assertFailsWith<IllegalArgumentException> {
+            reglas.validarAsignaciones("u1", setOf(Rol.ADMIN, Rol.CALIDAD), "z1", null, rolesAnteriores = setOf(Rol.ADMIN, Rol.ACOPIADOR))
+        }
+        reglas.validarAsignaciones("u1", setOf(Rol.ADMIN), null, null, rolesAnteriores = setOf(Rol.ADMIN, Rol.ACOPIADOR))
+    }
 }

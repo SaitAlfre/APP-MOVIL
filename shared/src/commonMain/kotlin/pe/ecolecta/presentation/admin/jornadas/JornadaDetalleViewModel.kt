@@ -10,6 +10,9 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.usecase.entrega.ObservarEntregasDeJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresUseCase
+import pe.ecolecta.domain.usecase.usuario.ObtenerUsuarioUseCase
+import pe.ecolecta.domain.usecase.vehiculo.ObtenerVehiculoUseCase
+import pe.ecolecta.domain.usecase.zona.ObtenerZonaUseCase
 import pe.ecolecta.presentation.cargaSegura
 
 class JornadaDetalleViewModel(
@@ -17,16 +20,22 @@ class JornadaDetalleViewModel(
     private val obtenerJornadaUseCase: ObtenerJornadaUseCase,
     private val observarEntregasDeJornadaUseCase: ObservarEntregasDeJornadaUseCase,
     private val listarProveedoresUseCase: ListarProveedoresUseCase,
+    private val obtenerUsuario: ObtenerUsuarioUseCase,
+    private val obtenerZona: ObtenerZonaUseCase,
+    private val obtenerVehiculo: ObtenerVehiculoUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(JornadaDetalleUiState())
     val uiState: StateFlow<JornadaDetalleUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            cargaSegura { obtenerJornadaUseCase(jornadaId) }.fold(
-                onSuccess = { jornada -> _uiState.update { it.copy(jornada = jornada) } },
-                onFailure = { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar la jornada.") } },
-            )
+            cargaSegura {
+                val jornada = obtenerJornadaUseCase(jornadaId) ?: error("La jornada ya no existe en este dispositivo.")
+                val acopiador = obtenerUsuario(jornada.usuarioId)?.let { "${it.nombres} · @${it.username}" } ?: "Acopiador no disponible"
+                val zona = obtenerZona(jornada.zonaId)?.nombre ?: "Zona no disponible"
+                val vehiculo = obtenerVehiculo(jornada.vehiculoId)?.let { "${it.nombre} · ${it.placa}" } ?: "Vehículo no disponible"
+                _uiState.update { it.copy(jornada = jornada, acopiador = acopiador, zona = zona, vehiculo = vehiculo) }
+            }.onFailure { e -> _uiState.update { it.copy(cargando = false, error = e.message ?: "No se pudo cargar la jornada.") } }
         }
         viewModelScope.launch {
             cargaSegura {

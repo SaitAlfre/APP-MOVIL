@@ -4,9 +4,10 @@ rules_version = '2';
 // producción: la autenticación es anónima (un uid estable por dispositivo, sin verificar identidad
 // real) y solo sirve para que estas reglas sepan a qué usuario/zona local corresponde cada uid.
 //
-// Vinculación manual: `acopiador_links/{uid}` y `proveedor_links/{uid}` se crean A MANO desde Firebase
-// Console (ver la guía de configuración) — la app nunca tiene permiso de leerlos ni escribirlos, así
-// que no puede reclamar un usuario ajeno ni cambiar su propia zona. Sin Cloud Functions ni plan Blaze.
+// Vinculación manual: `acopiador_links/{uid}` = { usuarioId, zonaId } y `proveedor_links/{uid}` =
+// { usuarioId, zonaId, proveedorCodigo } se crean A MANO desde Firebase Console con el UID que cada
+// celular muestra en la app — la app nunca tiene permiso de leerlos ni escribirlos, así que no puede
+// reclamar un usuario ajeno, cambiar su zona ni leer registros de otro proveedor. Sin Cloud Functions.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -17,45 +18,52 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // rutas_activas/{zonaId}: última ubicación/estado del acopiador de una zona (un documento por
-    // zona, se sobrescribe — no hay historial).
-    match /rutas_activas/{zonaId} {
-      // El PROVEEDOR solo puede leer la zona que su propio vínculo (creado a mano) le asigna — el
-      // zonaId de la petición nunca se usa para autorizar, solo para comparar contra ese vínculo.
-      allow read: if request.auth != null &&
+    // registros_acopio/{registroId}: entregas y "sin recojo" que el ACOPIADOR comparte con el
+    // PROVEEDOR (reemplaza al seguimiento GPS `rutas_activas`, retirado). Un documento por registro:
+    // el id es el del registro local, así que reenviar sobrescribe y nunca duplica. Nunca se borra.
+    match /registros_acopio/{registroId} {
+      function vinculoAcopiador() {
+        return get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data;
+      }
+      function vinculoProveedor() {
+        return get(/databases/$(database)/documents/proveedor_links/$(request.auth.uid)).data;
+      }
+      function esAcopiadorDeLaZona(zonaId) {
+        return request.auth != null &&
+          exists(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)) &&
+          vinculoAcopiador().zonaId == zonaId;
+      }
+      function datosValidos(d) {
+        return d.id == registroId &&
+          d.tipo in ['ENTREGA', 'SIN_RECOJO'] &&
+          d.proveedorCodigo is string && d.proveedorCodigo.size() > 0 &&
+          d.fecha is string && d.actualizadoEn is int &&
+          (d.tipo != 'ENTREGA' || (d.litros is number && d.litros > 0)) &&
+          (d.tipo != 'SIN_RECOJO' || (d.motivo is string && d.motivo.size() > 0));
+      }
+
+      // PRIVACIDAD: el PROVEEDOR solo lee documentos de SU código, fijado a mano en su vínculo
+      // (proveedor_links/{uid}.proveedorCodigo). Una consulta sin ese filtro se rechaza entera.
+      allow get, list: if request.auth != null &&
         exists(/databases/$(database)/documents/proveedor_links/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/proveedor_links/$(request.auth.uid)).data.zonaId == zonaId;
+        vinculoProveedor().proveedorCodigo is string &&
+        resource.data.proveedorCodigo == vinculoProveedor().proveedorCodigo;
 
-      // Primera escritura de una zona: el ACOPIADOR debe (a) ser quien dice ser — su propio
-      // acopiadorId, nunca el de otro usuario — y (b) estar autorizado para ESTA zona por su vínculo
-      // administrado (acopiador_links/{uid}.zonaId, no editable por el cliente — igual que
-      // proveedor_links ya exige para leer). Ninguna de las dos cosas por sí sola alcanza.
-      allow create: if request.auth != null &&
-        exists(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.usuarioId == request.resource.data.acopiadorId &&
-        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.zonaId == zonaId &&
-        request.resource.data.zonaId == zonaId;
+      // Alta: el ACOPIADOR debe ser quien dice ser (su usuarioId) y estar autorizado para la zona.
+      allow create: if esAcopiadorDeLaZona(request.resource.data.zonaId) &&
+        vinculoAcopiador().usuarioId == request.resource.data.acopiadorId &&
+        datosValidos(request.resource.data);
 
-      // Actualización: misma identidad+autorización de zona que create (nunca "el mismo dueño de
-      // antes" — un relevo legítimo a otro acopiador vinculado a esta zona debe poder tomarla), MÁS
-      // la protección contra escrituras atrasadas. jornadaAbiertaEn y secuenciaEn son un "reloj
-      // lógico": una jornada más vieja que la ya guardada, o un evento más viejo dentro de la misma
-      // jornada, se rechaza siempre — así una publicación en cola desde antes de "detener
-      // seguimiento" o de cerrar una jornada nunca puede reactivar el seguimiento ni sobrescribir los
-      // datos de una jornada más nueva, sin importar cuándo llegue al servidor NI quién la escriba.
-      // Una jornadaAbiertaEn mayor nunca sustituye, por sí sola, la autorización de zona de arriba.
-      allow update: if request.auth != null &&
-        exists(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.usuarioId == request.resource.data.acopiadorId &&
-        get(/databases/$(database)/documents/acopiador_links/$(request.auth.uid)).data.zonaId == zonaId &&
-        request.resource.data.zonaId == zonaId &&
-        (
-          request.resource.data.jornadaAbiertaEn > resource.data.jornadaAbiertaEn ||
-          (
-            request.resource.data.jornadaAbiertaEn == resource.data.jornadaAbiertaEn &&
-            request.resource.data.secuenciaEn >= resource.data.secuenciaEn
-          )
-        );
+      // Corrección / anulación / "deshacer": cualquier acopiador autorizado para la MISMA zona (relevo
+      // o corrección en el mismo celular); nunca cambia de proveedor, zona, tipo ni autor, y una
+      // escritura atrasada (actualizadoEn menor) no puede pisar una más nueva.
+      allow update: if esAcopiadorDeLaZona(resource.data.zonaId) &&
+        datosValidos(request.resource.data) &&
+        request.resource.data.zonaId == resource.data.zonaId &&
+        request.resource.data.proveedorCodigo == resource.data.proveedorCodigo &&
+        request.resource.data.tipo == resource.data.tipo &&
+        request.resource.data.acopiadorId == resource.data.acopiadorId &&
+        request.resource.data.actualizadoEn >= resource.data.actualizadoEn;
 
       allow delete: if false;
     }

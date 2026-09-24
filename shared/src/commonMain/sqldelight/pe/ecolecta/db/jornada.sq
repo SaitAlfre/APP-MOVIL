@@ -19,6 +19,11 @@ VALUES (:id, :usuario_id, :zona_id, :vehiculo_id, :fecha, :abierta_en, NULL, :sy
 cerrar:
 UPDATE jornada SET cerrada_en = :cerrada_en WHERE id = :id;
 
+-- Reapertura controlada de la MISMA jornada (ver ReabrirJornadaUseCase). La hora del cierre que se
+-- deshace queda en la auditoría; aquí solo se vuelve a marcar abierta.
+reabrir:
+UPDATE jornada SET cerrada_en = NULL WHERE id = :id AND cerrada_en IS NOT NULL;
+
 selectTodas:
 SELECT * FROM jornada ORDER BY abierta_en DESC;
 

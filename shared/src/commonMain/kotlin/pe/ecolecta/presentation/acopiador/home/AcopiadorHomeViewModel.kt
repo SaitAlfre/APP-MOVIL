@@ -17,16 +17,18 @@ import kotlinx.coroutines.launch
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.Jornada
 import pe.ecolecta.domain.model.Proveedor
+import pe.ecolecta.domain.ReaperturaJornadaException
+import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.entrega.AnularEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.CorregirEntregaUseCase
 import pe.ecolecta.domain.usecase.entrega.ObservarEntregasDeJornadaUseCase
 import pe.ecolecta.domain.usecase.jornada.CerrarJornadaUseCase
+import pe.ecolecta.domain.usecase.jornada.CredencialAdmin
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
+import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaTerminadaHoyUseCase
+import pe.ecolecta.domain.usecase.jornada.ReabrirJornadaUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
-import pe.ecolecta.domain.usecase.seguimiento.DetenerSeguimientoUseCase
-import pe.ecolecta.domain.usecase.seguimiento.IniciarSeguimientoUseCase
-import pe.ecolecta.domain.usecase.seguimiento.ObtenerEstadoSeguimientoUseCase
 import pe.ecolecta.domain.usecase.sync.ObtenerColaSyncUseCase
 import pe.ecolecta.domain.usecase.vehiculo.ListarVehiculosUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
@@ -40,12 +42,12 @@ class AcopiadorHomeViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
     private val corregirEntregaUseCase: CorregirEntregaUseCase,
     private val anularEntregaUseCase: AnularEntregaUseCase,
-    private val iniciarSeguimientoUseCase: IniciarSeguimientoUseCase,
-    private val detenerSeguimientoUseCase: DetenerSeguimientoUseCase,
-    private val obtenerEstadoSeguimientoUseCase: ObtenerEstadoSeguimientoUseCase,
     private val listarZonasUseCase: ListarZonasUseCase,
     private val listarVehiculosUseCase: ListarVehiculosUseCase,
     private val cerrarJornadaUseCase: CerrarJornadaUseCase,
+    private val obtenerJornadaTerminadaHoyUseCase: ObtenerJornadaTerminadaHoyUseCase,
+    private val reabrirJornadaUseCase: ReabrirJornadaUseCase,
+    private val cerrarSesionUseCase: CerrarSesionUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AcopiadorHomeUiState())
     val uiState: StateFlow<AcopiadorHomeUiState> = _uiState.asStateFlow()
@@ -60,7 +62,10 @@ class AcopiadorHomeViewModel(
             usuarioIdActual = usuarioId
 
             obtenerJornadaEnCursoUseCase()
-                .flatMapLatest { jornada ->
+                .flatMapLatest { enCurso ->
+                    // Sin jornada en curso se busca la de hoy ya cerrada: el inicio muestra su resumen
+                    // (entregas, pendientes de sync) en vez de ofrecer abrir otra, que no está permitido.
+                    val jornada = enCurso ?: usuarioId?.let { runCatching { obtenerJornadaTerminadaHoyUseCase(it) }.getOrNull() }
                     jornadaActual = jornada
                     if (jornada == null) {
                         flowOf(Triple(emptyList<Entrega>(), emptyList<Proveedor>(), false))
@@ -90,15 +95,10 @@ class AcopiadorHomeViewModel(
                             proveedores = proveedores,
                             jornadaId = jornada?.id,
                             jornadaAbierta = jornadaAbierta,
+                            horaCierre = jornada?.cerradaEn?.let(::formatearHora),
                         )
                     }
                 }
-        }
-
-        viewModelScope.launch {
-            obtenerEstadoSeguimientoUseCase().collect { estado ->
-                _uiState.update { it.copy(estadoSeguimiento = estado) }
-            }
         }
     }
 
@@ -112,32 +112,6 @@ class AcopiadorHomeViewModel(
         viewModelScope.launch { anularEntregaUseCase(entregaId, motivo, usuarioId) }
     }
 
-    /** Llamado desde la UI con el resultado del diálogo nativo de permiso de ubicación. */
-    fun onPermisoUbicacionResultado(concedido: Boolean) {
-        if (concedido) {
-            _uiState.update { it.copy(mostrarAvisoPermisoDenegado = false) }
-            viewModelScope.launch { iniciarSeguimientoUseCase() }
-        } else {
-            _uiState.update { it.copy(mostrarAvisoPermisoDenegado = true) }
-        }
-    }
-
-    fun detenerSeguimiento() {
-        val jornada = jornadaActual ?: return
-        viewModelScope.launch {
-            detenerSeguimientoUseCase(
-                usuarioId = jornada.usuarioId,
-                zonaId = jornada.zonaId,
-                jornadaId = jornada.id,
-                jornadaAbiertaEn = jornada.abiertaEn,
-            )
-        }
-    }
-
-    fun descartarAvisoPermiso() {
-        _uiState.update { it.copy(mostrarAvisoPermisoDenegado = false) }
-    }
-
     /** Siempre pide confirmación, haya o no pendientes por sincronizar: es una acción que cierra el día. */
     fun solicitarCierreJornada() {
         if (_uiState.value.jornadaId == null) return
@@ -145,6 +119,7 @@ class AcopiadorHomeViewModel(
     }
 
     fun confirmarCierreJornada() {
+        if (_uiState.value.cerrandoJornada) return
         val jornadaId = _uiState.value.jornadaId ?: return
         _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false, cerrandoJornada = true, errorCierreJornada = null) }
         viewModelScope.launch {
@@ -163,4 +138,54 @@ class AcopiadorHomeViewModel(
     fun cancelarCierreJornada() = _uiState.update { it.copy(mostrarConfirmacionCierreJornada = false) }
 
     fun descartarErrorCierreJornada() = _uiState.update { it.copy(errorCierreJornada = null) }
+
+    fun solicitarReapertura() {
+        val jornada = jornadaActual?.takeIf { !it.estaAbierta } ?: return
+        _uiState.update {
+            it.copy(
+                mostrarDialogoReapertura = true,
+                reaperturaRequiereAdmin = reabrirJornadaUseCase.requiereAutorizacion(jornada),
+                plazoReaperturaMinutos = reabrirJornadaUseCase.plazoMinutos,
+                errorReapertura = null,
+            )
+        }
+    }
+
+    fun confirmarReapertura(motivo: String, usuarioAdmin: String, pinAdmin: String) {
+        if (_uiState.value.reabriendo) return
+        val jornada = jornadaActual?.takeIf { !it.estaAbierta } ?: return
+        val credencial = if (usuarioAdmin.isNotBlank() && pinAdmin.isNotBlank()) CredencialAdmin(usuarioAdmin.trim(), pinAdmin) else null
+        _uiState.update { it.copy(reabriendo = true, errorReapertura = null) }
+        viewModelScope.launch {
+            reabrirJornadaUseCase(jornada.id, jornada.usuarioId, motivo, credencial).fold(
+                // La jornada en curso cambia a la reabierta y el flujo de arriba repinta el inicio.
+                onSuccess = { _uiState.update { it.copy(reabriendo = false, mostrarDialogoReapertura = false) } },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            reabriendo = false,
+                            reaperturaRequiereAdmin = it.reaperturaRequiereAdmin || error is ReaperturaJornadaException.FueraDePlazo,
+                            errorReapertura = error.message ?: "No se pudo reabrir la jornada.",
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    fun cancelarReapertura() = _uiState.update { it.copy(mostrarDialogoReapertura = false, errorReapertura = null) }
+
+    /** Disponible con la jornada terminada: salir no debe depender de tener una jornada abierta. */
+    fun solicitarCierreSesion() = _uiState.update { it.copy(mostrarConfirmacionCierreSesion = true) }
+
+    fun cancelarCierreSesion() = _uiState.update { it.copy(mostrarConfirmacionCierreSesion = false) }
+
+    fun confirmarCierreSesion() {
+        if (_uiState.value.cerrandoSesion) return
+        _uiState.update { it.copy(mostrarConfirmacionCierreSesion = false, cerrandoSesion = true) }
+        // No borra entregas ni pendientes: solo quita la sesión guardada; App.kt vuelve al login.
+        viewModelScope.launch {
+            runCatching { cerrarSesionUseCase() }.onFailure { _uiState.update { it.copy(cerrandoSesion = false) } }
+        }
+    }
 }

@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Person
@@ -48,7 +50,6 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 import pe.ecolecta.domain.model.Entrega
-import pe.ecolecta.domain.model.EstadoSeguimiento
 import pe.ecolecta.domain.model.SyncState
 import pe.ecolecta.presentation.design.Banner
 import pe.ecolecta.presentation.design.BotonBorde
@@ -65,7 +66,6 @@ import pe.ecolecta.presentation.design.Tarjeta
 import pe.ecolecta.presentation.design.TipoBanner
 import pe.ecolecta.presentation.design.formatearHora
 import pe.ecolecta.presentation.design.formatearLitros
-import pe.ecolecta.presentation.seguimiento.rememberSolicitadorPermisoUbicacion
 
 @Composable
 fun AcopiadorHomeScreen(
@@ -92,18 +92,17 @@ fun AcopiadorHomeScreen(
             Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m),
         ) {
-            if (!estado.jornadaAbierta) {
+            if (estado.jornadaTerminada) {
+                TarjetaJornadaTerminada(
+                    estado = estado,
+                    alSincronizar = alSincronizar,
+                    alReabrir = viewModel::solicitarReapertura,
+                    alCerrarSesion = viewModel::solicitarCierreSesion,
+                )
+            } else if (!estado.jornadaAbierta) {
                 TarjetaSinJornada(alAbrirJornada)
             } else {
                 TarjetaJornadaActiva(estado)
-
-                TarjetaSeguimiento(
-                    estadoSeguimiento = estado.estadoSeguimiento,
-                    mostrarAvisoPermisoDenegado = estado.mostrarAvisoPermisoDenegado,
-                    onPermisoUbicacionResultado = viewModel::onPermisoUbicacionResultado,
-                    onDetener = viewModel::detenerSeguimiento,
-                    onDescartarAviso = viewModel::descartarAvisoPermiso,
-                )
 
                 Text(
                     "ACCIONES RÁPIDAS",
@@ -150,7 +149,8 @@ fun AcopiadorHomeScreen(
                         FilaEntregaDelDia(
                             nombre = estado.nombreProveedor(entrega.proveedorId),
                             entrega = entrega,
-                            onClick = if (puedeEditar(entrega)) ({ entregaParaCorregir = entrega }) else null,
+                            // Una jornada terminada se consulta, no se edita.
+                            onClick = if (estado.jornadaAbierta && puedeEditar(entrega)) ({ entregaParaCorregir = entrega }) else null,
                         )
                     }
                 }
@@ -188,14 +188,174 @@ fun AcopiadorHomeScreen(
             title = { Text("¿Cerrar la jornada?") },
             text = {
                 Text(
-                    "Se finalizará tu jornada de hoy y se detendrá el seguimiento de ubicación. " +
-                        "Tus entregas y los pendientes por sincronizar no se pierden.",
+                    "Se finalizará tu jornada de hoy. Tus entregas, los \"sin recojo\" y los pendientes por " +
+                        "sincronizar no se pierden; después del cierre, cualquier corrección queda auditada.",
                 )
             },
             confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Cerrar jornada", color = Colores.peligro) } },
             dismissButton = { TextButton(onClick = viewModel::cancelarCierreJornada) { Text("Cancelar") } },
         )
     }
+
+    if (estado.mostrarDialogoReapertura) {
+        DialogoReapertura(
+            requiereAdmin = estado.reaperturaRequiereAdmin,
+            plazoMinutos = estado.plazoReaperturaMinutos,
+            reabriendo = estado.reabriendo,
+            error = estado.errorReapertura,
+            onConfirmar = viewModel::confirmarReapertura,
+            onCancelar = viewModel::cancelarReapertura,
+        )
+    }
+
+    if (estado.mostrarConfirmacionCierreSesion) {
+        AlertDialog(
+            onDismissRequest = viewModel::cancelarCierreSesion,
+            shape = MaterialTheme.shapes.large,
+            title = { Text("¿Cerrar sesión?") },
+            text = {
+                Text(
+                    if (estado.pendientesSync > 0) {
+                        "Tienes ${estado.pendientesSync} registros sin sincronizar. No se borran: quedan guardados en " +
+                            "este teléfono y se enviarán cuando vuelvas a entrar con tu cuenta."
+                    } else {
+                        "Tus entregas quedan guardadas en este teléfono."
+                    },
+                )
+            },
+            confirmButton = { TextButton(onClick = viewModel::confirmarCierreSesion) { Text("Cerrar sesión", color = Colores.peligro) } },
+            dismissButton = { TextButton(onClick = viewModel::cancelarCierreSesion) { Text("Cancelar") } },
+        )
+    }
+}
+
+/** Resumen de la jornada de hoy ya cerrada: una por día, así que aquí no se ofrece abrir otra. */
+@Composable
+private fun TarjetaJornadaTerminada(
+    estado: AcopiadorHomeUiState,
+    alSincronizar: () -> Unit,
+    alReabrir: () -> Unit,
+    alCerrarSesion: () -> Unit,
+) {
+    Tarjeta {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f, fill = false)) {
+                Text("JORNADA DE HOY", style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
+                Text(
+                    "Ruta ${estado.zonaNombre}",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Colores.textPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.width(Espaciado.s))
+            ChipEstado("Terminada", Colores.textSecundario, mostrarPunto = false)
+        }
+        Spacer(Modifier.height(Espaciado.xxs))
+        val horario = listOfNotNull(
+            estado.horaInicio.takeIf { it.isNotBlank() }?.let { "Abierta $it" },
+            estado.horaCierre?.let { "cerrada $it" },
+        ).joinToString(" · ")
+        val detalle = listOfNotNull(horario.takeIf { it.isNotBlank() }, estado.vehiculoInfo.takeIf { it.isNotBlank() })
+            .joinToString(" • ")
+        if (detalle.isNotBlank()) Text(detalle, style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
+        Spacer(Modifier.height(Espaciado.m))
+        Row(Modifier.fillMaxWidth()) {
+            EstadisticaJornada(formatearLitros(estado.litrosHoy).removeSuffix(" L"), "L", "Litros", Modifier.weight(1f))
+            EstadisticaJornada(estado.entregasHoy.toString(), "", "Entregas", Modifier.weight(1f))
+            EstadisticaJornada(estado.proveedoresAtendidosHoy.toString(), "prov.", "Atendidos", Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(Espaciado.m))
+        Banner(
+            "Ya terminaste tu jornada de hoy. Solo se permite una por día: mañana podrás abrir una nueva.",
+            TipoBanner.INFO,
+        )
+        if (estado.pendientesSync > 0) {
+            Spacer(Modifier.height(Espaciado.s))
+            Banner(
+                "${estado.pendientesSync} registros pendientes de sincronización. Se conservan en este teléfono.",
+                TipoBanner.ADVERTENCIA,
+            )
+            Spacer(Modifier.height(Espaciado.s))
+            BotonPrimario("Sincronizar ahora", alSincronizar, icono = Icons.Filled.Sync)
+        }
+        Spacer(Modifier.height(Espaciado.s))
+        BotonBorde(
+            texto = "¿Cerraste por error? Reabrir jornada",
+            color = Colores.brand,
+            icono = Icons.Filled.EventRepeat,
+            onClick = alReabrir,
+            habilitado = !estado.reabriendo,
+        )
+        Spacer(Modifier.height(Espaciado.s))
+        BotonBorde(
+            texto = if (estado.cerrandoSesion) "Cerrando sesión…" else "Cerrar sesión",
+            color = Colores.peligro,
+            icono = Icons.AutoMirrored.Filled.Logout,
+            habilitado = !estado.cerrandoSesion,
+            cargando = estado.cerrandoSesion,
+            onClick = alCerrarSesion,
+        )
+    }
+}
+
+/**
+ * Reapertura controlada: siempre con motivo; pasado el plazo, además, usuario y PIN de un
+ * administrador introducidos aquí mismo (no hay aprobación remota desde otro dispositivo).
+ */
+@Composable
+private fun DialogoReapertura(
+    requiereAdmin: Boolean,
+    plazoMinutos: Int,
+    reabriendo: Boolean,
+    error: String?,
+    onConfirmar: (motivo: String, usuarioAdmin: String, pinAdmin: String) -> Unit,
+    onCancelar: () -> Unit,
+) {
+    var motivo by remember { mutableStateOf("") }
+    var usuarioAdmin by remember { mutableStateOf("") }
+    var pinAdmin by remember { mutableStateOf("") }
+    val completo = motivo.trim().length >= 10 && (!requiereAdmin || (usuarioAdmin.isNotBlank() && pinAdmin.length == 4))
+
+    AlertDialog(
+        onDismissRequest = { if (!reabriendo) onCancelar() },
+        shape = MaterialTheme.shapes.large,
+        title = { Text("Reabrir la jornada de hoy") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                Text(
+                    "Se reabre la MISMA jornada: tus entregas se conservan y no se crea otra. La reapertura y su " +
+                        "motivo quedan registrados en la auditoría.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (requiereAdmin) {
+                    Banner(
+                        "Pasaron más de $plazoMinutos minutos desde el cierre. Un administrador debe autorizar aquí, " +
+                            "en este teléfono, con su usuario y PIN.",
+                        TipoBanner.ADVERTENCIA,
+                    )
+                }
+                CampoTexto(valor = motivo, onValorCambia = { motivo = it }, etiqueta = "Motivo (mín. 10 caracteres)")
+                if (requiereAdmin) {
+                    CampoTexto(valor = usuarioAdmin, onValorCambia = { usuarioAdmin = it }, etiqueta = "Usuario del administrador")
+                    CampoTexto(
+                        valor = pinAdmin,
+                        onValorCambia = { pinAdmin = it.filter(Char::isDigit).take(4) },
+                        etiqueta = "PIN del administrador",
+                        esPin = true,
+                    )
+                }
+                error?.let { Banner(it, TipoBanner.ERROR) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirmar(motivo, usuarioAdmin, pinAdmin) }, enabled = completo && !reabriendo) {
+                Text(if (reabriendo) "Reabriendo…" else "Reabrir")
+            }
+        },
+        dismissButton = { TextButton(onClick = onCancelar, enabled = !reabriendo) { Text("Cancelar") } },
+    )
 }
 
 private fun puedeEditar(entrega: Entrega): Boolean = !entrega.anulada && entrega.syncState != SyncState.CONFLICT
@@ -393,100 +553,6 @@ private fun FilaEntregaDelDia(nombre: String, entrega: Entrega, onClick: (() -> 
             ChipSync(entrega)
         }
     }
-}
-
-@Composable
-private fun TarjetaSeguimiento(
-    estadoSeguimiento: EstadoSeguimiento,
-    mostrarAvisoPermisoDenegado: Boolean,
-    onPermisoUbicacionResultado: (Boolean) -> Unit,
-    onDetener: () -> Unit,
-    onDescartarAviso: () -> Unit,
-) {
-    val solicitarPermiso = rememberSolicitadorPermisoUbicacion(onResultado = onPermisoUbicacionResultado)
-    val activo = estadoSeguimiento == EstadoSeguimiento.ACTIVO ||
-        estadoSeguimiento == EstadoSeguimiento.BUSCANDO ||
-        estadoSeguimiento == EstadoSeguimiento.SIN_SENAL ||
-        estadoSeguimiento == EstadoSeguimiento.SIN_CONEXION
-    val (textoEstado, colorEstado) = textoYColorSeguimiento(estadoSeguimiento)
-
-    Tarjeta {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                "Seguimiento de ubicación",
-                style = MaterialTheme.typography.titleMedium,
-                color = Colores.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            Spacer(Modifier.width(Espaciado.s))
-            ChipEstado(textoEstado, colorEstado, mostrarPunto = false)
-        }
-        Spacer(Modifier.height(Espaciado.xxs))
-        Text(
-            if (activo) {
-                "Tu ubicación se está registrando."
-            } else {
-                "Los proveedores de tu zona podrán ver tu ubicación mientras dure la jornada."
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = Colores.textSecundario,
-        )
-        Spacer(Modifier.height(Espaciado.s))
-        AccionTenue(
-            texto = if (activo) "Detener seguimiento" else "Iniciar seguimiento",
-            onClick = if (activo) onDetener else solicitarPermiso,
-        )
-
-        if (mostrarAvisoPermisoDenegado) {
-            Spacer(Modifier.height(Espaciado.s))
-            Banner(
-                mensaje = "Permiso de ubicación rechazado. Puedes activarlo desde los Ajustes del sistema; " +
-                    "el registro de entregas sigue funcionando igual sin el seguimiento.",
-                tipo = TipoBanner.ADVERTENCIA,
-            )
-            Spacer(Modifier.height(Espaciado.xxs))
-            TextButton(onClick = onDescartarAviso) { Text("Entendido") }
-        }
-    }
-}
-
-/**
- * Acción secundaria dentro de una tarjeta: pastilla de fondo tenue, a ras del contenido. No usa
- * un botón de ancho completo a propósito — ese competiría con las acciones principales de la pantalla.
- */
-@Composable
-private fun AccionTenue(texto: String, onClick: () -> Unit) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = Colores.brandContainer,
-        contentColor = Colores.onBrandContainer,
-        modifier = Modifier.clickable(onClick = onClick),
-    ) {
-        Text(
-            texto,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.xs),
-        )
-    }
-}
-
-@Composable
-private fun textoYColorSeguimiento(estado: EstadoSeguimiento): Pair<String, Color> = when (estado) {
-    EstadoSeguimiento.INACTIVO -> "Detenido" to Colores.textSecundario
-    EstadoSeguimiento.BUSCANDO -> "Buscando ubicación…" to Colores.info
-    EstadoSeguimiento.ACTIVO -> "Activo" to Colores.exito
-    EstadoSeguimiento.SIN_CONEXION -> "Sin conexión" to Colores.advertencia
-    EstadoSeguimiento.SIN_SENAL -> "Sin señal GPS" to Colores.advertencia
-    EstadoSeguimiento.PERMISO_DENEGADO -> "Permiso denegado" to Colores.peligro
-    EstadoSeguimiento.ERROR_ALMACENAMIENTO -> "Error al guardar" to Colores.peligro
-    EstadoSeguimiento.ERROR_CAPTURA -> "Error de ubicación" to Colores.peligro
-    EstadoSeguimiento.NO_DISPONIBLE_PLATAFORMA -> "No disponible" to Colores.textSecundario
 }
 
 @Composable

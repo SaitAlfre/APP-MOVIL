@@ -82,13 +82,13 @@ class FakeEntregaRepository(private val auditoriaRepository: FakeAuditoriaReposi
 
     override suspend fun corregir(id: String, litros: Double, tachos: Int, observaciones: String?, updatedAt: Long, auditoria: Auditoria) {
         entregas.value = entregas.value.map {
-            if (it.id == id) it.copy(litros = litros, tachos = tachos, observaciones = observaciones, updatedAt = updatedAt) else it
+            if (it.id == id) it.copy(litros = litros, tachos = tachos, observaciones = observaciones, updatedAt = updatedAt, syncState = SyncState.PENDING, syncError = null) else it
         }
         auditoriaRepository?.insertar(auditoria)
     }
 
     override suspend fun anular(id: String, updatedAt: Long, auditoria: Auditoria) {
-        entregas.value = entregas.value.map { if (it.id == id) it.copy(anulada = true, updatedAt = updatedAt) else it }
+        entregas.value = entregas.value.map { if (it.id == id) it.copy(anulada = true, updatedAt = updatedAt, syncState = SyncState.PENDING, syncError = null) else it }
         auditoriaRepository?.insertar(auditoria)
     }
 
@@ -122,4 +122,27 @@ class FakeEntregaRepository(private val auditoriaRepository: FakeAuditoriaReposi
     override suspend fun contarError(): Long = entregas.value.count { it.syncState == SyncState.ERROR }.toLong()
 
     override suspend fun contarConflicto(): Long = entregas.value.count { it.syncState == SyncState.CONFLICT }.toLong()
+
+    override suspend fun pendientesDeSincronizar(): List<Entrega> =
+        entregas.value.filter { it.syncState == SyncState.PENDING || it.syncState == SyncState.ERROR }.sortedBy { it.updatedAt }
+
+    override suspend fun marcarSincronizada(id: String, updatedAt: Long) {
+        entregas.value = entregas.value.map {
+            if (it.id == id && it.updatedAt == updatedAt && (it.syncState == SyncState.PENDING || it.syncState == SyncState.ERROR)) {
+                it.copy(syncState = SyncState.SYNCED, syncError = null)
+            } else {
+                it
+            }
+        }
+    }
+
+    override suspend fun registrarFalloSync(id: String, updatedAt: Long, error: String, definitivo: Boolean) {
+        entregas.value = entregas.value.map {
+            if (it.id == id && it.updatedAt == updatedAt && (it.syncState == SyncState.PENDING || it.syncState == SyncState.ERROR)) {
+                it.copy(syncState = if (definitivo) SyncState.ERROR else SyncState.PENDING, syncError = error, intentos = it.intentos + 1)
+            } else {
+                it
+            }
+        }
+    }
 }

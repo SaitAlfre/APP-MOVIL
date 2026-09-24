@@ -9,10 +9,10 @@ import pe.ecolecta.domain.InicializadorUnico
  * Autenticación anónima de Firebase — da a este dispositivo un `uid` estable para las reglas de
  * Firestore. Es "demo académica", no un mecanismo de seguridad real: no reemplaza el login por PIN.
  *
- * Única instancia compartida (`single` en Koin) entre el servicio de seguimiento (que la llama desde
- * dos corrutinas propias sin coordinación entre sí) y la pantalla de Perfil — [InicializadorUnico]
- * asegura que, sin importar cuántos de esos llamadores coincidan, `signInAnonymously()` se dispare
- * como máximo una vez.
+ * Única instancia compartida (`single` en Koin) entre la sincronización de la lista de acopio (ciclo
+ * periódico y "Sincronizar ahora"), la escucha del portal del proveedor y la pantalla de Perfil —
+ * [InicializadorUnico] asegura que, sin importar cuántos de esos llamadores coincidan,
+ * `signInAnonymously()` se dispare como máximo una vez.
  */
 class FirebaseAuthAnonimoProvider : IdentidadRemotaProvider {
     private val sesion = InicializadorUnico(

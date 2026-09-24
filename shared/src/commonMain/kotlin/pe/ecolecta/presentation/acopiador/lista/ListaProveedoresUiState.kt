@@ -1,88 +1,71 @@
 package pe.ecolecta.presentation.acopiador.lista
 
-import pe.ecolecta.domain.model.Entrega
-import pe.ecolecta.domain.model.Proveedor
-import pe.ecolecta.domain.model.SyncState
-import pe.ecolecta.presentation.acopiador.ciclo.CicloAcopio
+import kotlinx.datetime.LocalDate
+import pe.ecolecta.domain.acopio.AvanceDelDia
+import pe.ecolecta.domain.acopio.CicloAcopio
+import pe.ecolecta.domain.acopio.EstadoRecojo
+import pe.ecolecta.domain.acopio.FilaAcopio
+import pe.ecolecta.domain.acopio.avanceDelDia
 
 enum class FiltroLista(val etiqueta: String) {
     TODOS("Todos"),
     PENDIENTES("Pendientes"),
     REGISTRADOS("Registrados"),
-    SIN_ENTREGA("Sin entrega"),
+    SIN_RECOJO("Sin recojo"),
 }
 
-/** Las dos vistas de la misma pestaña: el día de hoy en detalle, o el ciclo completo en tabla. */
-enum class ModoLista { HOY, SEMANA }
-
-enum class EstadoProveedorDia {
-    /** Todavía no pasó el acopiador: la fila invita a registrar. */
-    POR_REGISTRAR,
-
-    /** Entrega registrada y ya confirmada por el servidor. */
-    REGISTRADO,
-
-    /** Registrada en el dispositivo, aún en la cola de sincronización. */
-    POR_SINCRONIZAR,
-
-    /** El acopiador marcó que hoy este proveedor no entrega. */
-    SIN_ENTREGA,
-}
-
-data class ProveedorDelDia(
-    val proveedor: Proveedor,
-    val entrega: Entrega?,
-    val sinEntrega: Boolean,
-    val motivoSinEntrega: String? = null,
-) {
-    val estado: EstadoProveedorDia
-        get() = when {
-            sinEntrega -> EstadoProveedorDia.SIN_ENTREGA
-            entrega == null -> EstadoProveedorDia.POR_REGISTRAR
-            entrega.syncState == SyncState.SYNCED -> EstadoProveedorDia.REGISTRADO
-            else -> EstadoProveedorDia.POR_SINCRONIZAR
-        }
-}
-
-/** Una celda de la tabla del ciclo: litros del día, o la marca de que ese día no hubo entrega. */
-data class CeldaCiclo(val litros: Double?, val sinEntrega: Boolean = false)
-
-data class FilaCiclo(val proveedor: Proveedor, val celdas: List<CeldaCiclo>)
+/** Dos vistas de la misma información: la lista de trabajo de hoy, o la hoja del ciclo en tabla. */
+enum class ModoLista { HOY, CICLO }
 
 data class ListaProveedoresUiState(
     val cargando: Boolean = true,
     val modo: ModoLista = ModoLista.HOY,
     val ciclo: CicloAcopio? = null,
-    val proveedores: List<ProveedorDelDia> = emptyList(),
-    val filasCiclo: List<FilaCiclo> = emptyList(),
-    val totalCicloL: Double = 0.0,
+    val hoy: LocalDate? = null,
+    val zonaNombre: String = "",
+    val filas: List<FilaAcopio> = emptyList(),
     val busqueda: String = "",
     val filtro: FiltroLista = FiltroLista.TODOS,
+    val jornadaId: String? = null,
     val jornadaAbierta: Boolean = false,
+    /** false: este celular no tiene sincronización remota; todo queda "guardado en este celular". */
+    val remotoConfigurado: Boolean = false,
+    /** Proveedor cuyo detalle del ciclo está abierto (nunca edita entregas: solo las muestra). */
+    val detalleProveedorId: String? = null,
+    val procesando: Boolean = false,
+    val error: String? = null,
 ) {
-    val registrados: Int get() = proveedores.count { it.estado == EstadoProveedorDia.REGISTRADO || it.estado == EstadoProveedorDia.POR_SINCRONIZAR }
-    val pendientes: Int get() = proveedores.count { it.estado == EstadoProveedorDia.POR_REGISTRAR }
+    val avance: AvanceDelDia get() = hoy?.let { avanceDelDia(filas, it) } ?: AvanceDelDia(filas.size, 0, filas.size, 0)
 
-    /** "25 proveedores · 8 registrados · 14 pendientes" */
-    val resumen: String get() = "${proveedores.size} proveedores · $registrados registrados · $pendientes pendientes"
+    /** "25 asignados · 8 registrados · 14 pendientes · 3 sin recojo" */
+    val resumen: String
+        get() = with(avance) { "$asignados asignados · $registrados registrados · $pendientes pendientes · $sinRecojo sin recojo" }
 
-    val visibles: List<ProveedorDelDia>
-        get() {
-            val texto = busqueda.trim().lowercase()
-            return proveedores
-                .filter { fila ->
-                    texto.isBlank() ||
-                        fila.proveedor.nombres.lowercase().contains(texto) ||
-                        fila.proveedor.codigo.lowercase().contains(texto)
-                }
-                .filter { fila ->
-                    when (filtro) {
-                        FiltroLista.TODOS -> true
-                        FiltroLista.PENDIENTES -> fila.estado == EstadoProveedorDia.POR_REGISTRAR
-                        FiltroLista.REGISTRADOS -> fila.estado == EstadoProveedorDia.REGISTRADO ||
-                            fila.estado == EstadoProveedorDia.POR_SINCRONIZAR
-                        FiltroLista.SIN_ENTREGA -> fila.estado == EstadoProveedorDia.SIN_ENTREGA
-                    }
-                }
+    val visibles: List<FilaAcopio> get() = hoy?.let { filtrarFilas(filas, it, busqueda, filtro) } ?: emptyList()
+
+    val detalle: FilaAcopio? get() = filas.firstOrNull { it.proveedor.id == detalleProveedorId }
+
+    val totalCicloL: Double get() = filas.sumOf { it.totalCicloLitros }
+}
+
+fun estadoDeHoy(fila: FilaAcopio, hoy: LocalDate): EstadoRecojo = fila.dia(hoy)?.estado ?: EstadoRecojo.PENDIENTE
+
+/** Búsqueda por nombre completo o código, y filtro por el estado del recojo de [hoy]. */
+fun filtrarFilas(filas: List<FilaAcopio>, hoy: LocalDate, busqueda: String, filtro: FiltroLista): List<FilaAcopio> {
+    val texto = busqueda.trim().lowercase()
+    return filas
+        .filter { fila ->
+            texto.isBlank() ||
+                fila.proveedor.nombres.lowercase().contains(texto) ||
+                fila.proveedor.codigo.lowercase().contains(texto) ||
+                fila.proveedor.dueno?.lowercase()?.contains(texto) == true
+        }
+        .filter { fila ->
+            when (filtro) {
+                FiltroLista.TODOS -> true
+                FiltroLista.PENDIENTES -> estadoDeHoy(fila, hoy) == EstadoRecojo.PENDIENTE
+                FiltroLista.REGISTRADOS -> estadoDeHoy(fila, hoy) == EstadoRecojo.REGISTRADO
+                FiltroLista.SIN_RECOJO -> estadoDeHoy(fila, hoy) == EstadoRecojo.SIN_RECOJO
+            }
         }
 }

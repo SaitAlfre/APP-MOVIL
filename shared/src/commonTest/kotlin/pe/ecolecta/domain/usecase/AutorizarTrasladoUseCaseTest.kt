@@ -11,6 +11,7 @@ import pe.ecolecta.domain.model.EstadoTraslado
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.model.TrasladoZona
 import pe.ecolecta.domain.usecase.traslado.AutorizarTrasladoUseCase
+import pe.ecolecta.domain.usecase.traslado.RechazarTrasladoUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -57,5 +58,18 @@ class AutorizarTrasladoUseCaseTest {
         val resultado = useCase("t1", autorizadoPor = "admin1")
 
         assertIs<TrasladoInvalidoException.NoPendiente>(resultado.exceptionOrNull())
+    }
+
+    @Test
+    fun `rechazar exige motivo y no cambia la zona del proveedor`() = runTest {
+        sembrar()
+        val rechazar = RechazarTrasladoUseCase(trasladoRepository, FakeReloj(), FakeDeviceIdProvider())
+
+        assertIs<TrasladoInvalidoException.MotivoObligatorio>(rechazar("t1", "admin1", "  ").exceptionOrNull())
+        assertEquals(EstadoTraslado.PENDIENTE, trasladoRepository.obtenerPorId("t1")?.estado)
+
+        assertTrue(rechazar("t1", "admin1", "La ruta destino está llena").isSuccess)
+        assertEquals(EstadoTraslado.RECHAZADO, trasladoRepository.obtenerPorId("t1")?.estado)
+        assertEquals("zona-origen", proveedorRepository.obtenerPorId("p1")?.zonaId)
     }
 }

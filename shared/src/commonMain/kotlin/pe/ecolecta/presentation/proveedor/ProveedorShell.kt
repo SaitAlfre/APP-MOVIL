@@ -1,5 +1,6 @@
 package pe.ecolecta.presentation.proveedor
 
+import pe.ecolecta.presentation.design.entradaPantalla
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,7 +10,6 @@ import pe.ecolecta.presentation.calidad.CalidadBackHandler
 import pe.ecolecta.presentation.design.EcolectaTheme
 import pe.ecolecta.presentation.navegacion.Pantalla
 import pe.ecolecta.presentation.proveedor.nav.*
-import pe.ecolecta.presentation.proveedor.ruta.MiRutaAcopioScreen
 
 @Composable
 fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit, vm: PortalProveedorViewModel = koinViewModel()) {
@@ -25,7 +25,7 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit, vm
                 else -> PestanaProveedor.INICIO
             }, { vm.limpiarMensaje(); onCambiarPantalla(it.pantalla) })
         }) { padding ->
-            Box(Modifier.fillMaxSize().padding(padding)) {
+            Box(Modifier.fillMaxSize().padding(padding).entradaPantalla(pantalla)) {
                 if (s.cargando) CargandoProveedor()
                 else if (s.proveedor == null) ErrorProveedor(s.error ?: "No se encontró tu perfil.", vm::recargar)
                 else when(pantalla) {
@@ -39,7 +39,7 @@ fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit, vm
                     Pantalla.ProveedorTraslado -> TrasladoProveedor(s, vm, onCambiarPantalla)
                     Pantalla.ProveedorSolicitudes -> SolicitudesProveedor(s, onCambiarPantalla)
                     Pantalla.ProveedorPerfil -> PerfilProveedor(s, vm, onCambiarPantalla)
-                    Pantalla.ProveedorMiRuta -> MiRutaAcopioScreen()
+                    Pantalla.ProveedorMiCiclo -> MiCicloProveedor(s, onCambiarPantalla)
                     else -> InicioProveedor(s, onCambiarPantalla)
                 }
             }

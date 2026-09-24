@@ -1,5 +1,5 @@
--- Caché local del PROVEEDOR: última ruta/ubicación del acopiador recibida del backend (no historial).
--- Permite mostrar "Última ubicación conocida" cuando la pantalla se abre sin conexión.
+-- OBSOLETA: pertenecía al seguimiento GPS ("Mi ruta"), retirado y reemplazado por la lista de acopio.
+-- La tabla se conserva sin consultas para no borrar datos de dispositivos ya instalados.
 CREATE TABLE ruta_proveedor_cache (
     usuario_id TEXT NOT NULL PRIMARY KEY,
     zona_id TEXT NOT NULL,
@@ -19,13 +19,3 @@ CREATE TABLE ruta_proveedor_cache (
     seguimiento_activo INTEGER NOT NULL DEFAULT 1,
     jornada_abierta INTEGER NOT NULL
 );
-
-guardar:
-INSERT OR REPLACE INTO ruta_proveedor_cache(usuario_id, zona_id, zona_nombre, acopiador_id, acopiador_nombre, vehiculo_id, vehiculo_nombre, jornada_id, jornada_abierta_en, fecha, lat, lng, precision_m, capturada_en, secuencia_en, seguimiento_activo, jornada_abierta)
-VALUES (:usuario_id, :zona_id, :zona_nombre, :acopiador_id, :acopiador_nombre, :vehiculo_id, :vehiculo_nombre, :jornada_id, :jornada_abierta_en, :fecha, :lat, :lng, :precision_m, :capturada_en, :secuencia_en, :seguimiento_activo, :jornada_abierta);
-
-selectPorUsuario:
-SELECT * FROM ruta_proveedor_cache WHERE usuario_id = :usuario_id;
-
-eliminar:
-DELETE FROM ruta_proveedor_cache WHERE usuario_id = :usuario_id;

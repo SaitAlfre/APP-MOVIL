@@ -31,6 +31,18 @@ interface CuentasRepository {
     suspend fun zonaAsignada(usuarioId: String): String?
     /** Reemplaza la zona y la ficha vinculada de la cuenta en una única transacción; null quita la asignación. */
     suspend fun guardarAsignaciones(usuarioId: String, zonaId: String?, proveedorId: String?)
+    /**
+     * Alta atómica de una cuenta: inserta la cuenta y sus roles, su zona, la ficha nueva ([fichaNueva],
+     * ya vinculada) o el vínculo con una ficha existente que siga libre ([fichaExistenteId]) y la
+     * auditoría. Si cualquier paso falla no queda nada guardado.
+     */
+    suspend fun crearCuenta(
+        usuario: pe.ecolecta.domain.model.Usuario,
+        zonaId: String?,
+        fichaNueva: pe.ecolecta.domain.model.Proveedor?,
+        fichaExistenteId: String?,
+        auditorias: List<pe.ecolecta.domain.model.Auditoria>,
+    )
     suspend fun existeNombreZona(nombre: String, idExcluido: String): Boolean
     suspend fun vehiculoEnJornadaAbierta(vehiculoId: String): Boolean
 }

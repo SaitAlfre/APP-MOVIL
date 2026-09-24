@@ -136,6 +136,25 @@ class SqlDelightEntregaRepository(
 
     override suspend fun contarConflicto(): Long = withContext(dispatcher) { db.entregaQueries.contarConflicto().executeAsOne() }
 
+    override suspend fun pendientesDeSincronizar(): List<Entrega> = withContext(dispatcher) {
+        db.entregaQueries.selectPendientesSync().executeAsList().map { it.aDominio() }
+    }
+
+    override suspend fun marcarSincronizada(id: String, updatedAt: Long) = withContext(dispatcher) {
+        db.entregaQueries.marcarSincronizada(id = id, updated_at = updatedAt)
+        Unit
+    }
+
+    override suspend fun registrarFalloSync(id: String, updatedAt: Long, error: String, definitivo: Boolean) = withContext(dispatcher) {
+        db.entregaQueries.registrarFalloSync(
+            sync_state = if (definitivo) SyncState.ERROR.name else SyncState.PENDING.name,
+            sync_error = error,
+            id = id,
+            updated_at = updatedAt,
+        )
+        Unit
+    }
+
     private fun insertarEntregaFila(entrega: Entrega) {
         db.entregaQueries.insertar(
             id = entrega.id,

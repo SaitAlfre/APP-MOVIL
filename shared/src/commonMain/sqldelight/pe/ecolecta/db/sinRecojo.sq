@@ -1,0 +1,61 @@
+-- "Sin recojo" explícito del acopiador para un proveedor en una fecha de acopio (Perú). Nunca se
+-- borra: deshacerlo pone deshecha = 1 (con auditoría) para conservar el historial y sincronizarlo.
+CREATE TABLE sin_recojo (
+    id TEXT NOT NULL PRIMARY KEY,
+    jornada_id TEXT NOT NULL,
+    proveedor_id TEXT NOT NULL,
+    usuario_id TEXT NOT NULL,
+    zona_id TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    motivo TEXT NOT NULL,
+    detalle TEXT,
+    registrada_en INTEGER NOT NULL,
+    deshecha INTEGER NOT NULL DEFAULT 0,
+    deshecha_en INTEGER,
+    sync_state TEXT NOT NULL DEFAULT 'PENDING',
+    sync_error TEXT,
+    intentos INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX sin_recojo_zona_fecha_idx ON sin_recojo(zona_id, fecha);
+CREATE INDEX sin_recojo_proveedor_idx ON sin_recojo(proveedor_id);
+CREATE INDEX sin_recojo_sync_state_idx ON sin_recojo(sync_state);
+
+insertar:
+INSERT INTO sin_recojo(id, jornada_id, proveedor_id, usuario_id, zona_id, fecha, motivo, detalle, registrada_en,
+    deshecha, deshecha_en, sync_state, sync_error, intentos, updated_at)
+VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :fecha, :motivo, :detalle, :registrada_en,
+    0, NULL, 'PENDING', NULL, 0, :updated_at);
+
+deshacer:
+UPDATE sin_recojo SET deshecha = 1, deshecha_en = :deshecha_en, updated_at = :deshecha_en,
+    sync_state = 'PENDING', sync_error = NULL
+WHERE id = :id AND deshecha = 0;
+
+selectPorId:
+SELECT * FROM sin_recojo WHERE id = :id;
+
+selectPorZonaEntreFechas:
+SELECT * FROM sin_recojo WHERE zona_id = :zona_id AND fecha >= :desde AND fecha <= :hasta ORDER BY registrada_en ASC;
+
+selectPorProveedor:
+SELECT * FROM sin_recojo WHERE proveedor_id = :proveedor_id ORDER BY registrada_en DESC;
+
+selectVigentePara:
+SELECT * FROM sin_recojo WHERE proveedor_id = :proveedor_id AND fecha = :fecha AND deshecha = 0
+ORDER BY registrada_en DESC LIMIT 1;
+
+selectPendientesSync:
+SELECT * FROM sin_recojo WHERE sync_state IN ('PENDING', 'ERROR') ORDER BY updated_at ASC;
+
+marcarSincronizada:
+UPDATE sin_recojo SET sync_state = 'SYNCED', sync_error = NULL
+WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR');
+
+registrarFalloSync:
+UPDATE sin_recojo SET sync_state = :sync_state, sync_error = :sync_error, intentos = intentos + 1
+WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR');
+
+contarPendientes:
+SELECT COUNT(*) FROM sin_recojo WHERE sync_state IN ('PENDING', 'ERROR');

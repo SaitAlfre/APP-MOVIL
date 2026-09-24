@@ -37,17 +37,17 @@ import pe.ecolecta.presentation.admin.design.AdminTopBar
 
 @Composable
 fun ProveedorFormScreen(
-    id: String?,
+    id: String,
     alGuardar: () -> Unit,
     alVolver: () -> Unit = alGuardar,
     alCuenta: (usuarioId: String?, fichaId: String) -> Unit = { _, _ -> },
-    viewModel: ProveedorFormViewModel = koinViewModel(key = id ?: "nuevo", parameters = { parametersOf(id) }),
+    viewModel: ProveedorFormViewModel = koinViewModel(key = id, parameters = { parametersOf(id) }),
 ) {
     val s by viewModel.uiState.collectAsState()
     LaunchedEffect(s.guardado) { if (s.guardado) alGuardar() }
 
     Column(Modifier.fillMaxSize().background(AdminColor.crema)) {
-        AdminTopBar(if (s.esEdicion) "Editar ficha" else "Nuevo proveedor", if (s.esEdicion) s.codigo else "Proveedores", alVolver = alVolver)
+        AdminTopBar("Editar ficha", s.codigo, alVolver = alVolver)
         Column(
             Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -55,8 +55,8 @@ fun ProveedorFormScreen(
             AdminSeccion("Identificación")
             AdminCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    AdminCampo(s.codigo, viewModel::codigo, "Código", marcador = "Ej: PRV-FAON-04", soloLectura = s.esEdicion,
-                        ayuda = if (s.esEdicion) "El código no se cambia: identifica las entregas y el QR." else null)
+                    AdminCampo(s.codigo, viewModel::codigo, "Código", marcador = "Ej: PRV-FAON-04", soloLectura = true,
+                        ayuda = "El código no se cambia: identifica las entregas y el QR.")
                     AdminCampo(s.nombres, viewModel::nombres, "Proveedor o finca", marcador = "Ej: Finca El Rosal")
                     AdminCampo(s.dueno, viewModel::dueno, "Propietario o responsable (opcional)")
                     AdminCampo(s.dni, viewModel::dni, "DNI o RUC", teclado = KeyboardType.Number)
@@ -72,7 +72,7 @@ fun ProveedorFormScreen(
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(s.zonas, key = { it.id }) { z -> AdminChip(z.nombre, s.zonaId == z.id) { viewModel.zona(z.id) } }
                     }
-                    if (s.esEdicion) AdminTexto("Para mover al proveedor de ruta con trazabilidad, usa Traslados.", 11, AdminColor.gris)
+                    AdminTexto("Para mover al proveedor de ruta con trazabilidad, usa Traslados.", 11, AdminColor.gris)
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         AdminCampo(s.tachos, viewModel::tachos, "Tachos", Modifier.weight(1f), teclado = KeyboardType.Number)
                         AdminCampo(s.capacidadTachoL, viewModel::capacidad, "Litros por tacho", Modifier.weight(1f), teclado = KeyboardType.Decimal)
@@ -80,7 +80,7 @@ fun ProveedorFormScreen(
                 }
             }
 
-            if (s.esEdicion) {
+            run {
                 AdminSeccion("Estado")
                 AdminCard {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -104,18 +104,18 @@ fun ProveedorFormScreen(
                     if (cuenta == null) {
                         AdminTexto("Esta ficha no tiene cuenta: el proveedor no puede ver sus entregas, calidad ni pagos.", 13, AdminColor.ambarTexto)
                         Spacer(Modifier.height(10.dp))
-                        AdminBotonChico("Crear cuenta de acceso", AdminColor.blanco, AdminColor.azul, { alCuenta(null, id!!) })
+                        AdminBotonChico("Crear cuenta de acceso", AdminColor.blanco, AdminColor.azul, { alCuenta(null, id) })
                     } else {
                         AdminTexto("@${cuenta.username} · ${cuenta.nombres}", 14, peso = FontWeight.Bold)
                         AdminTexto(if (cuenta.activo) "Cuenta activa" else "Cuenta inactiva", 12, if (cuenta.activo) AdminColor.verde else AdminColor.rojo)
                         Spacer(Modifier.height(10.dp))
-                        AdminBotonChico("Gestionar cuenta", AdminColor.blanco, AdminColor.azul, { alCuenta(cuenta.id, id!!) })
+                        AdminBotonChico("Gestionar cuenta", AdminColor.blanco, AdminColor.azul, { alCuenta(cuenta.id, id) })
                     }
                 }
             }
 
             s.error?.let { AdminMensaje(it, true, {}) }
-            AdminBoton(if (s.guardando) "Guardando…" else if (s.esEdicion) "Guardar cambios" else "Registrar proveedor", viewModel::guardar, habilitado = !s.guardando)
+            AdminBoton(if (s.guardando) "Guardando…" else "Guardar cambios", viewModel::guardar, habilitado = !s.guardando)
             Spacer(Modifier.height(16.dp))
         }
     }

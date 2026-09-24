@@ -32,6 +32,10 @@ class EntregasViewModel(
     }
 
     fun filtrarPorEstado(estado: SyncState?) {
-        _uiState.update { it.copy(filtroSyncState = estado) }
+        _uiState.update { it.copy(filtroSyncState = estado, soloAnuladas = false) }
+    }
+
+    fun filtrarAnuladas() {
+        _uiState.update { it.copy(filtroSyncState = null, soloAnuladas = true) }
     }
 }

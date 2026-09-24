@@ -14,36 +14,40 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import pe.ecolecta.domain.model.Entrega
-import pe.ecolecta.domain.model.Jornada
-import pe.ecolecta.domain.model.Proveedor
+import pe.ecolecta.domain.Reloj
+import pe.ecolecta.domain.acopio.MotivoSinRecojo
+import pe.ecolecta.domain.acopio.cicloAcopioDe
+import pe.ecolecta.domain.acopio.construirFilasAcopio
+import pe.ecolecta.domain.acopio.hoyAcopio
+import pe.ecolecta.domain.repository.SinRecojoRepository
+import pe.ecolecta.domain.usecase.acopio.DeshacerSinRecojoUseCase
+import pe.ecolecta.domain.usecase.acopio.MarcarSinRecojoUseCase
+import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.entrega.ObservarEntregasUseCase
 import pe.ecolecta.domain.usecase.jornada.ObtenerJornadaEnCursoUseCase
 import pe.ecolecta.domain.usecase.proveedor.ListarProveedoresPorZonaUseCase
+import pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase
 import pe.ecolecta.domain.usecase.zona.ListarZonasUseCase
-import pe.ecolecta.presentation.acopiador.ciclo.cicloSimuladoDe
-import pe.ecolecta.presentation.acopiador.ciclo.fechaLocalDe
 
 /**
- * Alimenta la pestaña "Lista" del acopiador: quién falta por visitar hoy y cómo va el ciclo.
- *
- * Dos advertencias sobre lo que todavía no es real:
- * - El ciclo sale de [cicloSimuladoDe], un placeholder; ver la nota de ese archivo.
- * - "Sin entrega" vive solo en memoria ([sinEntrega]): no hay tabla ni sincronización detrás, así
- *   que se pierde al cerrar la app. Está para poder validar el flujo de la pantalla, no para
- *   confiar en él como registro.
+ * Lista de acopio del acopiador (reemplaza el seguimiento GPS): los proveedores activos de la zona
+ * de su jornada, con el estado de hoy y la hoja de los 6 días del ciclo. Todo sale de la base local
+ * (entregas y "sin recojo" persistidos), así que sobrevive a cerrar y volver a abrir la app.
  */
 class ListaProveedoresViewModel(
     private val obtenerJornadaEnCursoUseCase: ObtenerJornadaEnCursoUseCase,
+    private val obtenerSesionUseCase: ObtenerSesionUseCase,
     private val listarProveedoresPorZonaUseCase: ListarProveedoresPorZonaUseCase,
     private val observarEntregasUseCase: ObservarEntregasUseCase,
+    private val sinRecojoRepository: SinRecojoRepository,
     private val listarZonasUseCase: ListarZonasUseCase,
+    private val marcarSinRecojoUseCase: MarcarSinRecojoUseCase,
+    private val deshacerSinRecojoUseCase: DeshacerSinRecojoUseCase,
+    private val sincronizar: SincronizarRegistrosAcopioUseCase,
+    private val reloj: Reloj,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(ListaProveedoresUiState())
+    private val _uiState = MutableStateFlow(ListaProveedoresUiState(remotoConfigurado = sincronizar.configurado))
     val uiState: StateFlow<ListaProveedoresUiState> = _uiState.asStateFlow()
-
-    /** proveedorId -> motivo (puede ser null si no se indicó). Provisional, sin persistencia. */
-    private val sinEntrega = MutableStateFlow<Map<String, String?>>(emptyMap())
 
     init {
         viewModelScope.launch {
@@ -52,61 +56,37 @@ class ListaProveedoresViewModel(
             obtenerJornadaEnCursoUseCase()
                 .flatMapLatest { jornada ->
                     if (jornada == null) {
-                        flowOf(Triple(null as Jornada?, emptyList<Proveedor>(), emptyList<Entrega>()))
+                        flowOf(null)
                     } else {
+                        val zonaNombre = zonas.firstOrNull { it.id == jornada.zonaId }?.nombre ?: jornada.zonaId
+                        val hoy = hoyAcopio(reloj)
+                        val ciclo = cicloAcopioDe(hoy, zonaNombre)
                         combine(
                             listarProveedoresPorZonaUseCase(jornada.zonaId),
                             observarEntregasUseCase(zonaId = jornada.zonaId),
-                        ) { proveedores, entregas -> Triple(jornada, proveedores, entregas) }
+                            sinRecojoRepository.observarPorZona(jornada.zonaId, ciclo.inicio, ciclo.fin),
+                        ) { proveedores, entregas, marcas ->
+                            _uiState.value.copy(
+                                cargando = false,
+                                ciclo = ciclo,
+                                hoy = hoy,
+                                zonaNombre = zonaNombre,
+                                jornadaId = jornada.id,
+                                jornadaAbierta = jornada.estaAbierta,
+                                filas = construirFilasAcopio(
+                                    ciclo = ciclo,
+                                    zonaId = jornada.zonaId,
+                                    proveedores = proveedores,
+                                    entregas = entregas,
+                                    marcas = marcas,
+                                    remotoDisponible = sincronizar.configurado,
+                                ),
+                            )
+                        }
                     }
                 }
-                .combine(sinEntrega) { datos, marcadas -> datos to marcadas }
-                .collect { (datos, marcadas) ->
-                    val (jornada, proveedores, entregas) = datos
-                    if (jornada == null) {
-                        _uiState.update { it.copy(cargando = false, jornadaAbierta = false) }
-                        return@collect
-                    }
-
-                    val nombreZona = zonas.firstOrNull { it.id == jornada.zonaId }?.nombre ?: jornada.zonaId
-                    val ciclo = cicloSimuladoDe(jornada.fecha, nombreZona)
-                    val vigentes = entregas.filterNot(Entrega::anulada)
-                    val deHoy = vigentes.filter { fechaLocalDe(it.registradoEn) == jornada.fecha }
-
-                    val filasHoy = proveedores.map { proveedor ->
-                        ProveedorDelDia(
-                            proveedor = proveedor,
-                            // La última del día: si se corrigió o se registró dos veces, manda la más reciente.
-                            entrega = deHoy.filter { it.proveedorId == proveedor.id }.maxByOrNull(Entrega::registradoEn),
-                            sinEntrega = marcadas.containsKey(proveedor.id),
-                            motivoSinEntrega = marcadas[proveedor.id],
-                        )
-                    }
-
-                    val porProveedorYDia = vigentes.groupBy { it.proveedorId to fechaLocalDe(it.registradoEn) }
-                    val filasCiclo = proveedores.map { proveedor ->
-                        FilaCiclo(
-                            proveedor = proveedor,
-                            celdas = ciclo.dias.map { dia ->
-                                val delDia = porProveedorYDia[proveedor.id to dia]
-                                CeldaCiclo(
-                                    litros = delDia?.sumOf(Entrega::litros),
-                                    sinEntrega = delDia == null && dia == jornada.fecha && marcadas.containsKey(proveedor.id),
-                                )
-                            },
-                        )
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            cargando = false,
-                            ciclo = ciclo,
-                            proveedores = filasHoy,
-                            filasCiclo = filasCiclo,
-                            totalCicloL = filasCiclo.sumOf { fila -> fila.celdas.sumOf { c -> c.litros ?: 0.0 } },
-                            jornadaAbierta = jornada.estaAbierta,
-                        )
-                    }
+                .collect { nuevo ->
+                    _uiState.value = nuevo ?: _uiState.value.copy(cargando = false, ciclo = null, filas = emptyList(), jornadaAbierta = false)
                 }
         }
     }
@@ -117,11 +97,36 @@ class ListaProveedoresViewModel(
 
     fun filtrar(filtro: FiltroLista) = _uiState.update { it.copy(filtro = filtro) }
 
-    fun marcarSinEntrega(proveedorId: String, motivo: String?) {
-        sinEntrega.update { it + (proveedorId to motivo?.trim()?.ifBlank { null }) }
+    fun abrirDetalle(proveedorId: String) = _uiState.update { it.copy(detalleProveedorId = proveedorId) }
+
+    fun cerrarDetalle() = _uiState.update { it.copy(detalleProveedorId = null) }
+
+    fun descartarError() = _uiState.update { it.copy(error = null) }
+
+    fun marcarSinRecojo(proveedorId: String, motivo: MotivoSinRecojo, detalle: String?) = ejecutar { usuarioId, jornadaId ->
+        marcarSinRecojoUseCase(jornadaId, proveedorId, usuarioId, motivo, detalle).map { }
     }
 
-    fun deshacerSinEntrega(proveedorId: String) {
-        sinEntrega.update { it - proveedorId }
+    fun deshacerSinRecojo(marcaId: String) = ejecutar { usuarioId, _ -> deshacerSinRecojoUseCase(marcaId, usuarioId) }
+
+    fun sincronizarAhora() {
+        viewModelScope.launch { runCatching { sincronizar() } }
+    }
+
+    private fun ejecutar(accion: suspend (usuarioId: String, jornadaId: String) -> Result<Unit>) {
+        if (_uiState.value.procesando) return
+        val jornadaId = _uiState.value.jornadaId ?: return
+        _uiState.update { it.copy(procesando = true, error = null) }
+        viewModelScope.launch {
+            val usuarioId = obtenerSesionUseCase().first()?.usuario?.id
+            val resultado = if (usuarioId == null) {
+                Result.failure(IllegalStateException("La sesión terminó. Vuelve a ingresar."))
+            } else {
+                accion(usuarioId, jornadaId)
+            }
+            _uiState.update { it.copy(procesando = false, error = resultado.exceptionOrNull()?.message) }
+            // Se intenta enviar enseguida; si no hay conexión queda pendiente y se reintenta solo.
+            if (resultado.isSuccess) runCatching { sincronizar() }
+        }
     }
 }

@@ -38,12 +38,14 @@ INSERT INTO entrega(id, jornada_id, proveedor_id, usuario_id, zona_id, vehiculo_
 VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :vehiculo_id, :litros, :tachos, :modalidad, :observaciones,
     :registrado_en, :device_id, :lote_id, 0, :sync_state, NULL, 0, :updated_at, NULL, NULL, NULL);
 
+-- Corregir y anular cambian un dato que el servidor ya pudo recibir: vuelven a quedar pendientes de envío.
 corregir:
-UPDATE entrega SET litros = :litros, tachos = :tachos, observaciones = :observaciones, updated_at = :updated_at
+UPDATE entrega SET litros = :litros, tachos = :tachos, observaciones = :observaciones, updated_at = :updated_at,
+    sync_state = 'PENDING', sync_error = NULL
 WHERE id = :id;
 
 anular:
-UPDATE entrega SET anulada = 1, updated_at = :updated_at WHERE id = :id;
+UPDATE entrega SET anulada = 1, updated_at = :updated_at, sync_state = 'PENDING', sync_error = NULL WHERE id = :id;
 
 marcarConflicto:
 UPDATE entrega SET sync_state = 'CONFLICT', litros_servidor = :litros_servidor, tachos_servidor = :tachos_servidor,
@@ -95,3 +97,16 @@ SELECT COUNT(*) FROM entrega WHERE sync_state = 'ERROR';
 
 contarConflicto:
 SELECT COUNT(*) FROM entrega WHERE sync_state = 'CONFLICT';
+
+-- Cola real de envío al servidor (SincronizarRegistrosAcopioUseCase). CONFLICT queda fuera: lo resuelve ADMIN.
+selectPendientesSync:
+SELECT * FROM entrega WHERE sync_state IN ('PENDING', 'ERROR') ORDER BY updated_at ASC;
+
+-- Solo si nadie la corrigió/anuló mientras se enviaba (updated_at igual): si cambió, sigue pendiente.
+marcarSincronizada:
+UPDATE entrega SET sync_state = 'SYNCED', sync_error = NULL
+WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR');
+
+registrarFalloSync:
+UPDATE entrega SET sync_state = :sync_state, sync_error = :sync_error, intentos = intentos + 1
+WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR');

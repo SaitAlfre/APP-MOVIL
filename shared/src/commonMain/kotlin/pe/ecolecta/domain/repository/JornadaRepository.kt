@@ -23,4 +23,11 @@ interface JornadaRepository {
     suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada?
 
     suspend fun cerrar(id: String, cerradaEn: Long)
+
+    /**
+     * Vuelve a abrir la jornada [id] (debe estar cerrada) solo si su zona no quedó ocupada por la
+     * jornada abierta de otro usuario, en una única operación atómica. Devuelve esa jornada ocupante
+     * si no se reabrió, o null si se reabrió.
+     */
+    suspend fun reabrirSiZonaLibre(id: String): Jornada?
 }

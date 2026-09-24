@@ -89,6 +89,9 @@ fun PerfilScreen(
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Dato("Versión", VERSION_APP)
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
+                // Lo necesita el administrador para vincular este celular en Firebase (acopiador_links).
+                Dato("Vinculación de sincronización", estado.uidFirebase ?: "Sin sincronización en este celular")
+                DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Servidor", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
                     Text("Conectado", style = MaterialTheme.typography.bodyLarge, color = Colores.exito)
@@ -96,7 +99,7 @@ fun PerfilScreen(
             }
 
             FilaAccion("Cambiar PIN", Icons.Filled.Lock, onClick = viewModel::solicitarCambiarPin)
-            FilaAccion("Descargar datos de ruta", Icons.Filled.Download, onClick = viewModel::descargarDatosDeRuta)
+            FilaAccion("Actualizar mis datos", Icons.Filled.Download, onClick = viewModel::actualizarDatos)
             FilaAccion("Registrar lote", Icons.Filled.Inventory2, onClick = alRegistrarLote)
             FilaAccion(
                 "Sincronizar",
@@ -157,8 +160,8 @@ fun PerfilScreen(
             title = { Text("¿Cerrar la jornada?") },
             text = {
                 Text(
-                    "Se finalizará tu jornada de hoy y se detendrá el seguimiento de ubicación. " +
-                        "Tus entregas y los pendientes por sincronizar no se pierden.",
+                    "Se finalizará tu jornada de hoy. Tus entregas, los \"sin recojo\" y los pendientes por " +
+                        "sincronizar no se pierden; después del cierre, cualquier corrección queda auditada.",
                 )
             },
             confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Cerrar jornada", color = Colores.advertencia) } },
@@ -170,11 +173,22 @@ fun PerfilScreen(
         AlertDialog(
             onDismissRequest = viewModel::cancelarCierreSesion,
             shape = MaterialTheme.shapes.large,
-            title = { Text("Tienes registros pendientes") },
-            text = { Text("Tienes ${estado.pendientesSync} registros pendientes de sincronizar. ¿Deseas cerrar sesión de todas formas? Tus datos no se perderán.") },
+            title = { Text("¿Cerrar sesión?") },
+            text = { Text(textoConfirmacionCierreSesion(estado.jornadaAbierta, estado.pendientesSync)) },
             confirmButton = { TextButton(onClick = viewModel::confirmarCierreSesion) { Text("Cerrar sesión", color = Colores.peligro) } },
             dismissButton = { TextButton(onClick = viewModel::cancelarCierreSesion) { Text("Cancelar") } },
         )
+    }
+}
+
+/** Cerrar sesión no cierra la jornada ni borra datos: el diálogo lo dice explícitamente. `internal` para probarlo. */
+internal fun textoConfirmacionCierreSesion(jornadaAbierta: Boolean, pendientesSync: Int): String = buildString {
+    if (jornadaAbierta) {
+        append("Tu jornada seguirá abierta y la recuperarás al volver a entrar.")
+    }
+    if (pendientesSync > 0) {
+        if (isNotEmpty()) append(" ")
+        append("Tienes $pendientesSync registros sin sincronizar: no se borran, quedan guardados en este teléfono y se enviarán cuando vuelvas a entrar.")
     }
 }
 

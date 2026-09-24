@@ -74,6 +74,19 @@ class SqlDelightJornadaRepository(
         Unit
     }
 
+    override suspend fun reabrirSiZonaLibre(id: String): Jornada? = withContext(dispatcher) {
+        db.jornadaQueries.transactionWithResult {
+            val jornada = db.jornadaQueries.selectPorId(id).executeAsOne().aDominio()
+            val ocupante = db.jornadaQueries.selectAbiertaPorZona(zona_id = jornada.zonaId).executeAsOneOrNull()?.aDominio()
+            if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) {
+                ocupante
+            } else {
+                db.jornadaQueries.reabrir(id)
+                null
+            }
+        }
+    }
+
     override suspend fun filtrar(
         fecha: LocalDate?,
         usuarioId: String?,

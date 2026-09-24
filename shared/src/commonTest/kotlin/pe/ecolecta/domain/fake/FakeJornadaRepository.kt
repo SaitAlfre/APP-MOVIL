@@ -49,4 +49,12 @@ class FakeJornadaRepository : JornadaRepository {
         if (fallarAlCerrar) error("Fallo simulado al cerrar la jornada.")
         jornadas.value = jornadas.value.map { if (it.id == id) it.copy(cerradaEn = cerradaEn) else it }
     }
+
+    override suspend fun reabrirSiZonaLibre(id: String): Jornada? {
+        val jornada = obtenerPorId(id) ?: error("La jornada no existe.")
+        val ocupante = obtenerAbiertaPorZona(jornada.zonaId)
+        if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) return ocupante
+        jornadas.value = jornadas.value.map { if (it.id == id) it.copy(cerradaEn = null) else it }
+        return null
+    }
 }

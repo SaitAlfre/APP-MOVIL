@@ -11,4 +11,6 @@ enum class AccionAuditoria {
     LOGIN,
     RESOLVER_CONFLICTO,
     SYNC,
+    CERRAR_JORNADA,
+    REABRIR_JORNADA,
 }
