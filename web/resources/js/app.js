@@ -1,7 +1,9 @@
 import { bindThemeToggle } from './theme';
+import { iniciarMapasRutas } from './mapa-rutas';
 
 document.addEventListener('DOMContentLoaded', () => {
     bindThemeToggle();
+    iniciarMapasRutas();
 
     document.querySelectorAll('[data-receta-editor]').forEach((editor) => {
         const lista = editor.querySelector('[data-ingredientes]');

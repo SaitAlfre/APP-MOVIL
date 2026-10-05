@@ -11,6 +11,7 @@
 <body class="h-full bg-eh-bg font-sans text-eh-text antialiased selection:bg-eh-lime">
     @php
         $operador = auth('operador')->user();
+        $rutaInicio = $operador->puede('dashboard') ? 'admin.dashboard.index' : 'admin.mapa-rutas.index';
         $roles = collect($operador->roles)
             ->map(fn ($rol) => \App\Domain\Usuarios\Rol::tryFrom($rol)?->etiqueta())
             ->filter();
@@ -37,6 +38,7 @@
                 ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Zonas, rutas y vehículos', 'icono' => 'map'],
             ],
             'Operaciones' => [
+                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Mapa de rutas', 'icono' => 'map'],
                 ['ruta' => 'admin.jornadas.index', 'patron' => 'admin.jornadas.*', 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'play'],
                 ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'arrowPath'],
                 ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Entregas', 'icono' => 'droplets'],
@@ -80,7 +82,7 @@
         <aside id="menu-administracion" data-admin-menu aria-label="Navegación principal"
             class="no-print sidebar-transition fixed left-0 top-0 z-30 flex h-full w-[244px] -translate-x-full flex-col bg-eh-sidebar px-4 py-5 text-white lg:static lg:z-auto lg:translate-x-0">
             <div class="flex shrink-0 items-center gap-3 px-3 pb-7">
-                <a href="{{ route('admin.dashboard.index') }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+                <a href="{{ route($rutaInicio) }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
                     <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eh-lime text-[#142820] shadow-[0_6px_20px_rgba(216,255,87,.16)]">
                         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61"/>

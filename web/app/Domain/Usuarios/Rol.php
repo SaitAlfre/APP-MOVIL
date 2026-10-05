@@ -31,10 +31,10 @@ enum Rol: string
         };
     }
 
-    /** Roles con permiso para entrar al panel web. Acopiador, Proveedor, Asistente y Despacho son exclusivos de la app móvil. */
+    /** El acopiador accede a sus mapas; los demás módulos aplican la matriz de permisos. */
     public function accesoWeb(): bool
     {
-        return in_array($this, [self::Admin, self::Recepcion, self::Calidad, self::Produccion, self::Liquidaciones, self::Consulta], true);
+        return in_array($this, [self::Admin, self::Recepcion, self::Calidad, self::Produccion, self::Liquidaciones, self::Consulta, self::Acopiador], true);
     }
 
     /** @return list<self> */

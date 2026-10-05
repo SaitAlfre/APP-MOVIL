@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\JornadaController as AdminJornadaController;
 use App\Http\Controllers\Admin\JornadaEntregaController;
 use App\Http\Controllers\Admin\LiquidacionController;
+use App\Http\Controllers\Admin\MapaRutaController;
 use App\Http\Controllers\Admin\Produccion\AcopioController;
 use App\Http\Controllers\Admin\Produccion\HistorialController;
 use App\Http\Controllers\Admin\Produccion\ProduccionController;
@@ -42,6 +43,13 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
     Route::post('logout', [LoginController::class, 'cerrarSesion'])->name('logout');
 
     Route::prefix('admin')->name('admin.')->middleware(TransaccionAdministrativa::class)->group(function () {
+        Route::middleware('permiso:mapa_rutas,ver')->group(function () {
+            Route::get('mapa-rutas', [MapaRutaController::class, 'index'])->name('mapa-rutas.index');
+            Route::get('mapa-rutas/{ruta}', [MapaRutaController::class, 'show'])->whereNumber('ruta')->name('mapa-rutas.show');
+        });
+        Route::put('mapa-rutas/{ruta}', [MapaRutaController::class, 'update'])
+            ->whereNumber('ruta')->middleware('permiso:mapa_rutas,gestionar')->name('mapa-rutas.update');
+
         Route::middleware('permiso:dashboard,ver')->group(function () {
             Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
         });

@@ -23,7 +23,7 @@ class AuditarCambiosOperativos
         Venta::class => ['venta', ['codigo', 'cliente_id', 'subtotal', 'descuento', 'total', 'estado', 'vendida_en']],
         Comunicado::class => ['comunicado', ['codigo', 'titulo', 'audiencia', 'estado', 'publicar_en', 'publicado_en']],
         Importacion::class => ['importacion', ['tipo', 'archivo_original', 'estado', 'filas_total', 'filas_procesadas', 'filas_error', 'procesada_en']],
-        Ruta::class => ['ruta', ['codigo', 'nombre', 'zona_id', 'activo']],
+        Ruta::class => ['ruta', ['codigo', 'nombre', 'zona_id', 'activo', 'acopiador_id', 'paradas', 'trazado', 'indicaciones', 'mapa_version']],
         Zona::class => ['zona', ['nombre', 'activo']],
         Vehiculo::class => ['vehiculo', ['nombre', 'placa', 'activo']],
         Proveedor::class => ['proveedor', ['codigo', 'nombres', 'zona_id', 'estado', 'tachos', 'capacidad_tacho_l', 'usuario_id']],

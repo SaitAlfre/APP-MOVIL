@@ -89,6 +89,9 @@
                             <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $ruta->zona?->nombre ?? '—' }}</td>
                             <td class="px-4 py-3"><x-ui.estado :estado="$ruta->activo ? 'activa' : 'inactiva'" /></td>
                             <td class="px-4 py-3">
+                                <a href="{{ route('admin.mapa-rutas.show', $ruta) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-eh-primary">
+                                    <x-icon name="map" class="h-4 w-4" /> Mapa y paradas
+                                </a>
                                 @if ($puedeGestionar)
                                     <div class="flex items-center justify-end">
                                         <button type="button" data-modal-open="ruta-{{ $ruta->id }}" aria-label="Editar ruta {{ $ruta->nombre }}"

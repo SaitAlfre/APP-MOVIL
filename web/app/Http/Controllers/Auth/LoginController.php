@@ -14,7 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-/** El panel web es exclusivo para roles con acceso web (ver Rol::accesoWeb()): acopiadores y proveedores solo operan desde la app móvil. */
+/** El acceso web y sus módulos dependen del rol y la matriz de permisos. */
 class LoginController extends Controller
 {
     public function mostrar(): View
@@ -52,7 +52,10 @@ class LoginController extends Controller
         $request->session()->put('version_sesion.'.auth('operador')->id(), (int) auth('operador')->user()->version_sesion);
         $this->registrarAcceso($request, 'iniciar_sesion');
 
-        return redirect()->intended(route('admin.dashboard.index'));
+        $usuario = auth('operador')->user();
+        $inicio = $usuario->puede('dashboard') ? 'admin.dashboard.index' : 'admin.mapa-rutas.index';
+
+        return $usuario->puede('dashboard') ? redirect()->intended(route($inicio)) : redirect()->route($inicio);
     }
 
     public function cerrarSesion(Request $request, CerrarSesionOperadorUseCase $cerrarSesion): RedirectResponse

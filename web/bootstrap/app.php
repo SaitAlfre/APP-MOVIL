@@ -24,7 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function () {
             $usuario = auth('operador')->user();
 
-            return $usuario?->accesoWeb() ? '/admin/dashboard' : '/login';
+            if (! $usuario?->accesoWeb()) {
+                return '/login';
+            }
+
+            return $usuario->puede('dashboard') ? '/admin/dashboard' : '/admin/mapa-rutas';
         });
         $middleware->alias([
             'rol' => EnsureRol::class,

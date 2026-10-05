@@ -46,6 +46,11 @@ return [
         'gestionar' => ['admin'],
     ],
 
+    'mapa_rutas' => [
+        'ver' => ['admin', 'consulta', 'acopiador'],
+        'gestionar' => ['admin'],
+    ],
+
     'recepcion' => [
         'ver' => ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'],
         'gestionar' => ['admin', 'recepcion'],
