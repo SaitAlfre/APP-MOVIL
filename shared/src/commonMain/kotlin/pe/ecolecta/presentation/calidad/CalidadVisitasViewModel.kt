@@ -143,12 +143,14 @@ class CalidadViewModel(
     fun navegar(p: PasoCalidad) {
         if (_uiState.value.guardando) return
         if (p == PasoCalidad.SELECCION && _uiState.value.borrador.id.isBlank()) nuevo()
-        else _uiState.update { it.copy(paso = p, error = null, mensaje = null, ahora = reloj.ahora().toEpochMilliseconds()) }
+        else _uiState.update { it.copy(paso = p, error = null, mensaje = null,
+            escaneoPendiente = if (p == PasoCalidad.FORMULARIO) it.escaneoPendiente else null,
+            ahora = reloj.ahora().toEpochMilliseconds()) }
     }
     fun nuevo() {
         val ahora = reloj.ahora().toEpochMilliseconds()
         val id = nuevoId()
-        _uiState.update { it.copy(paso = PasoCalidad.SELECCION, busqueda = "", error = null, mensaje = null,
+        _uiState.update { it.copy(paso = PasoCalidad.SELECCION, busqueda = "", error = null, mensaje = null, escaneoPendiente = null,
             borrador = BorradorVisita(id = id, fecha = formatearFecha(ahora), hora = horaDe(ahora),
                 zonaId = it.zonaAsignadaId?.takeIf { z -> it.zonas.any { zona -> zona.id == z } }.orEmpty())) }
     }
@@ -197,13 +199,14 @@ class CalidadViewModel(
         "fecha" -> b.copy(fecha = v); "hora" -> b.copy(hora = v)
         "serial" -> b.copy(serial = v); "modo" -> b.copy(modo = v); "unidad" -> b.copy(unidadCongelacion = v)
         "observaciones" -> b.copy(observaciones = v)
-        else -> b.copy(valores = b.valores + (k to v))
+        else -> b.copy(valores = b.valores + (k to v), dudosos = b.dudosos - k)
     } } }
     fun escanear(texto: String) {
+        if (_uiState.value.guardando || _uiState.value.paso != PasoCalidad.FORMULARIO) return
         val lectura = ParserComprobanteLactomat.parsear(texto)
         val nuevosValores = parametrosCalidad.associate { it.clave to (lectura.valores()[it.clave]?.toString().orEmpty()) }
-        if (nuevosValores.values.all { it.isBlank() } && lectura.serialAnalizador == null && lectura.modoAnalizador == null) {
-            error("No se reconoció texto legible. Toma otra foto con mejor iluminación o ingresa los valores manualmente.")
+        if (nuevosValores.values.all { it.isBlank() }) {
+            error("No se reconocieron resultados del análisis. Incluye todo el comprobante, mejora la iluminación o elige otra foto.")
             return
         }
         val unidad = if (Regex("(?i)punto[^\n]*[° ]H\\b").containsMatchIn(texto)) "°H" else "°C"
@@ -219,12 +222,17 @@ class CalidadViewModel(
     fun confirmarEscaneo() { _uiState.value.escaneoPendiente?.let { aplicarEscaneo(it) } }
     fun descartarEscaneo() { _uiState.update { it.copy(escaneoPendiente = null) } }
     private fun aplicarEscaneo(p: EscaneoPendiente) {
+        if (_uiState.value.guardando || _uiState.value.paso != PasoCalidad.FORMULARIO) return
+        val reconocidos = p.valores.filterValues { it.isNotBlank() }
         editar { b -> b.copy(
-            valores = p.valores, serial = p.serial ?: b.serial, modo = p.modo ?: b.modo,
-            unidadCongelacion = p.unidadCongelacion, origen = OrigenCaptura.ESCANER, textoOcr = p.texto,
-            dudosos = p.dudosos, fecha = p.fecha ?: b.fecha, hora = p.hora ?: b.hora,
+            valores = b.valores + reconocidos, serial = p.serial ?: b.serial, modo = p.modo ?: b.modo,
+            unidadCongelacion = if ("congelacion" in reconocidos) p.unidadCongelacion else b.unidadCongelacion,
+            origen = OrigenCaptura.ESCANER, textoOcr = p.texto,
+            dudosos = (b.dudosos - reconocidos.keys) + p.dudosos, fecha = p.fecha ?: b.fecha, hora = p.hora ?: b.hora,
         ) }
-        _uiState.update { it.copy(escaneoPendiente = null, mensaje = "Revisa los datos antes de guardar.") }
+        val cantidad = reconocidos.size
+        _uiState.update { it.copy(escaneoPendiente = null,
+            mensaje = "Se leyeron $cantidad de ${parametrosCalidad.size} parámetros. Revisa los resultados y completa lo que falte antes de guardar.") }
     }
     fun guardar() {
         val s = _uiState.value; val b = s.borrador

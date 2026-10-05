@@ -24,11 +24,18 @@ object ParserComprobanteLactomat {
     )
 
     /** Une la etiqueta con el primer número que aparece después de ella, sin cruzar de línea ni de signo. */
-    private fun patronDe(nombre: String) = Regex("(?i)${Regex.escape(nombre)}[^0-9\\n-]*(-?\\d+(?:[.,]\\d+)?)")
+    private fun patronDe(nombre: String): Regex {
+        val etiqueta = nombre.split(' ').joinToString("[ \\t]+") { Regex.escape(it) }
+        return Regex("(?i)\\b$etiqueta[ \\t:.=·…]*([+-]?[ \\t]*\\d+(?:[.,]\\d+)?)")
+    }
+
+    private fun normalizar(texto: String) = texto
+        .replace('\u2212', '-').replace('\u2013', '-').replace('\u00a0', ' ')
 
     private fun valorDe(texto: String, nombres: List<String>): Double? {
         for (nombre in nombres) {
-            patronDe(nombre).find(texto)?.groupValues?.get(1)?.replace(',', '.')?.toDoubleOrNull()?.let { return it }
+            patronDe(nombre).find(normalizar(texto))?.groupValues?.get(1)
+                ?.replace(',', '.')?.replace(" ", "")?.replace("\t", "")?.toDoubleOrNull()?.let { return it }
         }
         return null
     }
@@ -60,7 +67,7 @@ object ParserComprobanteLactomat {
 
     /** Claves cuya etiqueta aparece más de una vez seguida de un número: la lectura es ambigua y conviene revisarla. */
     fun dudosos(texto: String): Set<String> = nombresPorClave.filterValues { nombres ->
-        nombres.any { nombre -> patronDe(nombre).findAll(texto).count() > 1 }
+        nombres.any { nombre -> patronDe(nombre).findAll(normalizar(texto)).count() > 1 }
     }.keys
 
     /** Intenta leer una fecha y hora del comprobante (dd/MM/yyyy y HH:mm, con separadores comunes). Best effort. */
@@ -70,7 +77,8 @@ object ParserComprobanteLactomat {
         val mes = fecha.groupValues[2].toIntOrNull() ?: return null
         val anioTexto = fecha.groupValues[3]
         val anio = anioTexto.toIntOrNull()?.let { if (it < 100) it + 2000 else it } ?: return null
-        val hora = Regex("""(\d{1,2}):(\d{2})""").find(texto, fecha.range.last)
+        // LACTOMAT imprime "12:24 02/09/26": la hora puede preceder a la fecha.
+        val hora = Regex("""\b(\d{1,2}):(\d{2})\b""").find(texto)
         val horas = hora?.groupValues?.get(1)?.toIntOrNull() ?: 0
         val minutos = hora?.groupValues?.get(2)?.toIntOrNull() ?: 0
         return try {

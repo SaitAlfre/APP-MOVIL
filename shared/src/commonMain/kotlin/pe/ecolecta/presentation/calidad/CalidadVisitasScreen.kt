@@ -141,9 +141,9 @@ fun CalidadShell(
         dismissButton = { TextButton(onClick = vm::cancelarCambioProveedor) { Text("Continuar aquí") } },
     )
     if (s.escaneoPendiente != null) AlertDialog(
-        onDismissRequest = vm::descartarEscaneo, title = { Text("¿Reemplazar los datos ya escritos?") },
-        text = { Text("Ya hay resultados escritos en el formulario. El nuevo escaneo puede reemplazarlos.") },
-        confirmButton = { TextButton(onClick = vm::confirmarEscaneo) { Text("Reemplazar") } },
+        onDismissRequest = vm::descartarEscaneo, title = { Text("¿Aplicar la nueva lectura?") },
+        text = { Text("Se actualizarán los valores reconocidos en la foto. Los campos que no se puedan leer conservarán lo escrito.") },
+        confirmButton = { TextButton(onClick = vm::confirmarEscaneo) { Text("Aplicar lectura") } },
         dismissButton = { TextButton(onClick = vm::descartarEscaneo) { Text("Conservar lo escrito") } },
     )
 }
@@ -487,7 +487,7 @@ private fun LazyListScope.pasoResultados(s: CalidadUiState, vm: CalidadViewModel
     val b = s.borrador
     item {
         Text(
-            "Ingresa los valores del equipo LactoScan",
+            "Escanea el comprobante o ingresa los resultados",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 8.dp),
         )
@@ -497,9 +497,10 @@ private fun LazyListScope.pasoResultados(s: CalidadUiState, vm: CalidadViewModel
             Tarjeta {
                 Icon(Icons.Default.DocumentScanner, null, tint = CalidadMorado, modifier = Modifier.size(32.dp))
                 Text(
-                    "También puedes escanear el comprobante impreso del equipo en el siguiente paso.",
-                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario, modifier = Modifier.padding(top = 8.dp),
+                    "Fotografía el ticket de LACTOMAT / LactoScan o elige una foto. Los resultados se completarán automáticamente para que los revises.",
+                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario, modifier = Modifier.padding(vertical = 8.dp),
                 )
+                EscanerComprobante(vm::escanear, vm::error)
             }
         }
     }
@@ -537,6 +538,12 @@ private fun LazyListScope.pasoRevision(s: CalidadUiState, vm: CalidadViewModel, 
         Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Tarjeta {
                 Text("RESUMEN DEL CONTROL", style = MaterialTheme.typography.labelLarge, color = Colores.textSecundario, modifier = Modifier.padding(bottom = 8.dp))
+                Dato("Proveedor", s.proveedor?.nombres.orEmpty())
+                Dato("Fecha y hora del análisis", "${b.fecha} · ${b.hora}")
+                Dato("Origen", if (b.origen == OrigenCaptura.ESCANER) "Comprobante escaneado" else "Ingreso manual")
+                if (b.serial.isNotBlank()) Dato("Serie del equipo", b.serial)
+                if (b.modo.isNotBlank()) Dato("Modo del analizador", b.modo)
+                Spacer(Modifier.height(12.dp))
                 parametrosCalidad.forEach { p ->
                     val valor = b.valores[p.clave]?.takeIf { it.isNotBlank() }
                     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {

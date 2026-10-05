@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import kotlin.test.*
 import pe.ecolecta.data.security.InMemorySesionRepository
 import pe.ecolecta.domain.fake.*
+import pe.ecolecta.domain.calidad.comprobanteLactomatReferencia
 import pe.ecolecta.domain.model.*
 import pe.ecolecta.domain.repository.*
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
@@ -47,6 +48,48 @@ class CalidadVisitasTest {
         vm.campo("densidad", "1.030"); vm.campo("proteina", "3.2"); vm.campo("lactosa", "4.7")
         vm.campo("sales", "0.70"); vm.campo("solidos", "12.2"); vm.campo("agua", "0.0")
         vm.campo("congelacion", "-0.530"); vm.campo("ph", "6.7")
+    }
+
+    @Test fun ticketDeReferenciaCompletaElFormularioYSeGuardaSoloAlConfirmar() = runTest(dispatcher) {
+        val (vm, repo) = crear(); advanceUntilIdle()
+        vm.nuevo(); vm.zona("a"); vm.proveedor("p-a")
+        vm.escanear(comprobanteLactomatReferencia)
+        val borrador = vm.uiState.value.borrador
+        assertEquals(11, borrador.completados)
+        assertEquals("02/09/2026", borrador.fecha)
+        assertEquals("12:24", borrador.hora)
+        assertEquals("49731", borrador.serial)
+        assertEquals("1", borrador.modo)
+        assertEquals("86.12", borrador.valores["agua"])
+        assertTrue(repo.lista.value.isEmpty())
+        vm.guardar(); advanceUntilIdle()
+        val control = repo.lista.value.single()
+        assertEquals(OrigenCaptura.ESCANER, control.origenCaptura)
+        assertEquals(4.36, control.grasa)
+        assertEquals(-0.522, control.puntoCongelacion)
+        assertEquals(comprobanteLactomatReferencia, control.textoComprobante)
+    }
+
+    @Test fun escaneoParcialConservaLosCamposQueNoPudoLeer() = runTest(dispatcher) {
+        val (vm, _) = crear(); advanceUntilIdle()
+        vm.nuevo(); vm.zona("a"); vm.proveedor("p-a")
+        vm.campo("ph", "6.7"); vm.campo("grasa", "3.5")
+        vm.campo("congelacion", "-52.2"); vm.campo("unidad", "°H")
+        vm.escanear("Grasa .... 4.36%")
+        vm.confirmarEscaneo()
+        assertEquals("4.36", vm.uiState.value.borrador.valores["grasa"])
+        assertEquals("6.7", vm.uiState.value.borrador.valores["ph"])
+        assertEquals("-52.2", vm.uiState.value.borrador.valores["congelacion"])
+        assertEquals("°H", vm.uiState.value.borrador.unidadCongelacion)
+    }
+
+    @Test fun fotoConSoloElEncabezadoNoSeAplicaComoUnAnalisis() = runTest(dispatcher) {
+        val (vm, _) = crear(); advanceUntilIdle()
+        vm.nuevo(); vm.zona("a"); vm.proveedor("p-a")
+        vm.escanear("Analizador de LACTOMAT\nSN: 49731 Mode: 1")
+        assertNotNull(vm.uiState.value.error)
+        assertEquals(OrigenCaptura.MANUAL, vm.uiState.value.borrador.origen)
+        assertTrue(vm.uiState.value.borrador.valores.isEmpty())
     }
 
     @Test fun cambiarZonaMuestraSoloSusProveedoresYAbreElFormulario() = runTest(dispatcher) {

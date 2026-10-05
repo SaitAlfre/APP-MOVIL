@@ -34,8 +34,8 @@
             </intent-filter>
         </activity>
 
-        <!-- "Compartir" del QR del proveedor: entrega la imagen a la app elegida con permiso de lectura
-             temporal, sin pedir permisos de almacenamiento (ver ExportadorQr.android.kt). -->
+        <!-- Imágenes temporales para compartir el QR y tomar la foto completa del comprobante de calidad.
+             Se conceden permisos por URI sin abrir otras carpetas de la app. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.qr"

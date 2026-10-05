@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Única carpeta que la app expone al compartir: la imagen temporal del QR (cache/qr). -->
+<!-- Solo las imágenes temporales del QR y de la cámara del lector de calidad. -->
 <paths>
     <cache-path name="qr" path="qr/" />
+    <cache-path name="comprobantes" path="comprobantes/" />
 </paths>
