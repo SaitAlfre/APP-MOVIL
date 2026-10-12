@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Route;
  */
 Route::prefix('movil')->name('api.movil.')->group(function () {
     Route::post('sesion', [MovilController::class, 'iniciarSesion'])->middleware('throttle:movil-sesion')->name('sesion.store');
+    Route::post('sesion/refresh', [MovilController::class, 'renovarSesion'])->middleware('throttle:movil-refresh')->name('sesion.refresh');
+    Route::delete('sesion', [MovilController::class, 'cerrarSesion'])->middleware('throttle:movil-refresh')->name('sesion.destroy');
 
     Route::middleware('movil.token')->group(function () {
-        Route::delete('sesion', [MovilController::class, 'cerrarSesion'])->name('sesion.destroy');
         // Copia de lo que el panel publica para la cuenta (web -> celular), según su rol.
         Route::get('datos', [MovilController::class, 'datos'])->middleware('throttle:movil-sync')->name('datos');
         // Cambios hechos en la app (celular -> panel); cada entidad valida el rol de la cuenta del token.

@@ -171,6 +171,33 @@ class PersistenciaListaAcopioTest {
         driver.close()
     }
 
+    @Test
+    fun `migrar tokens anteriores conserva acceso y persiste refresh al reabrir`() = runTest {
+        var driver = abrir()
+        driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_token", 0)
+        driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_expira_en", 0)
+        driver.execute(null, "PRAGMA user_version = 15", 0)
+        EcolectaDatabase(driver).tokenServidorQueries.guardar("u1", "token-anterior", 900, 100)
+        driver.close()
+
+        driver = abrir()
+        var db = EcolectaDatabase(driver)
+        val anterior = db.tokenServidorQueries.porUsuario("u1").executeAsOne()
+        assertEquals("token-anterior", anterior.token)
+        assertEquals(900L, anterior.expira_en)
+        assertEquals(null, anterior.refresh_token)
+        db.tokenServidorQueries.guardarConRefresh("u1", "access-nuevo", 1000, 200, "refresh-nuevo", 3000)
+        driver.close()
+
+        driver = abrir()
+        db = EcolectaDatabase(driver)
+        val nueva = db.tokenServidorQueries.porUsuario("u1").executeAsOne()
+        assertEquals("access-nuevo", nueva.token)
+        assertEquals("refresh-nuevo", nueva.refresh_token)
+        assertEquals(3000L, nueva.refresh_expira_en)
+        driver.close()
+    }
+
     private fun proveedor(id: String, codigo: String) = Proveedor(
         id = id, codigo = codigo, nombres = "Finca $codigo", dni = codigo, telefono = null, direccion = null,
         zonaId = "zona-faon-markapajo", tachos = 2, capacidadTachoL = 40.0, estado = EstadoProveedor.ACTIVO,

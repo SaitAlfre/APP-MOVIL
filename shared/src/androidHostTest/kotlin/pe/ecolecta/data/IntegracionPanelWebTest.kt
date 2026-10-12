@@ -11,6 +11,7 @@ import pe.ecolecta.data.remote.ServidorWebRepositoryKtor
 import pe.ecolecta.data.remote.crearHttpClient
 import pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryPendiente
 import pe.ecolecta.data.repository.SqlDelightAuditoriaRepository
+import pe.ecolecta.data.repository.SqlDelightDatosServidorRepository
 import pe.ecolecta.data.repository.SqlDelightEntregaRepository
 import pe.ecolecta.data.repository.SqlDelightGestionPortalRepository
 import pe.ecolecta.data.repository.SqlDelightJornadaRepository
@@ -195,6 +196,20 @@ class IntegracionPanelWebTest {
         assertEquals(0, consultarWeb("SELECT COUNT(*) FROM entregas WHERE uuid_movil = ?", otra.id) { it.getInt(1) }.single())
         sincronizar()
         assertEquals(1, consultarWeb("SELECT COUNT(*) FROM entregas WHERE uuid_movil = ?", otra.id) { it.getInt(1) }.single())
+
+        // La respuesta HTTP real también puede descargarse y aplicarse dos veces sin duplicar el dato local.
+        val datosDescargados = servidor.descargarDatos(acopiador.id).getOrThrow()
+        val entregada = datosDescargados.entregas.single { it.uuidMovil == otra.id }
+        assertEquals(12.0, entregada.litros)
+        val aplicarDescarga = SqlDelightDatosServidorRepository(db, reloj, io)
+        aplicarDescarga.aplicar(datosDescargados)
+        aplicarDescarga.aplicar(datosDescargados)
+        assertEquals(12.0, entregas.obtenerPorId(otra.id)!!.litros)
+        assertEquals(SyncState.SYNCED, entregas.obtenerPorId(otra.id)!!.syncState)
+        assertEquals(
+            datosDescargados.entregas.count { it.jornadaId == entregada.jornadaId },
+            db.entregaQueries.selectPorJornada(jornadaId).executeAsList().size,
+        )
 
         // 6) Web → proveedor: sus liquidaciones con su estado real, iguales a las del panel, y nunca las de otro.
         val cuentaProveedor = db.usuarioQueries.selectPorUsername("prov_faon_01").executeAsOne()

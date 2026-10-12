@@ -4,11 +4,17 @@ CREATE TABLE token_servidor (
     usuario_id TEXT NOT NULL PRIMARY KEY,
     token TEXT NOT NULL,
     expira_en INTEGER NOT NULL,
-    obtenido_en INTEGER NOT NULL
+    obtenido_en INTEGER NOT NULL,
+    refresh_token TEXT,
+    refresh_expira_en INTEGER
 );
 
 guardar:
 INSERT OR REPLACE INTO token_servidor(usuario_id, token, expira_en, obtenido_en) VALUES (?, ?, ?, ?);
+
+guardarConRefresh:
+INSERT OR REPLACE INTO token_servidor(usuario_id, token, expira_en, obtenido_en, refresh_token, refresh_expira_en)
+VALUES (?, ?, ?, ?, ?, ?);
 
 porUsuario:
 SELECT * FROM token_servidor WHERE usuario_id = ?;

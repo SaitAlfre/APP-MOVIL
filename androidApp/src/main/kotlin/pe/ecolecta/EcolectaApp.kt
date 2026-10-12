@@ -35,8 +35,8 @@ class EcolectaApp : Application() {
                         if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.auth.IdentidadRemotaProviderPendiente()
                         else FirebaseAuthAnonimoProvider()
                     }
-                    // Vista local (-PlocalPreview=true, sin google-services.json): sin sincronización
-                    // remota; la interfaz lo muestra como "Guardado en este celular".
+                    // Vista local (-PlocalPreview=true, sin google-services.json): sin la copia de
+                    // Firestore. La sincronización con el panel web sigue usando SERVIDOR_URL.
                     single<RegistroAcopioRemotoRepository> {
                         if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryPendiente()
                         else RegistroAcopioRemotoRepositoryFirebase(get())

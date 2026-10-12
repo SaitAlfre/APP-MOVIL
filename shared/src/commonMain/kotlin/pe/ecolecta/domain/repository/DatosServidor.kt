@@ -15,7 +15,13 @@ data class CuentaServidor(
 )
 
 /** Token recién emitido por el panel; aún no está guardado en el celular. [cuenta] es null con un panel anterior que no la envía. */
-data class SesionServidor(val token: String, val expiraEn: Long, val cuenta: CuentaServidor?)
+data class SesionServidor(
+    val token: String,
+    val expiraEn: Long,
+    val cuenta: CuentaServidor?,
+    val refreshToken: String? = null,
+    val refreshExpiraEn: Long? = null,
+)
 
 @Serializable data class ZonaServidor(val id: Long, val nombre: String, val activo: Boolean = true)
 

@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\Usuario as UsuarioDominio;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\TokenMovil;
 use App\Infrastructure\Persistence\Eloquent\Usuario as UsuarioEloquent;
 use DateTimeImmutable;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -103,6 +104,7 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
 
     public function invalidarSesiones(int $usuarioId, ?string $exceptoSessionId = null): void
     {
+        TokenMovil::query()->where('usuario_id', $usuarioId)->delete();
         UsuarioEloquent::query()->whereKey($usuarioId)->increment('version_sesion');
         if ($exceptoSessionId !== null && auth('operador')->id() === $usuarioId && request()->hasSession()) {
             request()->session()->put('version_sesion.'.$usuarioId, (int) UsuarioEloquent::query()->whereKey($usuarioId)->value('version_sesion'));

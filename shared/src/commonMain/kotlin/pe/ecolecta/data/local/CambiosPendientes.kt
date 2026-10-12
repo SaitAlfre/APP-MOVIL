@@ -31,6 +31,6 @@ internal fun EcolectaDatabase.marcarCambio(entidad: String, localId: String, pin
     cambioPendienteQueries.marcar(entidad, localId, autor, pin ?: previo?.pin, marca)
 }
 
-/** true si la fila tiene un cambio del celular aún sin enviar: lo que llegue del panel no debe pisarla. */
+/** PENDING y ERROR siguen sin confirmar: la descarga del panel no debe reemplazar esos cambios. */
 internal fun EcolectaDatabase.tieneCambioPendiente(entidad: String, localId: String): Boolean =
-    cambioPendienteQueries.porClave(entidad, localId).executeAsOneOrNull()?.estado == "PENDING"
+    cambioPendienteQueries.porClave(entidad, localId).executeAsOneOrNull() != null

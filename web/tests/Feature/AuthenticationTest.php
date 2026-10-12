@@ -20,14 +20,14 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($admin, 'operador');
     }
 
-    public function test_un_acopiador_no_puede_iniciar_sesion_en_la_web(): void
+    public function test_un_acopiador_puede_iniciar_sesion_en_la_web_para_ver_sus_rutas(): void
     {
         $usuario = Usuario::factory()->create(['pin_hash' => '1234', 'roles' => ['acopiador']]);
 
         $response = $this->post('/login', ['username' => $usuario->username, 'pin' => '1234']);
 
-        $response->assertSessionHasErrors('username');
-        $this->assertGuest('operador');
+        $response->assertRedirect(route('admin.mapa-rutas.index'));
+        $this->assertAuthenticatedAs($usuario, 'operador');
     }
 
     public function test_un_proveedor_no_puede_iniciar_sesion_en_la_web(): void

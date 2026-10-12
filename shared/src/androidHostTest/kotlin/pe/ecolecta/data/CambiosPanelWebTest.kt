@@ -127,6 +127,41 @@ class CambiosPanelWebTest {
     }
 
     @Test
+    fun `un cambio rechazado no se pierde al descargar la copia del panel`() = runBlocking {
+        iniciarSesionAdmin()
+        val faon = db.zonaQueries.selectPorNombre("FAON-MARKAPAJO").executeAsOne()
+        db.servidorMapaQueries.guardar("zona", 1, faon.id)
+        SqlDelightZonaRepository(db, Dispatchers.IO).actualizar(Zona(faon.id, "FAON CAMBIADA EN EL CELULAR", true))
+        val panel = PanelFalso(RechazoServidorException("Revisa el nombre del sector.", "invalido"))
+        assertEquals(1, EnviarCambiosServidorUseCase(panel, cola)().conError)
+
+        SqlDelightDatosServidorRepository(db, reloj, Dispatchers.IO).aplicar(
+            DatosServidor(zonas = listOf(ZonaServidor(1, "FAON-MARKAPAJO"))),
+        )
+
+        assertEquals("FAON CAMBIADA EN EL CELULAR", db.zonaQueries.selectPorId(faon.id).executeAsOne().nombre)
+        val pendiente = db.cambioPendienteQueries.porClave("zona", faon.id).executeAsOne()
+        assertEquals("ERROR", pendiente.estado)
+        assertEquals("Revisa el nombre del sector.", pendiente.ultimo_error)
+    }
+
+    @Test
+    fun `una descarga completa no desactiva una zona cuyo cambio esta rechazado`() = runBlocking {
+        iniciarSesionAdmin()
+        val faon = db.zonaQueries.selectPorNombre("FAON-MARKAPAJO").executeAsOne()
+        db.servidorMapaQueries.guardar("zona", 1, faon.id)
+        SqlDelightZonaRepository(db, Dispatchers.IO).actualizar(Zona(faon.id, "FAON SIN CONFIRMAR", true))
+        EnviarCambiosServidorUseCase(PanelFalso(RechazoServidorException("Nombre no aceptado.", "invalido")), cola)()
+
+        SqlDelightDatosServidorRepository(db, reloj, Dispatchers.IO).aplicar(DatosServidor(completo = true))
+
+        val zona = db.zonaQueries.selectPorId(faon.id).executeAsOne()
+        assertEquals("FAON SIN CONFIRMAR", zona.nombre)
+        assertEquals(1L, zona.activo)
+        assertEquals("ERROR", db.cambioPendienteQueries.porClave("zona", faon.id).executeAsOne().estado)
+    }
+
+    @Test
     fun `un analisis de calidad del celular viaja completo al panel`() = runBlocking {
         val tecnico = db.usuarioQueries.selectPorUsername("calidad_faon").executeAsOne()
         db.sesionQueries.establecer(tecnico.id, "CALIDAD")

@@ -63,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(10)->by('cuenta:'.hash('sha256', is_string($username) ? mb_strtolower($username) : '')),
             ];
         });
+        RateLimiter::for('movil-refresh', fn (Request $request) => Limit::perMinute(60)
+            ->by('refresh-ip:'.hash('sha256', (string) $request->ip())));
+
         // Corre después de `movil.token`: el cupo es por cuenta autenticada, no por red.
         RateLimiter::for('movil-sync', fn (Request $request) => Limit::perMinute(600)
             ->by('usuario:'.($request->user()?->getKey() ?? hash('sha256', (string) $request->ip()))));

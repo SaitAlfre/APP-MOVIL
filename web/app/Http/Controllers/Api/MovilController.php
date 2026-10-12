@@ -48,28 +48,56 @@ class MovilController extends Controller
         }
 
         $usuario = Usuario::query()->where('username', $datos['username'])->firstOrFail();
-        [$registro, $token] = TokenMovil::emitir($usuario, $datos['dispositivo'] ?? null);
+        [$registro, $token, $refreshToken] = TokenMovil::emitir($usuario, $datos['dispositivo'] ?? null);
 
         Auditoria::query()->create([
             'entidad' => 'sesion', 'entidad_id' => $usuario->id, 'usuario_id' => $usuario->id,
             'accion' => 'iniciar_sesion', 'ocurrido_en' => now(), 'motivo' => 'Vinculación de la app móvil.',
         ]);
 
+        return $this->respuestaSesion($registro, $token, $refreshToken, $usuario);
+    }
+
+    public function renovarSesion(Request $request): JsonResponse
+    {
+        $datos = $request->validate(['refresh_token' => ['required', 'string', 'max:256']]);
+        $sesion = TokenMovil::renovar($datos['refresh_token']);
+        if ($sesion === null) {
+            return response()->json([
+                'message' => 'La sesión no se puede renovar. Vuelve a iniciar sesión con conexión.',
+                'codigo' => 'refresh_invalido',
+            ], 401)->header('Cache-Control', 'no-store');
+        }
+        [$registro, $token, $refreshToken] = $sesion;
+
+        return $this->respuestaSesion($registro, $token, $refreshToken, $registro->usuario);
+    }
+
+    private function respuestaSesion(TokenMovil $registro, string $token, string $refreshToken, Usuario $usuario): JsonResponse
+    {
         return response()->json([
             'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => max(0, $registro->expira_en->getTimestamp() - now()->getTimestamp()),
             'expiraEn' => $registro->expira_en->getTimestampMs(),
+            'refresh_token' => $refreshToken,
+            'refreshExpiraEn' => $registro->refresh_expira_en->getTimestampMs(),
             // El celular crea o actualiza con esto la cuenta local (p. ej. una cuenta creada en el panel).
             'usuario' => [
                 'id' => $usuario->id, 'username' => $usuario->username, 'nombres' => $usuario->nombres,
                 'dni' => (string) $usuario->dni, 'activo' => (bool) $usuario->activo,
                 'roles' => array_values(array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? [])),
             ],
-        ]);
+        ])->header('Cache-Control', 'no-store')->header('Pragma', 'no-cache');
     }
 
     public function cerrarSesion(Request $request): JsonResponse
     {
-        TokenMovil::query()->where('token_hash', TokenMovil::hash((string) $request->bearerToken()))->delete();
+        $datos = $request->validate(['refresh_token' => ['sometimes', 'required', 'string', 'max:256']]);
+        if (! TokenMovil::revocar($request->bearerToken(), $datos['refresh_token'] ?? null)) {
+            return response()->json(['message' => 'La sesión no es válida.', 'codigo' => 'token_invalido'], 401);
+        }
 
         return response()->json(['message' => 'Sesión del celular cerrada.']);
     }

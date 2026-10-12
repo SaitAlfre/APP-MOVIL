@@ -20,8 +20,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import pe.ecolecta.data.local.db.EcolectaDatabase
 import pe.ecolecta.domain.Reloj
@@ -38,7 +41,14 @@ import pe.ecolecta.domain.repository.SinSesionServidorException
 import pe.ecolecta.domain.repository.UsuarioRepository
 
 @Serializable private data class SolicitudSesion(val username: String, val pin: String, val dispositivo: String)
-@Serializable private data class RespuestaSesion(val token: String, val expiraEn: Long, val usuario: CuentaServidor? = null)
+@Serializable private data class RespuestaSesion(
+    val token: String,
+    val expiraEn: Long,
+    val usuario: CuentaServidor? = null,
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    val refreshExpiraEn: Long? = null,
+)
+@Serializable private data class SolicitudRefresh(@SerialName("refresh_token") val refreshToken: String)
 @Serializable private data class RespuestaError(val message: String? = null, val codigo: String? = null, val definitivo: Boolean = true)
 @Serializable private data class RespuestaCambio(val id: Long? = null)
 @Serializable private data class LiquidacionServidor(
@@ -71,6 +81,7 @@ class ServidorWebRepositoryKtor(
 ) : ServidorWebRepository {
     override val direccion: String = urlBase.trimEnd('/')
     private val api = "$direccion/api/movil"
+    private val sesionMutex = Mutex()
 
     override val configurado: Boolean = true
 
@@ -84,48 +95,56 @@ class ServidorWebRepositoryKtor(
         }
         if (!respuesta.status.isSuccess()) throw rechazo(respuesta)
         val sesion = respuesta.body<RespuestaSesion>()
-        SesionServidor(sesion.token, sesion.expiraEn, sesion.usuario)
+        SesionServidor(sesion.token, sesion.expiraEn, sesion.usuario, sesion.refreshToken, sesion.refreshExpiraEn)
     }
 
     override suspend fun guardarSesion(usuarioId: String, sesion: SesionServidor) {
+        sesionMutex.withLock { persistirSesion(usuarioId, sesion) }
+    }
+
+    private suspend fun persistirSesion(usuarioId: String, sesion: SesionServidor) {
         withContext(io) {
-            db.tokenServidorQueries.guardar(usuarioId, sesion.token, sesion.expiraEn, reloj.ahora().toEpochMilliseconds())
+            db.tokenServidorQueries.guardarConRefresh(
+                usuarioId, sesion.token, sesion.expiraEn, reloj.ahora().toEpochMilliseconds(), sesion.refreshToken, sesion.refreshExpiraEn,
+            )
         }
     }
 
     override suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> = llamar {
-        val respuesta = http.put("$api/cambios/$entidad") {
-            bearerAuth(tokenVigente(usuarioId))
-            contentType(ContentType.Application.Json)
-            setBody(cuerpo)
+        val respuesta = peticionAutenticada(usuarioId) { token ->
+            http.put("$api/cambios/$entidad") {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody(cuerpo)
+            }
         }
-        verificar(usuarioId, respuesta)
         respuesta.body<RespuestaCambio>().id
     }
 
     override suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> = llamar {
-        val respuesta = http.get("$api/datos") { bearerAuth(tokenVigente(usuarioId)) }
-        verificar(usuarioId, respuesta)
+        val respuesta = peticionAutenticada(usuarioId) { token -> http.get("$api/datos") { bearerAuth(token) } }
         respuesta.body<DatosServidor>()
     }
 
     override fun observarSesion(usuarioId: String): Flow<Boolean> =
         db.tokenServidorQueries.porUsuario(usuarioId).asFlow().mapToOneOrNull(io)
-            .map { it != null && it.expira_en > reloj.ahora().toEpochMilliseconds() }
+            .map { fila ->
+                val ahora = reloj.ahora().toEpochMilliseconds()
+                fila != null && (fila.expira_en > ahora || (fila.refresh_token != null && (fila.refresh_expira_en ?: 0) > ahora))
+            }
 
-    override suspend fun enviarEntrega(usuarioId: String, entrega: EntregaParaServidor): Result<Unit> = llamar {
-        val token = tokenVigente(usuarioId)
-        val respuesta = http.put("$api/entregas/${entrega.id}") {
-            bearerAuth(token)
-            contentType(ContentType.Application.Json)
-            setBody(entrega)
+    override suspend fun enviarEntrega(usuarioId: String, entrega: EntregaParaServidor): Result<Unit> = llamar<Unit> {
+        peticionAutenticada(usuarioId) { token ->
+            http.put("$api/entregas/${entrega.id}") {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody(entrega)
+            }
         }
-        verificar(usuarioId, respuesta)
     }
 
     override suspend fun liquidacionesDelProveedor(usuarioId: String): Result<List<PagoProveedor>> = llamar {
-        val respuesta = http.get("$api/proveedor/liquidaciones") { bearerAuth(tokenVigente(usuarioId)) }
-        verificar(usuarioId, respuesta)
+        val respuesta = peticionAutenticada(usuarioId) { token -> http.get("$api/proveedor/liquidaciones") { bearerAuth(token) } }
         respuesta.body<RespuestaLiquidaciones>().liquidaciones.map {
             PagoProveedor(
                 id = "$PREFIJO_PAGO_SERVIDOR${it.id}", proveedorId = "", desde = it.desde, hasta = it.hasta,
@@ -136,17 +155,57 @@ class ServidorWebRepositoryKtor(
     }
 
     override suspend fun desvincular(usuarioId: String) {
-        val token = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull()?.token } ?: return
-        llamar { http.delete("$api/sesion") { bearerAuth(token) } }
-        withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
+        sesionMutex.withLock {
+            val fila = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull() } ?: return
+            llamar {
+                http.delete("$api/sesion") {
+                    bearerAuth(fila.token)
+                    if (fila.refresh_token != null) {
+                        contentType(ContentType.Application.Json)
+                        setBody(SolicitudRefresh(fila.refresh_token))
+                    }
+                }
+            }
+            withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
+        }
     }
 
     private suspend fun tokenVigente(usuarioId: String): String {
         val fila = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull() }
-        if (fila == null || fila.expira_en <= reloj.ahora().toEpochMilliseconds()) {
+        if (fila == null) {
             throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres)
         }
+        if (fila.expira_en <= reloj.ahora().toEpochMilliseconds()) {
+            return renovarToken(usuarioId)
+        }
         return fila.token
+    }
+
+    /** Serializa rotaciones para que dos envíos del mismo celular no reutilicen el refresh token. */
+    private suspend fun peticionAutenticada(usuarioId: String, enviar: suspend (String) -> HttpResponse): HttpResponse =
+        sesionMutex.withLock {
+            var respuesta = enviar(tokenVigente(usuarioId))
+            if (respuesta.status == HttpStatusCode.Unauthorized) {
+                respuesta = enviar(renovarToken(usuarioId))
+            }
+            verificar(usuarioId, respuesta)
+            respuesta
+        }
+
+    private suspend fun renovarToken(usuarioId: String): String {
+        val fila = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull() }
+        if (fila?.refresh_token == null || (fila.refresh_expira_en ?: 0) <= reloj.ahora().toEpochMilliseconds()) {
+            withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
+            throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres, revocada = true)
+        }
+        val respuesta = http.post("$api/sesion/refresh") {
+            contentType(ContentType.Application.Json)
+            setBody(SolicitudRefresh(fila.refresh_token))
+        }
+        verificar(usuarioId, respuesta)
+        val sesion = respuesta.body<RespuestaSesion>()
+        persistirSesion(usuarioId, SesionServidor(sesion.token, sesion.expiraEn, sesion.usuario, sesion.refreshToken, sesion.refreshExpiraEn))
+        return sesion.token
     }
 
     /** 401 = el servidor ya no reconoce el token (vencido, revocado o cuenta desactivada): se borra. */
@@ -164,8 +223,8 @@ class ServidorWebRepositoryKtor(
         return RechazoServidorException(
             error?.message ?: "El servidor respondió ${respuesta.status.value}.",
             error?.codigo,
-            // 5xx: falla del servidor, no del dato; se reintenta.
-            definitivo = (error?.definitivo ?: true) && respuesta.status.value < 500,
+            // Los errores del servidor y los límites de peticiones se reintentan.
+            definitivo = (error?.definitivo ?: true) && respuesta.status.value < 500 && respuesta.status.value != 429,
         )
     }
 

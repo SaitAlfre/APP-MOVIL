@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ? response()->json(['message' => $mensaje], 500)
                 : response($mensaje, 500);
         });
-        $exceptions->dontFlash(['pin', 'pin_hash', 'pin_confirmation', 'nuevo_pin', 'token', 'secret', 'api_key']);
+        $exceptions->dontFlash(['pin', 'pin_hash', 'pin_confirmation', 'nuevo_pin', 'token', 'access_token', 'refresh_token', 'secret', 'api_key']);
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

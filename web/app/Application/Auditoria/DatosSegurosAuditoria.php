@@ -14,7 +14,7 @@ class DatosSegurosAuditoria
             return json_encode(self::filtrar($datos), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
         }
 
-        return preg_replace('/\b(pin(?:_hash|_confirmation)?|password|contrase[nñ]a|token|secret|api_key|authorization|cookie)\s*[=:]\s*[^;\r\n]*/iu', '$1=[OCULTO]', $valor);
+        return preg_replace('/\b(pin(?:_hash|_confirmation)?|password|contrase[nñ]a|(?:access_?|refresh_?)?token(?:_hash)?|secret|api_key|authorization|cookie)\s*[=:]\s*[^;\r\n]*/iu', '$1=[OCULTO]', $valor);
     }
 
     private static function filtrar(array $datos): array

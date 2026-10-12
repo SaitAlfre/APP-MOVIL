@@ -61,7 +61,7 @@ interface ServidorWebRepository {
     /** Valida usuario/PIN en el servidor y guarda el token del usuario local [usuarioId]. */
     suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit>
 
-    /** true mientras [usuarioId] tenga un token vigente en este celular. */
+    /** true mientras [usuarioId] tenga acceso vigente o un refresh token vigente para renovarlo. */
     fun observarSesion(usuarioId: String): Flow<Boolean>
 
     /** Envía con el token del autor ([usuarioId]). Éxito solo cuando el servidor confirmó la escritura. */
