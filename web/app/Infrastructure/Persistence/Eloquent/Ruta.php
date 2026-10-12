@@ -18,6 +18,7 @@ class Ruta extends Model
             'paradas' => 'array',
             'trazado' => 'array',
             'mapa_version' => 'integer',
+            'resumen_recorrido' => 'array',
         ];
     }
 

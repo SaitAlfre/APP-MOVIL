@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MapaRutaController extends Controller
@@ -22,6 +24,7 @@ class MapaRutaController extends Controller
         $query = Ruta::query();
         if (! $usuario->puede('zonas_vehiculos')) {
             $query->where('acopiador_id', $usuario->id)->where('activo', true)
+                ->whereJsonLength('paradas', '>', 0)
                 ->whereHas('zona', fn (Builder $zona) => $zona->where('activo', true));
         }
 
@@ -30,13 +33,18 @@ class MapaRutaController extends Controller
 
     public function index(Request $request): View
     {
-        $datos = $request->validate(['zona_id' => ['nullable', 'integer', 'exists:zonas,id']]);
+        $datos = $request->validate([
+            'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
+            'buscar' => ['nullable', 'string', 'max:120'],
+        ]);
         $zonaIds = $this->rutasVisibles()->select('zona_id');
         $zonas = auth('operador')->user()->puede('zonas_vehiculos')
             ? Zona::orderBy('nombre')->get()
             : Zona::whereIn('id', $zonaIds)->orderBy('nombre')->get();
         $rutas = $this->rutasVisibles()->with(['zona', 'acopiador'])
             ->when($datos['zona_id'] ?? null, fn (Builder $query, int $id) => $query->where('zona_id', $id))
+            ->when($datos['buscar'] ?? null, fn (Builder $query, string $buscar) => $query->where(fn (Builder $ruta) => $ruta
+                ->where('nombre', 'like', '%'.$buscar.'%')->orWhere('codigo', 'like', '%'.$buscar.'%')))
             ->orderBy('nombre')->paginate(18);
 
         return view('admin.zonas-vehiculos.mapas', compact('rutas', 'zonas'));
@@ -45,26 +53,55 @@ class MapaRutaController extends Controller
     public function show(Ruta $ruta): View
     {
         abort_unless($this->rutasVisibles()->whereKey($ruta->id)->exists(), 403);
-        $ruta->load(['zona', 'acopiador']);
+
+        return $this->editor($ruta->load(['zona', 'acopiador']));
+    }
+
+    public function create(Request $request): View
+    {
+        $datos = $request->validate(['zona_id' => ['nullable', 'integer', Rule::exists('zonas', 'id')->where('activo', true)]]);
+
+        return $this->editor(new Ruta(['activo' => true, 'zona_id' => $datos['zona_id'] ?? null]));
+    }
+
+    public function store(GuardarMapaRutaRequest $request): RedirectResponse
+    {
+        $ruta = DB::transaction(fn () => Ruta::create($this->datosParaGuardar($request) + [
+            'codigo' => 'R-'.Str::upper(Str::random(10)), 'mapa_version' => 1,
+        ]));
+
+        return redirect()->route('admin.mapa-rutas.show', $ruta)->with('estado', 'Ruta creada con sus paradas.');
+    }
+
+    private function editor(Ruta $ruta): View
+    {
         $puedeGestionar = auth('operador')->user()->puede('mapa_rutas', 'gestionar');
+        $sectorSeleccionado = (int) old('zona_id', $ruta->zona_id);
         $proveedoresSector = $puedeGestionar
-            ? Proveedor::where('zona_id', $ruta->zona_id)->where('estado', 'activo')->orderBy('nombres')->get()
+            ? Proveedor::where('estado', 'activo')->orderBy('nombres')->get(['id', 'codigo', 'nombres', 'direccion', 'zona_id', 'estado'])
             : collect();
         $paradas = $this->puntosParaMapa($puedeGestionar ? old('paradas', $ruta->paradas) : $ruta->paradas, true);
         $trazado = $this->puntosParaMapa($puedeGestionar ? old('trazado', $ruta->trazado) : $ruta->trazado, false);
         $proveedores = Proveedor::whereIn('id', collect($paradas)->pluck('proveedor_id')->filter())
-            ->get(['id', 'nombres', 'direccion', 'zona_id', 'estado']);
+            ->get(['id', 'codigo', 'nombres', 'direccion', 'zona_id', 'estado']);
+        $zonasCatalogo = $puedeGestionar ? Zona::where('activo', true)->orWhere('id', $ruta->zona_id)->orderBy('nombre')->get() : collect();
         $configMapa = [
-            'paradas' => $paradas, 'trazado' => $trazado, 'zona_id' => (int) $ruta->zona_id,
+            'paradas' => $paradas, 'trazado' => $trazado, 'zona_id' => $sectorSeleccionado,
             'teselas' => config('mapas.teselas'), 'centro' => config('mapas.centro'),
+            'ruteo' => $puedeGestionar ? config('mapas.ruteo') : null,
+            'credito_ruteo' => str_contains((string) config('mapas.ruteo'), 'openstreetmap.de') ? 'OSRM / FOSSGIS' : 'OSRM',
+            'resumen' => $puedeGestionar ? old('resumen_recorrido', $ruta->resumen_recorrido) : $ruta->resumen_recorrido,
+            'sectores' => $zonasCatalogo->map(fn (Zona $zona) => ['id' => (int) $zona->id, 'activo' => $zona->activo])->values()->all(),
             'proveedores' => $proveedoresSector->merge($proveedores)->map(fn (Proveedor $proveedor) => [
-                'id' => (int) $proveedor->id, 'nombres' => $proveedor->nombres, 'direccion' => $proveedor->direccion,
+                'id' => (int) $proveedor->id, 'codigo' => $proveedor->codigo, 'nombres' => $proveedor->nombres, 'direccion' => $proveedor->direccion,
                 'zona_id' => (int) $proveedor->zona_id, 'estado' => $proveedor->estado->value,
             ])->values()->all(),
         ];
-        $acopiadores = $puedeGestionar ? Usuario::where('activo', true)->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->get() : collect();
+        $acopiadores = $puedeGestionar ? Usuario::where('activo', true)->where('bloqueado_manualmente', false)
+            ->where(fn (Builder $query) => $query->whereNull('bloqueado_hasta')->orWhere('bloqueado_hasta', '<=', now()))
+            ->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->get() : collect();
 
-        return view('admin.zonas-vehiculos.mapa', compact('ruta', 'puedeGestionar', 'proveedoresSector', 'acopiadores', 'configMapa'));
+        return view('admin.zonas-vehiculos.mapa', compact('ruta', 'puedeGestionar', 'acopiadores', 'configMapa', 'zonasCatalogo'));
     }
 
     public function update(GuardarMapaRutaRequest $request, Ruta $ruta): RedirectResponse
@@ -76,17 +113,27 @@ class MapaRutaController extends Controller
                     'mapa_version' => 'Otro usuario modificó la ruta. Se cargó la versión actual; vuelve a aplicar tus cambios.',
                 ]);
             }
-            $datos = $request->validated();
-            $actual->update([
-                'paradas' => $this->puntosParaMapa($datos['paradas'], true),
-                'trazado' => $this->puntosParaMapa($datos['trazado'], false),
-                'acopiador_id' => $datos['acopiador_id'] ?? null,
-                'indicaciones' => $datos['indicaciones'] ?? null,
+            $actual->update($this->datosParaGuardar($request) + [
                 'mapa_version' => $actual->mapa_version + 1,
             ]);
 
             return redirect()->route('admin.mapa-rutas.show', $actual)->with('estado', 'Recorrido y paradas guardados.');
         });
+    }
+
+    /** @return array<string, mixed> */
+    private function datosParaGuardar(GuardarMapaRutaRequest $request): array
+    {
+        $datos = $request->validated();
+
+        return [
+            'nombre' => trim($datos['nombre']), 'zona_id' => (int) $datos['zona_id'], 'activo' => (bool) $datos['activo'],
+            'paradas' => $this->puntosParaMapa($datos['paradas'], true),
+            'trazado' => $this->puntosParaMapa($datos['trazado'], false),
+            'acopiador_id' => $datos['acopiador_id'] ?? null,
+            'indicaciones' => $datos['indicaciones'] ?? null,
+            'resumen_recorrido' => $datos['resumen_recorrido'] ?? null,
+        ];
     }
 
     /** @return list<array<string, mixed>> */

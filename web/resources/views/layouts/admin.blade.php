@@ -35,10 +35,10 @@
                 ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y roles', 'icono' => 'users'],
                 ['ruta' => 'admin.acopiadores.catalogo', 'patron' => 'admin.acopiadores.catalogo', 'modulo' => 'acopiadores', 'etiqueta' => 'Acopiadores', 'icono' => 'truck'],
                 ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'userCircle'],
-                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Zonas, rutas y vehículos', 'icono' => 'map'],
+                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Sectores y vehículos', 'icono' => 'truck'],
             ],
             'Operaciones' => [
-                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Mapa de rutas', 'icono' => 'map'],
+                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Rutas de acopio', 'icono' => 'map'],
                 ['ruta' => 'admin.jornadas.index', 'patron' => 'admin.jornadas.*', 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'play'],
                 ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'arrowPath'],
                 ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Entregas', 'icono' => 'droplets'],
@@ -63,7 +63,6 @@
                 ['ruta' => 'admin.importaciones.index', 'patron' => 'admin.importaciones.*', 'modulo' => 'importaciones', 'etiqueta' => 'Importaciones', 'icono' => 'arrowUpTray'],
                 ['ruta' => 'admin.auditoria.index', 'patron' => 'admin.auditoria.*', 'modulo' => 'auditoria', 'etiqueta' => 'Auditoría', 'icono' => 'shield'],
                 ['ruta' => 'admin.configuracion.index', 'patron' => 'admin.configuracion.*', 'modulo' => 'configuracion', 'etiqueta' => 'Configuración', 'icono' => 'cog'],
-                ['ruta' => 'admin.design-system.index', 'patron' => 'admin.design-system.*', 'modulo' => 'configuracion', 'etiqueta' => 'Design System', 'icono' => 'tableCells'],
             ],
         ];
 

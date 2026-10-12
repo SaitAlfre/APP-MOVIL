@@ -47,6 +47,10 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::get('mapa-rutas', [MapaRutaController::class, 'index'])->name('mapa-rutas.index');
             Route::get('mapa-rutas/{ruta}', [MapaRutaController::class, 'show'])->whereNumber('ruta')->name('mapa-rutas.show');
         });
+        Route::middleware('permiso:mapa_rutas,gestionar')->group(function () {
+            Route::get('mapa-rutas/nueva', [MapaRutaController::class, 'create'])->name('mapa-rutas.create');
+            Route::post('mapa-rutas', [MapaRutaController::class, 'store'])->name('mapa-rutas.store');
+        });
         Route::put('mapa-rutas/{ruta}', [MapaRutaController::class, 'update'])
             ->whereNumber('ruta')->middleware('permiso:mapa_rutas,gestionar')->name('mapa-rutas.update');
 
