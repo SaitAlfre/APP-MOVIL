@@ -1,0 +1,27 @@
+{
+  "actor": "Agente técnico autorizado",
+  "version": "05743b9 más instrumentación en desarrollo; no se capturó manifiesto individual en estos tres comandos, por ello no se atribuye el árbol actual retrospectivamente",
+  "records": [
+    {
+      "file": "build-instrumentacion.log",
+      "observation": "Offline: faltaban dependencias oficiales cacheadas",
+      "record_end_mtime_utc": "2026-10-23T03:56:20.289802+00:00",
+      "raw_sha256": "0c727e306643fb36b3ddd23e3a2db46f3bb8a73f955e239959e137f6e04fd78b",
+      "published_sha256": "0c727e306643fb36b3ddd23e3a2db46f3bb8a73f955e239959e137f6e04fd78b"
+    },
+    {
+      "file": "build-instrumentacion-red.log",
+      "observation": "Classpath de test sin kotlinx.datetime; se añadió la versión existente solo a androidTest",
+      "record_end_mtime_utc": "2026-10-23T04:02:20.479230+00:00",
+      "raw_sha256": "0767ef14ff8227490c837ab8c2797ad3572ac967a381b680b132acd14f906f26",
+      "published_sha256": "db3efd86919494c6aad3a61d8684e1dbad4f7cf09acfeeb88d1f401511329d04"
+    },
+    {
+      "file": "build-instrumentacion-final.log",
+      "observation": "Compilación de ambos APK satisfactoria tras preparar dependencias",
+      "record_end_mtime_utc": "2026-10-23T04:03:19.731903+00:00",
+      "raw_sha256": "664e5affb0010e452355d6d1b7ae8e694699a35a6cf6226f12a85faa80d439ec",
+      "published_sha256": "664e5affb0010e452355d6d1b7ae8e694699a35a6cf6226f12a85faa80d439ec"
+    }
+  ]
+}

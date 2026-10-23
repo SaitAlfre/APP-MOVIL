@@ -1,0 +1,36 @@
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 524 1363 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 1163 exit=0
+Entrada de fixture ocultada
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 1324 exit=0
+Entrada de fixture ocultada
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 386 1473 exit=0
+adb shell run-as pe.ecolecta.preview ls databases exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+SIN_ACK_LOCAL {"id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5", "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5", "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161", "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be", "zona_id": "zona-moro-viejo-pancha", "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1", "litros": 20.0, "tachos": 1, "observaciones": "CP001_local_ficticio", "sync_state": "ERROR", "proveedor_codigo": "PRV-MORO-01"}
+SIN_ACK_SERVIDOR (1, 20)
+UI sin confirmación: ['Buenos días,', 'Acopiador FAON-MARKAPAJO', 'Jueves, 22 de octubre', 'JORNADA ACTIVA', 'Ruta MORO VIEJO-PANCHA', 'Abierta', 'Zona MORO VIEJO-PANCHA • Camión 3 · V3C-789', '20.0', 'L', 'Litros', '1', 'prov.', 'Atendidos', '4', 'prov.', 'Pendientes', 'ACCIONES RÁPIDAS', 'Registrar entrega', 'Escanear QR', 'Ver resumen', 'Sincronizar', 'Cerrar jornada', 'Últimas entregas', 'Proveedor MORO VIEJO-PANCHA 01', '20.0 L · 10:10', 'Error al enviar', 'Jornada', 'Proveedores', 'Entregas', '1', 'Sincronizar', 'Perfil']
+Respuestas del proxy habilitadas para reintento real
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 499 2316 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 386 795 exit=0
+adb shell run-as pe.ecolecta.preview ls databases exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+FINAL_LOCAL {"id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5", "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5", "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161", "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be", "zona_id": "zona-moro-viejo-pancha", "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1", "litros": 20.0, "tachos": 1, "observaciones": "CP001_local_ficticio", "sync_state": "SYNCED", "proveedor_codigo": "PRV-MORO-01"}
+FINAL_SERVIDOR (1, 20)
+UI final: ['Sincronización', 'Revisa y envía tus datos pendientes', 'Cuenta enlazada con el panel web.', 'Cola de sincronización', 'La sincronización se ejecuta automáticamente al tener conexión. «Sincronizar ahora» envía todo lo guardado en este celular, cada entrega con la cuenta de quien la registró o modificó; los contadores son solo tuyos.', '0', 'Pendientes', '10', 'Sincronizados', '0', 'Rechazados', '0', 'Conflictos', 'Sincronizar ahora', '3 sin enviar porque la cuenta no está enlazada con el panel web: Juan Pérez debe iniciar sesión en este celular con conexión. Siguen guardados aquí.', 'Todo sincronizado', 'No tienes registros pendientes de enviar.', 'Jornada', 'Proveedores', 'Entregas', 'Sincronizar', 'Perfil']
+PASSED CP-002/007: pérdida de respuesta real, no falso éxito y reintento mismo UUID sin duplicar 20 L

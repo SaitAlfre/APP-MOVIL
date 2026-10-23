@@ -1,0 +1,89 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon JVM discovery is an incubating feature.
+Daemon will be stopped at the end of the build 
+
+> Configure project :androidApp
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonMain
+> Task :shared:prepareComposeResourcesTaskForCommonMain
+> Task :shared:generateResourceAccessorsForCommonMain
+> Task :shared:generateActualResourceCollectorsForAndroidMain
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles
+> Task :shared:copyAndroidMainComposeResourcesToAndroidAssets
+> Task :shared:packageAndroidMainResources
+> Task :shared:generateComposeResClass
+> Task :shared:generateExpectResourceCollectorsForCommonMain
+> Task :shared:parseAndroidMainLocalResources
+> Task :shared:androidJar
+> Task :shared:generateAndroidHostTestAssets UP-TO-DATE
+> Task :shared:generateAndroidMainAssets UP-TO-DATE
+> Task :shared:mergeAndroidMainAssets
+> Task :shared:preAndroidHostTestBuild UP-TO-DATE
+> Task :shared:generateAndroidMainRFile
+> Task :shared:mergeAndroidHostTestAssets
+> Task :shared:writeAndroidMainAarMetadata
+> Task :shared:compileAndroidMainLibraryResources
+> Task :shared:checkAndroidHostTestAarMetadata
+> Task :shared:mapAndroidHostTestSourceSetPaths
+> Task :shared:generateAndroidHostTestResources
+> Task :shared:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidHostTest NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :shared:processAndroidHostTestJavaRes NO-SOURCE
+> Task :shared:processAndroidMainManifest
+> Task :shared:processAndroidHostTestManifest
+> Task :shared:mergeAndroidHostTestResources
+> Task :shared:generateCommonMainEcolectaDatabaseInterface
+> Task :shared:processAndroidHostTestResources
+> Task :shared:packageAndroidHostTestForUnitTest
+> Task :shared:generateAndroidHostTestConfig
+> Task :shared:compileAndroidMain
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/androidMain/kotlin/pe/ecolecta/data/local/DatabaseDriverFactory.android.kt:8:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/androidMain/kotlin/pe/ecolecta/presentation/qr/ExportadorQr.android.kt:20:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/data/local/DatabaseDriverFactory.kt:5:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/acopio/CicloAcopio.kt:35:74 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/acopio/CicloAcopio.kt:42:116 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/acopio/CicloAcopio.kt:43:52 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/acopio/CicloAcopio.kt:46:76 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/acopio/CicloAcopio.kt:47:67 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/domain/calidad/TextoComprobante.kt:14:28 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MutableList<LineaTextoComprobante>'.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/acopiador/home/AcopiadorHomeScreen.kt:372:90 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/acopiador/home/AcopiadorHomeScreen.kt:486:55 'val Icons.Filled.Assignment: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Assignment.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/acopiador/lista/ListaProveedoresScreen.kt:564:111 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/calidad/CalidadVisitasScreen.kt:37:47 'val Icons.Filled.Assignment: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Assignment.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/calidad/CalidadVisitasViewModel.kt:258:69 Unnecessary safe call on a non-null receiver of type 'Sesion'.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/design/Formato.kt:21:58 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/design/Formato.kt:39:58 'val monthNumber: Int' is deprecated. Use the 'month' property instead.
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/commonMain/kotlin/pe/ecolecta/presentation/qr/ExportadorQr.kt:10:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+
+> Task :shared:processAndroidMainJavaRes
+> Task :shared:bundleAndroidMainClassesToRuntimeJar
+> Task :shared:bundleAndroidMainClassesToCompileJar
+
+> Task :shared:compileAndroidHostTest
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/androidHostTest/kotlin/pe/ecolecta/di/GrafoKoinTest.kt:42:46 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/shared/src/androidHostTest/kotlin/pe/ecolecta/di/GrafoKoinTest.kt:43:56 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+
+> Task :shared:testAndroidHostTest
+
+[Incubating] Problems report is available at: file://<HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 22s
+33 actionable tasks: 33 executed

@@ -1,0 +1,134 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon JVM discovery is an incubating feature.
+Daemon will be stopped at the end of the build 
+
+> Configure project :androidApp
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :androidApp:preBuild UP-TO-DATE
+> Task :androidApp:preDebugBuild UP-TO-DATE
+> Task :androidApp:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :androidApp:generateDebugBuildConfig UP-TO-DATE
+> Task :androidApp:generateDebugResources UP-TO-DATE
+> Task :androidApp:packageDebugResources UP-TO-DATE
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :androidApp:processDebugNavigationResources UP-TO-DATE
+> Task :androidApp:parseDebugLocalResources UP-TO-DATE
+> Task :androidApp:generateDebugRFile UP-TO-DATE
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:generateActualResourceCollectorsForAndroidMain UP-TO-DATE
+> Task :shared:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :shared:packageAndroidMainResources UP-TO-DATE
+> Task :shared:parseAndroidMainLocalResources UP-TO-DATE
+> Task :shared:generateAndroidMainRFile UP-TO-DATE
+> Task :shared:generateCommonMainEcolectaDatabaseInterface UP-TO-DATE
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:compileAndroidMain UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :androidApp:javaPreCompileDebug UP-TO-DATE
+> Task :androidApp:generateDebugAssets UP-TO-DATE
+> Task :shared:generateAndroidMainAssets UP-TO-DATE
+> Task :shared:mergeAndroidMainAssets UP-TO-DATE
+> Task :androidApp:mergeDebugAssets UP-TO-DATE
+> Task :androidApp:compressDebugAssets UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :androidApp:desugarDebugFileDependencies UP-TO-DATE
+> Task :shared:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :androidApp:checkDebugAarMetadata UP-TO-DATE
+> Task :androidApp:compileDebugNavigationResources UP-TO-DATE
+> Task :androidApp:mapDebugSourceSetPaths UP-TO-DATE
+> Task :androidApp:mergeDebugResources UP-TO-DATE
+> Task :androidApp:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :androidApp:extractDeepLinksDebug UP-TO-DATE
+> Task :shared:processAndroidMainManifest UP-TO-DATE
+> Task :androidApp:processDebugMainManifest UP-TO-DATE
+> Task :androidApp:processDebugManifest UP-TO-DATE
+> Task :androidApp:processDebugManifestForPackage UP-TO-DATE
+> Task :shared:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :androidApp:processDebugResources UP-TO-DATE
+> Task :shared:processAndroidMainJavaRes UP-TO-DATE
+> Task :androidApp:checkDebugDuplicateClasses UP-TO-DATE
+> Task :androidApp:mergeExtDexDebug UP-TO-DATE
+> Task :shared:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :androidApp:mergeDebugJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :shared:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :androidApp:mergeDebugNativeLibs UP-TO-DATE
+> Task :androidApp:stripDebugDebugSymbols UP-TO-DATE
+> Task :androidApp:validateSigningDebug UP-TO-DATE
+> Task :androidApp:writeDebugAppMetadata UP-TO-DATE
+> Task :androidApp:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :shared:androidJar UP-TO-DATE
+> Task :shared:generateAndroidHostTestAssets UP-TO-DATE
+> Task :shared:preAndroidHostTestBuild UP-TO-DATE
+> Task :shared:mergeAndroidHostTestAssets UP-TO-DATE
+> Task :shared:checkAndroidHostTestAarMetadata UP-TO-DATE
+> Task :shared:mapAndroidHostTestSourceSetPaths UP-TO-DATE
+> Task :shared:generateAndroidHostTestResources UP-TO-DATE
+> Task :shared:mergeAndroidHostTestResources UP-TO-DATE
+> Task :shared:processAndroidHostTestManifest UP-TO-DATE
+> Task :shared:processAndroidHostTestResources UP-TO-DATE
+> Task :shared:packageAndroidHostTestForUnitTest UP-TO-DATE
+> Task :shared:generateAndroidHostTestConfig UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidHostTest NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :shared:compileAndroidHostTest UP-TO-DATE
+> Task :androidApp:mergeLibDexDebug UP-TO-DATE
+> Task :shared:processAndroidHostTestJavaRes NO-SOURCE
+> Task :shared:testAndroidHostTest UP-TO-DATE
+
+> Task :androidApp:compileDebugKotlin
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:11:25 Unresolved reference 'foundation'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:12:25 Unresolved reference 'foundation'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:13:25 Unresolved reference 'foundation'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:14:25 Unresolved reference 'material3'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:15:25 Unresolved reference 'material3'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:16:25 Unresolved reference 'material3'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:30:25 Unresolved reference 'MaterialTheme'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:31:21 Unresolved reference 'Box'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:31:34 Unresolved reference 'fillMaxSize'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:32:25 Unresolved reference 'Column'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:34:33 Unresolved reference 'CircularProgressIndicator'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:35:33 Unresolved reference 'Text'.
+e: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt:37:33 Unresolved reference 'Text'.
+
+> Task :androidApp:compileDebugKotlin FAILED
+
+[Incubating] Problems report is available at: file://<USER_HOME>/Documentos/Ciclo%206/Desarrollo%20de%20aplicaciones%20m%C3%B3viles/APP%20MOVIL/APP-MOVIL/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':androidApp:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 47s
+66 actionable tasks: 2 executed, 64 up-to-date

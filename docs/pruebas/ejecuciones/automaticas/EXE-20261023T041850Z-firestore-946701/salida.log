@@ -1,0 +1,63 @@
+npm notice run test
+npm notice run firebase emulators:exec --only firestore --project demo-no-project "node --test registros-acopio.rules.test.mjs"
+i  emulators: Starting emulators: firestore
+i  emulators: Detected demo project ID "demo-no-project", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  firestore: Cloud Firestore Emulator does not support multiple databases yet.
+⚠  firestore: Did not find a Cloud Firestore rules file specified in a firebase.json config file.
+⚠  firestore: The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration.
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator was started in standard edition.
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  Running script: node --test registros-acopio.rules.test.mjs
+✔ el acopiador vinculado a la zona registra entregas y sin recojo (1158.136438ms)
+✔ reenviar el mismo registro sobrescribe el mismo documento (reintento sin duplicar) (220.869865ms)
+[2026-10-23T04:18:53.800Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f84 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'create' @ L53, false for 'create' @ L72
+[2026-10-23T04:18:53.830Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f85 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'create' @ L53, false for 'create' @ L72
+[2026-10-23T04:18:53.858Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f86 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'create' @ L53, false for 'create' @ L72
+[2026-10-23T04:18:53.884Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f87 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'create' @ L53, false for 'create' @ L72
+[2026-10-23T04:18:53.909Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f88 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'create' @ L53, false for 'create' @ L72
+✔ sin vínculo, con otra zona o suplantando a otro acopiador no se puede escribir (175.720567ms)
+[2026-10-23T04:18:53.971Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f8a error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L53, false for 'create' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.011Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f8b error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L53, false for 'create' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.063Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f8c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L53, false for 'create' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.112Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f8d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L53, false for 'create' @ L72, false for 'update' @ L60, false for 'update' @ L72
+✔ datos inválidos se rechazan (203.095786ms)
+[2026-10-23T04:18:54.252Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f92 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.278Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f93 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.308Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f94 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.340Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f95 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L53:24 for 'create' @ L53, false for 'create' @ L72, evaluation error at L60:24 for 'update' @ L60, false for 'update' @ L72, false for 'update' @ L60, false for 'update' @ L72
+[2026-10-23T04:18:54.360Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1f96 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'delete' @ L68, false for 'delete' @ L72
+✔ corrección, anulación y deshacer: mismo documento, nunca con datos atrasados (246.846157ms)
+✔ el proveedor lee sus propios registros (147.674383ms)
+✔ el proveedor nunca lee registros de otro proveedor ni lista la colección (128.548266ms)
+✔ sin vínculo ni el acopiador pueden leer registros (109.734702ms)
+[2026-10-23T04:18:54.788Z]  @firebase/firestore: Firestore (12.19.0): GrpcConnection RPC 'Write' stream 0x2d8e1fa7 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L72, false for 'update' @ L72
+✔ la colección antigua del GPS ya no es accesible (56.684926ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2631.589146
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  firestore: Stopping Firestore Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

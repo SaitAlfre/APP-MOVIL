@@ -1,0 +1,41 @@
+EXTRACTO AUTÉNTICO DE ANR ANDROID — 2026-10-22
+Original temporal SHA-256: a4d18142d503d4a73a3c65c985d6ba4466395b4343452807e399de0ef5092e76
+Entorno: emulador Android 16, datos nuevos ficticios, APK preview anterior a corrección.
+ANR de proceso: failed to complete startup. No es traza de producción.
+Se conserva únicamente la pila principal pertinente; original completo fuera del paquete.
+
+"main" prio=5 tid=1 Runnable
+  | group="main" sCount=0 ucsCount=0 flags=0 obj=0x73680b18 self=0x70ddf1721010
+  | sysTid=2554 nice=-10 cgrp=top-app sched=0/0 handle=0x70e0b3569088
+  | state=R schedstat=( 8946107489 15671077093 3661 ) utm=851 stm=42 core=0 HZ=100
+  | stack=0x7fff3c37e000-0x7fff3c380000 stackSize=8188KB
+  | held mutexes= "mutator lock"(shared held)
+  at kotlin.UInt.constructor-impl(unavailable:0)
+  at pe.ecolecta.domain.security.Sha256Kt.rotr-qim9Vi0(Sha256.kt:16)
+  at pe.ecolecta.domain.security.Sha256Kt.access$rotr-qim9Vi0(Sha256.kt:1)
+  at pe.ecolecta.domain.security.Sha256.hash(Sha256.kt:57)
+  at pe.ecolecta.domain.security.HmacSha256.hmac(Sha256.kt:105)
+  at pe.ecolecta.domain.security.Pbkdf2.derivar(Sha256.kt:135)
+  at pe.ecolecta.domain.security.Pbkdf2.derivar$default(Sha256.kt:113)
+  at pe.ecolecta.domain.security.Pbkdf2PinHasher.crearHash(PinHasher.kt:17)
+  at pe.ecolecta.data.local.DatabaseSeeder.sembrar(DatabaseSeeder.kt:48)
+  at pe.ecolecta.data.local.DatabaseSeeder.sembrarSiEsNecesario$lambda$0(DatabaseSeeder.kt:27)
+  at pe.ecolecta.data.local.DatabaseSeeder$$ExternalSyntheticLambda3.invoke(D8$$SyntheticClass:0)
+  at app.cash.sqldelight.TransacterImpl.transactionWithWrapper(Transacter.kt:374)
+  at app.cash.sqldelight.TransacterImpl.transaction(Transacter.kt:353)
+  at app.cash.sqldelight.Transacter$DefaultImpls.transaction$default(Transacter.kt:94)
+  at pe.ecolecta.data.local.DatabaseSeeder.sembrarSiEsNecesario(DatabaseSeeder.kt:27)
+  at pe.ecolecta.di.KoinKt.iniciarKoin(Koin.kt:491)
+  at pe.ecolecta.EcolectaApp.onCreate(EcolectaApp.kt:22)
+  at android.app.Instrumentation.callApplicationOnCreate(Instrumentation.java:1381)
+  at android.app.ActivityThread.handleBindApplication(ActivityThread.java:7830)
+  at android.app.ActivityThread.-$$Nest$mhandleBindApplication(unavailable:0)
+  at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2546)
+  at android.os.Handler.dispatchMessage(Handler.java:110)
+  at android.os.Looper.loopOnce(Looper.java:248)
+  at android.os.Looper.loop(Looper.java:338)
+  at android.app.ActivityThread.main(ActivityThread.java:9067)
+  at java.lang.reflect.Method.invoke(Native method)
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+

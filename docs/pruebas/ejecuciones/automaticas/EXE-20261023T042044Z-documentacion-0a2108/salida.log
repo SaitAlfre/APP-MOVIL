@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "scope": "Estructura y evidencia referenciada; no sustituye revisión humana o validación del beneficiario",
+  "counts": {
+    "markdown": 101,
+    "local_links": 1810,
+    "stories": 41,
+    "criteria": 86,
+    "scenarios": 82,
+    "tasks": 91,
+    "RF": 61,
+    "RNF": 17,
+    "commits": 22,
+    "linked_commits": 22,
+    "matrix_rows": 36,
+    "EP": 15
+  },
+  "errors": [],
+  "warnings": [
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6",
+    "EXE-20261023T040434Z-android-ui-7c3474: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T040739Z-android-ui-1a416a: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T041246Z-android-ui-212406: 4 controles no alcanzados por el arnés; sin nombres en el recibo inicial"
+  ],
+  "sources": []
+}

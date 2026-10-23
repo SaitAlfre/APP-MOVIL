@@ -1,0 +1,38 @@
+adb shell wm size 720x2400 exit=0
+adb shell settings put secure show_ime_with_hard_keyboard 0 exit=0
+adb shell am start -W -n pe.ecolecta.preview/pe.ecolecta.MainActivity exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 178 945 exit=0
+adb shell svc wifi disable exit=0
+adb shell svc data disable exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 598 exit=0
+adb shell input text 20 exit=0
+No se envía Back del sistema durante edición
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 1048 exit=0
+adb shell input text CP001_local_ficticio exit=0
+No se envía Back del sistema durante edición
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 1197 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+UI después de guardar: ['Buenos días,', 'Acopiador FAON-MARKAPAJO', 'Jueves, 22 de octubre', '1 pendientes', 'JORNADA ACTIVA', 'Ruta MORO VIEJO-PANCHA', 'Abierta', 'Zona MORO VIEJO-PANCHA • Camión 3 · V3C-789', '20.0', 'L', 'Litros', '1', 'prov.', 'Atendidos', '4', 'prov.', 'Pendientes', '1 entregas pendientes de sincronización', 'ACCIONES RÁPIDAS', 'Registrar entrega', 'Escanear QR', 'Ver resumen', 'Sincronizar', 'Cerrar jornada', 'Últimas entregas', 'Finca El Rosal', '20.0 L · 10:10', 'Pendiente de envío', 'Jornada', 'Proveedores', 'Entregas', 'Sincronizar', 'Perfil']
+adb shell run-as pe.ecolecta.preview ls databases exit=0
+REGISTRO_ANTES {"id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5", "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5", "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161", "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be", "zona_id": "zona-moro-viejo-pancha", "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1", "litros": 20.0, "tachos": 1, "observaciones": "CP001_local_ficticio", "sync_state": "PENDING", "proveedor_codigo": "PRV-MORO-01"}
+adb shell am force-stop pe.ecolecta.preview exit=0
+adb shell am start -W -n pe.ecolecta.preview/pe.ecolecta.MainActivity exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell run-as pe.ecolecta.preview ls databases exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+adb shell input tap 360 2316 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-offline.xml exit=0
+UI reabierta: ['Entregas de hoy', 'Total: 20.0 L', '1 pendientes', '10:10', 'Finca El Rosal', '1 tachos · Mediante acopiador', '20.0 L', 'Pendiente de envío', 'Jornada', 'Proveedores', 'Entregas', '1', 'Sincronizar', 'Perfil']
+PASSED CP-001: mismos UUID/contexto/20 L/PENDING tras cierre y reapertura real sin red

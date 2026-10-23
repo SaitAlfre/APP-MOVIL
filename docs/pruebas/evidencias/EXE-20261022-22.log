@@ -1,0 +1,18 @@
+adb shell svc wifi disable exit=0
+adb shell svc data disable exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-login.xml exit=0
+adb shell input tap 360 743 exit=0
+Entrada de fixture ocultada exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-login.xml exit=0
+adb shell input tap 360 904 exit=0
+Entrada de fixture ocultada exit=0
+adb shell input keyevent 4 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-login.xml exit=0
+adb shell input tap 386 1053 exit=0
+adb shell uiautomator dump /sdcard/eco-ui.xml exit=0
+adb pull /sdcard/eco-ui.xml <AISLADO>/android-login.xml exit=0
+UI tras acceso offline: ['Iniciar jornada', 'Elige tu zona y vehículo de hoy', 'Zona de recolección', 'COLLANA I-YASIN-HUAN', 'FAON-MARKAPAJO', 'MORO VIEJO-PANCHA', 'PLANTA-COLLANA II', 'Vehículo', 'Camión 1', 'Placa V1A-123', 'Camión 2', 'Placa V2B-456', 'Camión 3', 'Placa V3C-789', 'Camión 4', 'Placa V4D-012', 'INICIO', '22 oct. 2026', 'FINAL', '27 oct. 2026']
+PASSED: credencial ficticia local permitió avanzar sin red

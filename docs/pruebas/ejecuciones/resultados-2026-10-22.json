@@ -1,0 +1,4400 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "timezone": "America/Lima",
+  "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+  "branch": "cierre/scrum-kanban-pruebas-20261022",
+  "executor": "Agente técnico autorizado; sin participación del beneficiario ni atribución de reuniones al equipo",
+  "working_tree_test_changes": {
+    "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+    "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+    "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+  },
+  "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+  "environments": {
+    "php": "8.3.6 + SQLite/GD/mbstring/XML, PHPUnit 12.5.35; copia aislada",
+    "node": "24.19.0, npm 12.2.1; instalaciones desde lockfiles",
+    "jvm": "Java 21, Gradle 9.1.0, Android host test en Linux",
+    "firebase": "Emulador Firestore demo-no-project, loopback; reglas raíz cargadas por initializeTestEnvironment",
+    "web": "PHP builtin server 127.0.0.1:8765, DB SQLite ficticia nueva, navegador IAB; temporal"
+  },
+  "final_suites": {
+    "JVM": {
+      "total": 256,
+      "passed": 256,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "lo que llega del panel no pisa un cambio del celular aun sin enviar",
+          "state": "Passed",
+          "seconds": 0.641
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "un analisis de calidad del celular viaja completo al panel",
+          "state": "Passed",
+          "seconds": 0.203
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "una zona creada en el celular llega al panel con la cuenta del admin y no se reenvia",
+          "state": "Passed",
+          "seconds": 0.146
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "el PIN nuevo viaja una sola vez y luego se borra del celular",
+          "state": "Passed",
+          "seconds": 0.164
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "un cambio rechazado no se pierde al descargar la copia del panel",
+          "state": "Passed",
+          "seconds": 0.138
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "una descarga completa no desactiva una zona cuyo cambio esta rechazado",
+          "state": "Passed",
+          "seconds": 0.145
+        },
+        {
+          "class": "pe.ecolecta.data.CambiosPanelWebTest",
+          "name": "un rechazo por el dato queda en error y uno sin red queda pendiente",
+          "state": "Passed",
+          "seconds": 0.138
+        },
+        {
+          "class": "pe.ecolecta.data.DatosPanelWebTest",
+          "name": "una entrega que el celular aun no envio no se pisa con la copia del panel",
+          "state": "Passed",
+          "seconds": 0.154
+        },
+        {
+          "class": "pe.ecolecta.data.DatosPanelWebTest",
+          "name": "una cuenta creada en la web entra con su PIN y queda guardada para entrar sin conexion",
+          "state": "Passed",
+          "seconds": 0.199
+        },
+        {
+          "class": "pe.ecolecta.data.DatosPanelWebTest",
+          "name": "lo que se cambia en la web aparece en el celular sin duplicar",
+          "state": "Passed",
+          "seconds": 0.141
+        },
+        {
+          "class": "pe.ecolecta.data.IntegracionPanelWebTest",
+          "name": "entregas, reintentos, correcciones y anulaciones llegan a la base del panel web",
+          "state": "Passed",
+          "seconds": 1.82
+        },
+        {
+          "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+          "name": "migrar tokens anteriores conserva acceso y persiste refresh al reabrir",
+          "state": "Passed",
+          "seconds": 0.051
+        },
+        {
+          "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+          "name": "migrar una base existente conserva todas sus filas y agrega las tablas nuevas",
+          "state": "Passed",
+          "seconds": 0.406
+        },
+        {
+          "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+          "name": "la cache del proveedor no duplica al recibir dos veces el mismo documento",
+          "state": "Passed",
+          "seconds": 0.019
+        },
+        {
+          "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+          "name": "sin recojo y entregas sobreviven a cerrar y reabrir la app",
+          "state": "Passed",
+          "seconds": 0.054
+        },
+        {
+          "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+          "name": "renueva access vencido y persiste el par para otra instancia del cliente",
+          "state": "Passed",
+          "seconds": 0.478
+        },
+        {
+          "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+          "name": "un 401 renueva una vez y un refresh revocado pide login",
+          "state": "Passed",
+          "seconds": 0.387
+        },
+        {
+          "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+          "name": "sin internet conserva refresh y renueva al recuperar la conexion",
+          "state": "Passed",
+          "seconds": 0.323
+        },
+        {
+          "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+          "name": "envios concurrentes del mismo cliente comparten una sola rotacion",
+          "state": "Passed",
+          "seconds": 0.529
+        },
+        {
+          "class": "pe.ecolecta.di.GrafoKoinTest",
+          "name": "el grafo resuelve la lista de acopio, la sincronizacion y el portal sin el gps",
+          "state": "Passed",
+          "seconds": 0.04
+        },
+        {
+          "class": "pe.ecolecta.domain.InicializadorUnicoTest",
+          "name": "llamadas concurrentes desde seguimiento y Perfil inicializan una sola vez y obtienen el mismo valor",
+          "state": "Passed",
+          "seconds": 0.003
+        },
+        {
+          "class": "pe.ecolecta.domain.InicializadorUnicoTest",
+          "name": "si ya existe el recurso nunca llama a inicializar",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "semanaComienzaJuevesYTerminaMiercolesInclusoCambioDeAno",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "laLiquidacionDelPanelWebReemplazaALaLocalDelMismoPeriodoSinTocarLasDemas",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "rechazaNumerosNoFinitosNegativosExcesoDecimalesYDatosIncompletos",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "inicioUsaLaUltimaLiquidacionPublicadaAunqueSeaDeUnaSemanaYaCerrada",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "unaLiquidacionPendienteDelPanelSeMuestraComoPendienteDePagoNuncaComoPagadaNiAprobada",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "resumenExcluyeAnuladasYFuturasYRespetaMedianocheLima",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.PortalProveedorTest",
+          "name": "noPresentaImportesDeLiquidacionesNoPublicadasNiInventaPrecios",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "sigue leyendo QR antiguos con id",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "genera y lee el mismo codigo de proveedor",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "solo incluye el codigo, con el mismo formato que el panel web",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "tolera espacios alrededor del contenido escaneado",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "retorna null si el prefijo esta pero el valor esta vacio",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.ProveedorQrTest",
+          "name": "retorna null si el contenido no tiene el prefijo de Ecolecta",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.QrEscaneableTest",
+          "name": "el QR guardado como PNG se puede abrir y escanear y devuelve el codigo del proveedor",
+          "state": "Passed",
+          "seconds": 0.082
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "registrar litros actualiza la celda de la fecha correcta con su hora",
+          "state": "Passed",
+          "seconds": 0.004
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "al terminar el dia 6 la lista pasa al ciclo siguiente sin saltar ni repetir dias",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "una celda vacia sigue pendiente y sin recojo exige una marca con motivo",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "el filtro de zona solo muestra proveedores activos asignados a la zona de la jornada",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "el estado de sincronizacion es independiente del estado del recojo",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "el ciclo muestra exactamente las seis fechas vigentes",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "varias entregas del mismo dia conservan su detalle y suman correctamente",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+          "name": "el dia de acopio se decide con la hora de Peru y no con la del telefono",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "despues del cierre de jornada no se marca ni se deshace sin reabrir",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "varias entregas del dia llegan separadas y el proveedor ve el total diario",
+          "state": "Passed",
+          "seconds": 0.006
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "sin conexion conserva el dato local con estado honesto y al reintentar no duplica",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "deshacer sin recojo antes del cierre lo conserva como deshecho y auditado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "sin recojo se rechaza fuera de las reglas",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "sin backend configurado nada se marca como sincronizado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "correcciones y anulaciones quedan auditadas y se reenvian sobre el mismo documento",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "el proveedor recibe la entrega cuando se sincroniza y no antes",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "sin recojo y su anulacion tambien llegan al proveedor",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "una correccion hecha mientras se envia no se da por sincronizada",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "marcar sin recojo guarda el motivo, lo audita y queda pendiente de sincronizar",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "si la respuesta se pierde el reintento sobrescribe el mismo documento",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "un rechazo del servidor queda como error visible y se reintenta",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+          "name": "el proveedor solo recibe y combina sus propios registros",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "la entrega del acopiador se firma con su cuenta y la correccion de admin con la de admin",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "una entrega que quedo en error por falta de enlace pasa a pendiente y se envia al enlazar sin duplicar",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "sin ningun destino configurado no se marca nada como sincronizado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "un rechazo del panel queda como error con el motivo del servidor y no se pierde el dato",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "al iniciar sesion la cuenta se enlaza en segundo plano y envia lo pendiente",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "una cuenta sin sesion con el panel queda pendiente sin contarse como error del servidor",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "sin conexion queda pendiente con el motivo visible y se envia al volver",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "con panel y firestore solo queda sincronizada cuando ambos confirmaron",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "sin recojo no se envia al panel y sin firestore sigue guardado en el celular",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "correccion y anulacion llegan al panel sobre la misma fila con su motivo y sin borrar la auditoria local",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "si el panel la recibe pero firestore no tiene conexion queda pendiente y se reintenta sin duplicar en el panel",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "reintentar no duplica aunque la respuesta del primer envio se haya perdido",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+          "name": "una entrega pendiente llega al panel con sus datos reales y solo entonces queda sincronizada",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "parsea comprobante Lactomat con coma o punto decimal",
+          "state": "Passed",
+          "seconds": 0.003
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "reconoce etiquetas en ingles que usan otros modelos de analizador",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "lee todos los resultados y la hora anterior a la fecha del ticket de referencia",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "reconstruye las filas cuando el OCR separa etiquetas y valores en columnas",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "no confunde el valor de un parametro con un numero de otra columna en la misma linea",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+          "name": "una etiqueta sin valor no roba el numero del siguiente parametro",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "permite abrir jornada en una zona distinta aunque otra zona este ocupada",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "rechaza abrir jornada en una zona que ya tiene otro acopiador con jornada abierta",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "retoma la jornada existente del dia en vez de crear otra",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "al dia siguiente abre una jornada nueva y conserva la del dia anterior",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "crea una jornada nueva y la marca como jornada en curso",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "una jornada cerrada del dia no se retoma como abierta ni se reabre",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+          "name": "permite que el mismo acopiador retome su jornada aunque siga abierta en su zona",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ActualizarProveedorUseCaseTest",
+          "name": "cambiar a un documento de otra ficha se rechaza",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ActualizarProveedorUseCaseTest",
+          "name": "una ficha con documento repetido de datos antiguos se puede editar sin cambiarlo",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "sin ficha nueva ni existente no se crea la cuenta de proveedor",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "usuario repetido no crea la ficha",
+          "state": "Passed",
+          "seconds": 0.026
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "codigo de ficha repetido no deja cuenta a medias",
+          "state": "Passed",
+          "seconds": 0.021
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "ficha existente libre se vincula y la zona es la de la ficha",
+          "state": "Passed",
+          "seconds": 0.024
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "dni de la persona repetido se rechaza",
+          "state": "Passed",
+          "seconds": 0.023
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "documento y codigo mal formados o zona inactiva se rechazan",
+          "state": "Passed",
+          "seconds": 0.045
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "el codigo sugerido sigue al mayor PRV-NNN",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "ficha existente que ya tiene cuenta no se vuelve a entregar",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "documento de ficha repetido se rechaza",
+          "state": "Passed",
+          "seconds": 0.022
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "dos proveedores nuevos tienen cada uno solo su ficha",
+          "state": "Passed",
+          "seconds": 0.052
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+          "name": "proveedor nuevo crea cuenta y ficha propia vinculadas",
+          "state": "Passed",
+          "seconds": 0.022
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AnularEntregaUseCaseTest",
+          "name": "rechaza anular sin motivo",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AnularEntregaUseCaseTest",
+          "name": "anula la entrega sin eliminarla e inserta auditoria",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+          "name": "rechaza autorizar un traslado ya resuelto",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+          "name": "autorizar mueve al proveedor a la zona destino e inserta auditoria",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+          "name": "rechazar exige motivo y no cambia la zona del proveedor",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+          "name": "si falla el cierre en el repositorio la jornada sigue abierta",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+          "name": "cerrar una jornada abierta la marca cerrada y limpia la jornada en curso",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+          "name": "cada cierre efectivo queda auditado una sola vez",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+          "name": "ciclo abrir cerrar e intentar abrir el mismo dia explica el motivo y conserva el cierre",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+          "name": "cerrar dos veces es idempotente y conserva la hora de cierre original",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+          "name": "rechaza corregir sin motivo",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+          "name": "rechaza litros no positivos",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+          "name": "corrige litros e inserta auditoria en la misma operacion",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+          "name": "rechaza codigo duplicado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+          "name": "crea proveedor con valores por defecto",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+          "name": "rechaza dni duplicado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+          "name": "rechaza tachos no positivos",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+          "name": "rechaza si la confirmacion del pin no coincide",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+          "name": "crea usuario cuando los datos son validos",
+          "state": "Passed",
+          "seconds": 0.025
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+          "name": "rechaza pin con formato invalido",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+          "name": "rechaza sin ningun rol asignado",
+          "state": "Passed",
+          "seconds": 0.021
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+          "name": "rechaza username duplicado",
+          "state": "Passed",
+          "seconds": 0.023
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+          "name": "zona con jornada abierta no se desactiva",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+          "name": "zona asignada a personal no se desactiva y dice cuantas cuentas",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+          "name": "zona sin uso se desactiva",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+          "name": "zona con proveedores activos no se desactiva",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+          "name": "vehiculo en jornada abierta no se desactiva pero se puede renombrar",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "un QR generado en otro celular encuentra la misma ficha aunque su id local sea distinto",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "devuelve QrInvalido si el contenido no tiene el prefijo esperado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "resuelve el proveedor sin importar su estado para poder mostrarlo y bloquear despues",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "un QR antiguo con id local se sigue resolviendo en el celular que lo genero",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "resuelve el proveedor cuando el QR es valido y existe",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+          "name": "devuelve ProveedorNoEncontrado si el id no existe en el repositorio local",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "usuario inexistente falla como pin incorrecto sin filtrar informacion",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "assertFailsWith documenta el tipo esperado de excepcion",
+          "state": "Passed",
+          "seconds": 0.044
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "login exitoso con pin correcto registra auditoria y resetea intentos",
+          "state": "Passed",
+          "seconds": 0.045
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "usuario inactivo no puede iniciar sesion",
+          "state": "Passed",
+          "seconds": 0.021
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "pin incorrecto incrementa intentos fallidos",
+          "state": "Passed",
+          "seconds": 0.043
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+          "name": "bloquea la cuenta tras 5 intentos fallidos",
+          "state": "Passed",
+          "seconds": 0.128
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ObtenerPerfilProveedorUseCaseTest",
+          "name": "devuelve null si el usuario no tiene proveedor vinculado",
+          "state": "Passed",
+          "seconds": 0.016
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ObtenerPerfilProveedorUseCaseTest",
+          "name": "devuelve el proveedor vinculado al usuario",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "dentro del plazo reabre la misma jornada conserva entregas y deja auditoria",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "autorizacion con pin incorrecto o sin rol admin se rechaza",
+          "state": "Passed",
+          "seconds": 0.086
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "si no se puede auditar la reapertura se revierte",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "fuera de plazo reabre con usuario y pin de un administrador local y lo audita",
+          "state": "Passed",
+          "seconds": 0.042
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "sin motivo suficiente no reabre",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "no reabre jornadas de otro dia ni de otro usuario",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "fuera de plazo exige autorizacion de administrador",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+          "name": "no reabre si otro acopiador ocupo la zona",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "jornada cerrada no se retoma",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "jornada abierta de otro usuario no se retoma",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "si hay varias abiertas del mismo usuario se retoma la mas antigua primero",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "sin ninguna jornada no hay nada que retomar",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "jornada abierta hoy se retoma",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+          "name": "jornada abierta de un dia anterior tambien se retoma - cambio de dia",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+          "name": "bloquea si los litros superan la capacidad fisica del tacho",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+          "name": "bloquea si el proveedor esta suspendido",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+          "name": "bloquea si el proveedor esta retirado",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+          "name": "marca advertencia cuando la desviacion supera 40 porciento del promedio",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+          "name": "guarda sin advertencia cuando no hay historial previo",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+          "name": "si un proveedor del lote no esta activo no se guarda ninguna entrega del lote",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+          "name": "si un item excede la capacidad no se guarda ninguna entrega del lote",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+          "name": "rechaza un lote vacio",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+          "name": "guarda todas las entregas del lote compartiendo el mismo lote_id",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "anular es terminal y deja la entrega pendiente de envio",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "la anulacion guarda en auditoria el motivo y los valores anteriores",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "corregir sin cambiar litros ni tachos no genera auditoria",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "entrega de jornada cerrada sin liquidacion se corrige y vuelve a quedar pendiente de envio",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "la semana usada en la prueba es la del jueves 10 de septiembre",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "liquidacion aprobada bloquea corregir y anular sin tocar la entrega",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "la liquidacion de otra semana no bloquea",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "una liquidacion anulada no bloquea",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "una entrega en conflicto se resuelve antes de corregirla o anularla",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "entrega de jornada abierta en semana en curso se corrige",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+          "name": "liquidacion pagada tambien bloquea y lo indica",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "una cuenta nueva tiene un solo rol",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "un acopiador con jornada abierta no se desactiva",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "una cuenta anterior con varios roles no puede cambiar a otra combinacion",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "una ficha vinculada a otra cuenta no se reutiliza",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "siempre queda un administrador activo",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "nadie puede desactivarse a si mismo",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "tecnico de calidad necesita una zona activa",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "proveedor no se combina con roles del personal",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+          "name": "una cuenta anterior con varios roles se conserva si no se cambian",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+          "name": "rechaza resolver sin motivo",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+          "name": "elegir el valor local deja la entrega pendiente para volver a sincronizar",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+          "name": "elegir el valor del servidor marca la entrega como sincronizada",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+          "name": "rechaza resolver una entrega que no esta en conflicto",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.ClaveSesionTest",
+          "name": "sin sesion produce la clave reservada",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.ClaveSesionTest",
+          "name": "una sesion produce el id del usuario",
+          "state": "Passed",
+          "seconds": 0.021
+        },
+        {
+          "class": "pe.ecolecta.presentation.ClaveSesionTest",
+          "name": "logout y login del mismo usuario nunca repiten la clave consecutiva",
+          "state": "Passed",
+          "seconds": 0.022
+        },
+        {
+          "class": "pe.ecolecta.presentation.ClaveSesionTest",
+          "name": "cambiar a un usuario distinto sin pasar por logout tambien cambia la clave",
+          "state": "Passed",
+          "seconds": 0.042
+        },
+        {
+          "class": "pe.ecolecta.presentation.NavegacionProveedorTest",
+          "name": "el perfil del proveedor abre mi ciclo y no el mapa gps antiguo",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "recibeLoSincronizadoYNuncaDatosDeOtroProveedor",
+          "state": "Passed",
+          "seconds": 0.011
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "sinConexionMuestraEstadoHonestoYLoUltimoRecibido",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "elCicloDelProveedorTieneLasMismasSeisFechasQueElAcopiador",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "errorDeDiscoNoAnunciaExitoYPermiteReintentar",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "trasladoValidaZonaYNoCambiaAsignacion",
+          "state": "Passed",
+          "seconds": 0.005
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "rechazaEntregaAjenaYEvitaDuplicadosSinModificarLitros",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "unaEntregaLocalPendienteNoSePresentaComoConfirmada",
+          "state": "Passed",
+          "seconds": 0.016
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "inicioYMisPagosMuestranLaMismaLiquidacionPublicadaDelPanel",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "noMuestraSolicitudesDeOtroProveedorNiGuardaTrasCerrarSesion",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "usuarioSinProveedorTerminaCargaConError",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "sinSesionConElPanelNoInventaLiquidacionesYLoDice",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "noMuestraLiquidacionesDeOtroProveedorAunqueEstenEnElCelular",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "sinConexionConservaLasUltimasRecibidasConAvisoHonesto",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+          "name": "rolAjenoNoPuedeCargarNiGuardar",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.ChipSyncAcopiadorTest",
+          "name": "las etiquetas de sincronizacion son comprensibles para el acopiador",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+          "name": "cerrar sesion y volver a entrar no recupera la jornada cerrada como activa",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+          "name": "al dia siguiente la misma sesion abre una jornada nueva y navega una vez",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+          "name": "tras abrir y cerrar volver a la seleccion no reutiliza el exito anterior",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.EstadoServidorPerfilTest",
+          "name": "el estado del servidor refleja la realidad del celular",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "desde el resumen terminado se reabre la misma jornada dentro del plazo",
+          "state": "Passed",
+          "seconds": 0.005
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "el aviso de cerrar sesion explica jornada abierta y pendientes",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "sin jornada del dia reabrir la app va a la seleccion y una nueva seleccion no navega sola",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "una jornada abierta olvidada de otro dia tambien se reanuda",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "sin zonas activas reabrir la app lleva a la seleccion que explica el motivo y permite salir",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "con jornada abierta reabrir la app la reanuda y va al inicio con sus entregas pendientes",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "con la jornada de hoy cerrada reabrir la app muestra el resumen terminado y no la seleccion",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "tras reabrir la app con la jornada cerrada un intento de abrir no genera navegacion falsa",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "cerrar sesion con la jornada terminada conserva la entrega pendiente",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "las zonas cargan aunque la consulta de zona asignada no responda",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "zona asignada desactivada se avisa y se puede elegir otra activa",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+          "name": "la zona asignada se preselecciona pero no pisa una eleccion manual",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.SincronizacionUiStateTest",
+          "name": "cola vacia sin cuenta enlazada no anuncia exito",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.acopiador.SincronizacionUiStateTest",
+          "name": "solo anuncia completado con enlace y sin operaciones pendientes",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+          "name": "crearYEditarResponsableConservaCuentaVinculada",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+          "name": "filtrosSeCombinanYExcluyenEjemplos",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+          "name": "usaZonaHistoricaAunqueProveedorCambieDeZona",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+          "name": "sin enlace del acopiador se dice quien debe iniciar sesion y no se ofrece un reintento inutil",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+          "name": "con la cuenta enlazada se puede reintentar y un rechazo explica que corregir",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+          "name": "una correccion de admin la firma su propia cuenta",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+          "name": "sin panel configurado lo dice y una entrega ya sincronizada no muestra nada",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "sin coincidencias explica que filtros estan aplicados",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "zona y sin cuenta se combinan",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "estado y sin cuenta se combinan",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "busqueda y estado se combinan",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "al abrir se ven todos los estados, incluidos suspendidos y retirados",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+          "name": "una ficha que recibe cuenta deja de contar como sin cuenta",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+          "name": "una anulada solo aparece en el filtro de anuladas",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+          "name": "etiquetas pedidas para los estados de sincronizacion",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+          "name": "la auditoria dice quien, sobre que registro y los valores",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+          "name": "ningun estado se muestra con su nombre interno en ingles",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "sinValoresNoSePuedeGuardarPeroFechaYHoraVienenPorDefecto",
+          "state": "Passed",
+          "seconds": 0.007
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "cambiarZonaMuestraSoloSusProveedoresYAbreElFormulario",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "escaneoParcialConservaLosCamposQueNoPudoLeer",
+          "state": "Passed",
+          "seconds": 0.003
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "escaneoSinDatosPreviosSeAplicaDeInmediatoYDejaVaciosLosNoReconocidos",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "fotoConSoloElEncabezadoNoSeAplicaComoUnAnalisis",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "cambiarProveedorConDatosCapturadosPideConfirmacion",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "ticketDeReferenciaCompletaElFormularioYSeGuardaSoloAlConfirmar",
+          "state": "Passed",
+          "seconds": 0.004
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "filasAntiguasSinMetadataSiguenSiendoLegibles",
+          "state": "Passed",
+          "seconds": 0.0
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "valorFueraDeReferenciaSeGuardaYQuedaObservadoORechazado",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "escanearConDatosPreviosPideConfirmacionAntesDeReemplazar",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "errorDeGuardadoConservaBorradorYPermiteReintentar",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "formatoInvalidoBloqueaElGuardadoPeroFueraDeRangoNo",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "dobleToqueNoDuplicaElRegistro",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "puntoDeCongelacionEnHNoSeConfundeConCYQuedaObservado",
+          "state": "Passed",
+          "seconds": 0.002
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+          "name": "guardaConSalesYQuedaVinculadoAProveedorZonaYTecnico",
+          "state": "Passed",
+          "seconds": 0.001
+        },
+        {
+          "class": "pe.ecolecta.presentation.calidad.LoginCalidadFaonTest",
+          "name": "calidad_faon con PIN 8642 inicia sesion y carga el panel de Tecnico de calidad",
+          "state": "Passed",
+          "seconds": 0.047
+        }
+      ],
+      "execution": "EXE-20261022-23"
+    },
+    "PHP": {
+      "total": 289,
+      "passed": 289,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "class": "Tests.Unit.ExampleTest",
+          "name": "test_that_true_is_true",
+          "state": "Passed",
+          "seconds": 0.000353
+        },
+        {
+          "class": "Tests.Unit.ProveedorQrTest",
+          "name": "test_codifica_el_codigo_con_el_mismo_formato_que_la_app",
+          "state": "Passed",
+          "seconds": 0.000256
+        },
+        {
+          "class": "Tests.Unit.ProveedorQrTest",
+          "name": "test_sigue_leyendo_el_formato_anterior_por_id",
+          "state": "Passed",
+          "seconds": 0.000153
+        },
+        {
+          "class": "Tests.Unit.ProveedorQrTest",
+          "name": "test_rechaza_contenido_ajeno_o_vacio",
+          "state": "Passed",
+          "seconds": 0.000112
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_litros_hoy_compara_contra_ayer_y_no_contra_todo_el_periodo",
+          "state": "Passed",
+          "seconds": 0.241481
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_sin_entregas_ayer_no_se_calcula_variacion",
+          "state": "Passed",
+          "seconds": 0.043338
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_proveedores_atendidos_cuenta_distintos_y_los_compara_con_los_activos",
+          "state": "Passed",
+          "seconds": 0.043613
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_las_jornadas_abiertas_se_listan_con_su_acopiador_zona_y_litros",
+          "state": "Passed",
+          "seconds": 0.033185
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_la_distribucion_de_calidad_se_limita_al_periodo_filtrado",
+          "state": "Passed",
+          "seconds": 0.037574
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_las_entregas_sin_calidad_alimentan_la_cola_de_controles_pendientes",
+          "state": "Passed",
+          "seconds": 0.030567
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_las_ultimas_entregas_se_limitan_a_cinco_filas",
+          "state": "Passed",
+          "seconds": 0.062698
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_los_accesos_rapidos_dependen_de_los_permisos_del_rol",
+          "state": "Passed",
+          "seconds": 0.042932
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardPanelTest",
+          "name": "test_el_filtro_de_zona_no_afecta_los_indicadores_globales_de_produccion",
+          "state": "Passed",
+          "seconds": 0.035445
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardTest",
+          "name": "test_el_dashboard_calcula_los_indicadores_principales",
+          "state": "Passed",
+          "seconds": 0.044307
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardTest",
+          "name": "test_el_dashboard_no_falla_con_denominadores_en_cero_ni_sin_datos",
+          "state": "Passed",
+          "seconds": 0.024275
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardTest",
+          "name": "test_una_merma_sobre_el_umbral_configurado_aparece_como_alerta",
+          "state": "Passed",
+          "seconds": 0.031444
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardTest",
+          "name": "test_un_proveedor_no_puede_acceder_al_dashboard",
+          "state": "Passed",
+          "seconds": 0.008943
+        },
+        {
+          "class": "Tests.Feature.AdminDashboardTest",
+          "name": "test_iniciar_sesion_redirige_al_dashboard",
+          "state": "Passed",
+          "seconds": 0.03113
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_busca_por_proveedor_y_por_acopiador",
+          "state": "Passed",
+          "seconds": 0.032186
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_filtra_por_fecha_zona_y_estado",
+          "state": "Passed",
+          "seconds": 0.052578
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_el_total_del_filtro_excluye_las_entregas_anuladas",
+          "state": "Passed",
+          "seconds": 0.028157
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_los_totales_del_encabezado_respetan_el_filtro_de_fecha",
+          "state": "Passed",
+          "seconds": 0.023249
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_un_filtro_invalido_se_rechaza",
+          "state": "Passed",
+          "seconds": 0.010364
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_sin_jornadas_abiertas_el_registro_por_lote_avisa_en_vez_de_ofrecer_el_formulario",
+          "state": "Passed",
+          "seconds": 0.015022
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_el_registro_por_lote_rechaza_proveedores_repetidos_en_la_misma_carga",
+          "state": "Passed",
+          "seconds": 0.014203
+        },
+        {
+          "class": "Tests.Feature.AdminEntregasPanelTest",
+          "name": "test_un_rol_de_consulta_ve_el_listado_pero_no_puede_registrar_lotes",
+          "state": "Passed",
+          "seconds": 0.013763
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_todos_los_modulos_del_figma_tienen_rutas_reales",
+          "state": "Passed",
+          "seconds": 0.0581
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_venta_completada_descuenta_stock_y_registra_movimiento",
+          "state": "Passed",
+          "seconds": 0.012287
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_ajuste_no_permite_inventario_negativo",
+          "state": "Passed",
+          "seconds": 0.013764
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_control_rechazado_genera_propuesta_de_sancion",
+          "state": "Passed",
+          "seconds": 0.020187
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_registro_por_lote_crea_entregas_reales",
+          "state": "Passed",
+          "seconds": 0.02166
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_sancion_aprobada_se_descuenta_una_sola_vez_de_la_liquidacion",
+          "state": "Passed",
+          "seconds": 0.014406
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_comunicado_publicado_y_configuracion_se_persisten",
+          "state": "Passed",
+          "seconds": 0.011859
+        },
+        {
+          "class": "Tests.Feature.AdminFigmaModulesTest",
+          "name": "test_importacion_csv_valida_y_confirma_proveedores",
+          "state": "Passed",
+          "seconds": 0.021809
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_un_admin_puede_abrir_una_jornada_en_nombre_de_un_acopiador",
+          "state": "Passed",
+          "seconds": 0.009834
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_no_se_puede_abrir_una_jornada_en_una_zona_ya_ocupada_por_otro_acopiador",
+          "state": "Passed",
+          "seconds": 0.01114
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_un_admin_puede_registrar_una_entrega_en_nombre_del_acopiador_de_la_jornada",
+          "state": "Passed",
+          "seconds": 0.0108
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_no_se_puede_registrar_una_entrega_que_supera_la_capacidad_del_proveedor",
+          "state": "Passed",
+          "seconds": 0.010087
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_registrar_una_entrega_duplicada_del_mismo_proveedor_muestra_opcion_de_sumar",
+          "state": "Passed",
+          "seconds": 0.01185
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_un_admin_puede_anular_una_entrega_con_motivo",
+          "state": "Passed",
+          "seconds": 0.011959
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_un_admin_puede_cerrar_una_jornada",
+          "state": "Passed",
+          "seconds": 0.01014
+        },
+        {
+          "class": "Tests.Feature.AdminJornadaEntregaTest",
+          "name": "test_un_acopiador_no_puede_acceder_a_la_gestion_de_jornadas_del_admin",
+          "state": "Passed",
+          "seconds": 0.007534
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_el_detalle_agrupa_las_entregas_por_dia_dentro_del_periodo",
+          "state": "Passed",
+          "seconds": 0.025619
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_el_detalle_excluye_entregas_anuladas_y_las_de_otros_proveedores",
+          "state": "Passed",
+          "seconds": 0.024019
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_el_detalle_ignora_las_entregas_fuera_del_periodo_liquidado",
+          "state": "Passed",
+          "seconds": 0.021608
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_avisa_cuando_el_detalle_actual_no_coincide_con_los_litros_congelados",
+          "state": "Passed",
+          "seconds": 0.017695
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_una_liquidacion_sin_entregas_en_el_periodo_no_rompe_la_ficha",
+          "state": "Passed",
+          "seconds": 0.014701
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_una_liquidacion_pendiente_ofrece_marcarla_pagada_y_una_pagada_no",
+          "state": "Passed",
+          "seconds": 0.019099
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_una_liquidacion_inexistente_devuelve_404",
+          "state": "Passed",
+          "seconds": 0.009898
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_la_ruta_de_alta_no_se_confunde_con_la_ficha_de_una_liquidacion",
+          "state": "Passed",
+          "seconds": 0.013377
+        },
+        {
+          "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+          "name": "test_un_rol_de_consulta_ve_la_ficha_pero_no_puede_marcarla_pagada",
+          "state": "Passed",
+          "seconds": 0.015723
+        },
+        {
+          "class": "Tests.Feature.AdminModulesTest",
+          "name": "test_el_listado_de_acopiadores_muestra_las_jornadas_con_sus_totales",
+          "state": "Passed",
+          "seconds": 0.021149
+        },
+        {
+          "class": "Tests.Feature.AdminModulesTest",
+          "name": "test_el_listado_de_zonas_y_vehiculos_muestra_los_registros_existentes",
+          "state": "Passed",
+          "seconds": 0.018354
+        },
+        {
+          "class": "Tests.Feature.AdminModulesTest",
+          "name": "test_el_listado_de_auditoria_muestra_los_registros_existentes",
+          "state": "Passed",
+          "seconds": 0.016856
+        },
+        {
+          "class": "Tests.Feature.AdminModulesTest",
+          "name": "test_las_secciones_de_calidad_liquidaciones_produccion_y_reportes_responden_correctamente",
+          "state": "Passed",
+          "seconds": 0.030853
+        },
+        {
+          "class": "Tests.Feature.AdminModulesTest",
+          "name": "test_un_acopiador_no_puede_ver_los_modulos_de_administracion",
+          "state": "Passed",
+          "seconds": 0.010242
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_el_admin_ve_todos_los_grupos_del_menu",
+          "state": "Passed",
+          "seconds": 0.02483
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_el_rol_produccion_ve_planta_pero_no_administracion",
+          "state": "Passed",
+          "seconds": 0.02437
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_el_rol_liquidaciones_ve_finanzas_pero_no_inventario",
+          "state": "Passed",
+          "seconds": 0.025853
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_el_rol_consulta_ve_casi_todo_el_menu_pero_no_gestiona",
+          "state": "Passed",
+          "seconds": 0.014086
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_cada_rol_solo_puede_gestionar_su_propio_modulo",
+          "state": "Passed",
+          "seconds": 0.029783
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_un_usuario_con_dos_roles_suma_los_permisos_de_ambos",
+          "state": "Passed",
+          "seconds": 0.015495
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_la_campana_de_comunicados_cuenta_solo_los_publicados_de_la_ultima_semana",
+          "state": "Passed",
+          "seconds": 0.026856
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_sin_comunicados_recientes_la_campana_no_muestra_contador",
+          "state": "Passed",
+          "seconds": 0.024497
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_el_panel_ofrece_saltar_al_contenido_principal",
+          "state": "Passed",
+          "seconds": 0.02769
+        },
+        {
+          "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+          "name": "test_una_cuenta_desactivada_pierde_el_acceso_aunque_tenga_sesion",
+          "state": "Passed",
+          "seconds": 0.02592
+        },
+        {
+          "class": "Tests.Feature.AdminPantallasTest",
+          "name": "test_todas_las_pantallas_de_solo_lectura_responden_con_datos",
+          "state": "Passed",
+          "seconds": 0.279783
+        },
+        {
+          "class": "Tests.Feature.AdminPantallasTest",
+          "name": "test_la_vista_previa_de_una_importacion_se_muestra_con_sus_errores",
+          "state": "Passed",
+          "seconds": 0.016261
+        },
+        {
+          "class": "Tests.Feature.AdminPantallasTest",
+          "name": "test_la_navegacion_del_panel_solo_muestra_los_modulos_permitidos",
+          "state": "Passed",
+          "seconds": 0.014501
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_inventario_marca_stock_bajo_por_debajo_del_umbral",
+          "state": "Passed",
+          "seconds": 0.015657
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_los_movimientos_viven_en_su_pestana_y_muestran_el_signo",
+          "state": "Passed",
+          "seconds": 0.022794
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_sin_productos_el_inventario_remite_a_produccion",
+          "state": "Passed",
+          "seconds": 0.014268
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_el_total_de_ventas_de_hoy_solo_cuenta_las_completadas",
+          "state": "Passed",
+          "seconds": 0.0216
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_los_clientes_viven_en_su_propia_pestana",
+          "state": "Passed",
+          "seconds": 0.022262
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_la_pestana_de_reglas_de_calidad_publica_las_referencias_de_la_app",
+          "state": "Passed",
+          "seconds": 0.018431
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_un_valor_fuera_de_rango_se_resalta_en_vez_de_ocultarse",
+          "state": "Passed",
+          "seconds": 0.023139
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_la_navegacion_de_produccion_marca_la_subpagina_activa",
+          "state": "Passed",
+          "seconds": 0.027132
+        },
+        {
+          "class": "Tests.Feature.AdminPestanasModulosTest",
+          "name": "test_las_pestanas_conservan_el_filtro_de_calidad_al_cambiar",
+          "state": "Passed",
+          "seconds": 0.012662
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_el_acopio_del_dia_agrupa_litros_aprobados_por_vehiculo_real_y_excluye_rechazados",
+          "state": "Passed",
+          "seconds": 0.025982
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_una_receta_requiere_litros_por_unidad_mayor_a_cero",
+          "state": "Passed",
+          "seconds": 0.009256
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_la_recepcion_descuenta_merma_y_el_lote_de_produccion_usa_el_saldo",
+          "state": "Passed",
+          "seconds": 0.043833
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_no_se_puede_asignar_un_lote_con_mas_litros_que_el_saldo_disponible",
+          "state": "Passed",
+          "seconds": 0.02589
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_se_pueden_crear_varios_lotes_de_productos_distintos_el_mismo_dia_repartiendo_el_saldo",
+          "state": "Passed",
+          "seconds": 0.020255
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_cancelar_un_lote_libera_su_reserva_de_litros",
+          "state": "Passed",
+          "seconds": 0.018781
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_transiciones_de_estado_invalidas_se_rechazan",
+          "state": "Passed",
+          "seconds": 0.026339
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_finalizar_no_permite_que_usado_mas_merma_de_proceso_superen_lo_asignado",
+          "state": "Passed",
+          "seconds": 0.01836
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_calcula_las_unidades_estimadas_segun_los_litros_asignados",
+          "state": "Passed",
+          "seconds": 0.020962
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_no_se_puede_producir_sin_acopios_pendientes",
+          "state": "Passed",
+          "seconds": 0.012108
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_el_historial_muestra_los_kpis_y_el_lote_registrado",
+          "state": "Passed",
+          "seconds": 0.025189
+        },
+        {
+          "class": "Tests.Feature.AdminProduccionModuleTest",
+          "name": "test_un_proveedor_no_puede_acceder_al_modulo_de_produccion",
+          "state": "Passed",
+          "seconds": 0.010501
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_el_listado_filtra_por_nombre_codigo_o_dni",
+          "state": "Passed",
+          "seconds": 0.027044
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_el_listado_filtra_por_zona_y_por_estado",
+          "state": "Passed",
+          "seconds": 0.029595
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_una_busqueda_sin_coincidencias_muestra_el_estado_vacio_y_no_el_inicial",
+          "state": "Passed",
+          "seconds": 0.014178
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_un_filtro_de_zona_inexistente_se_rechaza_en_vez_de_ignorarse",
+          "state": "Passed",
+          "seconds": 0.008769
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_el_listado_muestra_los_litros_de_la_semana_y_la_ultima_entrega",
+          "state": "Passed",
+          "seconds": 0.02157
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_la_ficha_muestra_los_datos_generales_y_la_ultima_entrega",
+          "state": "Passed",
+          "seconds": 0.020043
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_la_ficha_separa_entregas_calidad_liquidaciones_y_auditoria_en_pestanas",
+          "state": "Passed",
+          "seconds": 0.035025
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_la_auditoria_de_la_ficha_solo_trae_los_movimientos_de_ese_proveedor",
+          "state": "Passed",
+          "seconds": 0.014234
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_una_pestana_desconocida_cae_en_el_resumen_en_vez_de_fallar",
+          "state": "Passed",
+          "seconds": 0.014015
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_la_ficha_de_un_proveedor_inexistente_devuelve_404",
+          "state": "Passed",
+          "seconds": 0.008846
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_la_ruta_de_alta_no_se_confunde_con_la_ficha_de_un_proveedor",
+          "state": "Passed",
+          "seconds": 0.012235
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_un_rol_de_solo_consulta_ve_la_ficha_pero_no_las_acciones_de_gestion",
+          "state": "Passed",
+          "seconds": 0.016267
+        },
+        {
+          "class": "Tests.Feature.AdminProveedoresPanelTest",
+          "name": "test_el_resumen_semanal_ignora_entregas_anuladas",
+          "state": "Passed",
+          "seconds": 0.019936
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_registrar_llegada_conserva_lo_recolectado_y_lo_medido_y_calcula_la_diferencia",
+          "state": "Passed",
+          "seconds": 0.012812
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_registrar_llegada_no_requiere_que_calidad_haya_evaluado",
+          "state": "Passed",
+          "seconds": 0.012311
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_dos_viajes_del_mismo_camion_el_mismo_dia_generan_recepciones_independientes",
+          "state": "Passed",
+          "seconds": 0.01747
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_registrar_llegada_de_nuevo_para_la_misma_jornada_corrige_en_vez_de_duplicar",
+          "state": "Passed",
+          "seconds": 0.014767
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_rechaza_litros_medidos_negativos_y_exige_motivo_cuando_hay_diferencia",
+          "state": "Passed",
+          "seconds": 0.019317
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_bloquea_registrar_o_corregir_la_recepcion_si_el_dia_ya_fue_procesado",
+          "state": "Passed",
+          "seconds": 0.013443
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_el_listado_filtra_por_estado_pendiente_y_registrada",
+          "state": "Passed",
+          "seconds": 0.029028
+        },
+        {
+          "class": "Tests.Feature.AdminRecepcionModuleTest",
+          "name": "test_un_proveedor_no_puede_acceder_a_recepcion",
+          "state": "Passed",
+          "seconds": 0.012719
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_un_admin_puede_crear_un_usuario_con_varios_roles",
+          "state": "Passed",
+          "seconds": 0.01113
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_no_se_puede_crear_un_usuario_con_username_duplicado",
+          "state": "Passed",
+          "seconds": 0.009445
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_un_admin_puede_editar_datos_y_roles_de_un_usuario",
+          "state": "Passed",
+          "seconds": 0.010073
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_el_listado_filtra_por_busqueda_rol_y_estado",
+          "state": "Passed",
+          "seconds": 0.02781
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_desactivar_un_usuario_le_quita_el_acceso_de_inmediato_aunque_tenga_sesion_abierta",
+          "state": "Passed",
+          "seconds": 0.029416
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_no_se_puede_desactivar_al_unico_administrador",
+          "state": "Passed",
+          "seconds": 0.007996
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_se_puede_desactivar_un_admin_si_queda_otro_admin_activo",
+          "state": "Passed",
+          "seconds": 0.009377
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_un_admin_puede_bloquear_y_desbloquear_con_motivo",
+          "state": "Passed",
+          "seconds": 0.013908
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_bloquear_exige_un_motivo",
+          "state": "Passed",
+          "seconds": 0.011623
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_no_se_puede_bloquear_al_unico_administrador",
+          "state": "Passed",
+          "seconds": 0.008178
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_restablecer_credenciales_cambia_el_pin_e_invalida_sesiones",
+          "state": "Passed",
+          "seconds": 0.216747
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_restablecer_credenciales_rechaza_un_pin_con_formato_invalido",
+          "state": "Passed",
+          "seconds": 0.009889
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_los_cambios_de_roles_bloqueo_y_restablecimiento_quedan_auditados",
+          "state": "Passed",
+          "seconds": 0.014302
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_un_rol_de_consulta_puede_ver_pero_no_gestionar",
+          "state": "Passed",
+          "seconds": 0.051121
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_el_rol_recepcion_gestiona_solo_su_modulo",
+          "state": "Passed",
+          "seconds": 0.019476
+        },
+        {
+          "class": "Tests.Feature.AdminUsuariosModuleTest",
+          "name": "test_los_roles_nuevos_pueden_iniciar_sesion_en_la_web",
+          "state": "Passed",
+          "seconds": 0.023908
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_cada_pestana_muestra_su_catalogo_y_rutas_redirige_al_mapa",
+          "state": "Passed",
+          "seconds": 0.026053
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_una_pestana_desconocida_cae_en_zonas",
+          "state": "Passed",
+          "seconds": 0.012618
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_el_listado_de_zonas_cuenta_proveedores_activos_y_rutas",
+          "state": "Passed",
+          "seconds": 0.014575
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_un_admin_puede_crear_una_ruta",
+          "state": "Passed",
+          "seconds": 0.009662
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_no_se_puede_repetir_el_codigo_de_una_ruta",
+          "state": "Passed",
+          "seconds": 0.012578
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_una_ruta_necesita_una_zona_existente",
+          "state": "Passed",
+          "seconds": 0.008997
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_un_admin_puede_editar_y_desactivar_una_ruta",
+          "state": "Passed",
+          "seconds": 0.010166
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_editar_una_ruta_puede_conservar_su_propio_codigo",
+          "state": "Passed",
+          "seconds": 0.008648
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_un_rol_de_consulta_ve_los_catalogos_pero_no_puede_crear_rutas",
+          "state": "Passed",
+          "seconds": 0.013358
+        },
+        {
+          "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+          "name": "test_los_catalogos_vacios_explican_para_que_sirve_cada_uno",
+          "state": "Passed",
+          "seconds": 0.020524
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_crear_una_zona",
+          "state": "Passed",
+          "seconds": 0.008319
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_no_se_puede_crear_una_zona_con_nombre_vacio",
+          "state": "Passed",
+          "seconds": 0.007653
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_actualizar_y_desactivar_una_zona",
+          "state": "Passed",
+          "seconds": 0.009918
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_crear_un_vehiculo_y_la_placa_se_normaliza_en_mayusculas",
+          "state": "Passed",
+          "seconds": 0.008129
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_actualizar_y_desactivar_un_vehiculo",
+          "state": "Passed",
+          "seconds": 0.009631
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_registra_un_analisis_lactoscan_y_se_califica_como_en_la_app",
+          "state": "Passed",
+          "seconds": 0.0153
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_parametro_fuera_de_referencia_observa_y_el_agua_anadida_rechaza",
+          "state": "Passed",
+          "seconds": 0.015184
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_analisis_sin_resultados_o_con_valores_invalidos_no_se_guarda",
+          "state": "Passed",
+          "seconds": 0.010865
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_el_analisis_califica_las_entregas_del_proveedor_de_ese_dia_y_las_que_lleguen_despues",
+          "state": "Passed",
+          "seconds": 0.020402
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_el_listado_de_calidad_muestra_los_conteos_y_la_tasa_de_aprobacion",
+          "state": "Passed",
+          "seconds": 0.030016
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_generar_una_liquidacion_calculada_automaticamente",
+          "state": "Passed",
+          "seconds": 0.015757
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_no_se_puede_generar_una_liquidacion_sin_entregas_en_el_periodo",
+          "state": "Passed",
+          "seconds": 0.008731
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_admin_puede_marcar_una_liquidacion_como_pagada",
+          "state": "Passed",
+          "seconds": 0.014459
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_el_reporte_general_muestra_los_totales_de_los_ultimos_7_dias",
+          "state": "Passed",
+          "seconds": 0.02218
+        },
+        {
+          "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+          "name": "test_un_proveedor_no_puede_acceder_a_los_modulos_de_administracion",
+          "state": "Passed",
+          "seconds": 0.010305
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_filtra_por_responsable_entidad_accion_y_periodo_con_paginacion",
+          "state": "Passed",
+          "seconds": 0.026832
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_detalle_escapa_html_y_oculta_secretos_incluso_en_registros_antiguos",
+          "state": "Passed",
+          "seconds": 0.011483
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_auditoria_admite_cambios_largos_y_sanea_datos_antes_de_guardarlos",
+          "state": "Passed",
+          "seconds": 0.010207
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_detalle_exige_permiso_y_los_filtros_se_validan",
+          "state": "Passed",
+          "seconds": 0.011626
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_pin_no_se_conserva_en_errores_de_validacion_ni_duplicados",
+          "state": "Passed",
+          "seconds": 0.008745
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_login_y_logout_auditados_sin_credenciales_y_limite_para_cuentas_inexistentes",
+          "state": "Passed",
+          "seconds": 0.220594
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_restablecer_revoca_sesion_anterior_aunque_no_use_tabla_sessions",
+          "state": "Passed",
+          "seconds": 0.030819
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_login_rechaza_username_no_textual_sin_error_interno",
+          "state": "Passed",
+          "seconds": 0.007328
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_fecha_de_auditoria_es_la_del_registro_y_no_la_llegada_declarada",
+          "state": "Passed",
+          "seconds": 0.013598
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_solo_admin_puede_quitar_admin_incluso_invocando_el_caso_de_uso",
+          "state": "Passed",
+          "seconds": 0.007529
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_calidad_se_audita_y_no_se_guarda_si_falla_la_auditoria",
+          "state": "Passed",
+          "seconds": 0.015197
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_errores_de_base_de_datos_no_exponen_consultas_ni_bindings",
+          "state": "Passed",
+          "seconds": 0.012881
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_liquidacion_y_pago_registran_valor_anterior_y_nuevo",
+          "state": "Passed",
+          "seconds": 0.014414
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_iniciar_lote_registra_al_actor_y_no_al_creador",
+          "state": "Passed",
+          "seconds": 0.00967
+        },
+        {
+          "class": "Tests.Feature.AuditoriaSeguridadTest",
+          "name": "test_rutas_nuevo_no_se_interpretan_como_identificadores",
+          "state": "Passed",
+          "seconds": 0.019687
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_admin_puede_iniciar_sesion_con_el_pin_correcto",
+          "state": "Passed",
+          "seconds": 0.009136
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_acopiador_puede_iniciar_sesion_en_la_web_para_ver_sus_rutas",
+          "state": "Passed",
+          "seconds": 0.008814
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_proveedor_no_puede_iniciar_sesion_en_la_web",
+          "state": "Passed",
+          "seconds": 0.008967
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_rechaza_un_pin_incorrecto",
+          "state": "Passed",
+          "seconds": 0.209585
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_bloquea_la_cuenta_tras_cinco_intentos_fallidos",
+          "state": "Passed",
+          "seconds": 1.031654
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_rechaza_a_un_usuario_desactivado",
+          "state": "Passed",
+          "seconds": 0.012643
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_visitante_no_autenticado_es_redirigido_al_login",
+          "state": "Passed",
+          "seconds": 0.008751
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_usuario_puede_cerrar_sesion",
+          "state": "Passed",
+          "seconds": 0.01061
+        },
+        {
+          "class": "Tests.Feature.AuthenticationTest",
+          "name": "test_un_acopiador_no_puede_entrar_al_panel_administrativo",
+          "state": "Passed",
+          "seconds": 0.010826
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_zonas_y_vehiculos_creados_o_editados_en_la_app_llegan_al_panel",
+          "state": "Passed",
+          "seconds": 0.028191
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_una_cuenta_creada_en_la_app_entra_al_panel_y_conserva_sus_roles_solo_web",
+          "state": "Passed",
+          "seconds": 0.024368
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_proveedor_y_su_cuenta_desde_la_app",
+          "state": "Passed",
+          "seconds": 0.022287
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_solo_el_admin_cambia_catalogos",
+          "state": "Passed",
+          "seconds": 0.021595
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_jornada_abierta_y_cerrada_en_la_app_sin_entregas",
+          "state": "Passed",
+          "seconds": 0.019111
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_comunicado_publicado_y_retirado_desde_la_app",
+          "state": "Passed",
+          "seconds": 0.018466
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_el_analisis_de_la_app_llega_completo_y_califica_las_entregas_del_dia",
+          "state": "Passed",
+          "seconds": 0.026792
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_reclamo_del_proveedor_y_su_resolucion_por_el_admin",
+          "state": "Passed",
+          "seconds": 0.027539
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_liquidacion_aprobada_y_pagada_en_la_app",
+          "state": "Passed",
+          "seconds": 0.026681
+        },
+        {
+          "class": "Tests.Feature.CambiosMovilTest",
+          "name": "test_corregir_en_la_app_una_entrega_registrada_en_la_web_no_la_duplica",
+          "state": "Passed",
+          "seconds": 0.022151
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_la_insignia_de_estado_traduce_las_claves_del_dominio",
+          "state": "Passed",
+          "seconds": 0.011556
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_la_insignia_de_estado_normaliza_acentos_y_mayusculas",
+          "state": "Passed",
+          "seconds": 0.010511
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_un_estado_desconocido_se_muestra_legible_en_vez_de_romper",
+          "state": "Passed",
+          "seconds": 0.008634
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_color_de_la_insignia_nunca_va_solo_sin_texto",
+          "state": "Passed",
+          "seconds": 0.00846
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_un_icono_inexistente_cae_en_un_icono_generico_sin_fallar",
+          "state": "Passed",
+          "seconds": 0.007978
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_un_icono_de_varios_trazos_los_dibuja_todos",
+          "state": "Passed",
+          "seconds": 0.007786
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_grafico_de_barras_sin_datos_muestra_el_mensaje_vacio",
+          "state": "Passed",
+          "seconds": 0.007354
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_grafico_de_barras_con_todo_en_cero_tambien_muestra_el_vacio",
+          "state": "Passed",
+          "seconds": 0.006932
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_grafico_de_barras_ofrece_una_alternativa_textual_con_los_valores",
+          "state": "Passed",
+          "seconds": 0.006793
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_grafico_de_barras_reparte_como_maximo_seis_etiquetas_en_el_eje",
+          "state": "Passed",
+          "seconds": 0.006424
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_la_dona_calcula_porcentajes_y_total_sobre_los_valores_reales",
+          "state": "Passed",
+          "seconds": 0.008949
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_la_dona_descarta_las_categorias_en_cero",
+          "state": "Passed",
+          "seconds": 0.005414
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_las_barras_horizontales_muestran_la_linea_de_contexto",
+          "state": "Passed",
+          "seconds": 0.00526
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_la_tabla_lleva_caption_accesible_y_encabezados_con_scope",
+          "state": "Passed",
+          "seconds": 0.005348
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_campo_marca_el_error_de_validacion_del_formulario",
+          "state": "Passed",
+          "seconds": 0.00596
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_un_campo_obligatorio_se_anuncia_tambien_a_lectores_de_pantalla",
+          "state": "Passed",
+          "seconds": 0.005511
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_boton_es_enlace_cuando_recibe_href_y_boton_cuando_no",
+          "state": "Passed",
+          "seconds": 0.005657
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_las_pestanas_marcan_la_activa_con_aria_current",
+          "state": "Passed",
+          "seconds": 0.005251
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_paginador_usa_la_plantilla_del_diseno",
+          "state": "Passed",
+          "seconds": 0.005137
+        },
+        {
+          "class": "Tests.Feature.ComponentesUiTest",
+          "name": "test_el_estado_vacio_puede_ofrecer_una_accion_siguiente",
+          "state": "Passed",
+          "seconds": 0.005705
+        },
+        {
+          "class": "Tests.Feature.DatosMovilTest",
+          "name": "test_el_inicio_de_sesion_devuelve_la_cuenta_para_crearla_en_el_celular",
+          "state": "Passed",
+          "seconds": 0.011268
+        },
+        {
+          "class": "Tests.Feature.DatosMovilTest",
+          "name": "test_el_administrador_recibe_los_cambios_del_panel",
+          "state": "Passed",
+          "seconds": 0.016624
+        },
+        {
+          "class": "Tests.Feature.DatosMovilTest",
+          "name": "test_el_proveedor_solo_recibe_su_ficha_y_sus_entregas",
+          "state": "Passed",
+          "seconds": 0.01691
+        },
+        {
+          "class": "Tests.Feature.DatosMovilTest",
+          "name": "test_sin_token_no_hay_datos",
+          "state": "Passed",
+          "seconds": 0.005772
+        },
+        {
+          "class": "Tests.Feature.DatosMovilTest",
+          "name": "test_el_analisis_de_calidad_del_panel_llega_completo_al_celular",
+          "state": "Passed",
+          "seconds": 0.014728
+        },
+        {
+          "class": "Tests.Feature.EscenarioPeruDemoTest",
+          "name": "test_escenario_completo_conserva_admin_y_no_duplica_operaciones",
+          "state": "Passed",
+          "seconds": 0.36388
+        },
+        {
+          "class": "Tests.Feature.ExampleTest",
+          "name": "test_the_root_url_redirects_to_the_login",
+          "state": "Passed",
+          "seconds": 0.008719
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_login_emite_token_aleatorio_guarda_hash_y_no_expone_credenciales",
+          "state": "Passed",
+          "seconds": 0.010472
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_token_valido_permite_datos_y_token_alterado_no",
+          "state": "Passed",
+          "seconds": 0.011006
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_sin_token_o_token_en_query_no_autentica",
+          "state": "Passed",
+          "seconds": 0.009583
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_rechaza_token_en_el_instante_de_expiracion",
+          "state": "Passed",
+          "seconds": 0.009834
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_logout_revoca_solo_el_token_presentado",
+          "state": "Passed",
+          "seconds": 0.013262
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_pin_incorrecto_y_cuenta_inexistente_no_emiten_token",
+          "state": "Passed",
+          "seconds": 0.211555
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_valida_tipos_y_campos_sin_error_interno",
+          "state": "Passed",
+          "seconds": 0.008287
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_cinco_pines_incorrectos_bloquean_login_y_token_existente_temporalmente",
+          "state": "Passed",
+          "seconds": 0.01914
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_limita_intentos_incluso_para_usuarios_inexistentes",
+          "state": "Passed",
+          "seconds": 0.011241
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_token_no_otorga_permisos_de_otro_rol",
+          "state": "Passed",
+          "seconds": 0.009368
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_restablecer_pin_revoca_todos_los_tokens_de_esa_cuenta",
+          "state": "Passed",
+          "seconds": 0.020567
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_reactivar_cuenta_no_resucita_tokens_anteriores",
+          "state": "Passed",
+          "seconds": 0.012511
+        },
+        {
+          "class": "Tests.Feature.MovilAuthenticationTest",
+          "name": "test_desbloquear_cuenta_no_resucita_tokens_anteriores",
+          "state": "Passed",
+          "seconds": 0.018044
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_receta_reutilizable_descuenta_ingredientes_y_agrega_produccion_real_una_sola_vez",
+          "state": "Passed",
+          "seconds": 0.031322
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_no_crea_lote_si_falta_un_ingrediente_y_muestra_cantidad_faltante",
+          "state": "Passed",
+          "seconds": 0.028478
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_revalida_stock_al_iniciar_y_no_hace_descuentos_parciales",
+          "state": "Passed",
+          "seconds": 0.027001
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_editar_receta_no_cambia_ingredientes_de_lotes_existentes",
+          "state": "Passed",
+          "seconds": 0.037608
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_cancelar_borrador_libera_leche_pero_cancelar_iniciado_conserva_consumos",
+          "state": "Passed",
+          "seconds": 0.03003
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_recetas_sirven_para_yogur_y_se_calculan_por_cantidad_a_producir",
+          "state": "Passed",
+          "seconds": 0.031604
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_validacion_impide_ingredientes_duplicados_negativos_y_desconocidos",
+          "state": "Passed",
+          "seconds": 0.020867
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_materiales_validan_unidad_precision_y_evitan_stock_negativo",
+          "state": "Passed",
+          "seconds": 0.023204
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_inactiva_no_permite_crear_lotes_y_datos_incompletos_no_rompen_calculo",
+          "state": "Passed",
+          "seconds": 0.029761
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_formularios_ficha_y_pestanas_de_planta_muestran_receta_y_materiales",
+          "state": "Passed",
+          "seconds": 0.115049
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_proveedor_no_puede_gestionar_materiales_recetas_ni_iniciar_produccion",
+          "state": "Passed",
+          "seconds": 0.030507
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_quitar_ingredientes_de_receta_no_borra_historial_ni_cambia_stock",
+          "state": "Passed",
+          "seconds": 0.021931
+        },
+        {
+          "class": "Tests.Feature.PlantaRecetasInventarioTest",
+          "name": "test_no_permite_producto_terminado_sin_consumo_de_leche",
+          "state": "Passed",
+          "seconds": 0.025505
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_admin_puede_registrar_un_proveedor",
+          "state": "Passed",
+          "seconds": 0.010273
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_rechaza_un_codigo_de_proveedor_duplicado",
+          "state": "Passed",
+          "seconds": 0.010434
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_rechaza_tachos_en_cero",
+          "state": "Passed",
+          "seconds": 0.009303
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_los_campos_obligatorios_muestran_mensajes_en_espanol",
+          "state": "Passed",
+          "seconds": 0.008455
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_admin_puede_actualizar_un_proveedor",
+          "state": "Passed",
+          "seconds": 0.010309
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_admin_puede_cambiar_el_estado_de_un_proveedor",
+          "state": "Passed",
+          "seconds": 0.009327
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_admin_puede_ver_el_codigo_qr_de_un_proveedor",
+          "state": "Passed",
+          "seconds": 0.018102
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_visitante_no_autenticado_no_puede_gestionar_proveedores",
+          "state": "Passed",
+          "seconds": 0.011779
+        },
+        {
+          "class": "Tests.Feature.ProveedorManagementTest",
+          "name": "test_un_acopiador_no_puede_gestionar_proveedores",
+          "state": "Passed",
+          "seconds": 0.008098
+        },
+        {
+          "class": "Tests.Feature.ProveedorVinculacionTest",
+          "name": "test_un_admin_puede_vincular_un_usuario_proveedor",
+          "state": "Passed",
+          "seconds": 0.011199
+        },
+        {
+          "class": "Tests.Feature.ProveedorVinculacionTest",
+          "name": "test_rechaza_vincular_un_usuario_sin_rol_proveedor",
+          "state": "Passed",
+          "seconds": 0.009667
+        },
+        {
+          "class": "Tests.Feature.ProveedorVinculacionTest",
+          "name": "test_rechaza_vincular_un_usuario_ya_vinculado_a_otro_proveedor",
+          "state": "Passed",
+          "seconds": 0.010108
+        },
+        {
+          "class": "Tests.Feature.ProveedorVinculacionTest",
+          "name": "test_un_admin_puede_desvincular_un_usuario",
+          "state": "Passed",
+          "seconds": 0.009924
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_login_emite_par_de_tokens_con_hashes_y_respuesta_no_cacheable",
+          "state": "Passed",
+          "seconds": 0.011283
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_refresh_rota_ambos_tokens_y_no_extiende_la_sesion",
+          "state": "Passed",
+          "seconds": 0.01244
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_renueva_con_access_token_vencido_sin_enviar_pin",
+          "state": "Passed",
+          "seconds": 0.015958
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_reutilizar_refresh_usado_revoca_su_sesion_y_preserva_otro_dispositivo",
+          "state": "Passed",
+          "seconds": 0.015681
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_refresh_vencido_no_renueva",
+          "state": "Passed",
+          "seconds": 0.010133
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_rotacion_no_emite_access_mas_alla_del_vencimiento_refresh",
+          "state": "Passed",
+          "seconds": 0.010887
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_refresh_inventado_o_access_como_refresh_no_revoca_sesion_legitima",
+          "state": "Passed",
+          "seconds": 0.011812
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_refresh_no_se_puede_usar_como_bearer_para_datos",
+          "state": "Passed",
+          "seconds": 0.015065
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_logout_con_access_revoca_tambien_refresh_e_historial",
+          "state": "Passed",
+          "seconds": 0.011288
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_logout_con_refresh_funciona_aunque_access_haya_vencido",
+          "state": "Passed",
+          "seconds": 0.009967
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_cambiar_pin_revoca_access_y_refresh",
+          "state": "Passed",
+          "seconds": 0.011444
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_cuenta_inactiva_o_bloqueada_no_puede_renovar",
+          "state": "Passed",
+          "seconds": 0.016952
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_valida_refresh_en_body_sin_aceptar_bearer_como_reemplazo",
+          "state": "Passed",
+          "seconds": 0.010174
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_refresh_tiene_limite_independiente_del_login",
+          "state": "Passed",
+          "seconds": 0.033752
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_auditoria_oculta_refresh_y_access_en_texto_y_json",
+          "state": "Passed",
+          "seconds": 0.006154
+        },
+        {
+          "class": "Tests.Feature.RefreshTokenMovilTest",
+          "name": "test_tokens_emitidos_antes_de_migrar_siguen_validos_hasta_su_vencimiento",
+          "state": "Passed",
+          "seconds": 0.009731
+        },
+        {
+          "class": "Tests.Feature.ReporteDashboardTest",
+          "name": "test_el_dashboard_filtra_los_indicadores_y_el_detalle_por_zona",
+          "state": "Passed",
+          "seconds": 0.02253
+        },
+        {
+          "class": "Tests.Feature.ReporteDashboardTest",
+          "name": "test_exporta_un_csv_compatible_con_excel_respetando_los_filtros",
+          "state": "Passed",
+          "seconds": 0.015243
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_entrega_pendiente_queda_visible_en_el_panel_del_administrador",
+          "state": "Passed",
+          "seconds": 0.021861
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_reintentar_la_misma_version_no_duplica",
+          "state": "Passed",
+          "seconds": 0.015426
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_correccion_y_anulacion_actualizan_la_misma_fila_con_auditoria",
+          "state": "Passed",
+          "seconds": 0.019053
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_una_version_atrasada_no_pisa_la_mas_reciente",
+          "state": "Passed",
+          "seconds": 0.013558
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_una_anulacion_no_se_revierte_desde_el_celular",
+          "state": "Passed",
+          "seconds": 0.013542
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_datos_que_no_existen_en_el_servidor_se_rechazan_sin_crear_nada",
+          "state": "Passed",
+          "seconds": 0.014161
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_sin_token_o_con_pin_incorrecto_no_se_acepta",
+          "state": "Passed",
+          "seconds": 0.211182
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_el_token_solo_guarda_su_hash_y_deja_de_valer_al_desactivar_la_cuenta",
+          "state": "Passed",
+          "seconds": 0.01193
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_acopiador_no_puede_enviar_entregas_a_nombre_de_otro",
+          "state": "Passed",
+          "seconds": 0.011511
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_proveedor_no_puede_enviar_entregas",
+          "state": "Passed",
+          "seconds": 0.010752
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_el_proveedor_recibe_sus_liquidaciones_con_su_estado_real_pendiente_o_pagada",
+          "state": "Passed",
+          "seconds": 0.01169
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_proveedor_nunca_recibe_liquidaciones_de_otra_ficha",
+          "state": "Passed",
+          "seconds": 0.015335
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_una_cuenta_de_proveedor_sin_ficha_no_recibe_liquidaciones",
+          "state": "Passed",
+          "seconds": 0.010984
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_acopiador_que_no_existe_en_el_panel_se_rechaza_aunque_envie_un_admin",
+          "state": "Passed",
+          "seconds": 0.011718
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_acopiador_no_puede_consultar_liquidaciones_de_proveedor",
+          "state": "Passed",
+          "seconds": 0.011228
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_cerrar_sesion_revoca_el_token",
+          "state": "Passed",
+          "seconds": 0.011666
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_una_correccion_enviada_por_admin_se_audita_a_su_nombre_y_la_entrega_sigue_siendo_del_acopiador",
+          "state": "Passed",
+          "seconds": 0.024083
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_un_token_vencido_se_rechaza_como_sesion_invalida_sin_crear_nada",
+          "state": "Passed",
+          "seconds": 0.010457
+        },
+        {
+          "class": "Tests.Feature.SincronizacionMovilTest",
+          "name": "test_enviar_muchas_entregas_no_agota_el_limite_de_inicio_de_sesion",
+          "state": "Passed",
+          "seconds": 0.035869
+        }
+      ]
+    },
+    "Firestore": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "github_read_only": {
+    "checked_utc": "2026-10-22T14:20:06.750499+00:00",
+    "public_branch_names": [
+      "main"
+    ],
+    "main_sha": "05743b97f2e5835250e223eabc09f9924b7524bb",
+    "pr1": {
+      "number": 1,
+      "html_url": "https://github.com/SaitAlfre/APP-MOVIL/pull/1",
+      "state": "closed",
+      "merged_at": "2026-09-24T17:25:43Z",
+      "merge_commit_sha": "af6ed93e05b8f03a83b241d8c8fbf1ded687dca3"
+    },
+    "pr1_formal_reviews": 0,
+    "projects": "Página pública mostró 0 abiertos/0 cerrados y Sign in; no prueba ausencia de Projects privados. Sin sesión ni token disponible; no hubo mutaciones remotas."
+  },
+  "runs": [
+    {
+      "id": "EXE-20261022-01",
+      "start_utc": "2026-10-22T13:33:44.022689+00:00",
+      "end_utc": "2026-10-22T13:34:14.040883+00:00",
+      "duration_seconds": 30.018194,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        ":shared:testAndroidHostTest"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "42045b2c4da5e243694424f30b35794d3da4beb7866885c927a9768e57327ccf",
+      "published_log_sha256": "df99bfc3f6c80f312823075e92f9495eb2cf4e92b5cb75cc50ef0bd939079d66",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-01",
+      "state": "Passed",
+      "expected": "Suite JVM inicial; completar pruebas condicionadas",
+      "obtained": "251 Passed, 5 Skipped; servidor aún no preparado. Sustituida como resultado final por EXE-15.",
+      "log": "../evidencias/EXE-20261022-01.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-02",
+      "start_utc": "2026-10-22T13:41:57.283807+00:00",
+      "end_utc": "2026-10-22T13:42:04.359657+00:00",
+      "duration_seconds": 7.07585,
+      "command": [
+        "<AISLADO>/bin/php",
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--log-junit",
+        "<AISLADO>/phpunit.xml"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 2,
+      "raw_sha256": "a83c26bfea64f0b8f076d35edb41a4c52c5ab3ef6ed5e9415c33a778c456ff14",
+      "published_log_sha256": "370be127fe98868db7509a6390a911f67f281327df4a1e05e38571a7b6c6b52d",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-02",
+      "state": "Failed",
+      "expected": "Suite PHP completa satisfactoria",
+      "obtained": "289: 191 Passed, 97 fallos y 1 error; copia aislada incompleta omitió la vista de paginación. Incidente del montaje, no defecto de producto.",
+      "log": "../evidencias/EXE-20261022-02.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-03",
+      "start_utc": "2026-10-22T13:41:58.406574+00:00",
+      "end_utc": "2026-10-22T13:41:58.670608+00:00",
+      "duration_seconds": 0.264034,
+      "command": [
+        "<USER_HOME>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "<AISLADO>/npm/package/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 1,
+      "raw_sha256": "84785db047eb83cc62e5a1b76077e869c75447bb44b47a686f3d86a0468be600",
+      "published_log_sha256": "ad12a04a2c697f0f4379699e99228e2b4f43e5bc24bfc98991ab4e9805de4ae0",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-04",
+      "state": "Blocked",
+      "expected": "Compilar assets web",
+      "obtained": "DNS restringido al descargar fonts.bunny.net; se reintentó con red autorizada en EXE-05.",
+      "log": "../evidencias/EXE-20261022-03.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-04",
+      "start_utc": "2026-10-22T13:42:01.228839+00:00",
+      "end_utc": "2026-10-22T13:42:18.770928+00:00",
+      "duration_seconds": 17.542089,
+      "command": [
+        "<USER_HOME>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "<AISLADO>/npm/package/bin/npm-cli.js",
+        "test"
+      ],
+      "cwd": "<AISLADO>/firebase-tests",
+      "exit_code": 0,
+      "raw_sha256": "3ff04ce72db31c8e32de0f05e48bcd17a06cbfbfd803e5f5e011aab494b94589",
+      "published_log_sha256": "c8ef1f2d22943de76b8ec95524110fd9e020b9ec9ab481a3d3d4ebb430aa7c89",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-03",
+      "state": "Passed",
+      "expected": "Reglas Firestore permiten y deniegan según pruebas",
+      "obtained": "9/9 Passed en emulador demo-no-project; assertFails comprueba denegaciones esperadas. Sin servicio productivo.",
+      "log": "../evidencias/EXE-20261022-04.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-05",
+      "start_utc": "2026-10-22T13:43:13.332839+00:00",
+      "end_utc": "2026-10-22T13:43:14.548678+00:00",
+      "duration_seconds": 1.215839,
+      "command": [
+        "<USER_HOME>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "<AISLADO>/npm/package/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 0,
+      "raw_sha256": "9c7ed7896ab15b74e3c6658edd6561dbe96e4979b1e7ee6c5cee013fd8c53a93",
+      "published_log_sha256": "9c7ed7896ab15b74e3c6658edd6561dbe96e4979b1e7ee6c5cee013fd8c53a93",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-04",
+      "state": "Passed",
+      "expected": "Compilar assets web",
+      "obtained": "Vite compiló 5 módulos y generó manifest/assets; advertencia opcional fontaine, sin error.",
+      "log": "../evidencias/EXE-20261022-05.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-06",
+      "start_utc": "2026-10-22T13:44:39.456881+00:00",
+      "end_utc": "2026-10-22T13:44:48.286272+00:00",
+      "duration_seconds": 8.829391,
+      "command": [
+        "<AISLADO>/bin/php",
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--log-junit",
+        "<AISLADO>/phpunit-final.xml"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 1,
+      "raw_sha256": "d0c3691421f980a4445ecc818d81fa3b1c19ac3ef8968506211943378feca8a9",
+      "published_log_sha256": "2664f89b44baca713aee09398a1a1b253d58cddde586459b2433d41ddccbf45b",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-02",
+      "state": "Failed",
+      "expected": "Suite PHP con copia completa",
+      "obtained": "284/289 Passed, 5 fallos: cuatro expectativas antiguas de navegación y GD ausente en el PHP temporal.",
+      "log": "../evidencias/EXE-20261022-06.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-07",
+      "start_utc": "2026-10-22T13:44:43.975623+00:00",
+      "end_utc": "2026-10-22T13:44:51.352603+00:00",
+      "duration_seconds": 7.37698,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        ":androidApp:assembleDebug"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "695eab1209a5a3410f3cb94b4ff50ee0b5764bea41e9073d3a581e02e8f2fcb0",
+      "published_log_sha256": "25512cd2eb6c8e06d505cdebd2c8a4189f9885d2a6c9e311345fabb9efd83484",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-05",
+      "state": "Blocked",
+      "expected": "Compilar Android debug estándar",
+      "obtained": "Bloqueado por google-services.json ausente; no se inventó configuración Firebase. Variante existente localPreview pasó en EXE-08.",
+      "log": "../evidencias/EXE-20261022-07.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-08",
+      "start_utc": "2026-10-22T13:46:54.514969+00:00",
+      "end_utc": "2026-10-22T13:47:08.203045+00:00",
+      "duration_seconds": 13.688076,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "-PlocalPreview=true",
+        "-Pecolecta.servidorUrl=http://127.0.0.1:8765",
+        ":androidApp:assembleDebug"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "02964fbbe40eaa408110e8dd70226da0e5402a3f43e5825c2aa0af231afdf7f3",
+      "published_log_sha256": "02964fbbe40eaa408110e8dd70226da0e5402a3f43e5825c2aa0af231afdf7f3",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "case": "CP-AUTO-05-PREVIEW",
+      "state": "Passed",
+      "expected": "Compilar APK localPreview sin Firebase remoto",
+      "obtained": "BUILD SUCCESSFUL, 62 tareas; APK generado, sin instalación ni prueba UI en dispositivo.",
+      "log": "../evidencias/EXE-20261022-08.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-09",
+      "start_utc": "2026-10-22T13:49:04.331745+00:00",
+      "end_utc": "2026-10-22T13:49:05.547378+00:00",
+      "duration_seconds": 1.215633,
+      "command": [
+        "<AISLADO>/bin/php",
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "tests/Feature/AdminNavegacionYPermisosTest.php",
+        "tests/Feature/AdminPantallasTest.php",
+        "tests/Feature/AdminZonasRutasVehiculosTest.php",
+        "tests/Feature/ProveedorManagementTest.php",
+        "--log-junit",
+        "<AISLADO>/phpunit-regresion.xml"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 0,
+      "raw_sha256": "9ce9c99906399a87b0d9ffa87a50c29bbcffc01765e6406e358cf11197d91961",
+      "published_log_sha256": "9ce9c99906399a87b0d9ffa87a50c29bbcffc01765e6406e358cf11197d91961",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-02-REG",
+      "state": "Passed",
+      "expected": "Regresión de los cuatro archivos PHP afectados por incidencias",
+      "obtained": "32/32 Passed, 168 aserciones; restauración de GD y corrección limitada a tres tests obsoletos.",
+      "log": "../evidencias/EXE-20261022-09.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-10",
+      "start_utc": "2026-10-22T13:49:05.488501+00:00",
+      "end_utc": "2026-10-22T13:49:05.752625+00:00",
+      "duration_seconds": 0.264124,
+      "command": [
+        "<AISLADO>/bin/php",
+        "<AISLADO>/web/vendor/bin/pint",
+        "--dirty",
+        "--format",
+        "agent"
+      ],
+      "cwd": "<REPO>/web",
+      "exit_code": 0,
+      "raw_sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2",
+      "published_log_sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-FORMATO-PHP",
+      "state": "Passed",
+      "expected": "Pint --dirty sin incidencias",
+      "obtained": "Pint result passed sobre los cambios PHP.",
+      "log": "../evidencias/EXE-20261022-10.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-11",
+      "start_utc": "2026-10-22T13:50:17.040705+00:00",
+      "end_utc": "2026-10-22T13:50:25.068817+00:00",
+      "duration_seconds": 8.028112,
+      "command": [
+        "<AISLADO>/bin/php",
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--log-junit",
+        "<AISLADO>/phpunit-completo.xml"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 0,
+      "raw_sha256": "f52e690b8efc6b74e61cf2c6a1f289cbe483a30a9cf659ed9908bcca7b4b335b",
+      "published_log_sha256": "f52e690b8efc6b74e61cf2c6a1f289cbe483a30a9cf659ed9908bcca7b4b335b",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-02",
+      "state": "Passed",
+      "expected": "Suite PHP completa tras corrección",
+      "obtained": "289/289 Passed; 1574 aserciones, 0 fallos/errores/omitidos.",
+      "log": "../evidencias/EXE-20261022-11.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-12",
+      "start_utc": "2026-10-22T13:51:03.743292+00:00",
+      "end_utc": "2026-10-22T13:51:05.259680+00:00",
+      "duration_seconds": 1.516388,
+      "command": [
+        "python3",
+        "<AISLADO>/prepare_backend.py"
+      ],
+      "cwd": "<AISLADO>/web",
+      "exit_code": 0,
+      "raw_sha256": "4aa3ea353ef0e0823e911dd233dd99f43e374e96882d94cdcdc211348e44f843",
+      "published_log_sha256": "4aa3ea353ef0e0823e911dd233dd99f43e374e96882d94cdcdc211348e44f843",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-06",
+      "state": "Passed",
+      "expected": "Preparar y servir copia web en ambiente local aislado",
+      "obtained": "SQLite nueva con datos ficticios; migraciones no destructivas, servidor loopback, GET /login HTTP 200 (6278 bytes).",
+      "log": "../evidencias/EXE-20261022-12.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-13",
+      "start_utc": "2026-10-22T13:52:35.335405+00:00",
+      "end_utc": "2026-10-22T13:53:41.423185+00:00",
+      "duration_seconds": 66.08778,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "--rerun-tasks",
+        ":shared:testAndroidHostTest"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "58d7d16e36a39549d77e98fd165303aa2a97ecf0ce492d2fcd80e3236e945c5c",
+      "published_log_sha256": "7f1c8c5c9ef1eeeba2f92a4b67f4f2efe5a26f7270b42d4b775a32a8d6cfec81",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-01-INTEGRACION",
+      "state": "Failed",
+      "expected": "Suite JVM con cinco integraciones reales habilitadas",
+      "obtained": "255/256 Passed, 1 fallo, 0 omitidos: faltó liquidación fixture para la comprobación final del portal. Los pasos previos de entrega/reintento/corrección/anulación pasaron.",
+      "log": "../evidencias/EXE-20261022-13.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-14",
+      "case": "CP-003",
+      "command": [
+        "CUA navegador IAB: login inválido, login válido, cerrar sesión y visitar /admin/dashboard"
+      ],
+      "start_utc": "2026-10-22T13:53:33.207883+00:00",
+      "end_utc": "2026-10-22T14:20:06.747540+00:00",
+      "timing_note": "Inicio = primera captura conservada; fin = registro posterior a verificar redirección tras logout, no cronometraje del caso.",
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "cwd": "Navegador IAB → http://127.0.0.1:8765",
+      "exit_code": null,
+      "state": "Passed",
+      "expected": "Rechazo sin sesión ante credencial inválida; acceso administrador con fixture válido; logout protege dashboard.",
+      "obtained": "Mensaje de credenciales inválidas; dashboard administrador visible; al cerrar sesión y abrir dashboard se redirige a /login.",
+      "screenshots_sha256": {
+        "CP-003-login-rechazado.jpg": "07082326e1e75e7904463faeaa1035caaacbc21f156ff5e42cb2ab06bacf5b63",
+        "CP-003-acceso-local.jpg": "d42c6716540aa032ebca1272737a97c927b876d1e3e62b1db30b34d02abfa522"
+      },
+      "executor": "Agente técnico autorizado, no integrante ni beneficiario",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      }
+    },
+    {
+      "id": "EXE-20261022-15",
+      "start_utc": "2026-10-22T13:56:44.728993+00:00",
+      "end_utc": "2026-10-22T13:57:59.353866+00:00",
+      "duration_seconds": 74.624873,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "--rerun-tasks",
+        ":shared:testAndroidHostTest"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "f2107b77bcdded447c8f975ae01f5c4a0518e34e2b6009d445937182e9faa417",
+      "published_log_sha256": "9b535fe728365e6765551210fd71c3aff61f49cd1e8972fe975eb6ea3503331b",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-01-INTEGRACION",
+      "state": "Passed",
+      "expected": "Suite JVM completa con backend y fixtures completos",
+      "obtained": "256/256 Passed, 0 fallos/errores/omitidos; ejecutadas las cinco integraciones antes omitidas, incluido paso admin con fixture.",
+      "log": "../evidencias/EXE-20261022-15.log",
+      "sanitization": "Rutas personales/de compilación sustituidas; EXE-02/06 son extractos rotulados de logs originales con huella SHA-256."
+    },
+    {
+      "id": "EXE-20261022-16",
+      "start_utc": "2026-10-22T14:43:36.156154+00:00",
+      "end_utc": "2026-10-22T14:43:36.159788+00:00",
+      "duration_seconds": 0.003634,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_smoke.py"
+      ],
+      "cwd": "<REPO>/APP-MOVIL",
+      "exit_code": 127,
+      "raw_sha256": "9b8e970c01d8b2616ae80be83cdb45213cc7a243151597ac9c30342ee9ccc261",
+      "published_log_sha256": "7da098f1a4518c650ad214d4a0f1d9924d2c468774449a6df3a25f6e429f4b1b",
+      "error": "[Errno 2] No such file or directory: '<USER_HOME>/Documentos/Ciclo 6/Desarrollo de aplicaciones móviles/APP MOVIL/APP-MOVIL/APP-MOVIL'",
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-07",
+      "state": "Blocked",
+      "expected": "Instalar y abrir APK en emulador aislado",
+      "obtained": "Arnés recibió una ruta de trabajo duplicada; no se ejecutó la aplicación. Corregido al reintentar.",
+      "log": "../evidencias/EXE-20261022-16.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-17",
+      "start_utc": "2026-10-22T14:43:47.806345+00:00",
+      "end_utc": "2026-10-22T14:45:23.812331+00:00",
+      "duration_seconds": 96.005986,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_smoke.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "0102c610dbc45d08e5cd873244e2c5666a891f25711072ca5210fb768c3b377f",
+      "published_log_sha256": "206ead34069ebd9c8af7608f97c44f2d50de2d30434c5d95e96361def92f9502",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-07",
+      "state": "Failed",
+      "expected": "Instalar y mostrar acceso Android",
+      "obtained": "Instalación Success; arranque terminó en ANR. Se observó aviso de System UI; la traza posterior confirmó también ANR de Ecolactea en PBKDF2/DatabaseSeeder sobre main.",
+      "log": "../evidencias/EXE-20261022-17.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-18",
+      "start_utc": "2026-10-22T14:46:53.087608+00:00",
+      "end_utc": "2026-10-22T14:47:31.741166+00:00",
+      "duration_seconds": 38.653558,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_launch.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "5e333a5918492c71c58dea264fc06a1576f8dd39a5ad0017736ffef17c07b143",
+      "published_log_sha256": "986c15feffb48f6d2a98540a61cef7fcd8c795b6dc58622b3a4e65e1a201d466",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "f6b2600be55b5395a876281bbfa4a61171450cdea0f2fb7fd205e6f08cec4aa9",
+      "case": "CP-AUTO-07",
+      "state": "Failed",
+      "expected": "Reintentar acceso Android tras estabilizar emulador",
+      "obtained": "Actividad regresó al launcher. ApplicationExitInfo confirmó ANR de inicio; BUG-002 reproducido, no simple ausencia de dispositivo.",
+      "log": "../evidencias/EXE-20261022-18.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-19",
+      "start_utc": "2026-10-22T14:51:54.159057+00:00",
+      "end_utc": "2026-10-22T14:52:42.981050+00:00",
+      "duration_seconds": 48.821993,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "-PlocalPreview=true",
+        "-Pecolecta.servidorUrl=http://127.0.0.1:8765",
+        ":androidApp:assembleDebug",
+        ":shared:testAndroidHostTest"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "65a482c9b2105a0ec5bae3a1660ae33aa9ef431295e948944694149880e96e80",
+      "published_log_sha256": "5447727c90ca4396d29372e46ec88a95e1fc4c8fe0763b0fb3305288447c55f0",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "f93c6f0c1c151eef776967a39a3db08d5aacd5ba5575db98fd10b31994c3537c",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "1ef84c8fad025ca6144779c35fcc116cabc933535df49b7542d50231e4fa7cb8",
+      "case": "CP-AUTO-05-PREVIEW",
+      "state": "Failed",
+      "expected": "Compilar primera corrección del arranque",
+      "obtained": "Imports Material3/Foundation no expuestos en androidApp; compilación falló. Se corrigió usando widgets Android/AndroidView ya disponibles, sin nuevas dependencias.",
+      "log": "../evidencias/EXE-20261022-19.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-20",
+      "start_utc": "2026-10-22T14:54:38.475865+00:00",
+      "end_utc": "2026-10-22T14:55:01.792646+00:00",
+      "duration_seconds": 23.316781,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "-PlocalPreview=true",
+        "-Pecolecta.servidorUrl=http://127.0.0.1:8765",
+        ":androidApp:assembleDebug"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "699cead075ef54fc65a23d1d94cb8128342f6be960182fd63f2363db89100f4c",
+      "published_log_sha256": "699cead075ef54fc65a23d1d94cb8128342f6be960182fd63f2363db89100f4c",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-AUTO-05-PREVIEW",
+      "state": "Passed",
+      "expected": "Compilar corrección del arranque sin dependencias nuevas",
+      "obtained": "BUILD SUCCESSFUL, APK localPreview corregido; cinco archivos versionados modificados, sin reglas empresariales alteradas.",
+      "log": "../evidencias/EXE-20261022-20.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-21",
+      "start_utc": "2026-10-22T14:56:27.158685+00:00",
+      "end_utc": "2026-10-22T14:57:03.660955+00:00",
+      "duration_seconds": 36.50227,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_regresion.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "527ea02f7666c5c0d8f57713a4979882d1d9705111303869361f0b999e89ae6a",
+      "published_log_sha256": "a6382769e01ddecc2a1562bc695b82119ec0cc22d0988f30665300cf9fadd608",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-AUTO-07",
+      "state": "Passed",
+      "expected": "Mostrar preparación responsiva y llegar al acceso sin ANR",
+      "obtained": "Actividad COLD abierta en 1798 ms según am; pantalla de preparación observada y después Ingresar. Espera observada del sondeo 33.75 s; no es benchmark de campo.",
+      "log": "../evidencias/EXE-20261022-21.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {
+        "CP-ANDROID-preparacion.png": "8bb4a8d10d7089b441ed334007c0d186ba896bd21c669805f0b1930912db8cdb",
+        "CP-ANDROID-inicio.png": "8e42b4e958043fab0b2281d9f2549d21b0cbfff90a44d9bcdb5e2c70a1d3b259"
+      }
+    },
+    {
+      "id": "EXE-20261022-22",
+      "start_utc": "2026-10-22T14:58:37.683326+00:00",
+      "end_utc": "2026-10-22T14:58:48.066296+00:00",
+      "duration_seconds": 10.38297,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_login.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "d0578b3933019e02bbf9116745c6880703cfe5abf4d5972e8020efff87030fb0",
+      "published_log_sha256": "bb8ab72e6429d041a17d8843bdce177f789f087e71e884dad2bed48316d49bc3",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-AUTO-08",
+      "state": "Passed",
+      "expected": "Autenticar cuenta ficticia con WiFi/datos desactivados",
+      "obtained": "Login local permitió llegar a selección de zona/vehículo sin red. Credencial no incluida en evidencia.",
+      "log": "../evidencias/EXE-20261022-22.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-23",
+      "start_utc": "2026-10-22T15:00:25.426660+00:00",
+      "end_utc": "2026-10-22T15:01:14.591815+00:00",
+      "duration_seconds": 49.165155,
+      "command": [
+        "bash",
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "--console=plain",
+        "--no-configuration-cache",
+        "--rerun-tasks",
+        ":shared:testAndroidHostTest"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "f72e8526a0dc768b26487930a59d93d5e163013b971b0f587e37f4f933c8b8f3",
+      "published_log_sha256": "886dc99e33fe1e6811360dd1e117436830eb71c991ad95f73b8ca28ee98e6d6b",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-AUTO-01-INTEGRACION",
+      "state": "Passed",
+      "expected": "Repetir suite JVM con servidor de pruebas tras cambios Android",
+      "obtained": "256/256 Passed, 0 fallos/errores/omitidos; cinco integraciones efectivamente ejecutadas.",
+      "log": "../evidencias/EXE-20261022-23.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-24",
+      "start_utc": "2026-10-22T15:07:55.759941+00:00",
+      "end_utc": "2026-10-22T15:08:01.886039+00:00",
+      "duration_seconds": 6.126098,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_offline.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 1,
+      "raw_sha256": "b334899e0d5c57d49c76e789db91856207afb9662d0022d7001d94182ea07719",
+      "published_log_sha256": "50556aa078ad235f46c56955fcc94cf27207892008670d46323a49703ead402c",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-001",
+      "state": "Blocked",
+      "expected": "Guardar 20 L y reabrir mismo registro sin red",
+      "obtained": "El arnés usó Back para ocultar IME y salió de la actividad; falló buscando el segundo campo antes de guardar. No se atribuye a pérdida de entrega ni se cambia a Passed.",
+      "log": "../evidencias/EXE-20261022-24.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {}
+    },
+    {
+      "id": "EXE-20261022-25",
+      "start_utc": "2026-10-22T15:10:42.087240+00:00",
+      "end_utc": "2026-10-22T15:11:01.887122+00:00",
+      "duration_seconds": 19.799882,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_offline_retry.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "cb892ff4615ffe6823072f9803994758cb10ac15af57a6563f22e6ec9b3491d1",
+      "published_log_sha256": "90d24426d3bce57a9311b288577f72208175c5e66753651706986cce893913eb",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-001",
+      "state": "Passed",
+      "expected": "Conservar UUID, contexto, 20 L y PENDING tras cerrar/reabrir sin red",
+      "obtained": "PRV-MORO-01, jornada MORO VIEJO-PANCHA y Camión 3 ficticios: guardado offline, proceso cerrado/reabierto, comparación SQLite idéntica y lista UI Total 20.0 L/Pendiente de envío.",
+      "log": "../evidencias/EXE-20261022-25.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {
+        "CP-001-guardado-offline.png": "aa1e24968c3aca963d907f9e72f3e0b76e8eab3dd4a28a3cdb0d2c3401445a9f",
+        "CP-001-reabierto-offline.png": "45a649afdb6b474b245c981ace8b306fbdde8a9bc126d827d83de7390b5ebecb"
+      }
+    },
+    {
+      "id": "EXE-20261022-26",
+      "start_utc": "2026-10-22T15:18:40.896903+00:00",
+      "end_utc": "2026-10-22T15:19:02.098641+00:00",
+      "duration_seconds": 21.201738,
+      "command": [
+        "python3",
+        "-u",
+        "<AISLADO>/android_sync_retry.py"
+      ],
+      "cwd": "<REPO>",
+      "exit_code": 0,
+      "raw_sha256": "cd3efe86f8b50046d1ea838ff716e7bb8f50653f0a7349809bd168390ff9cd31",
+      "published_log_sha256": "45c9f8c42c6c1b907dba0dacde5fc9ee4702c202ae47f91d129da454e9ffe58a",
+      "error": null,
+      "head": "05743b97f2e5835250e223eabc09f9924b7524bb",
+      "working_tree_changes": {
+        "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+        "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+        "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+        "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+        "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+      },
+      "patch_sha256": "61025908a4db810f7f7d03b36710b6a69590d308ddcdbe1c0e3f0fb23162b8ff",
+      "case": "CP-002 / CP-007",
+      "state": "Passed",
+      "expected": "Perder respuesta tras guardar U1, no confirmar falsamente y reintentar sin duplicar",
+      "obtained": "Proxy perdió respuesta 201 tras persistencia y mantuvo fallo con 503 sin reenviar. Local ERROR, servidor una fila/20 L. Tras habilitar respuesta y reintentar: mismo UUID, SYNCED y una fila/20 L; no 40 L.",
+      "log": "../evidencias/EXE-20261022-26.log",
+      "executor": "Agente técnico autorizado; revisión por otro integrante pendiente",
+      "screenshots_sha256": {
+        "CP-007-respuesta-perdida.png": "4a6a99270c6edf373846c2de1a33f5845842c34e9bcf7030741e794a5dc5e4a8",
+        "CP-002-007-confirmado.png": "f2380e3f205e2101cff9b50d2dd372a72d377be931c8c8f870a774f60f2bb32d"
+      }
+    }
+  ],
+  "environment_shutdown": {
+    "stopped_utc": "2026-10-22T14:31:20.377960+00:00",
+    "bind": "127.0.0.1:8765",
+    "own_test_process_stopped": true,
+    "connection_refused_after_stop": true,
+    "note": "Solo proceso propio verificado por cwd y comando; no servicios ajenos."
+  },
+  "closure_checks": {
+    "checked_utc": "2026-10-22T15:35:26.821699+00:00",
+    "head_unchanged": true,
+    "main_and_origin_refs_unchanged": true,
+    "tracked_files": 864,
+    "only_changed_tracked_files": [
+      "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt",
+      "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt",
+      "web/tests/Feature/AdminNavegacionYPermisosTest.php",
+      "web/tests/Feature/AdminPantallasTest.php",
+      "web/tests/Feature/AdminZonasRutasVehiculosTest.php"
+    ],
+    "staged_files": 0,
+    "frozen_files_preserved": 18,
+    "selected_22_commit_rows_unchanged": true,
+    "RF_RNF_original_columns_unchanged": true,
+    "cryptography_schema_dependencies_unchanged": true,
+    "publicable_files": 117,
+    "publicable_paths_ignored": 0,
+    "local_backup_zip_files_excluded": 2,
+    "commits_created": 0,
+    "pushes": 0,
+    "remote_mutations": 0,
+    "production_changes": 0
+  },
+  "documentary_check": {
+    "ok": true,
+    "scope": "Estructura y evidencia referenciada; no sustituye revisión humana o validación del beneficiario",
+    "counts": {
+      "markdown": 58,
+      "local_links": 1527,
+      "stories": 41,
+      "criteria": 86,
+      "scenarios": 82,
+      "tasks": 91,
+      "RF": 61,
+      "RNF": 17,
+      "commits": 22,
+      "matrix_rows": 36,
+      "EP": 15
+    },
+    "errors": [],
+    "warnings": [
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6"
+    ],
+    "sources": [
+      {
+        "id": "F1",
+        "file": "U2-S3 TEMA ING SOFTWARE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F2",
+        "file": "U2-S4 TEMA ING SOFTWARE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F3",
+        "file": "U2-S3 CLASE EN TEXTO.txt",
+        "hash_matches": true
+      },
+      {
+        "id": "F4",
+        "file": "INFORMACION - Analisis_Requerimientos_Ecolactus_Guata.docx",
+        "hash_matches": true
+      },
+      {
+        "id": "F5",
+        "file": "U2-S1 TEMA ING SOFTAWRE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F6",
+        "file": "INFORMACION - Informe_Cambios_Ecolactea_Excel.docx",
+        "hash_matches": true
+      }
+    ]
+  },
+  "platform_capabilities": {
+    "checked_utc": "2026-10-22T14:39:00.590290+00:00",
+    "host_os": "Linux",
+    "dev_kvm_exists": true,
+    "xcode_available": false,
+    "commands": [
+      {
+        "command": "<ANDROID_SDK>/platform-tools/adb devices -l",
+        "exit_code": 0,
+        "stdout": "List of devices attached",
+        "stderr": ""
+      },
+      {
+        "command": "<ANDROID_SDK>/emulator/emulator -accel-check",
+        "exit_code": 0,
+        "stdout": "accel:\n0\nKVM (version 12) is installed and usable.\naccel",
+        "stderr": ""
+      }
+    ],
+    "scope": "Comprobación de disponibilidad; no prueba UI móvil ni emulador arrancado."
+  },
+  "environment_shutdown_final": {
+    "stopped_utc": "2026-10-22T15:22:10.434542+00:00",
+    "own_processes_stopped": [
+      "emulator.json",
+      "proxy.json",
+      "server.json"
+    ],
+    "loopback_ports_closed": {
+      "8765": true,
+      "8766": true,
+      "5582": true,
+      "5583": true
+    },
+    "adb_reverse_removed": true,
+    "no_production_service_affected": true
+  },
+  "working_tree_changes": {
+    "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0",
+    "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816",
+    "web/tests/Feature/AdminNavegacionYPermisosTest.php": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04",
+    "web/tests/Feature/AdminPantallasTest.php": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25",
+    "web/tests/Feature/AdminZonasRutasVehiculosTest.php": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+  },
+  "android_cases": {
+    "CP-001": {
+      "before": {
+        "id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+        "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5",
+        "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161",
+        "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be",
+        "zona_id": "zona-moro-viejo-pancha",
+        "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1",
+        "litros": 20.0,
+        "tachos": 1,
+        "observaciones": "CP001_local_ficticio",
+        "sync_state": "PENDING",
+        "proveedor_codigo": "PRV-MORO-01"
+      },
+      "after": {
+        "id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+        "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5",
+        "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161",
+        "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be",
+        "zona_id": "zona-moro-viejo-pancha",
+        "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1",
+        "litros": 20.0,
+        "tachos": 1,
+        "observaciones": "CP001_local_ficticio",
+        "sync_state": "PENDING",
+        "proveedor_codigo": "PRV-MORO-01"
+      },
+      "wifi_disabled": true,
+      "mobile_data_disabled": true,
+      "same_record": true,
+      "ui_reopened_20_litres": true
+    },
+    "CP-002/007": {
+      "uuid": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+      "lost_reply_local": {
+        "id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+        "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5",
+        "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161",
+        "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be",
+        "zona_id": "zona-moro-viejo-pancha",
+        "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1",
+        "litros": 20.0,
+        "tachos": 1,
+        "observaciones": "CP001_local_ficticio",
+        "sync_state": "ERROR",
+        "proveedor_codigo": "PRV-MORO-01"
+      },
+      "server_after_lost_reply": [
+        1,
+        20
+      ],
+      "confirmed_local": {
+        "id": "05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+        "jornada_id": "a75cf4a6-b80a-45be-93a9-6e22a55581e5",
+        "proveedor_id": "b089e631-1f49-4183-bfba-f0ac70f1d161",
+        "usuario_id": "dbec0fa8-33f1-43e1-9f84-596a791635be",
+        "zona_id": "zona-moro-viejo-pancha",
+        "vehiculo_id": "811d0518-0315-4e8d-b09c-0b6d4aeef1f1",
+        "litros": 20.0,
+        "tachos": 1,
+        "observaciones": "CP001_local_ficticio",
+        "sync_state": "SYNCED",
+        "proveedor_codigo": "PRV-MORO-01"
+      },
+      "server_after_retry": [
+        1,
+        20
+      ],
+      "proxy_events": [
+        {
+          "utc": "2026-10-22T15:18:52.920769+00:00",
+          "method": "POST",
+          "path": "/api/movil/sesion",
+          "status": 200,
+          "forwarded": true
+        },
+        {
+          "utc": "2026-10-22T15:18:53.034004+00:00",
+          "method": "PUT",
+          "path": "/api/movil/entregas/05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+          "status": 201,
+          "forwarded": true,
+          "reply_dropped": true
+        },
+        {
+          "utc": "2026-10-22T15:18:53.036375+00:00",
+          "method": "PUT",
+          "path": "/api/movil/entregas/05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+          "status": 503,
+          "forwarded": false
+        },
+        {
+          "utc": "2026-10-22T15:18:53.120872+00:00",
+          "method": "PUT",
+          "path": "/api/movil/cambios/jornada",
+          "status": 200,
+          "forwarded": true
+        },
+        {
+          "utc": "2026-10-22T15:18:53.220665+00:00",
+          "method": "GET",
+          "path": "/api/movil/datos",
+          "status": 200,
+          "forwarded": true
+        },
+        {
+          "utc": "2026-10-22T15:18:56.616174+00:00",
+          "method": "PUT",
+          "path": "/api/movil/entregas/05f107e2-7bdd-4a22-a040-7dc55be0d6b5",
+          "status": 200,
+          "forwarded": true
+        },
+        {
+          "utc": "2026-10-22T15:18:56.690466+00:00",
+          "method": "GET",
+          "path": "/api/movil/datos",
+          "status": 200,
+          "forwarded": true
+        }
+      ]
+    }
+  },
+  "android_emulator": {
+    "api": 36,
+    "android": "16",
+    "avd": "Galaxy_S25_Android_16; emulador, no Samsung físico",
+    "fresh_temporary_userdata": true,
+    "read_only_no_snapshots": true,
+    "KVM_usable_with_authorized_permissions": true,
+    "screen_initial": "720x1560",
+    "screen_case_001": "720x2400; ajuste del arnés en emulador",
+    "preview_apk_sha256": "28007dd11facdc6e99d986fcaba43d4b36b33838ffbd5a3ce72b10eadd41be10",
+    "standard_firebase_build": "Blocked: google-services.json legítimo no disponible",
+    "ios": "No ejecutado: Linux sin Xcode"
+  },
+  "additional_evidence_sha256": {
+    "BUG-002-arranque-android.log": "4a3b48e278f925070a78251ab5587c0ed67123cb101a5e35358bd16ca5fc6335"
+  },
+  "proxy_script_sha256": "7fa90629e0d9d87bcbf5ae607d1aad4ad700cf07b1feb8600154ef32e4fe7e7e"
+}

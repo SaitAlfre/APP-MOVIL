@@ -1,0 +1,114 @@
+ID,Tipo,Titulo,HU_RNF,Responsable_propuesto,Prioridad_propuesta,SP_hipoteticos,Horas_propuestas,Sprint_candidato,Estado_inicial_propuesto,URL_fuente
+HU-01,Historia,Acceder según perfil y ruta,HU-01,,Must,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-01
+HU-02,Historia,Administrar y buscar productores,HU-02,,Must,8,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-02
+HU-03-A,Historia,Registrar una entrega offline,HU-03-A,,Must,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-03-a
+HU-03-B,Historia,Registrar un lote en un punto de acopio,HU-03-B,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-03-b
+HU-04-A,Historia,Reintentar entregas con confirmación remota,HU-04-A,,Must,5,,S06,Backlog,docs/scrum/product-backlog.md#hu-04-a
+HU-04-B,Historia,Resolver conflicto entre dispositivos,HU-04-B,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-04-b
+HU-05-A,Historia,Registrar análisis trazable en campo o planta,HU-05-A,,Must,5,,S07,Backlog,docs/scrum/product-backlog.md#hu-05-a
+HU-05-B,Historia,Evaluar y mostrar el resultado de calidad,HU-05-B,,Must,5,,S07 opcional,Backlog,docs/scrum/product-backlog.md#hu-05-b
+HU-05-C,Historia,Restringir el plan de control inopinado,HU-05-C,,Must,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-05-c
+HU-05-D,Historia,Registrar visitas y capacitación,HU-05-D,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-05-d
+HU-06,Historia,Revisar lectura OCR de LactoScan,HU-06,,Should,5,,S07 opcional Android,Backlog,docs/scrum/product-backlog.md#hu-06
+HU-07-A,Historia,Consultar totales de acopio,HU-07-A,,Must,3,,S08 opcional,Backlog,docs/scrum/product-backlog.md#hu-07-a
+HU-07-B,Historia,Consultar informe de calidad,HU-07-B,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-07-b
+HU-07-C,Historia,Calcular liquidación semanal,HU-07-C,,Must,5,,S08,Backlog,docs/scrum/product-backlog.md#hu-07-c
+HU-07-D,Historia,Registrar y corregir pagos con auditoría,HU-07-D,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-07-d
+HU-07-E,Historia,Emitir comprobante de liquidación,HU-07-E,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-07-e
+HU-08,Historia,Consultar mapa de rutas,HU-08,,Could,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-08
+HU-09,Historia,Descargar catálogos autorizados,HU-09,,Must,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-09
+HU-10,Historia,Enviar cambios generales con estado explícito,HU-10,,Must,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-10
+HU-11-A,Historia,Consultar mi historial de acopio y calidad,HU-11-A,,Should,3,,S08 opcional para refinamiento,Backlog,docs/scrum/product-backlog.md#hu-11-a
+HU-11-B,Historia,Consultar mis pagos,HU-11-B,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-11-b
+HU-11-C,Historia,Reclamar una entrega del día,HU-11-C,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-11-c
+HU-12-A,Historia,Recibir resultado individual de calidad,HU-12-A,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-12-a
+HU-12-B,Historia,Publicar comunicados a proveedores,HU-12-B,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-12-b
+HU-13,Historia,Renovar y revocar sesión remota,HU-13,,Must,5,,"S06, solo si es dependencia bloqueante",Backlog,docs/scrum/product-backlog.md#hu-13
+HU-15-A,Historia,Crear un evento y registrar asistencia,HU-15-A,,Won’t,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-15-a
+HU-16-A,Historia,Registrar lote de producción,HU-16-A,,Must,5,,S09,Backlog,docs/scrum/product-backlog.md#hu-16-a
+HU-16-B,Historia,Comparar rendimiento y alertar merma,HU-16-B,,Should,3,,S09 opcional,Backlog,docs/scrum/product-backlog.md#hu-16-b
+HU-16-C,Historia,Registrar destino del lote,HU-16-C,,Should,3,,"S09 posible, sin tareas seleccionadas",Backlog,docs/scrum/product-backlog.md#hu-16-c
+HU-17-A,Historia,Registrar venta y descontar stock,HU-17-A,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-17-a
+HU-17-B,Historia,Mantener clientes y precios por tipo,HU-17-B,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-17-b
+HU-17-C,Historia,Alertar stock mínimo de planta,HU-17-C,,Could,2,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-17-c
+HU-17-D,Historia,Consultar ventas y rentabilidad,HU-17-D,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-17-d
+HU-17-E,Historia,Registrar despacho consultable,HU-17-E,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-17-e
+HU-18,Historia,Solicitar y autorizar traslado de zona,HU-18,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-18
+HU-19,Historia,Advertir medición no confirmada,HU-19,,Should,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-19
+HU-20,Historia,Imprimir dos copias del análisis,HU-20,,Should,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-20
+HU-21,Historia,Aplicar sanción de calidad a la semana,HU-21,,Should,8,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-21
+HU-22,Historia,Publicar calidad según alcance autorizado,HU-22,,Won’t,3,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-22
+HU-23,Historia,Conciliar litros campo contra planta,HU-23,,Must,5,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-23
+HU-24,Historia,Administrar parámetros y permisos de configuración,HU-24,,Must,8,,Sin selección,Backlog,docs/scrum/product-backlog.md#hu-24
+T-20,Tarea,"Preparar criterios de HU-04-A, datos ficticios autorizados y coordinación posterior con beneficiario",HU-14,Sait Alfredo Gutierres Velasquez,Por ratificar,,2,S06,Backlog,docs/scrum/tareas.md#t-20
+T-21,Tarea,"Investigar alcance de eventos/asistencia; aclarar responsable, datos y vínculo con avisos (sin dependencia artificial de HU-14)",HU-15,Sait Alfredo Gutierres Velasquez,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-21
+T-22,Tarea,Revisar captura y finalización de lote,HU-16-A,Dubcek Leonel,Must,,2,S09,Backlog,docs/scrum/tareas.md#t-22
+T-23,Tarea,"Revisar alcance de venta, precio y stock",HU-17-A,Dubcek Leonel,Should,,2,Sin selección,Backlog,docs/scrum/tareas.md#t-23
+T-24,Tarea,"Preparar protocolo de reintento, duplicados y errores por CA",HU-04-A,Medina Paye Jhosue Daniel,Must,,2,S06,Backlog,docs/scrum/tareas.md#t-24
+T-25,Tarea,"Preparar protocolo de expiración, renovación y revocación",HU-13,Dubcek Leonel,Must,,2,S06-opcional,Backlog,docs/scrum/tareas.md#t-25
+T-26,Tarea,Delimitar registro de análisis y referencias del beneficiario,HU-05-B,Dubcek Leonel,Must,,2,S07-opcional,Backlog,docs/scrum/tareas.md#t-26
+T-27,Tarea,Preparar dos comprobantes ficticios y corrección manual,HU-06,Medina Paye Jhosue Daniel,Should,,2,S07-opcional,Backlog,docs/scrum/tareas.md#t-27
+T-28,Tarea,Preparar conjunto de litros y liquidación jueves–miércoles,HU-07-C,Dubcek Leonel,Must,,2,S08,Backlog,docs/scrum/tareas.md#t-28
+T-29,Tarea,Refinar alcance de historial propio y separar pagos/reclamos según HU-11-A/B/C,HU-11-A,Medina Paye Jhosue Daniel,Should,,2,S08-opcional,Backlog,docs/scrum/tareas.md#t-29
+T-30,Tarea,Delimitar fórmula de rendimiento y referencia autorizada antes de validar HU-16-B,HU-16-B,Medina Paye Jhosue Daniel,Should,,2,S09-opcional,Backlog,docs/scrum/tareas.md#t-30
+T-31,Tarea,"Coordinar sesión real, versión y consentimiento de datos",HU-14,Sait Alfredo Gutierres Velasquez,Por ratificar,,2,S10,Backlog,docs/scrum/tareas.md#t-31
+T-32,Tarea,Preparar paquete académico según fecha final confirmada; no atribuir entrega ni exposición,HU-14,Quispe Valencia Erick Maycol,Por ratificar,,2,S10,Backlog,docs/scrum/tareas.md#t-32
+T-33,Tarea,Preparar matriz de acceso por perfil y cuenta local,HU-01,Medina Paye Jhosue Daniel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-33
+T-34,Tarea,"Preparar datos de alta, búsqueda y asignación de zona",HU-02,Dubcek Leonel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-34
+T-35,Tarea,Preparar escenarios offline y validaciones de litros,HU-03-A,Medina Paye Jhosue Daniel,Must,,2,Sin selección,Backlog,docs/scrum/tareas.md#t-35
+T-36,Tarea,Preparar matriz de datos autorizados por perfil,HU-09,Dubcek Leonel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-36
+T-37,Tarea,Preparar casos de conflicto y envío parcial por entidad,HU-04-B,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-37
+T-38,Tarea,Aclarar canal de avisos y visibilidad por destinatario,HU-12-B,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-38
+T-39,Tarea,Confirmar valor y restricciones de red del mapa,HU-08,Medina Paye Jhosue Daniel,Could,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-39
+T-40,Tarea,Redactar criterios funcionales de evento y asistencia tras aclaración,HU-15-A,Sait Alfredo Gutierres Velasquez,Won’t,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-40
+T-41,Tarea,"Contrastar CA de reintento y destino sin respuesta en entorno autorizado; registrar resultado, no asumir éxito",HU-04-A,Medina Paye Jhosue Daniel,Must,,2,S06,Backlog,docs/scrum/tareas.md#t-41
+T-42,Tarea,Revisar evidencia de sesión y controles DoD con otro integrante; registrar faltantes antes de Done,HU-13,Dubcek Leonel,Must,,1,S06-opcional,Backlog,docs/scrum/tareas.md#t-42
+T-43,Tarea,Contrastar análisis válido e inválido del alcance mínimo con datos autorizados y registrar resultados,HU-05-A,Dubcek Leonel,Must,,2,S07,Backlog,docs/scrum/tareas.md#t-43
+T-44,Tarea,Revisión cruzada de captura/corrección y evidencia DoD; retirar OCR del compromiso si falta capacidad,HU-06,Medina Paye Jhosue Daniel,Should,,1,S07-opcional,Backlog,docs/scrum/tareas.md#t-44
+T-45,Tarea,Contrastar totales y acceso del periodo con datos conocidos; conservar diferencias y resultado real,HU-07-C,Dubcek Leonel,Must,,2,S08,Backlog,docs/scrum/tareas.md#t-45
+T-46,Tarea,"Revisión cruzada de criterios, documentación y evidencias DoD del reporte mínimo",HU-07-C,Medina Paye Jhosue Daniel,Must,,1,S08,Backlog,docs/scrum/tareas.md#t-46
+T-47,Tarea,Contrastar registro de lote mínimo y datos inválidos con la regla acordada; documentar resultado,HU-16-A,Dubcek Leonel,Must,,2,S09,Backlog,docs/scrum/tareas.md#t-47
+T-48,Tarea,"Revisión cruzada del lote, fórmula documentada y evidencia de controles DoD",HU-16-A,Medina Paye Jhosue Daniel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-48
+T-49,Tarea,"Preparar/observar casos de la sesión autorizada y registrar resultados, fallos o no ejecutados sin retrofechar",HU-14,Medina Paye Jhosue Daniel,Por ratificar,,2,S10,Backlog,docs/scrum/tareas.md#t-49
+T-50,Tarea,"Revisar paquete de versión, resultados y controles DoD antes de exponer; mantener brechas visibles",HU-14,Dubcek Leonel,Por ratificar,,1,S10,Backlog,docs/scrum/tareas.md#t-50
+T-51,Tarea,"Contrastar contrato UUID, confirmación oficial y respuesta de duplicado; registrar discrepancias de API",HU-04-A,Dubcek Leonel,Must,,1,S06,Backlog,docs/scrum/tareas.md#t-51
+T-52,Tarea,Ejecutar y registrar unitarias e integración pertinentes en versión de prueba autorizada,HU-04-A,Dubcek Leonel,Must,,1,S06,Backlog,docs/scrum/tareas.md#t-52
+T-53,Tarea,Revisar PR de otro integrante y documentación de resultados; solicitar correcciones sin autoaprobar,HU-04-A,Dubcek Leonel,Must,,1,S06,Backlog,docs/scrum/tareas.md#t-53
+T-54,Tarea,"Facilitar ratificación, capacidad, planificación y configuración del Project al disponer de acceso",HU-14,Quispe Valencia Erick Maycol,Por ratificar,,2,S06,Backlog,docs/scrum/tareas.md#t-54
+T-55,Tarea,"Registrar integración y despliegue en ambiente de pruebas, versión y resultado de verificación",HU-04-A,Dubcek Leonel,Must,,2,S06,Backlog,docs/scrum/tareas.md#t-55
+T-56,Tarea,Ejecutar CP-001/002 en Android de pruebas y conservar los resultados observados,HU-03-A,Medina Paye Jhosue Daniel,Must,,1,S06,Backlog,docs/scrum/tareas.md#t-56
+T-57,Tarea,"Refinar registrar un lote en un punto de acopio: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-03-B,Medina Paye Jhosue Daniel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-57
+T-58,Tarea,"Refinar restringir el plan de control inopinado: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-05-C,Dubcek Leonel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-58
+T-59,Tarea,"Refinar registrar visitas y capacitación: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-05-D,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-59
+T-60,Tarea,"Refinar consultar informe de calidad: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-07-B,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-60
+T-61,Tarea,"Refinar registrar y corregir pagos con auditoría: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-07-D,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-61
+T-62,Tarea,"Refinar emitir comprobante de liquidación: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-07-E,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-62
+T-63,Tarea,"Refinar consultar mis pagos: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-11-B,Medina Paye Jhosue Daniel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-63
+T-64,Tarea,"Refinar reclamar una entrega del día: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-11-C,Medina Paye Jhosue Daniel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-64
+T-65,Tarea,"Refinar recibir resultado individual de calidad: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-12-A,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-65
+T-66,Tarea,"Refinar registrar destino del lote: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-16-C,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-66
+T-67,Tarea,"Refinar mantener clientes y precios por tipo: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-17-B,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-67
+T-68,Tarea,"Refinar alertar stock mínimo de planta: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-17-C,Dubcek Leonel,Could,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-68
+T-69,Tarea,"Refinar consultar ventas y rentabilidad: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-17-D,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-69
+T-70,Tarea,"Refinar registrar despacho consultable: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-17-E,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-70
+T-71,Tarea,"Refinar solicitar y autorizar traslado de zona: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-18,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-71
+T-72,Tarea,"Refinar advertir medición no confirmada: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-19,Medina Paye Jhosue Daniel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-72
+T-73,Tarea,"Refinar imprimir dos copias del análisis: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-20,Medina Paye Jhosue Daniel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-73
+T-74,Tarea,"Refinar aplicar sanción de calidad a la semana: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-21,Dubcek Leonel,Should,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-74
+T-75,Tarea,"Refinar publicar calidad según alcance autorizado: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-22,Sait Alfredo Gutierres Velasquez,Won’t,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-75
+T-76,Tarea,"Refinar conciliar litros campo contra planta: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-23,Dubcek Leonel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-76
+T-77,Tarea,"Refinar administrar parámetros y permisos de configuración: resolver condición INVEST, concretar datos y protocolo de CA; estimar implementación después",HU-24,Dubcek Leonel,Must,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-77
+T-78,Tarea,"Definir protocolo de respaldo/restauración, retención, responsables y permisos; no ejecutar ni declarar respaldo",RNF-14,Dubcek Leonel,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-78
+T-79,Tarea,Acordar umbrales de tiempo/batería/datos y protocolo de carga RNF-04; no medir todavía,RNF-03,Medina Paye Jhosue Daniel,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-79
+T-80,Tarea,"Preparar observación de campo, controles táctiles y criterios de legibilidad con beneficiario",RNF-09,Sait Alfredo Gutierres Velasquez,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-80
+T-81,Tarea,Precisar matriz de dispositivos Android e iOS y escenarios de compatibilidad verificables,RNF-05,Medina Paye Jhosue Daniel,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-81
+T-82,Tarea,Documentar punto de extensión manual→caudalímetro de Fase 2 sin comprometer implementación IoT,RNF-12,Dubcek Leonel,Por ratificar,,1,Sin selección,Backlog,docs/scrum/tareas.md#t-82
+T-83,Tarea,Implementar o corregir el corte de análisis según campos y origen confirmados,HU-05-A,Dubcek Leonel,Must,,2,S07,Backlog,docs/scrum/tareas.md#t-83
+T-84,Tarea,"Revisar cambios de calidad en PR, CA y documentación como compañero distinto",HU-05-A,Medina Paye Jhosue Daniel,Must,,1,S07,Backlog,docs/scrum/tareas.md#t-84
+T-85,Tarea,Integrar y comprobar una versión de calidad en ambiente local de pruebas,HU-05-A,Dubcek Leonel,Must,,1,S07,Backlog,docs/scrum/tareas.md#t-85
+T-86,Tarea,Completar el cálculo base con precio y vigencia previamente autorizados,HU-07-C,Dubcek Leonel,Must,,1,S08,Backlog,docs/scrum/tareas.md#t-86
+T-87,Tarea,"Revisar PR de cálculo, casos límite y documentación como compañero distinto",HU-07-C,Medina Paye Jhosue Daniel,Must,,1,S08,Backlog,docs/scrum/tareas.md#t-87
+T-88,Tarea,Integrar y comprobar la versión de liquidación en ambiente local de pruebas,HU-07-C,Dubcek Leonel,Must,,0.5,S08,Backlog,docs/scrum/tareas.md#t-88
+T-89,Tarea,Completar el registro y consulta del lote mínimo según campos confirmados,HU-16-A,Dubcek Leonel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-89
+T-90,Tarea,"Revisar PR del lote, CA y documentación como compañero distinto",HU-16-A,Medina Paye Jhosue Daniel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-90
+T-91,Tarea,Integrar y comprobar la versión de lotes en ambiente local de pruebas,HU-16-A,Dubcek Leonel,Must,,0.5,S09,Backlog,docs/scrum/tareas.md#t-91
