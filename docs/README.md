@@ -2,9 +2,11 @@
 
 [Inicio del repositorio](../README.md)
 
-**Actualización:** 2026-10-22. **Scrum como marco principal + prácticas Kanban.** El proceso está preparado para adopción; los acuerdos del equipo y buena parte de su ejecución **no están acreditados**. Código presente no significa Done. Corte de evidencia histórica Git: 2026-10-19.
+**Actualización:** 2026-10-23. **Scrum como marco principal + prácticas Kanban.** El proceso está preparado para adopción; los acuerdos del equipo y buena parte de su ejecución **no están acreditados**. Código presente no significa Done. Corte de evidencia histórica Git: 2026-10-19.
 
 ## Empezar aquí
+
+[Tablero operativo privado](https://github.com/users/SaitAlfre/projects/1/views/2) · [PR #2 abierto](https://github.com/SaitAlfre/APP-MOVIL/pull/2) · [Instantánea inicial e IDs reales](kanban/project-operativo.json). GitHub Projects es la fuente del estado operativo; los documentos mantienen alcance, criterios y propuestas de estimación.
 
 1. [Cómo trabajamos](COMO-TRABAJAMOS.md): qué hace cada integrante antes, durante y después de una tarea.
 2. [Proceso breve del proyecto](proceso-scrum-del-proyecto.md): síntesis del entregable docente.
@@ -18,10 +20,10 @@
 | Información / pregunta | Fuente única | Vistas que enlazan o se derivan |
 |---|---|---|
 | Requisitos originales y controles RNF | [61 RF](requisitos/rf-fuente-y-cobertura.md), [17 RNF](requisitos/rnf-fuente-y-cobertura.md) | Trazabilidad y matriz; Charter aprobado pendiente. |
-| Historias, CA, prioridad, SP y estado HU | [Product Backlog](scrum/product-backlog.md) | 41 historias funcionales/86 CA/82 Gherkin propuestos; padres conservados. |
+| Historias, CA, prioridad y SP propuestos | [Product Backlog](scrum/product-backlog.md) | 41 historias funcionales/86 CA/82 Gherkin propuestos; padres conservados. |
 | Responsabilidades | [Roles](scrum/roles.md) | Proceso/guía resumen; acta pendiente. |
-| Tareas, responsable, horas y estado | [Registro de tareas](scrum/tareas.md) | 91 IDs: 19 aportes históricos y 72 propuestas; sprints enlazan. |
-| Estado futuro en herramienta | [Política Kanban](kanban/tablero.md) | Project aún no confirmado; al adoptar, tareas será export fechado, no segundo estado editable. |
+| Tareas, responsable y horas propuestos | [Registro de tareas](scrum/tareas.md) | 91 IDs: 19 aportes históricos y 72 propuestas; sprints enlazan. |
+| Estado operativo de historias y tareas | [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2) y [políticas](kanban/tablero.md) | 113 issues reales en Backlog inicial; [instantánea](kanban/project-operativo.json). Actualizar estados en Project, no en un segundo backlog manual. |
 | Fechas, discrepancias y capacidad | [Calendario](scrum/calendario-y-capacidad.md) | Las fechas se reflejan en cada sprint; horas reales N/D. |
 | Objetivo, alcance y selección de cada sprint | [S01…S10](#planificacion-y-calidad), un archivo por sprint | Cada sprint enlaza a HU/tareas; no copiar CA, responsables ni estados. |
 | Evidencias | [Índice EV](evidencias/README.md) | [22 commits](scrum/evidencias-commits.md), pruebas/PR/eventos cuando existan. |

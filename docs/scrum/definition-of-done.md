@@ -13,7 +13,7 @@
 | ID | Control obligatorio | Evidencia necesaria | Estado real del conjunto auditado |
 |---|---|---|---|
 | DOD-01 | Implementación completa del corte y todos sus CA satisfechos. | CA → caso → ejecución con hash/plataforma/resultado. | EVIDENCIA PENDIENTE. |
-| DOD-02 | Revisión por otro integrante, observaciones resueltas y PR aprobado. | URL, autor, revisor distinto, aprobación y 2–3 capturas saneadas según F3. | Merge histórico no prueba aprobación; EP-07. |
+| DOD-02 | Revisión por otro integrante, observaciones resueltas y PR aprobado. | URL, autor, revisor distinto, aprobación y 2–3 capturas saneadas según F3. | [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) abierto y revisión solicitada a `dubcek-leonel`; aprobación independiente todavía EVIDENCIA PENDIENTE (EP-07). Merge histórico no prueba aprobación. |
 | DOD-03 | Unitarias pertinentes satisfactorias y pruebas de aceptación del corte. | Reporte fechado con comando/selección, resumen/exit status, versión y entorno. | 22-10: JVM 259/259 ampliado (corte original256), PHP 289/289, Firestore 9/9. Aceptación completa por corte/dispositivo y reglas aún EP-08/12; no marcar toda DOD-03 cumplida. |
 | DOD-04 | Integración en rama acordada sin errores. | Hash integrado, build/checks y resultado verificable; identificar destino. | Integración Ktor→API→SQLite real y builds web/preview Passed (22-10); integración del parche en rama destino/PR sigue EP-09. |
 | DOD-05 | Despliegue en ambiente de pruebas y comprobación de versión. | Entorno autorizado, fecha/hash, resultado de verificación, sin secretos. | 22-10: copia web desplegada temporalmente en loopback, HTTP 200, CP-003 y cinco integraciones reales; versión/entorno en EXE-12/14/15. Cumple para ese ambiente local, no despliegue remoto. |
@@ -37,3 +37,5 @@ No hay historias con Done acreditado al 22-10; esto no afirma ausencia de funcio
 **Evidencia técnica vigente:** [resultados reales del 22-10](../pruebas/ejecuciones/resultados-2026-10-22.md). Un control puede cumplirse para esa versión/entorno sin cerrar todos los demás. No se omite PR aprobado ni se usa el agente como revisor independiente de su propio cambio.
 
 **Regresiones ampliadas:** [cobertura/checklists](../pruebas/cobertura-y-cierre.md), [recibos posteriores](../pruebas/ejecuciones/automaticas/README.md). No se omite revisión independiente ni se transforma el agente en aprobador de su propio trabajo.
+
+**Corte posterior a la publicación, 23-10:** cuatro commits publicados y CI documental remoto satisfactorio; no se integraron todavía en develop/main ni se recibió aprobación independiente. Siguen **0 de 41 historias certificadas Done**. El Project operativo no sustituye aceptación, revisión ni validación del beneficiario.

@@ -1,6 +1,6 @@
 # Proceso Scrum del proyecto — Ecolactea Digital
 
-**Versión 2026-10-21.** Proceso propuesto, ratificación del equipo pendiente. Base: F1 d9–10, F2 y F3 ([fuentes](academico/fuentes-docentes.md)). No acredita Scrum histórico.
+**Versión 2026-10-23.** Proceso propuesto, ratificación del equipo pendiente. Base: F1 d9–10, F2 y F3 ([fuentes](academico/fuentes-docentes.md)). No acredita Scrum histórico.
 
 ## Propósito y elección
 
@@ -45,6 +45,6 @@ Necesidad→RF/RNF→HU/CA→refinamiento/MoSCoW/Poker→Planning según horas r
 
 **DoD:** CA satisfechos, implementación completa, PR aprobado por otro integrante, unitarias/aceptación satisfactorias, integración sin errores, despliegue a pruebas, documentación y evidencia versionada. Todo control sin respaldo permanece pendiente; código no equivale a Done. [Checklist](scrum/definition-of-done.md).
 
-Herramienta propuesta: GitHub Projects, URL EVIDENCIA PENDIENTE. Columnas Backlog→To Do→In Progress→Review→Done. WIP propuesto: 2 por columna activa y 2 en total, incluidas bloqueadas; tareas como unidad, sin duplicar HU padre. [Políticas](kanban/tablero.md). [Repositorio](https://github.com/SaitAlfre/APP-MOVIL).
+Herramienta operativa desde el 23-10: [GitHub Projects privado](https://github.com/users/SaitAlfre/projects/1/views/2), 41 historias y 72 tareas identificadas; [instantánea](kanban/project-operativo.json). Acceso del cuarto integrante y adopción del equipo pendientes. Columnas Backlog→To Do→In Progress→Review→Done. WIP propuesto: 2 por columna activa y 2 en total, incluidas bloqueadas; tareas como unidad, sin duplicar HU padre. [Políticas](kanban/tablero.md). [Repositorio](https://github.com/SaitAlfre/APP-MOVIL).
 
 Solo main local confirmada; feature→develop→main es [flujo propuesto](scrum/flujo-git-y-revision.md). [Backlog](scrum/product-backlog.md), [guía práctica](COMO-TRABAJAMOS.md) y [matriz académica](academico/matriz-cumplimiento.md) enlazan evidencia y pendientes.

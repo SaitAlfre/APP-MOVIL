@@ -37,6 +37,8 @@ Los [resultados registrados](docs/pruebas/ejecuciones/README.md) identifican ver
 
 ## Colaborar
 
+[Tablero Scrum + Kanban — privado](https://github.com/users/SaitAlfre/projects/1/views/2) · [PR #2: revisión de la publicación](https://github.com/SaitAlfre/APP-MOVIL/pull/2). Los cuatro commits están publicados en `cierre/scrum-kanban-pruebas-20261022`; la integración en `develop` y `main` requiere aprobación independiente. El propietario y los dos colaboradores actuales tienen acceso al tablero; falta confirmar la cuenta del cuarto integrante.
+
 Consultar el [flujo Git y revisión](docs/scrum/flujo-git-y-revision.md), utilizar las [plantillas](docs/README.md#plantillas-minimas) y actualizar la fuente correspondiente según el [mapa documental](docs/README.md#fuentes-principales). Una historia se cierra solo con sus criterios de aceptación y la [Definition of Done](docs/scrum/definition-of-done.md).
 
 Referencia de la plataforma: [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).

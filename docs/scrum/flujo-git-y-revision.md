@@ -1,6 +1,6 @@
 # Flujo Git y revisión para cuatro integrantes
 
-**Estado vigente, 23-10-2026:** publicación autorizada por el usuario. Rama de trabajo `cierre/scrum-kanban-pruebas-20261022`; `develop` creada localmente desde main verificada. GitHub todavía no acepta la autenticación disponible. Mantener main estable; revisión de otro integrante obligatoria antes de integrar. Las secciones fechadas siguientes conservan los cortes anteriores.
+**Estado vigente, 23-10-2026:** autenticación confirmada como `SaitAlfre`; `develop` y `cierre/scrum-kanban-pruebas-20261022` publicadas sin force. [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) abierto hacia develop, con revisión solicitada a `dubcek-leonel` y CI remoto satisfactorio. Main permanece en `05743b97f2e5835250e223eabc09f9924b7524bb`. Integración pendiente de aprobación real de otro integrante. Los cuatro commits locales se conservan con sus hashes; las secciones fechadas siguientes son cortes históricos anteriores a esta publicación.
 
 ## Hechos verificados — 2026-10-21
 
@@ -52,6 +52,8 @@ API pública: solo rama main; PR #1 cerrado/fusionado el 24-09; `/pulls/1/review
 
 ## Solicitud de revisión preparada — 2026-10-23
 
+**Antecedente anterior a autenticar:** el contenido siguiente se materializó en el [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2). La revisión ya está solicitada; su aprobación sigue pendiente.
+
 **Título del PR:** Ecolactea: correcciones verificadas y Scrum con Kanban.
 
 **Origen → destino:** `cierre/scrum-kanban-pruebas-20261022` → `develop`.
@@ -97,3 +99,11 @@ Elegir un integrante distinto del autor autenticado del PR, con acceso y compete
 | `8674b53756ec9c765dc6de763ea7af32efe956ad` | Instrumentación OCR/offline y ajustes de tres tests PHP. |
 
 Atribución real: Codex como agente autorizado, sin identidad estudiantil inventada. El commit documental se identifica mediante `git log` para no escribir su propio hash dentro del contenido que lo genera. Los 22 commits históricos siguen íntegros. No hay URL de PR/tablero ni commits publicados acreditados hasta autenticar y comprobar la respuesta remota.
+
+## Publicación real y siguiente paso del equipo
+
+- Publicados: `c9ace98`, `e01d8c6`, `8674b53` y `0673c90`; no se alteraron los 22 commits históricos. La actualización posterior de enlaces operativos se identifica mediante Git, sin escribir su propio hash.
+- [CI del push inicial](https://github.com/SaitAlfre/APP-MOVIL/actions/runs/39975262694) y [CI del PR inicial](https://github.com/SaitAlfre/APP-MOVIL/actions/runs/39975391012): satisfactorios para `0673c90`; comprobar también el último commit del PR.
+- Revisor solicitado: `dubcek-leonel`, colaborador real con escritura. No se inventó una respuesta, aprobación o reunión.
+- Después de su aprobación y de resolver observaciones, integrar en develop, comprobar el incremento y abrir PR develop→main. No abrir un PR vacío ni promover a main antes de esa revisión.
+- [Tablero privado](https://github.com/users/SaitAlfre/projects/1/views/2) e [IDs operativos](../kanban/project-operativo.json). El propietario puede confirmar acceso del cuarto integrante sin asignar nombres supuestos.

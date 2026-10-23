@@ -1,14 +1,14 @@
 # Product Backlog — catálogo canónico
 
-**Actualizado:** 2026-10-21. **Product Goal:** conservar acopio y calidad trazables en Huata aun sin conexión, confirmar su recepción y ofrecer información fiable a planta y productores; producción y ventas se incorporan por cortes de valor.
+**Actualizado:** 2026-10-23. **Product Goal:** conservar acopio y calidad trazables en Huata aun sin conexión, confirmar su recepción y ofrecer información fiable a planta y productores; producción y ventas se incorporan por cortes de valor.
 
 ## Cómo leer y mantener el catálogo
 
 La [cobertura técnica actual por las41 HU](../pruebas/cobertura-y-cierre.md) enlaza las ejecuciones nuevas, sin cambiar los CA propuestos ni cerrar DoD.
 
-Esta es la única fuente de descripción, CA, dependencias, MoSCoW, puntos y estado de historias. [Tareas](tareas.md) contiene responsables y estados de tareas; [requisitos](../requisitos/rf-fuente-y-cobertura.md) conserva los 61 RF originales. Los criterios siguientes son **especificaciones propuestas, PENDIENTES DE VALIDACIÓN**, no resultados de pruebas.
+Esta es la fuente canónica de descripción, CA, dependencias, MoSCoW y puntos propuestos de historias. El [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2) mantiene el estado operativo y los issues enlazan a este catálogo. [Tareas](tareas.md) contiene alcance, responsables y horas propuestos; [requisitos](../requisitos/rf-fuente-y-cobertura.md) conserva los 61 RF originales. Los criterios siguientes son **especificaciones propuestas, PENDIENTES DE VALIDACIÓN**, no resultados de pruebas.
 
-**Estado por defecto de las 41 historias:** operativo **no confirmado**; ubicación inicial **Backlog propuesta**. Ninguna tiene evidencia suficiente de Done. El nivel de implementación se informa por requisito, sin inferirlo del flujo. Registrar aquí una excepción solo con fecha real y URL del Project. Todos los responsables son **propuestos**, distintos de autores históricos.
+**Instantánea inicial real, 23-10:** 41 historias creadas en **Backlog** del Project. Consultar el estado vigente allí; [IDs/URLs iniciales](../kanban/project-operativo.json). Ninguna tiene evidencia suficiente de Done. El nivel de implementación se informa por requisito, sin inferirlo del flujo. Responsables, puntos y selección siguen **propuestos**, sin atribuirles autorías históricas.
 
 Los 17 IDs anteriores permanecen como historias, agrupaciones o habilitadores. Los padres no se estiman ni suman de nuevo. HU-14 es habilitador; HU-15 es investigación, sin puntos de historia. Hay **41 historias funcionales, 86 CA y 82 escenarios Gherkin propuestos**: separar resultados no acredita nuevas funciones implementadas.
 

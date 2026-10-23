@@ -2,7 +2,7 @@
 
 [Índice](README.md) · [Registrar pruebas](pruebas/README.md) · [Actualizar documentación](guia-mantenimiento-documentacion.md)
 
-**Vigente como proceso propuesto desde 2026-10-21.** Scrum organiza el trabajo; Kanban permite ver su flujo. Ratificación del equipo, horarios, capacidad y herramienta: [EP-01/03/11](academico/evidencias-pendientes.md). No acredita aplicación histórica.
+**Vigente como proceso propuesto desde 2026-10-21.** Scrum organiza el trabajo; Kanban permite ver su flujo. Ratificación del equipo, horarios, capacidad y acceso del cuarto integrante: [EP-01/03/11](academico/evidencias-pendientes.md). No acredita aplicación histórica.
 
 ## Fuentes que debemos consultar
 
@@ -10,7 +10,7 @@
 |---|---|
 | ¿Qué necesita el beneficiario? | [61 RF](requisitos/rf-fuente-y-cobertura.md), [17 RNF](requisitos/rnf-fuente-y-cobertura.md); Charter pendiente. |
 | ¿Qué resultado entregaremos? | [Product Backlog: historias y CA](scrum/product-backlog.md). |
-| ¿Quién hace qué y cuál es su estado? | [Tareas](scrum/tareas.md), después export del Project real. |
+| ¿Quién hace qué y cuál es su estado? | Alcance/horas propuestas en [tareas](scrum/tareas.md); estado operativo en [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2). |
 | ¿Qué semana y horas se acordaron? | [Calendario/capacidad](scrum/calendario-y-capacidad.md); [S06 candidato](scrum/sprint-6.md). |
 | ¿Qué responsabilidad tiene cada uno? | [Roles](scrum/roles.md). |
 | ¿Cómo comprobamos y cerramos? | [Pruebas](pruebas/README.md), [DoD](scrum/definition-of-done.md), [evidencias](evidencias/README.md). |
@@ -43,7 +43,7 @@ Estas etapas pueden iterarse: pruebas y revisión acompañan el desarrollo; no s
 3. Verificar dependencias, datos, permisos, entorno y plataforma. No asumir URL configurada en iOS ni primer login offline.
 4. Developers eligen/desglosan tareas, acuerdan responsable y revisor; SM facilita. No tomar una tarea solo por su urgencia de auditoría.
 5. Registrar tarea estable, vínculo HU/CA/RNF, horas y sprint. Pasar a To Do solo tras selección; a In Progress al comenzar realmente y si hay WIP.
-6. Crear rama cuando el equipo ejecute el [flujo Git](scrum/flujo-git-y-revision.md). La rama local de cierre se creó el 22-10 por autorización del usuario; no hay develop remoto ni PR nuevo.
+6. Crear rama cuando el equipo ejecute el [flujo Git](scrum/flujo-git-y-revision.md). El 23-10 se publicaron `develop` y la rama de cierre; el [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) está abierto hacia develop, con revisión solicitada a `dubcek-leonel`. No integrar sin aprobación real.
 
 ## Durante el trabajo
 
@@ -85,3 +85,11 @@ Ejecutar `python3 docs/herramientas/verificar_documentacion.py --export-kanban`,
 ## Verificación automática disponible
 
 Usar los [comandos reproducibles](herramientas/README.md) antes del PR. Las [ejecuciones nuevas](pruebas/ejecuciones/automaticas/README.md) actualizan el índice desde recibos reales; no actualizan Done, votos o reuniones. Consultar el [cierre técnico](pruebas/cobertura-y-cierre.md) para distinguir controles comprobados de aceptación pendiente.
+
+## Tablero operativo desde el 23-10-2026
+
+- Abrir el [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2). `SaitAlfre`, `dubcek-leonel` y `Valencia-19` tienen acceso; falta identificar la cuenta del cuarto integrante.
+- Buscar el ID de la historia o tarea. Hay 41 historias y 72 tareas nuevas, con enlaces a su fuente principal y relaciones padre/subtarea cuando existe una HU operativa correspondiente. Los 19 aportes históricos no se recrearon como trabajo nuevo.
+- Estado inicial real: Backlog. No mover a To Do hasta Planning; no asignar Sprint candidato como compromiso confirmado. Los responsables escritos son propuestas, no asignaciones GitHub ratificadas.
+- Registrar cambios de estado, bloqueos y enlaces a EXE/PR en el Project; actualizar los criterios/alcance solo en su documento canónico. La [instantánea](kanban/project-operativo.json) acredita la puesta en marcha, no reemplaza el estado actual.
+- El [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) tiene CI satisfactorio; su aprobación independiente, la integración y los CA completos siguen pendientes. Ninguna HU está certificada Done.

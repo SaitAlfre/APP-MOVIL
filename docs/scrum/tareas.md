@@ -1,13 +1,13 @@
 # Registro canónico de tareas
 
-**Actualizado:** 2026-10-22. Única fuente de descripción, responsable, horas, selección y estado de tareas. [Historias](product-backlog.md) · [RNF](../requisitos/rnf-fuente-y-cobertura.md) · [Kanban](../kanban/tablero.md).
+**Actualizado:** 2026-10-23. Fuente canónica de descripción, responsable y horas propuestos de tareas; estado operativo en el [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2). [Historias](product-backlog.md) · [RNF](../requisitos/rnf-fuente-y-cobertura.md) · [Kanban](../kanban/tablero.md).
 
 ## Reglas comunes
 
 - **T-01…T-19:** aportes técnicos históricos, sin estados operativos reconstruidos ni esfuerzo histórico verificable. Sus horas antiguas eran inspecciones propuestas; el respaldo las conserva.
-- **T-20…T-91:** propuestas por ratificar; los controles técnicos ejecutados el 22-10 por el agente se enlazan abajo, sin atribuir su realización al integrante propuesto. Estado operativo inicial **no confirmado**, Backlog inicial **propuesto**, sin movimientos acreditados. Nuevos refinamientos usan 1 h como timebox de investigación, no promesa de implementar un RF.
+- **T-20…T-91:** propuestas por ratificar; los controles técnicos ejecutados el 22-10 por el agente se enlazan abajo, sin atribuir su realización al integrante propuesto. Instantánea inicial del 23-10: las 72 propuestas se crearon en **Backlog** del Project, sin movimientos históricos reconstruidos ni selección acreditada. Nuevos refinamientos usan 1 h como timebox de investigación, no promesa de implementar un RF.
 - Responsables y horas son propuestas. La selección/capacidad se confirman en Planning. SP están en historias; horas aquí. El código/hash no acredita CA ni DoD.
-- Cuando se adopte el Project, registrar URL y fecha; este archivo pasa a ser export documental fechado. No editar estados en dos lugares. Mientras no exista, actualizar aquí cada transición real mediante [plantilla](../plantillas/tarea.md): fecha/hora, actor, estado, inicio/fin y bloqueo.
+- Desde el 23-10, actualizar transiciones y bloqueos en GitHub Projects. Este catálogo mantiene alcance/estimaciones y los aportes históricos; la [instantánea de IDs reales](../kanban/project-operativo.json) vincula issues/subtareas. No mantener un segundo estado manual.
 - Salida de una tarea futura: archivo/URL y resultado real, conservando fallos y vinculando defecto. Sin decisión/datos: registrar bloqueo. Una tarea de preparación se cierra por su salida documental, sin declarar la HU Done.
 - Tabla siguiente: **vista única de tareas**. EA corresponde al [entregable](../academico/entregables-y-validacion.md); no significa entregado al aula.
 

@@ -1,6 +1,6 @@
 # Mantener la documentación al cambiar el software
 
-**Responsable:** autor del cambio; revisión por compañero. PO cuida valor/requisitos; SM facilita consistencia y seguimiento; nadie concentra toda la documentación. Fecha de actualización: 2026-10-22.
+**Responsable:** autor del cambio; revisión por compañero. PO cuida valor/requisitos; SM facilita consistencia y seguimiento; nadie concentra toda la documentación. Fecha de actualización: 2026-10-23.
 
 ## Ciclo de cambio en 13 pasos
 
@@ -34,7 +34,7 @@
 
 ## Fuente única y vistas derivadas
 
-Requisitos: RF/RNF; historias: Product Backlog; responsables: roles; tareas/estado: registro y luego export del Project; fechas/capacidad: calendario; evidencia: índice; resultados: ejecuciones; arquitectura/decisiones: documento técnico y decisiones fechadas en él. [Mapa completo](README.md#fuentes-principales).
+Requisitos: RF/RNF; historias: Product Backlog; responsables: roles; alcance/horas de tareas: registro; estado operativo: Project privado y snapshots fechados; fechas/capacidad: calendario; evidencia: índice; resultados: ejecuciones; arquitectura/decisiones: documento técnico y decisiones fechadas en él. [Mapa completo](README.md#fuentes-principales).
 
 No repetir el estado de una HU en sprint, matriz y tablero. Allí enlazar a la fuente. Si cambia un ID o vínculo, actualizar la vista de trazabilidad; no cambiar los IDs históricos. Si cambia solo una ejecución, conservar el caso y agregar otra ejecución.
 
