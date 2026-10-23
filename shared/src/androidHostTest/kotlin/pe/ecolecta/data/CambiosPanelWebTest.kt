@@ -64,6 +64,46 @@ class CambiosPanelWebTest {
     private fun iniciarSesionAdmin() = db.sesionQueries.establecer(admin.id, "ADMIN")
 
     @Test
+    fun `un cambio con datos pero sin cuenta autora conserva la fila para reintentar`() = runBlocking {
+        SqlDelightZonaRepository(db, Dispatchers.IO).insertar(Zona("zona-sin-autor", "SIN AUTOR", true))
+        val panel = PanelFalso()
+
+        val resultado = EnviarCambiosServidorUseCase(panel, cola)()
+
+        assertEquals(0, resultado.enviados)
+        assertTrue(panel.recibidos.isEmpty())
+        val pendiente = db.cambioPendienteQueries.porClave("zona", "zona-sin-autor").executeAsOneOrNull()
+        kotlin.test.assertNotNull(pendiente, "no se elimina un cambio que el panel no recibió")
+        assertEquals("PENDING", pendiente.estado)
+        assertTrue(pendiente.ultimo_error.orEmpty().contains("cuenta autora"))
+    }
+
+    @Test
+    fun `editar con una cuenta valida permite enviar el cambio conservado sin autor`() = runBlocking {
+        val zonas = SqlDelightZonaRepository(db, Dispatchers.IO)
+        zonas.insertar(Zona("zona-sin-autor", "SIN AUTOR", true))
+        val panel = PanelFalso()
+        val enviar = EnviarCambiosServidorUseCase(panel, cola)
+        enviar()
+
+        iniciarSesionAdmin()
+        zonas.actualizar(Zona("zona-sin-autor", "EDITADA POR ADMIN", true))
+        assertEquals(1, enviar().enviados)
+        assertEquals(admin.id, panel.recibidos.single().first)
+        assertNull(db.cambioPendienteQueries.porClave("zona", "zona-sin-autor").executeAsOneOrNull())
+    }
+
+    @Test
+    fun `una fila inexistente no se envia ni se cuenta como recibida por el panel`() = runBlocking {
+        db.cambioPendienteQueries.marcar("zona", "fila-inexistente", admin.id, null, 1L)
+        val panel = PanelFalso()
+
+        assertEquals(0, EnviarCambiosServidorUseCase(panel, cola)().enviados)
+        assertTrue(panel.recibidos.isEmpty())
+        assertNull(db.cambioPendienteQueries.porClave("zona", "fila-inexistente").executeAsOneOrNull())
+    }
+
+    @Test
     fun `una zona creada en el celular llega al panel con la cuenta del admin y no se reenvia`() = runBlocking {
         iniciarSesionAdmin()
         SqlDelightZonaRepository(db, Dispatchers.IO).insertar(Zona("zona-nueva", "ZONA NUEVA", true))
