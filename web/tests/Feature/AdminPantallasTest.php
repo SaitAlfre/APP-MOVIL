@@ -88,7 +88,6 @@ class AdminPantallasTest extends TestCase
             "/admin/proveedores/{$proveedor->id}?tab=auditoria",
             "/admin/proveedores/{$proveedor->id}/editar",
             '/admin/zonas-vehiculos',
-            '/admin/zonas-vehiculos?tab=rutas',
             '/admin/zonas-vehiculos?tab=vehiculos',
             '/admin/zonas/nueva',
             '/admin/vehiculos/nuevo',
@@ -122,6 +121,9 @@ class AdminPantallasTest extends TestCase
         foreach ($rutas as $ruta) {
             $this->get($ruta)->assertOk();
         }
+
+        $this->get('/admin/zonas-vehiculos?tab=rutas')
+            ->assertRedirect(route('admin.mapa-rutas.index'));
     }
 
     public function test_la_vista_previa_de_una_importacion_se_muestra_con_sus_errores(): void

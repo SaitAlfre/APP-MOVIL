@@ -33,9 +33,11 @@ class AdminNavegacionYPermisosTest extends TestCase
         foreach (['Principal', 'Administración', 'Operaciones', 'Finanzas', 'Planta', 'Comunicación', 'Análisis', 'Sistema'] as $grupo) {
             $respuesta->assertSee($grupo, false);
         }
-        foreach (['Centro operativo', 'Usuarios y roles', 'Proveedores', 'Recepción en planta', 'Design System'] as $enlace) {
+        foreach (['Centro operativo', 'Usuarios y roles', 'Proveedores', 'Recepción en planta', 'Configuración', 'Rutas de acopio'] as $enlace) {
             $respuesta->assertSee($enlace, false);
         }
+
+        $respuesta->assertDontSee(route('admin.design-system.index'), false);
     }
 
     public function test_el_rol_produccion_ve_planta_pero_no_administracion(): void
