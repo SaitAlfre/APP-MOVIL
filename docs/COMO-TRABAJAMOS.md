@@ -2,7 +2,7 @@
 
 [Índice](README.md) · [Registrar pruebas](pruebas/README.md) · [Actualizar documentación](guia-mantenimiento-documentacion.md)
 
-**Vigente como proceso propuesto desde 2026-10-21.** Scrum organiza el trabajo; Kanban permite ver su flujo. Ratificación del equipo, horarios, capacidad y acceso del cuarto integrante: [EP-01/03/11](academico/evidencias-pendientes.md). No acredita aplicación histórica.
+**Vigente como proceso propuesto desde 2026-10-21.** Scrum organiza el trabajo; Kanban permite ver su flujo. Ratificación del equipo, horarios, capacidad y aceptación de invitación al repositorio: [EP-01/03/11](academico/evidencias-pendientes.md). No acredita aplicación histórica.
 
 ## Fuentes que debemos consultar
 
@@ -88,7 +88,7 @@ Usar los [comandos reproducibles](herramientas/README.md) antes del PR. Las [eje
 
 ## Tablero operativo desde el 23-10-2026
 
-- Abrir el [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2). `SaitAlfre`, `dubcek-leonel` y `Valencia-19` tienen acceso; falta identificar la cuenta del cuarto integrante.
+- Abrir el [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2). Los cuatro tienen acceso al Project según la [tabla canónica de cuentas](scrum/roles.md#cuentas-github-y-accesos). `jhosuemedina03` debe aceptar su invitación al repositorio para disponer de escritura allí.
 - Buscar el ID de la historia o tarea. Hay 41 historias y 72 tareas nuevas, con enlaces a su fuente principal y relaciones padre/subtarea cuando existe una HU operativa correspondiente. Los 19 aportes históricos no se recrearon como trabajo nuevo.
 - Estado inicial real: Backlog. No mover a To Do hasta Planning; no asignar Sprint candidato como compromiso confirmado. Los responsables escritos son propuestas, no asignaciones GitHub ratificadas.
 - Registrar cambios de estado, bloqueos y enlaces a EXE/PR en el Project; actualizar los criterios/alcance solo en su documento canónico. La [instantánea](kanban/project-operativo.json) acredita la puesta en marcha, no reemplaza el estado actual.

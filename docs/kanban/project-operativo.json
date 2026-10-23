@@ -1,6 +1,6 @@
 {
   "checked_utc": "2026-10-23T15:29:03Z",
-  "nature": "Instantánea inicial de recursos reales; el estado vigente se mantiene en GitHub Projects. No reconstruye movimientos históricos.",
+  "nature": "Instantánea inicial de recursos reales con actualizaciones fechadas de accesos; el estado vigente permanece en GitHub Projects. Se conserva el acceso anterior en access_history; no reconstruye movimientos históricos.",
   "project_url": "https://github.com/users/SaitAlfre/projects/1/views/2",
   "project_private": true,
   "repository": "SaitAlfre/APP-MOVIL",
@@ -10,8 +10,8 @@
   "access": {
     "SaitAlfre": "owner",
     "dubcek-leonel": "WRITER",
-    "Valencia-19": "WRITER",
-    "fourth_member": "PENDIENTE DE VALIDACIÓN: usuario GitHub no confirmado"
+    "jhosuemedina03": "WRITER",
+    "Valencia-19": "WRITER"
   },
   "columns": [
     "Backlog",
@@ -1512,5 +1512,36 @@
     "points_and_hours_separated": true,
     "no_assignees_or_dates_invented": true,
     "duplicates": 0
+  },
+  "access_history": [
+    {
+      "checked_utc": "2026-10-23T15:29:03Z",
+      "access": {
+        "SaitAlfre": "owner",
+        "dubcek-leonel": "WRITER",
+        "Valencia-19": "WRITER",
+        "fourth_member": "PENDIENTE DE VALIDACIÓN: usuario GitHub no confirmado"
+      }
+    },
+    {
+      "checked_utc": "2026-10-23T15:44:29.791409+00:00",
+      "access": {
+        "SaitAlfre": "owner",
+        "dubcek-leonel": "WRITER",
+        "jhosuemedina03": "WRITER",
+        "Valencia-19": "WRITER"
+      },
+      "verified_in": "GitHub Projects / Settings / Manage access: tres compañeros con Write más el propietario"
+    }
+  ],
+  "access_checked_utc": "2026-10-23T15:44:29.791409+00:00",
+  "access_confirmation_source": "Usuario del proyecto identificó explícitamente la cuenta del cuarto integrante; no ratifica roles Scrum ni aprueba el PR.",
+  "repository_access_update": {
+    "checked_utc": "2026-10-23T15:44:29.791409+00:00",
+    "login": "jhosuemedina03",
+    "repository_permission": "read",
+    "repository_invitation_pending": true,
+    "repository_invitation_id": 339357112,
+    "repository_invitation_url": "https://github.com/SaitAlfre/APP-MOVIL/invitations"
   }
 }

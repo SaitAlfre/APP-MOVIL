@@ -13,6 +13,21 @@
 
 Los dos referentes técnicos se proponen para distribuir la verificación futura, sin limitar colaboración ni atribuir responsabilidad histórica. PO y SM pueden contribuir técnicamente como Developers si el equipo acuerda disponibilidad y responsabilidades; su título no añade automáticamente capacidad al WIP.
 
+## Cuentas GitHub y accesos
+
+**Cuentas identificadas explícitamente por el propietario el 23-10-2026 y verificadas en GitHub.** Esta confirmación identifica a los integrantes; la ratificación de responsabilidades Scrum de la sección anterior sigue pendiente (EP-01).
+
+| Integrante | Cuenta GitHub | Repositorio APP-MOVIL | Project privado |
+|---|---|---|---|
+| Sait Alfredo Gutierres Velasquez | [SaitAlfre](https://github.com/SaitAlfre) | Propietario; administración y escritura verificadas. | Propietario. |
+| Quispe Valencia Erick Maycol | [Valencia-19](https://github.com/Valencia-19) | Colaborador con escritura verificada. | Write verificado. |
+| Medina Paye Jhosue Daniel | [jhosuemedina03](https://github.com/jhosuemedina03) | Invitación de colaboración enviada; **ACEPTACIÓN PENDIENTE**. Todavía no acredita escritura. | Write concedido y verificado en Manage access. |
+| Dubcek Leonel | [dubcek-leonel](https://github.com/dubcek-leonel) | Colaborador con escritura verificada. | Write verificado. |
+
+[Project del equipo](https://github.com/users/SaitAlfre/projects/1/views/2) · [Aceptar invitación al repositorio](https://github.com/SaitAlfre/APP-MOVIL/invitations).
+
+La aceptación solo puede realizarla `jhosuemedina03` con su cuenta. La consulta posterior debe acreditar que figura como colaborador con escritura antes de dar por cerrado ese paso. No se duplicaron invitaciones. La [instantánea de recursos y actualización fechada de accesos](../kanban/project-operativo.json) conserva el corte anterior. La revisión del [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) sigue solicitada a `dubcek-leonel`, sin aprobación registrada.
+
 ## Colaboración durante un sprint
 
 Los cuatro colaboran para alcanzar el Sprint Goal. PO aporta valor y prioridades; Developers deciden cómo entregar y adaptan el plan; Scrum Master ayuda a que el proceso y los impedimentos sean visibles. La calidad y la creación de un incremento utilizable corresponden colectivamente a Developers. El feedback del beneficiario se registra cuando ocurre, sin presentarlo como un nombramiento del PO o aprobación histórica.

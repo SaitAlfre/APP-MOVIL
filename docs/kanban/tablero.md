@@ -1,8 +1,8 @@
 # Kanban integrado con Scrum
 
-**Estado real, 23-10-2026:** [Project privado operativo](https://github.com/users/SaitAlfre/projects/1/views/2), vinculado a APP-MOVIL. Se verificó `SaitAlfre` con permisos de administración/escritura. Existen 113 issues únicos: 41 historias y 72 tareas en Backlog inicial, sin transiciones históricas inventadas. [IDs/URLs reales e instantánea](project-operativo.json). Capturas de distintos días, adopción y cuenta del cuarto integrante siguen pendientes (EP-11).
+**Estado real, 23-10-2026:** [Project privado operativo](https://github.com/users/SaitAlfre/projects/1/views/2), vinculado a APP-MOVIL. Se verificó `SaitAlfre` con permisos de administración/escritura. Existen 113 issues únicos: 41 historias y 72 tareas en Backlog inicial, sin transiciones históricas inventadas. [IDs/URLs reales e instantánea](project-operativo.json). Acceso al Project configurado para los cuatro; capturas de distintos días, adopción e invitación de colaboración al repositorio por aceptar siguen pendientes (EP-11).
 
-GitHub Projects es la fuente operativa del estado. El [registro de tareas](../scrum/tareas.md) mantiene alcance/horas y el [backlog](../scrum/product-backlog.md) los criterios: no duplicarlos en los issues. La instantánea conserva IDs y relaciones al crear el tablero; no es otro estado editable. Accesos: propietario `SaitAlfre`; edición concedida a los colaboradores existentes `dubcek-leonel` y `Valencia-19`. Usuario del cuarto integrante **PENDIENTE DE VALIDACIÓN**.
+GitHub Projects es la fuente operativa del estado. El [registro de tareas](../scrum/tareas.md) mantiene alcance/horas y el [backlog](../scrum/product-backlog.md) los criterios: no duplicarlos en los issues. La instantánea conserva IDs y relaciones al crear el tablero; no es otro estado editable. Accesos confirmados del Project: propietario y tres compañeros con Write. La [tabla canónica de cuentas y accesos](../scrum/roles.md#cuentas-github-y-accesos) distingue el permiso del Project de la invitación pendiente al repositorio de `jhosuemedina03`.
 
 ## Columnas, entrada y salida
 
@@ -64,4 +64,4 @@ El [PR #2](https://github.com/SaitAlfre/APP-MOVIL/pull/2) conserva los cuatro co
 
 Configuración comprobada: APP-MOVIL como repositorio predeterminado; desactivados Auto-close issue, Item added to project, Item closed, Pull request linked to issue y Pull request merged. Solo Auto-add sub-issues to project permanece activo. Cerrar o fusionar por sí solo no cambia automáticamente las historias a Done.
 
-Acceso de los colaboradores concedido sin atribuir aceptación: queda pendiente que el cuarto integrante confirme su cuenta y que los cuatro ratifiquen roles, capacidad, estimaciones y selección. Los registros de distintos días deben capturarse cuando realmente ocurran.
+Identidades de los cuatro confirmadas por el propietario y acceso al Project verificado. Queda aceptar la invitación al repositorio de `jhosuemedina03` y que el equipo ratifique roles, capacidad, estimaciones y selección. Los registros de distintos días deben capturarse cuando realmente ocurran.

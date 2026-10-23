@@ -21,7 +21,7 @@
 |---|---|---|
 | Requisitos originales y controles RNF | [61 RF](requisitos/rf-fuente-y-cobertura.md), [17 RNF](requisitos/rnf-fuente-y-cobertura.md) | Trazabilidad y matriz; Charter aprobado pendiente. |
 | Historias, CA, prioridad y SP propuestos | [Product Backlog](scrum/product-backlog.md) | 41 historias funcionales/86 CA/82 Gherkin propuestos; padres conservados. |
-| Responsabilidades | [Roles](scrum/roles.md) | Proceso/guía resumen; acta pendiente. |
+| Responsabilidades y cuentas del equipo | [Roles y accesos](scrum/roles.md) | Identidades GitHub de los cuatro confirmadas; responsabilidades Scrum y acta pendientes. |
 | Tareas, responsable y horas propuestos | [Registro de tareas](scrum/tareas.md) | 91 IDs: 19 aportes históricos y 72 propuestas; sprints enlazan. |
 | Estado operativo de historias y tareas | [Project privado](https://github.com/users/SaitAlfre/projects/1/views/2) y [políticas](kanban/tablero.md) | 113 issues reales en Backlog inicial; [instantánea](kanban/project-operativo.json). Actualizar estados en Project, no en un segundo backlog manual. |
 | Fechas, discrepancias y capacidad | [Calendario](scrum/calendario-y-capacidad.md) | Las fechas se reflejan en cada sprint; horas reales N/D. |
