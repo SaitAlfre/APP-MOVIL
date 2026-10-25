@@ -1,0 +1,62 @@
+{
+  "fuente_delta": "F2 U2-S4 d24 y notas",
+  "naturaleza_delta": "EJERCICIO SIMULADO / REPRESENTACIÓN ACADÉMICA",
+  "comprometido": [
+    20,
+    24,
+    24,
+    26
+  ],
+  "terminado": [
+    14,
+    20,
+    24,
+    21
+  ],
+  "restante_s4": [
+    26,
+    26,
+    22,
+    17,
+    11,
+    5
+  ],
+  "ideal_s4": [
+    26,
+    20.8,
+    15.6,
+    10.4,
+    5.2,
+    0
+  ],
+  "restante_product_backlog": 90,
+  "velocidad_media": 19.75,
+  "cumplimiento_por_sprint": [
+    70.0,
+    83.33333333333333,
+    100.0,
+    80.76923076923077
+  ],
+  "cumplimiento_global": 84.04255319148936,
+  "terminado_acumulado": [
+    0,
+    14,
+    34,
+    58,
+    79
+  ],
+  "alcance_al_cierre_s4_condicional": 169,
+  "alcance_anterior": null,
+  "git_real": {
+    "corte": "2026-10-19",
+    "commits_semanales": [
+      5,
+      13,
+      2,
+      2,
+      0
+    ],
+    "total": 22,
+    "no_es_velocidad_scrum": true
+  }
+}

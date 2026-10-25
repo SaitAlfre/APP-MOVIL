@@ -11,8 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Pantalla unificada de zonas, rutas y vehículos: cada catálogo vive en su pestaña
- * para no mezclar datos distintos en una misma tabla.
+ * Zonas y vehículos conservan sus pestañas; el acceso anterior a rutas redirige
+ * al módulo de mapas, donde se gestiona el recorrido.
  */
 class AdminZonasRutasVehiculosTest extends TestCase
 {
@@ -24,7 +24,7 @@ class AdminZonasRutasVehiculosTest extends TestCase
         $this->actingAs(Usuario::factory()->create(['roles' => ['admin']]), 'operador');
     }
 
-    public function test_cada_pestana_muestra_solo_su_catalogo(): void
+    public function test_cada_pestana_muestra_su_catalogo_y_rutas_redirige_al_mapa(): void
     {
         $zona = Zona::factory()->create(['nombre' => 'Zona Este']);
         Vehiculo::factory()->create(['nombre' => 'Camioneta 3', 'placa' => 'ZZZ-999']);
@@ -37,9 +37,12 @@ class AdminZonasRutasVehiculosTest extends TestCase
         $zonas->assertDontSee('ZZZ-999');
 
         $rutas = $this->get('/admin/zonas-vehiculos?tab=rutas');
-        $rutas->assertViewHas('pestana', 'rutas');
-        $rutas->assertSee('Ruta 07');
-        $rutas->assertDontSee('ZZZ-999');
+        $rutas->assertRedirect(route('admin.mapa-rutas.index'));
+
+        $mapa = $this->get(route('admin.mapa-rutas.index'));
+        $mapa->assertOk();
+        $mapa->assertSee('Ruta 07');
+        $mapa->assertDontSee('ZZZ-999');
 
         $vehiculos = $this->get('/admin/zonas-vehiculos?tab=vehiculos');
         $vehiculos->assertViewHas('pestana', 'vehiculos');
@@ -160,7 +163,8 @@ class AdminZonasRutasVehiculosTest extends TestCase
     public function test_los_catalogos_vacios_explican_para_que_sirve_cada_uno(): void
     {
         $this->get('/admin/zonas-vehiculos')->assertSee('Aún no hay zonas registradas');
-        $this->get('/admin/zonas-vehiculos?tab=rutas')->assertSee('Aún no hay rutas registradas');
+        $this->get('/admin/zonas-vehiculos?tab=rutas')->assertRedirect(route('admin.mapa-rutas.index'));
+        $this->get(route('admin.mapa-rutas.index'))->assertSee('Prepara tu primera ruta');
         $this->get('/admin/zonas-vehiculos?tab=vehiculos')->assertSee('Aún no hay vehículos registrados');
     }
 }

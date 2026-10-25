@@ -1,0 +1,50 @@
+{
+  "ok": false,
+  "scope": "Estructura y evidencia referenciada; no sustituye revisión humana o validación del beneficiario",
+  "counts": {
+    "markdown": 104,
+    "local_links": 1822,
+    "stories": 41,
+    "criteria": 86,
+    "scenarios": 82,
+    "tasks": 91,
+    "RF": 61,
+    "RNF": 17,
+    "commits": 22,
+    "linked_commits": 22,
+    "matrix_rows": 36,
+    "EP": 15
+  },
+  "errors": [
+    "docs/academico/archivos-documentacion.md: comando python3 fragmentado",
+    "docs/auditoria-documentacion.md: comando python3 fragmentado",
+    "docs/herramientas/README.md: comando python3 fragmentado",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/036475de 59e 08403429d 8dae 38bab 45db 6cc 3561",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/dcb 6ebca 0a 525af 4b 2fc 64ad 9f 31dc 1db 4543c 62",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/e 30a 7430e 755e 4f 4665e 25472a 46cd 51a 5ca 5de 6",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/193578b 22fbf 14efadc 71a 447f 19a 6c 13384da 02",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/6104b 68180eb 56435b 0e 437ada 7ee 3c 26d 6065bb",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/50972a 4ac 9c 8403b 3bcd 7ed 1f 5dc 93c 448a 8ebcc",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/e 30a 7430e 755e 4f 4665e 25472a 46cd 51a 5ca 5de 6",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/036475de 59e 08403429d 8dae 38bab 45db 6cc 3561",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/dcb 6ebca 0a 525af 4b 2fc 64ad 9f 31dc 1db 4543c 62",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/5c 1bcf 881892bd 1096d 5f 55a 930038f 1a 6e 3d 38a",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/e 30a 7430e 755e 4f 4665e 25472a 46cd 51a 5ca 5de 6",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/02fdd 80057f 4e 8b 4e 20523116213bab 1666f 7e 22",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/138ea 22a 99c 8550050e 3ae 0342f 09cc 7c 7e 431b 3",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/af 6ed 93e 05b 8f 03a 83b 241d 8c 8fbf 1ded 687dca 3",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/991a 970a 74a 332d 1f 25395c 31b 8eaa 5ad 87bc 4bc",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/9e 3ae 547c 27c 799200a 14e 1150c 19d 200c 2502b 1",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/52dab 5045e 1bc 73d 1ad 8e 5b 90388325808435339",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/05743b 97f 2e 5835250e 223eabc 09f 9924b 7524bb",
+    "docs/scrum/tareas.md: URL HTTP con espacios sin codificar https://github.com/SaitAlfre/APP-MOVIL/commit/05743b 97f 2e 5835250e 223eabc 09f 9924b 7524bb"
+  ],
+  "warnings": [
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6",
+    "EXE-20261023T040434Z-android-ui-7c3474: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T040739Z-android-ui-1a416a: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T041246Z-android-ui-212406: 4 controles no alcanzados por el arnés; sin nombres en el recibo inicial"
+  ],
+  "sources": []
+}

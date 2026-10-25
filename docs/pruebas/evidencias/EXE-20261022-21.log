@@ -1,0 +1,43 @@
+APK SHA256 28007dd11facdc6e99d986fcaba43d4b36b33838ffbd5a3ce72b10eadd41be10
+adb install -r <REPO>/androidApp/build/outputs/apk/debug/androidApp-debug.apk exit=0 Performing Streamed Install
+Success
+ 
+adb shell am start -W -n pe.ecolecta.preview/pe.ecolecta.MainActivity exit=0 Starting: Intent { cmp=pe.ecolecta.preview/pe.ecolecta.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: pe.ecolecta.preview/pe.ecolecta.MainActivity
+TotalTime: 1798
+WaitTime: 1818
+Complete
+ 
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 0.4 MB/s (3355 bytes in 0.008s)
+
+UI_TEXTS ['Preparando Ecolactea Digital…']
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 0.1 MB/s (3355 bytes in 0.042s)
+
+UI_TEXTS ['Preparando Ecolactea Digital…']
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 0.4 MB/s (3355 bytes in 0.008s)
+
+UI_TEXTS ['Preparando Ecolactea Digital…']
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 0.1 MB/s (3355 bytes in 0.042s)
+
+UI_TEXTS ['Preparando Ecolactea Digital…']
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 2.4 MB/s (3355 bytes in 0.001s)
+
+UI_TEXTS ['Preparando Ecolactea Digital…']
+adb shell uiautomator dump /sdcard/ecolactea-regresion.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-regresion.xml
+ 
+adb pull /sdcard/ecolactea-regresion.xml <AISLADO>/android-regresion.xml exit=0  /sdcard/ecolactea-regresion.xml: 1 file pulled, 0 skipped. 14.7 MB/s (9371 bytes in 0.001s)
+
+UI_TEXTS ['Ecolecta', 'HUATA', 'Gestión y recolección de leche · Huata, Puno', 'Usuario', 'PIN (4 dígitos)', 'Ingresar', 'Ecolecta Huata · Sistema de acopio y gestión láctea']
+PASSED: inicio completado, pantalla de acceso visible; espera observable 33.75 segundos

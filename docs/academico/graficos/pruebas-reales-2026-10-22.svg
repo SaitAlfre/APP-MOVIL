@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="410" viewBox="0 0 900 410">
+<title>Ejecuciones reales Ecolactea, 22-10-2026</title>
+<desc>Última ejecución por suite: JVM 256, PHP 289 y Firestore 9, todas Passed. No es cobertura de requisitos ni velocidad Scrum.</desc>
+<rect width="900" height="410" fill="#f8fafc"/>
+<text x="32" y="49" font-family="DejaVu Sans, sans-serif" font-size="25" fill="#0f172a">Pruebas ejecutadas: resultado final por suite</text>
+<text x="32" y="78" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#475569">Ecolactea Digital · 22 de octubre de 2026 · entorno aislado</text>
+<text x="32" y="135" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#0f172a">JVM</text>
+<rect x="165" y="115" width="443.73" height="35" rx="4" fill="#0f766e"/>
+<text x="623.7333333333333" y="137" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#0f172a">256/256 Passed</text>
+<text x="32" y="207" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#0f172a">PHP</text>
+<rect x="165" y="187" width="500.93" height="35" rx="4" fill="#0f766e"/>
+<text x="680.9333333333334" y="209" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#0f172a">289/289 Passed</text>
+<text x="32" y="279" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#0f172a">Firestore</text>
+<rect x="165" y="259" width="15.60" height="35" rx="4" fill="#0f766e"/>
+<text x="195.6" y="281" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#0f172a">9/9 Passed</text>
+<text x="165" y="350" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#0f172a">0 fallos y 0 omitidos en estas tres ejecuciones finales.</text>
+<text x="32" y="385" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#475569">No suma reintentos. No acredita 100 % de CA ni aceptación del beneficiario.</text>
+</svg>

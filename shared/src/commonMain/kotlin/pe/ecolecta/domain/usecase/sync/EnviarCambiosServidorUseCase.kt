@@ -37,8 +37,12 @@ class EnviarCambiosServidorUseCase(
         var conError = 0
         for (cambio in cambios.pendientes()) {
             val cuerpo = cambio.cuerpo
-            if (cuerpo == null || cambio.usuarioId.isBlank()) {
+            if (cuerpo == null) {
                 cambios.completar(cambio, null) // nada que enviar (fila borrada o no la recibe el panel)
+                continue
+            }
+            if (cambio.usuarioId.isBlank()) {
+                cambios.fallar(cambio, "Falta la cuenta autora del cambio; no se ha enviado al panel.", definitivo = false)
                 continue
             }
             val resultado = try {

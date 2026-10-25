@@ -1,6 +1,12 @@
 package pe.ecolecta
 
 import android.app.Application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import pe.ecolecta.data.auth.FirebaseAuthAnonimoProvider
@@ -16,9 +22,29 @@ import pe.ecolecta.presentation.qr.ExportadorQr
 import qrgenerator.AppContext
 
 class EcolectaApp : Application() {
+    enum class EstadoInicio { PREPARANDO, LISTO, ERROR }
+
+    private val scopeInicio = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val _estadoInicio = MutableStateFlow(EstadoInicio.PREPARANDO)
+    val estadoInicio = _estadoInicio.asStateFlow()
+
     override fun onCreate() {
         super.onCreate()
         AppContext.apply { set(applicationContext) }
+        // El sembrado inicial deriva hashes PBKDF2: no debe bloquear Application.onCreate.
+        // MainActivity espera LISTO antes de crear pantallas que consultan Koin o la base.
+        scopeInicio.launch {
+            try {
+                prepararDatos()
+                _estadoInicio.value = EstadoInicio.LISTO
+            } catch (error: Exception) {
+                android.util.Log.e("EcolectaInicio", "No se pudo preparar la aplicación", error)
+                _estadoInicio.value = EstadoInicio.ERROR
+            }
+        }
+    }
+
+    private fun prepararDatos() {
         iniciarKoin {
             androidContext(this@EcolectaApp)
             modules(

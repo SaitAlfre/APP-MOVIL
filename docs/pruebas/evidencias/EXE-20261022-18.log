@@ -1,0 +1,17 @@
+adb shell am start -W -n pe.ecolecta.preview/pe.ecolecta.MainActivity exit=0 Starting: Intent { cmp=pe.ecolecta.preview/pe.ecolecta.MainActivity }
+Status: ok
+LaunchState: UNKNOWN (0)
+Activity: pe.ecolecta.preview/pe.ecolecta.MainActivity
+WaitTime: 27253
+Complete
+ 
+adb shell uiautomator dump /sdcard/ecolactea-smoke.xml exit=0 UI hierchary dumped to: /sdcard/ecolactea-smoke.xml
+ 
+adb pull /sdcard/ecolactea-smoke.xml <AISLADO>/android-smoke-final.xml exit=0  /sdcard/ecolactea-smoke.xml: 1 file pulled, 0 skipped. 0.4 MB/s (12437 bytes in 0.031s)
+
+UI_TEXTS: ['Thu, Oct 22', 'Phone', 'Messages', 'Play Store', 'Chrome', 'Camera']
+Traceback (most recent call last):
+  File "<AISLADO>/android_launch.py", line 12, in <module>
+    assert 'Ingresar' in s and 'pe.ecolecta.preview' in s,'Pantalla de acceso no comprobada'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Pantalla de acceso no comprobada

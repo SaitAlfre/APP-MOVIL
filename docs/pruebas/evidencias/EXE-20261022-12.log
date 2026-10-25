@@ -1,0 +1,5 @@
+artisan migrate --no-interaction: exit=0
+artisan db:seed --class=UsuarioSeeder --no-interaction: exit=0
+artisan db:seed --class=MovilDemoSeeder --no-interaction: exit=0
+GET /login 200 bytes 6278
+Servidor local de pruebas listo, PID registrado; cuenta ficticia y ninguna conexión a producción

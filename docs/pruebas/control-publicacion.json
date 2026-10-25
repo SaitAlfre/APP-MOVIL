@@ -1,0 +1,2076 @@
+{
+  "checked_utc": "2026-10-23T14:01:40.893193+00:00",
+  "actor": "Agente técnico autorizado; no atribuido al equipo",
+  "state": "Paquete local verificado para revisión; publicación remota, PR y Projects requieren autenticación comprobada. Consultar git log para los hashes finales.",
+  "branch": "cierre/scrum-kanban-pruebas-20261022",
+  "pushes": 0,
+  "source_modified": true,
+  "source_scope": "BUG-003, regresiones e instrumentación; cinco parches previos conservados",
+  "staging_matches_reviewed_manifest": true,
+  "current_files": 278,
+  "relocation_deletions": 5,
+  "secret_scan_hits": 0,
+  "forbidden_file_candidates": [],
+  "conflicts": 0,
+  "protected_historical_files_unchanged": 56,
+  "documentary": {
+    "ok": true,
+    "scope": "Estructura y evidencia referenciada; no sustituye revisión humana o validación del beneficiario",
+    "counts": {
+      "markdown": 109,
+      "local_links": 1856,
+      "stories": 41,
+      "criteria": 86,
+      "scenarios": 82,
+      "tasks": 91,
+      "RF": 61,
+      "RNF": 17,
+      "commits": 22,
+      "linked_commits": 22,
+      "matrix_rows": 36,
+      "EP": 15
+    },
+    "errors": [],
+    "warnings": [
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6",
+      "EXE-20261023T040434Z-android-ui-7c3474: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+      "EXE-20261023T040739Z-android-ui-1a416a: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+      "EXE-20261023T041246Z-android-ui-212406: 4 controles no alcanzados por el arnés; sin nombres en el recibo inicial"
+    ],
+    "sources": [
+      {
+        "id": "F1",
+        "file": "U2-S3 TEMA ING SOFTWARE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F2",
+        "file": "U2-S4 TEMA ING SOFTWARE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F3",
+        "file": "U2-S3 CLASE EN TEXTO.txt",
+        "hash_matches": true
+      },
+      {
+        "id": "F4",
+        "file": "INFORMACION - Analisis_Requerimientos_Ecolactus_Guata.docx",
+        "hash_matches": true
+      },
+      {
+        "id": "F5",
+        "file": "U2-S1 TEMA ING SOFTAWRE.pptx",
+        "hash_matches": true
+      },
+      {
+        "id": "F6",
+        "file": "INFORMACION - Informe_Cambios_Ecolactea_Excel.docx",
+        "hash_matches": true
+      }
+    ]
+  },
+  "external_links": {
+    "utc": "2026-10-23T13:59:52.519442+00:00",
+    "results": [
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/02fdd80057f4e8b4e20523116213bab1666f7e22",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/036475de59e08403429d8dae38bab45db6cc3561",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/05743b97f2e5835250e223eabc09f9924b7524bb",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/138ea22a99c8550050e3ae0342f09cc7c7e431b3",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/193578b22fbf14efadc71a447f19a6c13384da02",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/1fb3dab232b6f543cadd1f40561189d0871a2d4b",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/260f98d0bc76c5a70ab710eb61c4d7bda1f3b9e8",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/2b7a212963bdff390830fef2322fb07c110d95da",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/3d853e2c8c5cb08678a4e289016e2020144a9771",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/50972a4ac9c8403b3bcd7ed1f5dc93c448a8ebcc",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/52dab5045e1bc73d1ad8e5b90388325808435339",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/5af8d7d92fa0ed82ee9dc5b09a91ce0addda5d3c",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/5c1bcf881892bd1096d5f55a930038f1a6e3d38a",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/6104b68180eb56435b0e437ada7ee3c26d6065bb",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/991a970a74a332d1f25395c31b8eaa5ad87bc4bc",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/9e3ae547c27c799200a14e1150c19d200c2502b1",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/a3375b7f03186908ec0352e33ce2331913ea3770",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/a9c1883ca207be20e7989c0a12f921e6d1bc692e",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/af6ed93e05b8f03a83b241d8c8fbf1ded687dca3",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/c52cad4cf04f1ec01456b138ce4cb3226c5b6283",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/dcb6ebca0a525af4b2fc64ad9f31dc1db4543c62",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/commit/e30a7430e755e4f4665e25472a46cd51a5ca5de6",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/projects",
+        "status": 200
+      },
+      {
+        "url": "https://github.com/SaitAlfre/APP-MOVIL/pulls",
+        "status": 200
+      },
+      {
+        "url": "https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html",
+        "status": 200
+      }
+    ]
+  },
+  "latest_suites": {
+    "jvm": {
+      "id": "EXE-20261023T041855Z-jvm-56eff2",
+      "state": "Passed",
+      "tests": {
+        "total": 259,
+        "passed": 259,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "firestore": {
+      "id": "EXE-20261023T041850Z-firestore-946701",
+      "state": "Passed",
+      "tests": {
+        "total": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "php": {
+      "id": "EXE-20261023T041842Z-php-42fc2c",
+      "state": "Passed",
+      "tests": {
+        "total": 289,
+        "passed": 289,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "web": {
+      "id": "EXE-20261023T041841Z-web-cb62f4",
+      "state": "Passed",
+      "tests": {}
+    },
+    "utilidades": {
+      "id": "EXE-20261023T135836Z-utilidades-9fb8ca",
+      "state": "Passed",
+      "tests": {
+        "total": 23,
+        "passed": 23,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "android": {
+      "id": "EXE-20261023T042028Z-android-c55ec3",
+      "state": "Passed",
+      "tests": {}
+    },
+    "android-ui": {
+      "id": "EXE-20261023T041640Z-android-ui-60b48a",
+      "state": "Passed",
+      "tests": {
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "web-ui": {
+      "id": "EXE-20261023T040523Z-web-ui-observada",
+      "state": "Blocked",
+      "tests": {
+        "total": 13,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 2
+      }
+    },
+    "documentacion": {
+      "id": "EXE-20261023T135838Z-documentacion-5fa1cf",
+      "state": "Passed",
+      "tests": {}
+    }
+  },
+  "new_execution_receipts": 41,
+  "original_attempts_preserved": 26,
+  "services_shutdown": {
+    "owned_emulator_serial": "emulator-5582",
+    "ports_closed": {
+      "8765": true,
+      "5582": true,
+      "8080": true,
+      "9099": true
+    },
+    "backend_receipts": [
+      {
+        "backend_stopped": true,
+        "utc": "2026-10-23T04:07:48.419500+00:00",
+        "environment": "SQLite nueva/datos ficticios/loopback"
+      },
+      {
+        "backend_stopped": true,
+        "utc": "2026-10-23T04:20:45.355465+00:00",
+        "environment": "SQLite nueva/datos ficticios/loopback"
+      }
+    ]
+  },
+  "whitespace_check": "Código, configuración y documentos activos sin errores. Logs auténticos y antecedentes se conservan byte a byte, incluidos espacios originales; no se altera su hash para limpiar avisos de formato.",
+  "academic": "36 filas conservadas; documental21 Cumple/14 Parcialmente cumple/1 académico; global5/30/1. Criterios humanos pendientes no autoaprobados.",
+  "github_projects": "Plugin instalado; OAuth/permisos todavía sin verificar.113 tarjetas propuestas; no Project creado ni movimientos ficticios",
+  "ci": "Workflow preparado para PR y push en main/develop/cierre; validado localmente, ejecución remota pendiente",
+  "credential_scope": "PIN retirado de Markdown de acceso; valores demo aún existen en seeders/historial y no quedan revocados. No declarar credenciales válidas para producción.",
+  "self_hash": "Se omite la huella de este JSON para evitar autorreferencia; el índice Git protege el contenido preparado",
+  "files": [
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cf12e7012d734db41e9c0fad005863d821b097f5120964db4c80b7302f182b2b"
+    },
+    {
+      "path": ".github/workflows/verificaciones.yml",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "17a0ff154f7e3a3962e47e4b401c33fe94c14e4c7d1432ba66c045edf6a40e84"
+    },
+    {
+      "path": "ADMIN_MOVIL.md",
+      "category": "documentacion_evidencia",
+      "state": "deleted_by_relocation",
+      "sha256": null
+    },
+    {
+      "path": "CREDENCIALES_PRUEBA_MOVIL.md",
+      "category": "documentacion_evidencia",
+      "state": "deleted_by_relocation",
+      "sha256": null
+    },
+    {
+      "path": "MODULO_CALIDAD_MOVIL.md",
+      "category": "documentacion_evidencia",
+      "state": "deleted_by_relocation",
+      "sha256": null
+    },
+    {
+      "path": "PROMPT_WEB_ECOLECTA.md",
+      "category": "documentacion_evidencia",
+      "state": "deleted_by_relocation",
+      "sha256": null
+    },
+    {
+      "path": "PROVEEDOR_MOVIL_FIGMA.md",
+      "category": "documentacion_evidencia",
+      "state": "deleted_by_relocation",
+      "sha256": null
+    },
+    {
+      "path": "README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d42ab56854b23ee135c3c4a35ca133a29babb33b50778e8733e69b98f3d5593b"
+    },
+    {
+      "path": "androidApp/build.gradle.kts",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "48e8fa0e30894f372a5ece229c5277e8b2acacfbca5955683813674f1d737f0b"
+    },
+    {
+      "path": "androidApp/src/androidTest/assets/comprobante-completo.png",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "9711394175482aceb7757d4c3bc749e76d35bb3e0015199fe7ee8dd95c0bce62"
+    },
+    {
+      "path": "androidApp/src/androidTest/assets/comprobante-incompleto.png",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "2f11a7be721a3bf0e0f80a81287ba8554829f6c784992c6486c1f2c8aaf221f5"
+    },
+    {
+      "path": "androidApp/src/androidTest/kotlin/pe/ecolecta/qa/VerificacionInstrumentada.kt",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "967ee1a1e4c2db322fe13f579342712452ac4a5a733fdf834349b577cc5a1382"
+    },
+    {
+      "path": "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "4a7b952b87a5892944987a93d8ef94ec6a503608e8c1632664dff5310adf04d0"
+    },
+    {
+      "path": "androidApp/src/main/kotlin/pe/ecolecta/MainActivity.kt",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "653ae07ec8a33aa0a4e401c7ee59cd84f5b4f570b33ed7a8aa6cc8f3dc454816"
+    },
+    {
+      "path": "docs/COMO-TRABAJAMOS.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fb55d18f536e9e616f6ceaf5a80c607716545bb7c5b89b57416e72910ec6719e"
+    },
+    {
+      "path": "docs/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2b14d64eb73cf0c83dd73b445e4a6bea694df1e7dfa1a09b5945f0fd166d84da"
+    },
+    {
+      "path": "docs/academico/archivos-documentacion.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8ddef8befb0e12b7345837c329702ef0b66c3971887eaa52c298b43fb54260d1"
+    },
+    {
+      "path": "docs/academico/ejercicio-delta.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3d1bf794e46afc1f1c4fe96ce43720ee1ebeaec088a9411157cd9096c312bfb4"
+    },
+    {
+      "path": "docs/academico/entregables-y-validacion.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8e8a20ce8e9d27108c750c4b71bffa11eabe1b5884c041dc18b97e65ace7edb2"
+    },
+    {
+      "path": "docs/academico/evidencias-pendientes.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fae5c3dd69a7b58bd4cd21466630c8fdfa2ebaf65159d5c46a991d6748067233"
+    },
+    {
+      "path": "docs/academico/fuentes-docentes.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5706181400b256d5c3a00ee98e841a6b0aa15e881eb8ec43a27719a4ca85bc1d"
+    },
+    {
+      "path": "docs/academico/graficos/datos-metricas.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6ad98c1d87c1d8a14a831848e86379e8b58499d29eef9bfef367ed1b5a0dd49d"
+    },
+    {
+      "path": "docs/academico/graficos/delta-burndown.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "521be0db05ea2c8088f4bc348eb3bc6d4dfb52a6e5ad9b81dca3b3823e725ed4"
+    },
+    {
+      "path": "docs/academico/graficos/delta-burndown.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7b5833431221580b3495fe8c0569d1396c8ac08b585f897cd7051db71e589ec7"
+    },
+    {
+      "path": "docs/academico/graficos/delta-burnup.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "aad424ba78dc28d8d772075606e02fa83d3774ea96f79e582382f382ba6d427d"
+    },
+    {
+      "path": "docs/academico/graficos/delta-burnup.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f1cd11f9c1600784f657aa2c737ce8fc6c966d3fc87b10d09e9d7c516e3a7696"
+    },
+    {
+      "path": "docs/academico/graficos/delta-cumplimiento.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "af5387a84b3f3ac27f197fcf252faf0147e81ce3f0778d63acd6690094fd5483"
+    },
+    {
+      "path": "docs/academico/graficos/delta-cumplimiento.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "317915dab1f5cdc4a101ae16ada0f8e866951b284c3316ec7213b4a29cb54b95"
+    },
+    {
+      "path": "docs/academico/graficos/delta-velocidad.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "be08b0434c44d7a2329275ed537b93da1398cd810b6d4bcf3489160ccc7fb968"
+    },
+    {
+      "path": "docs/academico/graficos/delta-velocidad.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2d976883452e0c477584c16f36144721f573e349fbbf0e72ec20cb3c51019a47"
+    },
+    {
+      "path": "docs/academico/graficos/ecolactea-commits-semana.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "29b9873f3a88e9ebcfea83a4fef930e5e7c3078c4e17b223f7b17dae74f5de01"
+    },
+    {
+      "path": "docs/academico/graficos/ecolactea-commits-semana.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6e91cd749ac582865a1a56159724d9e63a98a86b40a5b85b57366698d3121487"
+    },
+    {
+      "path": "docs/academico/graficos/pruebas-reales-2026-10-22.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a83a13fd243c246bf202ef532a79c8904a2a5ce74435c48e96c8af5eeaecafc1"
+    },
+    {
+      "path": "docs/academico/graficos/pruebas-reales-2026-10-22.svg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "96ea4c04bfbf47520e42b42dad129522abd7e85bc847d1946577a898fd1ac22d"
+    },
+    {
+      "path": "docs/academico/matriz-cumplimiento.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "811e4f39abbfa45c47705803feb567a75c5f99ff84d7a4c958707d97c795dfc6"
+    },
+    {
+      "path": "docs/antecedentes/.gitignore",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9c3cda9cdf4200037a729a3bc503c1ad4d4deab249da2da9faf22d07097d5629"
+    },
+    {
+      "path": "docs/antecedentes/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7a734e5fb8edca8827af72ec6eba232f32c1593d0f309576bc32417a02c6f8eb"
+    },
+    {
+      "path": "docs/antecedentes/prompt-web-ecolecta.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d9cc2f93477b4f197b0ae72fe07551a23fd93354e5b39f3ae2a54c4df6ecede2"
+    },
+    {
+      "path": "docs/antecedentes/tramo-git-1.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1c31617bfcca92e19d6d363e9df21a7db52b4778e7489a5fc3a0c0ecf6895d01"
+    },
+    {
+      "path": "docs/antecedentes/tramo-git-2.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "72866cd2e3cbe8b55c630a7d77dba3dc8f95482cbfe80c5da4a8043a6005469f"
+    },
+    {
+      "path": "docs/antecedentes/tramo-git-3.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2dd68944636247cc30b599d9a530c044e8df4246f11c1ff76967de2af058bdc8"
+    },
+    {
+      "path": "docs/auditoria-documentacion.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5ee01f607de7420e145dbbc2c266dfd4e2ca7004883be4566b897a3bca19bcfb"
+    },
+    {
+      "path": "docs/evidencias/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "164f1947233f525c403f3126583094e1dc5dcae9376b25e931500ab34ef814e6"
+    },
+    {
+      "path": "docs/guia-mantenimiento-documentacion.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6bda9dad738dfc895d1671d0dfe3a6333999257782a7e2bb95b10e47cef8c85a"
+    },
+    {
+      "path": "docs/herramientas/.gitignore",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6feaded4e28ea86e001a6751b4e3d960e8b7c31b9616ff9936b79297086e809b"
+    },
+    {
+      "path": "docs/herramientas/README.md",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a4fa22bcdcfd6f34989adb59b91c1d8e3f066c04eb05d7c0101c6980ce06c260"
+    },
+    {
+      "path": "docs/herramientas/ejecutar_android_instrumentada.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9509cd4c40dd854b21315bc73a91f3c50f30e698697c20035f4e5c6f9e67b6d8"
+    },
+    {
+      "path": "docs/herramientas/ejecutar_verificaciones.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a1aeacc3e76166471ca64e99327dcd6826bf7fb2af9d8441e1193fba42284b32"
+    },
+    {
+      "path": "docs/herramientas/generar_grafico_pruebas.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a51ab1db610015063f8265679b4f24df1bf6d3ec7007fcb70ef60d0ac83aa452"
+    },
+    {
+      "path": "docs/herramientas/proxy_respuesta_perdida.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7fa90629e0d9d87bcbf5ae607d1aad4ad700cf07b1feb8600154ef32e4fe7e7e"
+    },
+    {
+      "path": "docs/herramientas/tests/test_verificaciones.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8d0566ce681b0bbc9f09136d928f25d676fc8456d1d7396906e1708318efe183"
+    },
+    {
+      "path": "docs/herramientas/verificar_documentacion.py",
+      "category": "automatizacion",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1bd434e44abf6b77f651590dfa880d41683a0fdd2ebedf62a8dc1b3e3ea9cba8"
+    },
+    {
+      "path": "docs/kanban/capturas/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a75ad73d68bb7fe9cb196d06fb444c718a8d7fd24965548f157a16a5f57f09fe"
+    },
+    {
+      "path": "docs/kanban/configuracion-propuesta.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0468710ac90d44c2e42e1387b84dd97080227cf71e5f3022f39797ae6fb7e3ad"
+    },
+    {
+      "path": "docs/kanban/importacion-propuesta.csv",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "733de52d352e904b5e851f51dd9a03e13be1708a963a487ae09a534323d0dcc9"
+    },
+    {
+      "path": "docs/kanban/tablero.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9fbbdb3fa49fd24fa0d10261c862913a74d541ee727c1f8c731c0745097c4813"
+    },
+    {
+      "path": "docs/kanban/wip-limits.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "c06202cd418fe4b03e735840c301b3eab10001ab629e2ffffdeebc72b2eb09a0"
+    },
+    {
+      "path": "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0e519111a58b0806c73ff4a731c710fce3bea8bfdb8292985a94d69694ff8211"
+    },
+    {
+      "path": "docs/metodologia/RECONSTRUCCION_RETROSPECTIVA_ECOLACTEA_DIGITAL.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b1f818b84745a9ab459c9dc23447f7eabd020d8d4be341cd46f451f8eb8ceada"
+    },
+    {
+      "path": "docs/plantillas/acta-evento-scrum.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cd4ac54f9b25b1cbbcecfbf081c8152db0b5e35cca88ff4aae744ffd6590a568"
+    },
+    {
+      "path": "docs/plantillas/caso-de-prueba.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "46452e9902b8dc857392c740af5fbd383cb7d18acdef04f1ce33880baead60ff"
+    },
+    {
+      "path": "docs/plantillas/ejecucion-prueba.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "906a2aa1888660f029714987f7ed80ccfd4ca3fde13d73b6662cc9a98a1e668b"
+    },
+    {
+      "path": "docs/plantillas/historia-usuario.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9c9bd97dc4d69385f164322cb620aadc6e11074554d9e5c9d9185811a65c2ffa"
+    },
+    {
+      "path": "docs/plantillas/reporte-defecto.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "54d7249f74bc671a64a52ca2bfbbaf1486799ed3d06687105615ba396c6eee8d"
+    },
+    {
+      "path": "docs/plantillas/tarea.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f68cc1977aeed3666332ab72076670492b9b907daeb30f2d92f3c292b6869987"
+    },
+    {
+      "path": "docs/proceso-scrum-del-proyecto.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "933317e08c8caa5724e4bb43202f5546a08477750918225ad89fd67952fb0d3e"
+    },
+    {
+      "path": "docs/pruebas/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b866c3437bb4ff4a36256337bcfb1136d721197ab68d3b0a74adfb9f5e3fc5ef"
+    },
+    {
+      "path": "docs/pruebas/acceso-y-datos-de-prueba.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b6b4a48fc0f245871a48b771f526bd2ba44ecf99e7aa47d0202bd3e7f064a711"
+    },
+    {
+      "path": "docs/pruebas/casos/ejemplos-ecolactea.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5266e8b56a8cda7728455a222a9dca55536a0a6624598f8482896f2359c4ecd9"
+    },
+    {
+      "path": "docs/pruebas/cobertura-y-cierre.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e0da29bd768835dd99cfe859edfc56f5785c0204de525bab7849750bf152dc32"
+    },
+    {
+      "path": "docs/pruebas/control-publicacion.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": null
+    },
+    {
+      "path": "docs/pruebas/defectos/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5a1e33ba29db9c2a0f5e7d70e9bfc601ac989f147f307b2ead655f6d19243aaf"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "754afd6cf1a17a91dc0e83296858dff159f86da51effefd6aca693c9d75ab944"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030536Z-jvm-6b243b/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "507c07c52a6aae7cbd05292c6473ed409e3c64138981a0dc3cae30bd8bc71794"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030536Z-jvm-6b243b/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6d77ff615659a72557406b37df60aa32ac0c80c34d11be96717b30a071b7aa78"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030536Z-jvm-6b243b/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a14b3d5ecb3708719a17ff9e5b516efd0dc044bcf56d48d75c411984ebb47545"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030710Z-jvm-e50898/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "eefdf960c2293c9340d1eeeb909b0d735692f7a4ac32684271ef2b6ea226d91d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030710Z-jvm-e50898/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0cc671ad1b5533e42fbb472c43c13829d9d037cf060a6a485b20d7a416ad3304"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T030710Z-jvm-e50898/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6e186c8b1597745b0b113e49f37932dcc9e8e4669820796a22462ebdda62ac32"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031035Z-firestore-f8af3f/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a81c009e1a16ab4b89fccdbd6efe60f27eab56ca4e171f8bf6158a1bccfbd7b6"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031035Z-firestore-f8af3f/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9f71b099cb6dcc033829c48ff9e26c7c7673369c15b27cf6c379755dbd0895f4"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031035Z-firestore-f8af3f/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2d0b48089996441eca4747a819a7e77b83b02fae1e2a29a583513a68e0b89853"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-php-0c5380/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b55d2114e51e343295f69cf0edb36890bde71901867925e482b1110c71f12e93"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-php-0c5380/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "73f5ee65d2482ccdb8e29ea2c9620d2652bccf7c53cb90c5dfceb0b4fcc870d8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-php-0c5380/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "13043e3b4346cb3a55a8e0e25be2b199426431ae9ae360ade205951cbfeab7d8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-web-f0e810/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fcfeae69fcefbf56f23ead87be852129f09af46ed00ec296f70808ffac6746ef"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-web-f0e810/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6c1c0c4695a7f351995efb383de6b60461d9f394f886af56919011072eaf9edf"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031036Z-web-f0e810/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "18326ce79f6e7891f15253acbf7ada485a4566505105a682782f744ff8877a6b"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031410Z-utilidades-38222c/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e7f7602a8d48781004877653faa083bbdc21b700eab59533f2b3f1db0bbc38c8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031410Z-utilidades-38222c/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4ed3f51f76f4089947ed535c55e8def784a549dd5cb307753f6373c653d79a8d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031410Z-utilidades-38222c/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3ddb8c2a87a076ff255c7437db61a574726dc2797c1998bba919fdcc63546bb6"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031814Z-utilidades-6cbbae/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "164bf4768d50ffda5eb55cfd0c9908e7f4f10e0372225d975e78fcd2a10f3ee0"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031814Z-utilidades-6cbbae/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ac0dd2b7f9312876e819a61fca752c6374ab696d3b6f4b17479ba8738a798c57"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031814Z-utilidades-6cbbae/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e48143289d5712da6c79cfd3cc6c4743fb2b84d6ce1b30a45080570425ff436c"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031857Z-firestore-64530b/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d8373fb6fc0ad686be8ca64e21a1ae21f26f03b4aedcd23a027a88a1a03d6806"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031857Z-firestore-64530b/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5d1cb77be726e243c757b572f05645147c85ded557b15e31ef999edd6554cf0e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031857Z-firestore-64530b/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4e56592e0cd3c58799c1b2140c93d53c16f6ce98d369cd6f3b34a873ef5acfd2"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031859Z-php-c2d824/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "57d9aa6d448198871bcfd6676aab6f89c688b80db47bea47ae05035c01de0470"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031859Z-php-c2d824/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "197408243b3518d2a5b00964f4992279b7fae0850f31b2796a3d533f58c534fa"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031859Z-php-c2d824/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "63af6a3994ab899ce69c7590206c05ada4dd8723b019b085f273d3af41ba62e5"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031900Z-jvm-9ba64c/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a732feb660c693644dfd0bd589a5b8a2c6e0ce0570196e6c0678a919e30f61eb"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031900Z-jvm-9ba64c/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2a7be01ca9fd438d65bce807ed79e8610d6b89fdb26b1d36e873df1d17fe8d36"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T031900Z-jvm-9ba64c/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "42663006c0c5677719db1922236cb2b1092a6f7fdf23bcdd3d009dffbfbb604d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033341Z-utilidades-09e215/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f1e9ddbf46cba5007ca259c08bb78cc1c7fd0efbbf6265c787c7024dd14bf6f9"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033341Z-utilidades-09e215/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "921ca3df951e68c0578da151e70ed13afcf5c08ce4e6d366be3b8f1e55b73a26"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033341Z-utilidades-09e215/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9a4bcc2e325361a06f08f959217bfc5bf3685f0a1c91f73a38029f089ce5e7a1"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033344Z-android-a39c0d/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "da2a530ca10d72c1b6cd4ebaddc9d2022efc1f4eefb68c60cf1fc9065621582a"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033344Z-android-a39c0d/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3a7cda35037be3b1cb4223bf11c4363c190003f43dcd6f1f8826318fe6e78e44"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T033344Z-android-a39c0d/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6da5be78951cec15ad059e300a0a580597427b161e7a48e026a5c8f3e723a021"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040434Z-android-ui-7c3474/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fa061b7e0e0ad45cfe22fef0a54be3cbb66f4b1a24003db119963aa397b8dccf"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040434Z-android-ui-7c3474/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4700fdfe87731e3361c6181f4783f14647dcd48e17156d5d7e516ed3dfc39c29"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040434Z-android-ui-7c3474/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ef1f0042eda49f5330adbc8866cdab7b6bd9a3b1158140c70c5aaf04f6f5267e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "bb0dfbc54844ae2755cc716317cc13732adaddcd366b0ba14dcbff95bbbe686e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5e0991fee39eff7697457bbd6ed2cb754cdf8d0054422b630ec13cfb16651b3a"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f344adb8f025e442322c46910eec7922995be7e557f4ea5ab8faacc2b38bd735"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-calidad-guardada.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "aadedcdead5db2ebdb38ee2303fb5c154489df4172611f90af118a1e13a64c6a"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-calidad-incompleta.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "450aac3fcb59e0158f2f78a8e5d3507ea586dfb9720c330c0ef32e9989e2f6a2"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-dashboard.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3af76f7e9db5fabcffed5e7a1a5822b0b9d9ee8515159d6bc3af90ed88700554"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-liquidacion-calculada.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "c719b4178b0ab31e175bdfe80a7b79e02c36ddf91150cb16f7d0f48e836059ef"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-login-rechazado.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "688c82b43161a3d99b9ab5b0202b42ff0672afdb9b6717fb5727dfbb6e051640"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-logout-protegido.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "87b33b9c1f39eb1a337565ed737f5b99578f933ba540bd4f8e7e3705cd9c11c9"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-reportes.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8ebf347a7398d612438515baa120f695fe5b2b97b72916d8c5f1f14381ffb327"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040523Z-web-ui-observada/web-ruta-guardada.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "df88a42420a346c6dcf4b2c46eeb9d8881ac92d9b1d534eef32bee988cf7bf78"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-php-2c7a10/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4f66f9cdf472e665cae89cb87cfa20bd29bb8890c52b97e8978451aea3e9a6e3"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-php-2c7a10/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "33c2eaa5095e0ad2db2a4735523954d36a0b8f535c7d40504ababa1748df8b7b"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-php-2c7a10/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7f1bf9b3daf4643c68bd9a87905968ed31803c9bab62b9bb03dfb0df8fda11bd"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-web-5cebd2/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2ecd8c76c1ed018ae37ad81688c332648dae23a01d998fb14fbb5a2fbb858850"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-web-5cebd2/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1ad1203dd4ddb177ba12144cd0af8c5e1196f2bd41d718b433164be0d1b6e269"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040554Z-web-5cebd2/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d686ee10b91eb610a655b69a8304d001b19186133359b17f40603f84390329b5"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040602Z-firestore-d8a393/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "bdb17ac19b8d721f69d0604f39e9a6498be1616b88c5dd6ea9477b895cacfb9e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040602Z-firestore-d8a393/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "64ab892f9ba4207cf7a615f0afac66470952e289ac474ef7ff1348d67c675d16"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040602Z-firestore-d8a393/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a7408f14c7d6162f6771fd0fbf1f17163db3b7cab5c6569b807e67c4b9e3e08c"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040607Z-jvm-8e5edd/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "aa5d6227d91ca57bc633c97328dd52722ac91812a6222040c2811a2d84702168"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040607Z-jvm-8e5edd/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6f1db6afd9f8ca4b11d453b87ac356b81e1aec1408854be7003b175fdd7809b1"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040607Z-jvm-8e5edd/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "868f15360b1e681135848b09e0ca8cdaadce88edbc8c419c07a8e5bd160c6ccb"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040730Z-android-070e47/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "34471c0954659f089d74f589eefcaf5f86e465c1c4cb790523d8beaf3948b18e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040730Z-android-070e47/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6e6f2ebd3d961daa3568cf2f69d11c1cb94a2fb1c9c33f626705212d3064ebd8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040730Z-android-070e47/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3eb5e7198929a20058240e0e1632aad08f1c03eb1dfa63a5403cc57ac3f3b1bc"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040739Z-android-ui-1a416a/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2d5ade0385d524d97afbc986a5dcabf0ff59a2b51691d434b9afa18307c2bd8e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040739Z-android-ui-1a416a/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "df462934aa2d8f03a25a2f02a554ca2e9b8b51253c8e621823ed1db439b89234"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040739Z-android-ui-1a416a/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5e98bb9dd5d1a487a08d759d2cc81fc684d91637ef6a190e9ebd560062b7f6ac"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040744Z-utilidades-d783c4/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "87057a8c2c145c0144310bd8dc66937a2a60da4435fb30863aa79e8ba14e29b4"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040744Z-utilidades-d783c4/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fd31d784f60d245dd7b38da627c4ebd3777fad3396b273baa91e72f0f689ac88"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040744Z-utilidades-d783c4/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "147e09eaf4ba10eb76e59b95da82e9edc013afb30d5309c53fb72d0e835631f4"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040746Z-documentacion-3d58b8/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "15837617df4a1d0e8620b4886d1dc8920b0b16281506a4a31af1aa62f4f5edde"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040746Z-documentacion-3d58b8/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4870141962275516aa053ae35ef48af51b5843d190607530262c59478839c18d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040746Z-documentacion-3d58b8/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f5d3fb039953d1fce82093702102d56784a1009718eb4f8689f64f393279b7ef"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040801Z-utilidades-a21ecb/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b2d8bc711c7390029c46fab0fc6b6d42bc9c1f1e6b13655400bfef64bfb11ec8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040801Z-utilidades-a21ecb/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "024fb8e9cc27bf7e9a79f3e077fe41f3263818e8d8e6583e7076db290f515637"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040801Z-utilidades-a21ecb/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "53550724fe9d1cd75a8cedca3c0b36d8fed5272abdb8fe77832d08e4691d6657"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040802Z-documentacion-a0071b/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ce851dfa56ec2154330d876d17eac766643a9c7723d552e27ea6ccebd0711856"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040802Z-documentacion-a0071b/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4a1e34120004e716f48847c8349cec63298cf26ced3c9a4a94d6aa08a2d9e08f"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T040802Z-documentacion-a0071b/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0d9f7cb6460c0bc0e0659fddbac15f5118a5fbbf54765f70a6dc665b3bc83bc9"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041020Z-android-ui-63c24f/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ef90153815400257b318eca7148d3c2cbfde8419bae24680d5a6b9eee7b079c9"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041020Z-android-ui-63c24f/arranque.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e11d28fa6e1a98a877fe3ac70886f7ea0af72e7236359db940da5891cab0e89f"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041020Z-android-ui-63c24f/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "029de0d8f10b395f08e157fc7a61b304c34318724ca5ef80563230f0965a4170"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041020Z-android-ui-63c24f/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fd3127001ef99d42638f1241617d9f287b95249e783df9b5d6730cd7f32aa9b6"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041246Z-android-ui-212406/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cf0c58866c11f757ec81e39307cf5bd3dbb11c585ad2619e42d4dd8d68001b1c"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041246Z-android-ui-212406/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0e2ac71a745b14612a4e0f36823ea395d07f597971db10883218182dbb8e1865"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041246Z-android-ui-212406/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a84bbd7d7fff0e7ffa111830b58e146264022d64501689d26e4cdcc8068c165c"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041640Z-android-ui-60b48a/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cb0a22156f079cef3594f8175efe51b8b51771d50fcd7d5d7832599a91d91da4"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041640Z-android-ui-60b48a/arranque.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "71f88fb0e7e81dbb0c299d9c8473f3801b0acec00497cb56e27d1142b7560609"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041640Z-android-ui-60b48a/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "364b61c479f1613a82e0abc429f8e68697afcf30eef5d95da014a1801eea7293"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041640Z-android-ui-60b48a/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "96c7832b77ac6c0b4eb8865a24c7f8861d3ed8a5a67a56a3e688a9734afbd14e"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041640Z-android-ui-60b48a/ui.xml",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "07cde92118ffebe101756be6fb2925d8ca562f704dd502d9f2fbe248834be1fb"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041841Z-web-cb62f4/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1646b5943f60e83c5442e0b8186042bd1f7206b96cddc800433676a48bffe7da"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041841Z-web-cb62f4/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "256e6e13735c79da604e4136b6f3c25cbafca028d91cb2e878a97ed20e81ce45"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041841Z-web-cb62f4/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1d29543ce39478fb76302f4bd20cf537f1aca1db2c633edf511bdad68f237c85"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041842Z-php-42fc2c/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3da136c019d3f16e74510e675b291bd342355e30f6a3fd4b5fe9c8cd209211e8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041842Z-php-42fc2c/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5e7226aa9951d731708d8819088b71684b6c4b8b5f8860f6242a9cce56c7fcbe"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041842Z-php-42fc2c/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "612ca9e2e4e2f3aa38e55859484e63dbc8bc32c0175dd052dd5af101f7136211"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041850Z-firestore-946701/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "54f78eff2b23defa10e32bf9133bce5696d7d2e1f46202258b712f31e8d38fe8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041850Z-firestore-946701/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1d3a40b412d87557790878e5c32517c1fe703563809d04408e4fd5c8449f47fa"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041850Z-firestore-946701/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "bf05c5969cba6c9497d44b75626bd0cb26656c0ef38de44c18cd2194ef1aeb7c"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041855Z-jvm-56eff2/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "c436178a964ad51f73312e76b562a2ae4138e8012dc2d592f98300e9dec292f9"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041855Z-jvm-56eff2/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7710628da1c29ec3d56ef531aebd86e060982f7a6affcf8e3a6b83fb209a7556"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T041855Z-jvm-56eff2/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fd09173c49236bd28d6fdaddc387a6355a90b373773eb0018ed8211afaed4225"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042028Z-android-c55ec3/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "18c53c6b4915b33688999e4f91b0eccc93066b9d5ac5c5bdba87aed5858f182d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042028Z-android-c55ec3/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "66b17f00898196d58bff9181a87f8f8789175139482920bb18a573b937ecdeae"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042028Z-android-c55ec3/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2a80bb48c83ab1fb91e48b6006fadd5b733f721d9de047ce38265f00c3451e5a"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042043Z-utilidades-c139cd/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d950f13aa90fd03568c1f91701fba675c8255f1050ab23a8b02e3b93e09c30db"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042043Z-utilidades-c139cd/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a111a94c539d95da50efff9ed62666b5a5a12dd0b750b44647431194ef489b90"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042043Z-utilidades-c139cd/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "c689027bf9b117996c1579428d937c7325b3c9d612708dadada89ac5b52b7eb6"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042044Z-documentacion-0a2108/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "33d0fe8f84456c16ae82028b6bbea2d1396bf71f4cdb36b01fb6e21f5e6e1821"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042044Z-documentacion-0a2108/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "76c3cd2f9f7fa7f1eb53664eec8f7e7e154f01330c1b384625cf2a38a7cf04f4"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042044Z-documentacion-0a2108/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "23597ca09e1653b8d0376f84e60cb36b218da2aba628c32d471badea8ba7d427"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042600Z-utilidades-dff135/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "da5060d1f489f65ce805529470dfd8d183f9eab88700a0c987c5ffc33b1f72a8"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042600Z-utilidades-dff135/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a1228a9da14848e2fca98d5ba4f290489c87b7dec73d717f876f1e039059ce55"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042600Z-utilidades-dff135/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e7d1d063d09db8d0b5abae8275b85ab97fa1fc894737a3adec5181990fac1c8f"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042601Z-documentacion-33f841/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3ba4a4626cc03e73ddd48951df6b9bf2dae52237d15e3ff7be5e4d7f27de005f"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042601Z-documentacion-33f841/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9e207c288c6f9d648c4e4063b0f1f9cc459b60f84d7c1ef1661500be802de689"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T042601Z-documentacion-33f841/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fa7f5e4208ad05029188bb1940444a9689b45b426d31f9eee0db751641a34e75"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134408Z-documentacion-2242eb/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8d38032b96e47db5b4be7df8852d5c51953a3adaed9ec9d7483db1a599670c27"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134408Z-documentacion-2242eb/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7da6030cf8e0a45883d37ed5b7335f4e3f42ff880478713f612e501850b9a8c6"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134408Z-documentacion-2242eb/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "6f34f7a7a262402354fa46d1295389682027f5b0dac77fa57e510dbf8f515452"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134522Z-utilidades-aa2454/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "b7899b106596a14ac71dfef34f13359569b81a1318372cd4507ccd212c654566"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134522Z-utilidades-aa2454/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a09595d7d6a43b6a7f966f8f37de644971a30148843aa57386128ea8456c7753"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134522Z-utilidades-aa2454/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "dadc06ace360fe05b3f57fe2aa830890ae9813a32a91fd7b1a4b239b25565b5b"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134524Z-documentacion-29cbcd/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4326cda9f6fcd5fbb0db7f8584dc07935d99dca850bda6fcab73525f883fe3ec"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134524Z-documentacion-29cbcd/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e5c4cb226fb86736985ecd62b8d930aaf599fc5ca3dda274b9a6603778dfdb91"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T134524Z-documentacion-29cbcd/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "59dda16247e11b9f7e6763ed3fe7dfd06a4e058fc423d1d045d12fdb8b2c5332"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135836Z-utilidades-9fb8ca/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e3d9cb90508e4f82a3133d35a509eae0d6f3ab469321f91c23377732266a95cb"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135836Z-utilidades-9fb8ca/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "3d33d145918ac0d4a364135e4cb5b8d3fdf46a4eaf86dd6f050752e24a6546a3"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135836Z-utilidades-9fb8ca/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "edd671cd7d4646ae18205c3aee8318cf8e5a1d958f1d6b8076dea0c3227088af"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135838Z-documentacion-5fa1cf/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8179158f357b02541bd582c945a21ad979074760adf7aec91d1c3cb721b91f2d"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135838Z-documentacion-5fa1cf/resultado.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0cedafd732acb807952c09de898860803e44a79ac6878f79a35f53aac3c04b02"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/EXE-20261023T135838Z-documentacion-5fa1cf/salida.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ba255ba7cc1e1faaa57856e78f632a9e003ffbd28795757d6859001395f6f310"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "28594139361a1ca4e4fde3a0b7b285503b252f13beda106bf2d91050576cde39"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/incidencias-montaje/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d750b315215834a7da67e1f9a4c28be702d86a0ab2415b66c254f5e71f26ed32"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/incidencias-montaje/build-instrumentacion-final.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "664e5affb0010e452355d6d1b7ae8e694699a35a6cf6226f12a85faa80d439ec"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/incidencias-montaje/build-instrumentacion-red.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "db3efd86919494c6aad3a61d8684e1dbad4f7cf09acfeeb88d1f401511329d04"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/incidencias-montaje/build-instrumentacion.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "0c727e306643fb36b3ddd23e3a2db46f3bb8a73f955e239959e137f6e04fd78b"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/incidencias-montaje/recibos.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cfd4caa03662e0647156506b40eb59303941e65f3dcabd14919dbd2621a56f00"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/automaticas/resumen.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d5dcf5d135c90eadd567d967ef364bc4972ea7b1cd35841c02ea1fd962aa8c04"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/resultados-2026-10-22.json",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f96a329f45056b045a49936c299ddf9edc8b369f09b8da8cd39f41806c3de854"
+    },
+    {
+      "path": "docs/pruebas/ejecuciones/resultados-2026-10-22.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "eefb5c82752e8a446ec30dfd3ecade543b3f08b4828fa6ebcf58599ea2fe9657"
+    },
+    {
+      "path": "docs/pruebas/evidencias/BUG-002-arranque-android.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4a3b48e278f925070a78251ab5587c0ed67123cb101a5e35358bd16ca5fc6335"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-001-guardado-offline.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "aa1e24968c3aca963d907f9e72f3e0b76e8eab3dd4a28a3cdb0d2c3401445a9f"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-001-reabierto-offline.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "45a649afdb6b474b245c981ace8b306fbdde8a9bc126d827d83de7390b5ebecb"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-002-007-confirmado.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f2380e3f205e2101cff9b50d2dd372a72d377be931c8c8f870a774f60f2bb32d"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-003-acceso-local.jpg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "d42c6716540aa032ebca1272737a97c927b876d1e3e62b1db30b34d02abfa522"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-003-login-rechazado.jpg",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "07082326e1e75e7904463faeaa1035caaacbc21f156ff5e42cb2ab06bacf5b63"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-007-respuesta-perdida.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4a6a99270c6edf373846c2de1a33f5845842c34e9bcf7030741e794a5dc5e4a8"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-ANDROID-inicio.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8e42b4e958043fab0b2281d9f2549d21b0cbfff90a44d9bcdb5e2c70a1d3b259"
+    },
+    {
+      "path": "docs/pruebas/evidencias/CP-ANDROID-preparacion.png",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8bb4a8d10d7089b441ed334007c0d186ba896bd21c669805f0b1930912db8cdb"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-01.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "df99bfc3f6c80f312823075e92f9495eb2cf4e92b5cb75cc50ef0bd939079d66"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-02.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "370be127fe98868db7509a6390a911f67f281327df4a1e05e38571a7b6c6b52d"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-03.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "ad12a04a2c697f0f4379699e99228e2b4f43e5bc24bfc98991ab4e9805de4ae0"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-04.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "c8ef1f2d22943de76b8ec95524110fd9e020b9ec9ab481a3d3d4ebb430aa7c89"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-05.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9c7ed7896ab15b74e3c6658edd6561dbe96e4979b1e7ee6c5cee013fd8c53a93"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-06.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2664f89b44baca713aee09398a1a1b253d58cddde586459b2433d41ddccbf45b"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-07.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "25512cd2eb6c8e06d505cdebd2c8a4189f9885d2a6c9e311345fabb9efd83484"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-08.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "02964fbbe40eaa408110e8dd70226da0e5402a3f43e5825c2aa0af231afdf7f3"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-09.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9ce9c99906399a87b0d9ffa87a50c29bbcffc01765e6406e358cf11197d91961"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-10.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-11.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f52e690b8efc6b74e61cf2c6a1f289cbe483a30a9cf659ed9908bcca7b4b335b"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-12.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4aa3ea353ef0e0823e911dd233dd99f43e374e96882d94cdcdc211348e44f843"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-13.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7f1c8c5c9ef1eeeba2f92a4b67f4f2efe5a26f7270b42d4b775a32a8d6cfec81"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-15.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9b535fe728365e6765551210fd71c3aff61f49cd1e8972fe975eb6ea3503331b"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-16.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7da098f1a4518c650ad214d4a0f1d9924d2c468774449a6df3a25f6e429f4b1b"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-17.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "206ead34069ebd9c8af7608f97c44f2d50de2d30434c5d95e96361def92f9502"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-18.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "986c15feffb48f6d2a98540a61cef7fcd8c795b6dc58622b3a4e65e1a201d466"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-19.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5447727c90ca4396d29372e46ec88a95e1fc4c8fe0763b0fb3305288447c55f0"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-20.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "699cead075ef54fc65a23d1d94cb8128342f6be960182fd63f2363db89100f4c"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-21.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "a6382769e01ddecc2a1562bc695b82119ec0cc22d0988f30665300cf9fadd608"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-22.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "bb8ab72e6429d041a17d8843bdce177f789f087e71e884dad2bed48316d49bc3"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-23.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "886dc99e33fe1e6811360dd1e117436830eb71c991ad95f73b8ca28ee98e6d6b"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-24.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "50556aa078ad235f46c56955fcc94cf27207892008670d46323a49703ead402c"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-25.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "90d24426d3bce57a9311b288577f72208175c5e66753651706986cce893913eb"
+    },
+    {
+      "path": "docs/pruebas/evidencias/EXE-20261022-26.log",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "45c9f8c42c6c1b907dba0dacde5fc9ee4702c202ae47f91d129da454e9ffe58a"
+    },
+    {
+      "path": "docs/pruebas/evidencias/README.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "2d3093b9e58af6dccc642323cf708a6254d8791418aecab0d501a806290471cb"
+    },
+    {
+      "path": "docs/requisitos/rf-fuente-y-cobertura.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "03f7cf40657558a0d4ea73f15f6e56d988876c378c1061a80adbdcb6246ab2c9"
+    },
+    {
+      "path": "docs/requisitos/rnf-fuente-y-cobertura.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f9ab85f369903127fcc1440f6bdfe071fe7f848608b329a662ebc0c02467b67c"
+    },
+    {
+      "path": "docs/scrum/calendario-y-capacidad.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5d05dedae7a33248c3253661dee5d16967a5acb74d74eff4ffcc8929769311d6"
+    },
+    {
+      "path": "docs/scrum/definition-of-done.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "dab6408d465995652e4b186f64c8ec18cb32786c3bd64244ae58430ecc1aa32a"
+    },
+    {
+      "path": "docs/scrum/eventos-y-registros.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "69265ae2afe350508edb70543c7bf485ee9e03cc16be117cdde548da2fa1d60a"
+    },
+    {
+      "path": "docs/scrum/evidencias-commits.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1457d23c662055f43908753a9f3571359532083040ffce0e872796674c27f401"
+    },
+    {
+      "path": "docs/scrum/flujo-git-y-revision.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "53cdd9f750e837ecd83c8af4e75a19fd8b9dfe27e05cc496fee5c2d3c148a5fe"
+    },
+    {
+      "path": "docs/scrum/metodologia.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "9631ff7edaf3ddddc8f8bebf0ebff25a04bb6a2a9b2707f7727b090fc60a0af3"
+    },
+    {
+      "path": "docs/scrum/metricas.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "14a4bd9de6ad250abd78d977675446596da2c868d25a02b7f6fe6685d69caa50"
+    },
+    {
+      "path": "docs/scrum/product-backlog.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1bf87ad1831c5a2bd8be33d4c8bb31f12adf54ed2977819b1caf6786f6d28097"
+    },
+    {
+      "path": "docs/scrum/roles.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "33c806b8fe3ecc0d805d9ca3b2636fbf702ca7d5ab7afc0a5e6976a0df228b72"
+    },
+    {
+      "path": "docs/scrum/sprint-1.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "57ecb20daa3bd3ff4e29a54f3ade4e6d50ba39ee62d6acb7a427928a7b8189c6"
+    },
+    {
+      "path": "docs/scrum/sprint-10.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "5ab4cc697327ac00427efb8c920aa1a5d648cac61f6cf71d6b1fb76f76227e8b"
+    },
+    {
+      "path": "docs/scrum/sprint-2.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "584a747c02ada59cc1d826933fa605c64ec4d5d9fca8fc0121585540f8b9cf2b"
+    },
+    {
+      "path": "docs/scrum/sprint-3.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "db7654dc1ba22016556bee9e12d95d7e69e9e684fa87e6402f51c38e2ba8d6dc"
+    },
+    {
+      "path": "docs/scrum/sprint-4.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "16ee7872f1542594eef7e121bc04a8c9734b4f82dccf9a01e2e5d5381db85afe"
+    },
+    {
+      "path": "docs/scrum/sprint-5.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "fd43913a2abf352e5ba00878ef898633861b57bcc62c3f3b9979b534abcaf032"
+    },
+    {
+      "path": "docs/scrum/sprint-6.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "f972772949b7c97fc4446ca21adc6e33246a28ed28389d0364ed689a703542c0"
+    },
+    {
+      "path": "docs/scrum/sprint-7.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "75f417b354dca7e9afaaa110c36945474b842414fbddb45b6a2d9eb51f0b3a42"
+    },
+    {
+      "path": "docs/scrum/sprint-8.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8ec4b57d487ee3da6c7c4482ecc02d1b91cba543037697962ee2dc6eb8ad9547"
+    },
+    {
+      "path": "docs/scrum/sprint-9.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "cff33f1a3bf9f8b6b6a40be11883e7f5493d97b0427449c14f348e3bf19c68a2"
+    },
+    {
+      "path": "docs/scrum/tareas.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "e7f82f21b1091d131202ad129e9d53f5a88324e7662f6998eef3e2f8c0cbfdd5"
+    },
+    {
+      "path": "docs/scrum/trazabilidad.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "8f6668391d0d464e1c79fbc7d46cd629335693462fd93d8818b0a19017043320"
+    },
+    {
+      "path": "docs/tecnica/administracion-movil.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4dfee4dadcdfc4e6fa321b9921b38590dd99eda727e521852bc816f1a640aaca"
+    },
+    {
+      "path": "docs/tecnica/arquitectura-datos-y-sincronizacion.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "4ca5a3402fb238eb6e87124e8a7c5f0c2591ab506a21354426cc0912a4791b18"
+    },
+    {
+      "path": "docs/tecnica/calidad-movil.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "1d414975da4ee4c20bfe7f3e8dd3a6d67eb5096dc0938d1d0354a8b01c08f841"
+    },
+    {
+      "path": "docs/tecnica/portal-proveedor-movil.md",
+      "category": "documentacion_evidencia",
+      "state": "prepared_for_documentary_commit",
+      "sha256": "7a091ef1104217b90053a03b1645a5b1ef94d80991bf1d45523d317f7b07de88"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CambiosPanelWebTest.kt",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "bfea88cbf961112c60eae907472010a392474be3f49e77b312a5431689524694"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/sync/EnviarCambiosServidorUseCase.kt",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "9d12f812156f08c363b396dc96a27c1e11188a664bdf195ced4639058cd125d5"
+    },
+    {
+      "path": "web/tests/Feature/AdminNavegacionYPermisosTest.php",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "4254ed6317329b70c9eecc5c01d7f8606fb20f2ee009e3a16da067cf2bfebd04"
+    },
+    {
+      "path": "web/tests/Feature/AdminPantallasTest.php",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "e8163a651460da32cc57dfeaf35236969164608fcf9125cda0bdc3e4fcefbe25"
+    },
+    {
+      "path": "web/tests/Feature/AdminZonasRutasVehiculosTest.php",
+      "category": "codigo_o_pruebas",
+      "state": "local_committed",
+      "sha256": "862d84c6cd36e3f402beb14c4d79be84cc9273cb908246d86c9fdb047f0c408e"
+    }
+  ],
+  "source_sha256": "dcfbe1f28153310d1adfaba58c4eff02094739b367449d5cb50cd6adf1ac9af8",
+  "ports_rechecked_closed": {
+    "8765": true,
+    "5582": true,
+    "8080": true,
+    "9099": true
+  },
+  "staging_procedure": "Manifiesto --no-renames estable; altas/cambios existentes se agregan explícitamente; bajas ya preparadas se comprueban contra índice sin volver a agregar rutas inexistentes.",
+  "continuation_notes": {
+    "recorded_utc": "2026-10-23T13:34:33.811288+00:00",
+    "nature": "Registro retrospectivo de incidencias observadas durante preparación Git; horas individuales no reconstruidas",
+    "attempts": [
+      {
+        "id": "GIT-PREP-01",
+        "obtained": "El directorio temporal previo ya no existía al retomar; comando de agregado no ejecutó cambios. Se creó temporal nuevo y se usaron recibos/huellas públicos conservados."
+      },
+      {
+        "id": "GIT-PREP-02",
+        "obtained": "Git rechazó una ruta ya eliminada del índice. El manifiesto se corrigió a --no-renames y se agregaron solo archivos existentes/bajas aún indexadas. Las cinco bajas se comprobaron después."
+      }
+    ],
+    "final": "268 rutas coinciden exactamente con índice;263 archivos actuales y5 bajas por traslado. Sin diferencias de contenido, sin archivos ajenos, sin commit/push."
+  },
+  "checked_local": "2026-10-23T09:01:40.893193-05:00",
+  "base_commit": "05743b97f2e5835250e223eabc09f9924b7524bb",
+  "technical_head_before_documentation": "8674b53756ec9c765dc6de763ea7af32efe956ad",
+  "technical_commits": [
+    {
+      "sha": "c9ace988ca444be42df228b1bd1b2bd78b6ad39d",
+      "subject": "fix(android): evitar ANR durante la preparacion inicial",
+      "location": "local; publication not confirmed"
+    },
+    {
+      "sha": "e01d8c633f46f1d87a44f9bbaba6a1de02f401ef",
+      "subject": "fix(sync): conservar cambios pendientes sin cuenta autora",
+      "location": "local; publication not confirmed"
+    },
+    {
+      "sha": "8674b53756ec9c765dc6de763ea7af32efe956ad",
+      "subject": "test: verificar OCR y persistencia Android y actualizar regresion web",
+      "location": "local; publication not confirmed"
+    }
+  ],
+  "documentary_commit": "Consultar git log; este JSON no contiene el hash del commit que lo genera",
+  "authorization": {
+    "local_commits": true,
+    "push_after_checks": true,
+    "review_before_merge": true,
+    "force_push": false,
+    "source": "Solicitud explícita del usuario del23-10-2026"
+  },
+  "github_auth": {
+    "plugin_installed": true,
+    "plugin_version": "0.1.12-5f7cd798dc99",
+    "account_connection_verified": false,
+    "https_push_dry_run": "Failed: no Git credentials",
+    "ssh": "Failed: Permission denied (publickey), server key verified using official GitHub metadata",
+    "repository_write_permission_verified": false,
+    "projects_write_permission_verified": false
+  },
+  "package_paths": 283,
+  "local_review_23_october": {
+    "product_tree_unchanged_since_passed_suites": true,
+    "documentation_repairs": "Fragmented python3 commands and known Git hashes/URLs restored from local history; regression validates malformed URLs",
+    "tool_tests": 23,
+    "code_review_request": "docs/scrum/flujo-git-y-revision.md#solicitud-de-revisión-preparada--2026-10-23",
+    "independent_review": "Pending; no human approval simulated",
+    "stories_done": 0,
+    "academic_partial_rows": [
+      3,
+      5,
+      6,
+      10,
+      11,
+      14,
+      16,
+      18,
+      19,
+      23,
+      24,
+      30,
+      32,
+      33
+    ]
+  },
+  "paths_reviewed_before_documentary_commit": 272,
+  "commits_created_before_documentary_commit": 3
+}

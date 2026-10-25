@@ -1,0 +1,31 @@
+name: Documentación y herramientas de verificación
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, "cierre/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verificaciones-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentacion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obtener historial para trazabilidad
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Probar las herramientas sin servicios externos
+        run: python3 -m unittest discover -s docs/herramientas/tests -v
+      - name: Verificar documentación, recibos y export Kanban
+        run: python3 docs/herramientas/verificar_documentacion.py --export-kanban --json "$RUNNER_TEMP/documentacion.json"
+      - name: Comprobar que los derivados estén actualizados
+        run: git diff --exit-code -- docs/kanban/importacion-propuesta.csv docs/kanban/configuracion-propuesta.json

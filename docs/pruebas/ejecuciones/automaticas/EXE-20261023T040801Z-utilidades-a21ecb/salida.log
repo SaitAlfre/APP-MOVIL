@@ -1,0 +1,23 @@
+test_anclas_incluyen_acentos_id_y_titulos_repetidos (test_verificaciones.VerificacionesTest.test_anclas_incluyen_acentos_id_y_titulos_repetidos) ... ok
+test_comando_fallido_conserva_salida_y_codigo (test_verificaciones.VerificacionesTest.test_comando_fallido_conserva_salida_y_codigo) ... ok
+test_copia_con_env_privado_se_rechaza (test_verificaciones.VerificacionesTest.test_copia_con_env_privado_se_rechaza) ... ok
+test_copia_con_lock_distinto_se_rechaza (test_verificaciones.VerificacionesTest.test_copia_con_lock_distinto_se_rechaza) ... ok
+test_copia_excluye_datos_privados_y_conserva_vistas_vendor (test_verificaciones.VerificacionesTest.test_copia_excluye_datos_privados_y_conserva_vistas_vendor) ... ok
+test_copia_fuera_de_temporal_se_rechaza (test_verificaciones.VerificacionesTest.test_copia_fuera_de_temporal_se_rechaza) ... ok
+test_directorio_home_relativo_no_es_ruta_personal (test_verificaciones.VerificacionesTest.test_directorio_home_relativo_no_es_ruta_personal) ... ok
+test_hu_y_tareas_se_conservan_unicas (test_verificaciones.VerificacionesTest.test_hu_y_tareas_se_conservan_unicas) ... ok
+test_junit_anterior_no_se_atribuye_a_ejecucion_actual (test_verificaciones.VerificacionesTest.test_junit_anterior_no_se_atribuye_a_ejecucion_actual) ... ok
+test_junit_distingue_passed_failed_skipped_y_error (test_verificaciones.VerificacionesTest.test_junit_distingue_passed_failed_skipped_y_error) ... ok
+test_log_sanea_ruta_correo_token_y_pin_sin_cambiar_conteos (test_verificaciones.VerificacionesTest.test_log_sanea_ruta_correo_token_y_pin_sin_cambiar_conteos) ... ok
+test_manifiesto_incluye_readme_y_bajas_sin_respaldos (test_verificaciones.VerificacionesTest.test_manifiesto_incluye_readme_y_bajas_sin_respaldos) ... ok
+test_node_cancelado_no_se_presenta_como_suite_completa (test_verificaciones.VerificacionesTest.test_node_cancelado_no_se_presenta_como_suite_completa) ... ok
+test_node_reporter_spec (test_verificaciones.VerificacionesTest.test_node_reporter_spec) ... ok
+test_node_reporter_tap (test_verificaciones.VerificacionesTest.test_node_reporter_tap) ... ok
+test_node_sin_resumen_no_se_presenta_como_passed (test_verificaciones.VerificacionesTest.test_node_sin_resumen_no_se_presenta_como_passed) ... ok
+test_respaldo_sqlite_ficticio_se_restaura_sin_perder_registros (test_verificaciones.VerificacionesTest.test_respaldo_sqlite_ficticio_se_restaura_sin_perder_registros) ... ok
+test_tiempo_limite_no_se_convierte_en_passed (test_verificaciones.VerificacionesTest.test_tiempo_limite_no_se_convierte_en_passed) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.644s
+
+OK

@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "nature": "Propuesta reproducible; no es un Project creado ni historial de movimientos",
+  "repository": "SaitAlfre/APP-MOVIL",
+  "columns": [
+    "Backlog",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Done"
+  ],
+  "wip": {
+    "In Progress": 2,
+    "Review": 2,
+    "total_active": 2
+  },
+  "wip_unit": "Tarea, sin duplicar HU padre",
+  "fields": [
+    "Tipo",
+    "ID",
+    "HU_RNF",
+    "Responsable propuesto",
+    "Prioridad",
+    "Sprint candidato",
+    "SP hipotéticos",
+    "Horas propuestas",
+    "Bloqueo",
+    "PR",
+    "Evidencia",
+    "Inicio real",
+    "Fin real"
+  ],
+  "cards": 113,
+  "stories": 41,
+  "actionable_tasks": 72,
+  "source": "product-backlog.md + tareas.md; CSV derivado, no editar estados aquí",
+  "credentials": "No incluidas. Crear recursos requiere sesión/autorización y comprobar que no existen.",
+  "csv": "importacion-propuesta.csv"
+}

@@ -1,0 +1,37 @@
+adb get-state → exit 0
+device
+adb shell getprop sys.boot_completed → exit 0
+
+adb shell getprop sys.boot_completed → exit 0
+
+adb shell getprop sys.boot_completed → exit 0
+
+adb shell getprop sys.boot_completed → exit 0
+
+adb shell getprop sys.boot_completed → exit 0
+
+adb shell getprop sys.boot_completed → exit 0
+1
+adb shell getprop ro.build.version.release → exit 0
+16
+APK SHA-256: 263c7487dfe85d5ccffe24033d427bbb932badb91c02031b2cdb4cb15fe78cd5
+adb install -r <REPO>/androidApp/build/outputs/apk/debug/androidApp-debug.apk → exit 0
+Performing Streamed Install
+Success
+adb shell am start -W -n pe.ecolecta.preview/pe.ecolecta.MainActivity → exit 0
+Starting: Intent { cmp=pe.ecolecta.preview/pe.ecolecta.MainActivity }
+Status: ok
+LaunchState: UNKNOWN (0)
+Activity: pe.ecolecta.preview/pe.ecolecta.MainActivity
+WaitTime: 30955
+Complete
+adb shell uiautomator dump /sdcard/ecolactea-smoke.xml → exit 0
+UI hierchary dumped to: /sdcard/ecolactea-smoke.xml
+adb pull /sdcard/ecolactea-smoke.xml <AISLADO>/android-smoke.xml → exit 0
+/sdcard/ecolactea-smoke.xml: 1 file pulled, 0 skipped. 0.2 MB/s (4428 bytes in 0.022s)
+UI_TEXTS: ["System UI isn't responding", 'Close app', 'Wait']
+Traceback (most recent call last):
+  File "<AISLADO>/android_smoke.py", line 29, in <module>
+    assert 'Iniciar' in text or 'Ingresar' in text,'No se reconoció pantalla inicial; no emitir Passed'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: No se reconoció pantalla inicial; no emitir Passed

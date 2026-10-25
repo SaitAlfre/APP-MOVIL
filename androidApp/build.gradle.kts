@@ -37,6 +37,9 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+    // Instrumentación de QA: reutiliza la misma versión del OCR que utiliza shared.
+    androidTestImplementation(libs.mlkit.text.recognition)
+    androidTestImplementation(libs.kotlinx.datetime)
 }
 
 android {
@@ -49,6 +52,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "pe.ecolecta.qa.VerificacionInstrumentada"
         buildConfigField("boolean", "LOCAL_PREVIEW", localPreview.toString())
         buildConfigField("String", "SERVIDOR_URL", "\"${servidorUrl.trim()}\"")
     }

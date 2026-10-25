@@ -1,0 +1,8 @@
+EXTRACTO SANEADO DEL RUNNER; no sustituye el original.
+Original SHA256: d0c3691421f980a4445ecc818d81fa3b1c19ac3ef8968506211943378feca8a9
+{"name": "/tmp/ecolactea-cierre-20261022/web/phpunit.xml", "tests": "289", "assertions": "1532", "errors": "0", "failures": "5", "skipped": "0", "time": "8.632446"}
+Tests\Feature\AdminNavegacionYPermisosTest::test_el_admin_ve_todos_los_grupos_del_menu — expectations preceding navigation change 52dab50
+Tests\Feature\AdminPantallasTest::test_todas_las_pantallas_de_solo_lectura_responden_con_datos — expectations preceding navigation change 52dab50
+Tests\Feature\AdminZonasRutasVehiculosTest::test_cada_pestana_muestra_solo_su_catalogo — expectations preceding navigation change 52dab50
+Tests\Feature\AdminZonasRutasVehiculosTest::test_los_catalogos_vacios_explican_para_que_sirve_cada_uno — expectations preceding navigation change 52dab50
+Tests\Feature\ProveedorManagementTest::test_un_admin_puede_ver_el_codigo_qr_de_un_proveedor — GD absent in temporary runtime
