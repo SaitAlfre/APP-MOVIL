@@ -81,7 +81,6 @@ class AplicarCambioMovilUseCase
                 'liquidacion' => $this->liquidacion($datos),
             };
         });
-        });
     }
 
     private function autorizar(Usuario $autor, string $entidad): void

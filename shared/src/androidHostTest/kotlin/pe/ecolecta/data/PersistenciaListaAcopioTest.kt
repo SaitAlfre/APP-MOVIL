@@ -63,11 +63,26 @@ class PersistenciaListaAcopioTest {
     private fun abrir() = JdbcSqliteDriver(url, schema = pe.ecolecta.data.local.SchemaCuentasSeguras)
 
     @Test
+    fun `actualizar la version anterior de acopio agrega verificacion sin borrar cuentas`() = runTest {
+        abrir().use { driver ->
+            val db = EcolectaDatabase(driver)
+            DatabaseSeeder(db, reloj, Pbkdf2PinHasher()).sembrarSiEsNecesario()
+            val cuentas = db.usuarioQueries.selectTodos().executeAsList().map { it.id }
+            driver.execute(null, "ALTER TABLE usuario DROP COLUMN requiere_verificacion", 0)
+            driver.execute(null, "DROP TABLE version_catalogo_servidor", 0)
+            pe.ecolecta.data.local.SchemaCuentasSeguras.migrate(driver, 20, EcolectaDatabase.Schema.version)
+            assertEquals(cuentas, db.usuarioQueries.selectTodos().executeAsList().map { it.id })
+            assertTrue(db.usuarioQueries.selectTodos().executeAsList().all { it.requiere_verificacion == 0L })
+        }
+    }
+
+    @Test
     fun `al retirar el canal antiguo las marcas confirmadas quedan pendientes de enviar a la API sin borrar datos`() = runTest {
         abrir().use { driver ->
             val db = EcolectaDatabase(driver)
             db.sinRecojoQueries.insertar("marca-antigua", "j1", "p1", "u1", "z1", "2026-09-24", "SIN_LECHE", "Se conserva", 100, 100)
             db.sinRecojoQueries.marcarSincronizada(id = "marca-antigua", updated_at = 100)
+            driver.execute(null, "ALTER TABLE usuario DROP COLUMN requiere_verificacion", 0)
             EcolectaDatabase.Schema.migrate(driver, 18, 19)
             val marca = db.sinRecojoQueries.selectPorId("marca-antigua").executeAsOne()
             assertEquals("PENDING", marca.sync_state)

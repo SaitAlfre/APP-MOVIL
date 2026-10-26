@@ -19,11 +19,11 @@ import pe.ecolecta.domain.security.PinHasher
 data class InicioSesion(val usuario: Usuario, val enlazado: Boolean)
 
 class IniciarSesionUseCase(
-    private val usuarios: UsuarioRepository,
     private val loginOffline: LoginOfflineUseCase,
-    private val pinHasher: PinHasher,
-    private val datosLocales: DatosServidorLocalRepository,
     private val servidor: ServidorWebRepository,
+    private val datosLocales: DatosServidorLocalRepository,
+    private val usuarios: UsuarioRepository,
+    private val pinHasher: PinHasher,
     private val reloj: Reloj,
 ) {
     suspend operator fun invoke(username: String, pin: String): Result<InicioSesion> {
@@ -36,7 +36,7 @@ class IniciarSesionUseCase(
             return Result.failure(error)
         }
         val respuesta = withTimeoutOrNull(8_000) { servidor.autenticar(username.trim(), pin) }
-        val sesion = (respuesta ?: Result.failure(SinConexionRemotaException("Tiempo de espera agotado"))).getOrElse { remoto ->
+        val sesion = (respuesta ?: Result.failure(SinConexionRemotaException(IllegalStateException("Tiempo de espera agotado")))).getOrElse { remoto ->
             if (remoto is SinConexionRemotaException) return inicioLocal(local)
             if (remoto is RechazoServidorException && remoto.codigo in setOf("credenciales", "cuenta_bloqueada", "perfil_no_disponible")) {
                 usuarios.obtenerPorUsername(username.trim())?.let { datosLocales.requerirVerificacion(it.id) }

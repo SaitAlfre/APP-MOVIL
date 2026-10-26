@@ -14,6 +14,16 @@ import pe.ecolecta.data.local.db.EcolectaDatabase
  */
 object SchemaCuentasSeguras : SqlSchema<QueryResult.Value<Unit>> by EcolectaDatabase.Schema {
     override fun migrate(driver: SqlDriver, oldVersion: Long, newVersion: Long, vararg callbacks: AfterVersion): QueryResult.Value<Unit> {
+        // Algunas instalaciones de acopio ya aplicaron la migración 18 antes de que Coder 1
+        // añadiera esta columna. Se completa el esquema sin repetir ni borrar datos históricos.
+        if (oldVersion > 18L) {
+            val existe = driver.executeQuery(null, "PRAGMA table_info(usuario)", { cursor ->
+                var encontrada = false
+                while (cursor.next().value) if (cursor.getString(1) == "requiere_verificacion") encontrada = true
+                QueryResult.Value(encontrada)
+            }, 0).value
+            if (!existe) driver.execute(null, "ALTER TABLE usuario ADD COLUMN requiere_verificacion INTEGER NOT NULL DEFAULT 0", 0)
+        }
         if (oldVersion == 10L && newVersion > 10L) archivarRoles(driver)
         val proteccion = if (oldVersion <= 9L && newVersion > 10L) {
             arrayOf(AfterVersion(9L) { archivarRoles(it) })

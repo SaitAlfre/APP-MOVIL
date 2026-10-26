@@ -75,7 +75,7 @@ class DatosPanelWebTest {
         val primera = iniciar("acop_unico", "1234").getOrThrow()
         assertTrue(primera.enlazado)
         assertEquals(primera.usuario.id, iniciar("acop_unico", "1234").getOrThrow().usuario.id)
-        assertEquals(1, autenticaciones, "con token vigente no vuelve a pedir enlace ni autenticar")
+        assertEquals(2, autenticaciones, "cada inicio online verifica que la cuenta siga habilitada sin pedir un enlace adicional")
 
         conectada = false
         assertTrue(iniciar("acop_unico", "1234").getOrThrow().enlazado, "renueva el acceso con el mismo login")
