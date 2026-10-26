@@ -82,9 +82,12 @@ fun etiquetaPago(estado: String) = when(estado.uppercase()) {
                 }
                 EtiquetaProveedor(etiquetaPago(pago.estado), etiquetaPago(pago.estado) != "Pagado")
             }
+            if (pago.estadoPendiente != null) {
+                TextoProveedor("Registro de pago pendiente de confirmar con el panel web. Todavía no figura como pagado.", 12, ProveedorGris)
+            }
             TarjetaProveedor(color = ProveedorFondo) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    listOf("Litros" to "${decimalProveedor(pago.litros)} L", "Precio" to "S/ ${decimalProveedor(pago.precio)}", "Descuento" to "S/ ${decimalProveedor(pago.descuento)}").forEach { (label, value) ->
+                    listOf("Litros" to "${decimalProveedor(pago.litros)} L", "Precio" to "S/ ${decimalProveedor(pago.precio, 3)}", "Descuento" to "S/ ${decimalProveedor(pago.descuento)}").forEach { (label, value) ->
                         Column(Modifier.weight(1f)) { TextoProveedor(value, 12, bold = true); TextoProveedor(label, 10, ProveedorGris) }
                     }
                 }

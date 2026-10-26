@@ -174,20 +174,26 @@ class OcultarAlertaUseCase(private val descartadas: AlertaDescartadaRepository, 
 }
 
 /**
- * Decide una solicitud del portal del proveedor. Aprobar un traslado lo registra y autoriza con
- * el flujo existente, que mueve al proveedor de zona y deja auditoría; el resto solo cambia el
- * estado visible para el proveedor.
+ * Con el panel configurado, encola la decisión y espera su confirmación al sincronizar. El servidor
+ * aplica el ajuste de litros o el traslado y devuelve el estado oficial y la respuesta al proveedor.
+ * La operación local sin servidor conserva el flujo de autorización de traslados existente.
  */
 class ResolverSolicitudUseCase(
     private val portal: GestionPortalRepository,
     private val crearTraslado: CrearTrasladoUseCase,
     private val autorizarTraslado: AutorizarTrasladoUseCase,
+    private val servidor: pe.ecolecta.domain.repository.ServidorWebRepository? = null,
 ) {
-    suspend operator fun invoke(solicitudId: String, aprobar: Boolean, adminId: String): Result<Unit> = runCatching {
+    suspend operator fun invoke(solicitudId: String, aprobar: Boolean, adminId: String, respuesta: String = ""): Result<Unit> = runCatching {
         val solicitud = portal.todasSolicitudes().first().firstOrNull { it.id == solicitudId }
             ?: error("La solicitud ya no existe en este dispositivo.")
         require(EstadoSolicitud.estaPendiente(solicitud.estado)) { "Esta solicitud ya fue resuelta." }
-        if (aprobar && solicitud.tipo == "TRASLADO") {
+        val confirmaPanel = servidor?.configurado == true
+        require(!confirmaPanel || respuesta.trim().length in 1..500) { "Escribe una respuesta al proveedor de hasta 500 caracteres." }
+        if (aprobar && solicitud.tipo == "RECLAMO" && solicitud.referenciaId == null) {
+            error("Primero registra y vincula la entrega faltante desde la web. También puedes rechazar el reclamo con una respuesta.")
+        }
+        if (aprobar && solicitud.tipo == "TRASLADO" && !confirmaPanel) {
             val destino = solicitud.referenciaId ?: error("La solicitud no indica zona de destino.")
             val traslado = crearTraslado(solicitud.proveedorId, destino, solicitud.descripcion).getOrThrow()
             autorizarTraslado(traslado.id, adminId).getOrThrow()
@@ -197,7 +203,11 @@ class ResolverSolicitudUseCase(
             solicitud.tipo == "TRASLADO" -> EstadoSolicitud.APROBADA
             else -> EstadoSolicitud.ATENDIDA
         }
-        portal.actualizarSolicitud(solicitud.copy(estado = nuevoEstado))
+        portal.actualizarSolicitud(if (confirmaPanel) {
+            solicitud.copy(decisionPendiente = nuevoEstado, respuestaPendiente = respuesta.trim())
+        } else {
+            solicitud.copy(estado = nuevoEstado, respuesta = respuesta.trim().ifBlank { null })
+        })
     }
 }
 
@@ -254,7 +264,7 @@ class AprobarLiquidacionUseCase(
         require(existentes.isEmpty()) { "Esta semana ya tiene una liquidación aprobada." }
 
         val hasta = desde.plus(DatePeriod(days = 6))
-        val precio = precioPorLitro.redondeo2()
+        val precio = kotlin.math.round(precioPorLitro * 1000.0) / 1000.0
         val pagos = entregas.observarConFiltros().first()
             .filter { !it.anulada && inicioSemanaProveedor(fechaLima(it.registradoEn)) == desde }
             .groupBy { it.proveedorId }
@@ -293,13 +303,19 @@ class MarcarLiquidacionPagadaUseCase(
     private val auditoria: AuditoriaRepository,
     private val reloj: Reloj,
     private val deviceIdProvider: DeviceIdProvider,
+    private val servidor: pe.ecolecta.domain.repository.ServidorWebRepository? = null,
 ) {
     suspend operator fun invoke(desde: LocalDate, adminId: String): Result<Unit> = runCatching {
         val ahora = reloj.ahora().toEpochMilliseconds()
-        val pendientes = portal.todosPagos().first().filter { it.desde == desde.toString() && it.estado.uppercase() == "APROBADA" }
+        val pendientes = portal.todosPagos().first().filter {
+            it.desde == desde.toString() && it.estado.uppercase() in setOf("APROBADA", "PENDIENTE") && it.estadoPendiente == null
+        }
         require(pendientes.isNotEmpty()) { "No hay liquidaciones aprobadas por pagar en esta semana." }
         val fecha = fechaLima(ahora).toString()
-        portal.guardarPagos(pendientes.map { it.copy(estado = "PAGADA", fechaPago = fecha) }, ahora)
+        portal.guardarPagos(pendientes.map {
+            if (servidor?.configurado == true) it.copy(estadoPendiente = "PAGADA")
+            else it.copy(estado = "PAGADA", fechaPago = fecha)
+        }, ahora)
         auditoria.insertar(
             Auditoria(
                 id = nuevoId(), entidad = "liquidacion", entidadId = desde.toString(), accion = AccionAuditoria.ACTUALIZAR,

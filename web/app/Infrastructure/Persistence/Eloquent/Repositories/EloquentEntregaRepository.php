@@ -7,6 +7,7 @@ use App\Domain\Auditoria\AuditoriaRepositoryInterface;
 use App\Domain\Entregas\Entrega as EntregaDominio;
 use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Entrega as EntregaEloquent;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -88,29 +89,33 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
     public function litrosPorProveedorEnRango(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): float
     {
+        $inicio = CarbonImmutable::parse($desde->format('Y-m-d'), 'America/Lima')->startOfDay()->utc();
+        $fin = CarbonImmutable::parse($hasta->format('Y-m-d'), 'America/Lima')->endOfDay()->utc();
+
         return (float) EntregaEloquent::query()
             ->where('proveedor_id', $proveedorId)
             ->where('anulada', false)
-            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->whereBetween('registrado_en', [$inicio, $fin])
             ->sum('litros');
     }
 
     public function litrosPorDiaDelProveedor(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): array
     {
+        $inicio = CarbonImmutable::parse($desde->format('Y-m-d'), 'America/Lima')->startOfDay()->utc();
+        $fin = CarbonImmutable::parse($hasta->format('Y-m-d'), 'America/Lima')->endOfDay()->utc();
+
         return EntregaEloquent::query()
             ->where('proveedor_id', $proveedorId)
             ->where('anulada', false)
-            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
-            ->selectRaw('DATE(registrado_en) as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
-            ->groupBy(DB::raw('DATE(registrado_en)'))
-            ->orderBy('fecha')
-            ->get()
-            ->map(fn ($fila) => [
-                'fecha' => (string) $fila->fecha,
-                'litros' => (float) $fila->litros,
-                'entregas' => (int) $fila->entregas,
+            ->whereBetween('registrado_en', [$inicio, $fin])
+            ->orderBy('registrado_en')->get(['registrado_en', 'litros'])
+            ->groupBy(fn (EntregaEloquent $e) => $e->registrado_en->copy()->setTimezone('America/Lima')->toDateString())
+            ->map(fn ($filas, string $fecha) => [
+                'fecha' => $fecha,
+                'litros' => (float) $filas->sum('litros'),
+                'entregas' => $filas->count(),
             ])
-            ->all();
+            ->values()->all();
     }
 
     public function resumenPorProveedores(array $proveedorIds, DateTimeImmutable $desde, DateTimeImmutable $hasta): array

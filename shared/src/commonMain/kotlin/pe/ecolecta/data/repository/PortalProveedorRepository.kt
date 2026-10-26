@@ -24,8 +24,9 @@ class PortalProveedorRepository(private val db: EcolectaDatabase) : pe.ecolecta.
             rows.filter { it.tipo == "PAGO" }.map { json.decodeFromString<PagoProveedor>(it.contenido) }
         }
     override suspend fun guardar(solicitud: SolicitudProveedor) = withContext(Dispatchers.Default) {
-        db.portalProveedorQueries.guardar(solicitud.id, solicitud.proveedorId, "SOLICITUD", json.encodeToString(solicitud), solicitud.creadaEn)
-        db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
-        Unit
+        db.transaction {
+            db.portalProveedorQueries.guardar(solicitud.id, solicitud.proveedorId, "SOLICITUD", json.encodeToString(solicitud), solicitud.creadaEn)
+            db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
+        }
     }
 }

@@ -35,7 +35,7 @@ import pe.ecolecta.presentation.navegacion.Pantalla
             }
             listOf(
                 listOf("Litros hoy" to "${decimalProveedor(s.diaHoy?.totalLitros ?: 0.0)} L", "Litros del ciclo" to "${decimalProveedor(s.totalCiclo)} L"),
-                listOf("Precio por litro" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.precio)}" } ?: "Sin liquidación"), "Última liquidación" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Sin liquidación")),
+                listOf("Precio por litro" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.precio, 3)}" } ?: "Sin liquidación"), "Última liquidación" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Sin liquidación")),
             ).forEach { fila -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 fila.forEach { (etiqueta, valor) -> TarjetaProveedor(Modifier.weight(1f), Color.White.copy(alpha = .15f)) {
                     TextoProveedor(etiqueta, 11, Color.White.copy(alpha = .8f)); TextoProveedor(valor, 20, Color.White, true)

@@ -69,8 +69,9 @@ class SqlDelightDatosServidorRepository(
                     }
                     val referencia = if (solicitud.tipo == "TRASLADO") solicitud.zonaDestinoId?.let { zonas[it] ?: local(ZONA, it) } else solicitud.referenciaId
                     val valor = SolicitudProveedor(solicitud.id, proveedor, solicitud.tipo, referencia,
-                        solicitud.litros, solicitud.motivo, anterior?.descripcion ?: solicitud.descripcion,
-                        evidencia = anterior?.evidencia, creadaEn = solicitud.creadaEn, estado = solicitud.estado)
+                        solicitud.litros, solicitud.motivo, solicitud.descripcion.ifBlank { anterior?.descripcion.orEmpty() },
+                        evidencia = anterior?.evidencia, creadaEn = solicitud.creadaEn, estado = solicitud.estado,
+                        respuesta = solicitud.respuesta, resueltaEn = solicitud.resueltaEn, evidenciaDisponible = solicitud.evidenciaDisponible)
                     db.portalProveedorQueries.recibir(solicitud.id, proveedor, "SOLICITUD", Json.encodeToString(valor), solicitud.creadaEn)
                 }
             }

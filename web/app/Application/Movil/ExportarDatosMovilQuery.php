@@ -29,6 +29,8 @@ class ExportarDatosMovilQuery
 
     public function ejecutar(Usuario $usuario): array
     {
+        Comunicado::query()->where('estado', 'programado')->where('publicar_en', '<=', now())
+            ->update(['estado' => 'publicado', 'publicado_en' => now()]);
         $admin = $usuario->tieneRol('admin');
         $desde = now()->subDays(self::DIAS_OPERACION)->startOfDay();
         $miFicha = Proveedor::query()->where('usuario_id', $usuario->id)->first();
@@ -93,6 +95,7 @@ class ExportarDatosMovilQuery
                 'referenciaId' => null, 'zonaDestinoId' => $t->zona_destino_id, 'litros' => null,
                 'motivo' => 'Traslado de zona', 'descripcion' => $t->motivo,
                 'creadaEn' => $t->created_at->getTimestampMs(), 'estado' => $t->estado,
+                'respuesta' => $t->respuesta, 'resueltaEn' => $t->resuelto_en?->getTimestampMs(),
             ]);
 
         return [
@@ -151,13 +154,18 @@ class ExportarDatosMovilQuery
                     'descuento' => (float) $p->descuento_sanciones, 'total' => (float) $p->monto_total,
                     'estado' => strtoupper($p->estado->value), 'fechaPago' => $p->pagada_en?->toDateString(),
                 ])->values(),
-            'solicitudes' => ReclamoProveedor::query()->with('entrega')
+            'solicitudes' => ReclamoProveedor::query()->select([
+                'id', 'uuid_movil', 'proveedor_id', 'entrega_id', 'litros_solicitados', 'motivo',
+                'descripcion', 'respuesta', 'resuelto_en', 'created_at', 'estado',
+            ])->selectRaw('CASE WHEN evidencia IS NULL THEN 0 ELSE 1 END AS evidencia_disponible')->with('entrega')
                 ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
                 ->orderBy('id')->get()->map(fn (ReclamoProveedor $r) => [
                     'id' => $r->uuid_movil ?? "web-reclamo-{$r->id}", 'proveedorId' => $r->proveedor_id,
                     'referenciaId' => $r->entrega?->uuid_movil ?? ($r->entrega_id ? "web-entrega-{$r->entrega_id}" : null),
                     'litros' => (float) $r->litros_solicitados, 'motivo' => $r->motivo,
-                    'descripcion' => $r->motivo, 'creadaEn' => $r->created_at->getTimestampMs(),
+                    'descripcion' => $r->descripcion ?? $r->motivo, 'creadaEn' => $r->created_at->getTimestampMs(),
+                    'respuesta' => $r->respuesta, 'resueltaEn' => $r->resuelto_en?->getTimestampMs(),
+                    'evidenciaDisponible' => (bool) $r->evidencia_disponible,
                     'estado' => match ($r->estado) {
                         'resuelto' => 'ATENDIDA', 'rechazado' => 'RECHAZADA', default => 'PENDIENTE'
                     },

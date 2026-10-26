@@ -156,7 +156,7 @@ class MovilController extends Controller
             'traslado' => ['uuid' => ['required', 'string', 'max:64'], 'proveedorId' => ['nullable', 'integer'],
                 'proveedorCodigo' => ['required', 'string', 'max:60'], 'zonaDestinoId' => ['nullable', 'integer'],
                 'zonaDestinoNombre' => ['required', 'string', 'max:120'], 'motivo' => ['required', 'string', 'max:2000'],
-                'estado' => ['required', 'string', 'in:PENDIENTE_ENVIO,PENDIENTE,APROBADA,RECHAZADA']],
+                'estado' => ['required', 'string', 'in:PENDIENTE_ENVIO,PENDIENTE,APROBADA,RECHAZADA'], 'respuesta' => ['nullable', 'string', 'max:500']],
             'jornada' => ['uuid' => ['required', 'string', 'max:64'], 'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'],
                 'vehiculoId' => ['nullable', 'integer'], 'vehiculoPlaca' => ['required', 'string', 'max:20'],
                 'abiertaEn' => ['required', 'integer', 'min:0'], 'cerradaEn' => ['nullable', 'integer', 'min:0']],
@@ -173,10 +173,14 @@ class MovilController extends Controller
                 'textoComprobante' => ['nullable', 'string', 'max:20000'], 'visita' => ['nullable', 'array'],
                 'registradoEn' => ['required', 'integer', 'min:0']],
             'reclamo' => ['uuid' => ['required', 'string', 'max:64'], 'entregaUuid' => ['nullable', 'string', 'max:64'],
-                'litros' => ['nullable', 'numeric', 'gt:0', 'max:18500'], 'motivo' => ['nullable', 'string', 'max:500'], 'estado' => ['nullable', 'string', 'max:30']],
+                'proveedorId' => ['nullable', 'integer'], 'proveedorCodigo' => ['nullable', 'string', 'max:60'],
+                'litros' => ['nullable', 'numeric', 'gt:0', 'max:18500', 'decimal:0,2'], 'motivo' => ['nullable', 'string', 'max:500'],
+                'descripcion' => ['nullable', 'string', 'max:2000'], 'evidencia' => ['nullable', 'string', 'max:1000000'],
+                'respuesta' => ['nullable', 'string', 'max:500'],
+                'estado' => ['nullable', 'string', 'in:PENDIENTE_ENVIO,PENDIENTE,ATENDIDA,APROBADA,RECHAZADA']],
             'liquidacion' => ['proveedorId' => ['nullable', 'integer'], 'proveedorCodigo' => ['required', 'string', 'max:60'],
                 'desde' => ['required', 'date_format:Y-m-d'], 'hasta' => ['required', 'date_format:Y-m-d', 'after_or_equal:desde'],
-                'precio' => ['required', 'numeric', 'gt:0', 'max:20'], 'estado' => ['required', 'string', 'in:APROBADA,PAGADA']],
+                'precio' => ['required', 'numeric', 'gt:0', 'max:20', 'decimal:0,3'], 'estado' => ['required', 'string', 'in:APROBADA,PAGADA']],
         };
     }
 

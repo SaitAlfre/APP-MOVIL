@@ -161,21 +161,23 @@ class SqlDelightCambiosLocalesRepository(
                     put("uuid", s.id); put("proveedorCodigo", proveedor.codigo)
                     putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId")
                     putServidor(EntidadCambio.ZONA, zona.id, "zonaDestinoId"); put("zonaDestinoNombre", zona.nombre)
-                    put("motivo", s.descripcion); put("estado", s.estado)
+                    put("motivo", s.descripcion); put("estado", s.decisionPendiente ?: s.estado); put("respuesta", s.respuestaPendiente ?: s.respuesta)
                 }
             }
             buildJsonObject {
+                val proveedor = db.proveedorQueries.selectPorId(s.proveedorId).executeAsOneOrNull() ?: return null
                 put("uuid", s.id); put("entregaUuid", s.referenciaId); put("litros", s.litros)
-                put("motivo", listOf(s.motivo, s.descripcion).filter { it.isNotBlank() }.distinct().joinToString(": "))
-                put("estado", s.estado)
+                putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId"); put("proveedorCodigo", proveedor.codigo)
+                put("motivo", s.motivo); put("descripcion", s.descripcion); put("evidencia", s.evidencia)
+                put("estado", s.decisionPendiente ?: s.estado); put("respuesta", s.respuestaPendiente ?: s.respuesta)
             }
         }
         EntidadCambio.LIQUIDACION -> contenido<PagoProveedor>(c.local_id)
-            ?.takeIf { it.estado.uppercase() in setOf("APROBADA", "PAGADA") }?.let { pago ->
+            ?.takeIf { (it.estadoPendiente ?: it.estado).uppercase() in setOf("APROBADA", "PAGADA") }?.let { pago ->
                 val proveedor = db.proveedorQueries.selectPorId(pago.proveedorId).executeAsOneOrNull() ?: return null
                 buildJsonObject {
                     putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId"); put("proveedorCodigo", proveedor.codigo)
-                    put("desde", pago.desde); put("hasta", pago.hasta); put("precio", pago.precio); put("estado", pago.estado.uppercase())
+                    put("desde", pago.desde); put("hasta", pago.hasta); put("precio", pago.precio); put("estado", (pago.estadoPendiente ?: pago.estado).uppercase())
                 }
             }
         else -> null

@@ -123,6 +123,7 @@ data class SolicitudServidor(
     val id: String, val proveedorId: Long, val referenciaId: String?, val litros: Double?,
     val motivo: String, val descripcion: String = "", val creadaEn: Long, val estado: String,
     val tipo: String = "RECLAMO", val zonaDestinoId: Long? = null,
+    val respuesta: String? = null, val resueltaEn: Long? = null, val evidenciaDisponible: Boolean = false,
 )
 
 /**

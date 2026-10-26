@@ -95,6 +95,7 @@ fun recordarAccionesAlerta(viewModel: AdminAlertasViewModel, estado: AdminAlerta
     when (val d = dialogo) {
         is Dialogo.Reclamo -> {
             val solicitud = estado.solicitudDe(d.alerta)
+            var respuesta by remember(d) { mutableStateOf(solicitud?.respuestaPendiente.orEmpty()) }
             AlertDialog(
                 onDismissRequest = { dialogo = null },
                 title = { Text("Reclamo del proveedor") },
@@ -105,40 +106,44 @@ fun recordarAccionesAlerta(viewModel: AdminAlertasViewModel, estado: AdminAlerta
                             AdminTexto(s.descripcion, 13, AdminColor.gris)
                             s.litros?.let { AdminTexto("Litros solicitados: $it L", 13) }
                             AdminTexto(if (s.referenciaId != null) "Entrega referida: ${s.referenciaId.take(8)}…" else "Entrega no registrada", 12, AdminColor.gris)
-                            if (s.referenciaId != null) {
-                                AdminTexto(
-                                    "Abrir la entrega para corregir los litros →", 13, AdminColor.verde, FontWeight.Bold,
-                                    Modifier.clickable { dialogo = null; alNavegar(Pantalla.AdminEntregaDetalle(s.referenciaId)) },
-                                )
-                            }
+                            AdminTexto("Al sincronizar, el panel ajustará los litros y recalculará la liquidación pendiente. No se modifican liquidaciones pagadas.", 12, AdminColor.gris)
+                            if (s.referenciaId == null) AdminTexto("Para aprobar, registra y vincula la entrega faltante desde la web.", 12, AdminColor.rojo)
                         }
+                        OutlinedTextField(respuesta, { respuesta = it.take(500) }, label = { Text("Respuesta al proveedor") }, minLines = 2, modifier = Modifier.fillMaxWidth())
                     }
                 },
-                confirmButton = { TextButton(onClick = { viewModel.aprobar(d.alerta); dialogo = null }) { Text("Marcar atendido") } },
+                confirmButton = { TextButton(onClick = { viewModel.aprobar(d.alerta, respuesta); dialogo = null }, enabled = respuesta.isNotBlank() && solicitud?.referenciaId != null) { Text("Aprobar ajuste") } },
                 dismissButton = { TextButton(onClick = { dialogo = Dialogo.Rechazar(d.alerta) }) { Text("Rechazar", color = AdminColor.rojo) } },
             )
         }
-        is Dialogo.AprobarTraslado -> AlertDialog(
-            onDismissRequest = { dialogo = null },
-            title = { Text("¿Autorizar traslado?") },
-            text = { AdminTexto("${d.alerta.descripcion}.\nEl proveedor pasará a la nueva zona y quedará registrado en auditoría.", 14) },
-            confirmButton = { TextButton(onClick = { viewModel.aprobar(d.alerta); dialogo = null }) { Text("Autorizar") } },
-            dismissButton = { TextButton(onClick = { dialogo = null }) { Text("Cancelar") } },
-        )
+        is Dialogo.AprobarTraslado -> {
+            var respuesta by remember(d) { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { dialogo = null },
+                title = { Text("¿Autorizar traslado?") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AdminTexto("${d.alerta.descripcion}.\nEl panel confirmará el traslado al sincronizar.", 14)
+                        OutlinedTextField(respuesta, { respuesta = it.take(500) }, label = { Text("Respuesta al proveedor") }, modifier = Modifier.fillMaxWidth())
+                    }
+                },
+                confirmButton = { TextButton(onClick = { viewModel.aprobar(d.alerta, respuesta); dialogo = null }, enabled = respuesta.isNotBlank()) { Text("Autorizar") } },
+                dismissButton = { TextButton(onClick = { dialogo = null }) { Text("Cancelar") } },
+            )
+        }
         is Dialogo.Rechazar -> {
             var motivo by remember(d) { mutableStateOf("") }
-            val pideMotivo = d.alerta.id.startsWith("traslado:")
             AlertDialog(
                 onDismissRequest = { dialogo = null },
                 title = { Text(if (d.alerta.tipo == TipoAlertaAdmin.TRASLADO) "Rechazar traslado" else "Rechazar reclamo") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         AdminTexto(d.alerta.descripcion, 13, AdminColor.gris)
-                        if (pideMotivo) OutlinedTextField(motivo, { motivo = it }, label = { Text("Motivo") }, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(motivo, { motivo = it.take(500) }, label = { Text("Respuesta al proveedor") }, modifier = Modifier.fillMaxWidth())
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { viewModel.rechazar(d.alerta, motivo); dialogo = null }, enabled = !pideMotivo || motivo.isNotBlank()) {
+                    TextButton(onClick = { viewModel.rechazar(d.alerta, motivo); dialogo = null }, enabled = motivo.isNotBlank()) {
                         Text("Rechazar", color = AdminColor.rojo)
                     }
                 },
