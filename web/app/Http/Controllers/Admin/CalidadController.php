@@ -118,7 +118,7 @@ class CalidadController extends Controller
 
     public function show(string $analisis): View
     {
-        $registro = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario', 'controles.entrega'])->where('uuid', $analisis)->firstOrFail();
+        $registro = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario', 'controles.entrega', 'controles.sanciones'])->where('uuid', $analisis)->firstOrFail();
 
         return view('admin.calidad.show', ['analisis' => $registro]);
     }

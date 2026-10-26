@@ -38,7 +38,7 @@ fun etiquetaCalidad(estado: EstadoControlCalidad) = when(estado) {
             }
             listOf(
                 Triple("Temperatura", control.temperatura, "°C"), Triple("Grasa", control.grasa, "%"),
-                Triple("SNG", control.sng, "%"), Triple("Densidad", control.densidad, ""),
+                Triple("SNG", control.sng, "%"), Triple("Densidad", control.densidad, "g/cm³"),
                 Triple("Proteína", control.proteina, "%"), Triple("Lactosa", control.lactosa, "%"),
                 Triple("Sales", control.sales, "%"), Triple("Sólidos totales", control.solidosTotales, "%"),
                 Triple("Agua añadida", control.aguaAnadida, "%"), Triple("Pto. congelación", control.puntoCongelacion, "°C"),

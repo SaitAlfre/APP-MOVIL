@@ -66,7 +66,7 @@ data class BorradorVisita(
     val dudosos: Set<String> = emptySet(),
     val observaciones: String = "",
 ) {
-    fun numero(clave: String) = valores[clave].orEmpty().numeroCalidad()
+    fun numero(clave: String) = normalizarValorCalidad(clave, valores[clave].orEmpty().numeroCalidad())
     fun formatoValido(clave: String): Boolean {
         val texto = valores[clave].orEmpty()
         if (texto.isBlank()) return true

@@ -5,6 +5,7 @@ namespace App\Application\Calidad;
 use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
+use App\Infrastructure\Persistence\Eloquent\Sancion;
 use Carbon\CarbonInterface;
 
 /**
@@ -18,12 +19,19 @@ class CalificarEntregasConAnalisis
     public function porAnalisis(AnalisisCalidad $analisis): void
     {
         [$desde, $hasta] = $this->dia($analisis->registrado_en);
-        $analisis->controles()->each(fn (ControlCalidad $control) => $control->update($this->valores($analisis)));
+        $analisis->controles()->each(function (ControlCalidad $control) use ($analisis) {
+            $control->update($this->valores($analisis));
+            self::sincronizarSancion($control);
+        });
 
         Entrega::query()->where('proveedor_id', $analisis->proveedor_id)->where('anulada', false)
             ->whereBetween('registrado_en', [$desde, $hasta])
             ->whereNotIn('id', ControlCalidad::query()->select('entrega_id'))
-            ->each(fn (Entrega $entrega) => ControlCalidad::query()->create([...$this->valores($analisis), 'entrega_id' => $entrega->id]));
+            ->each(function (Entrega $entrega) use ($analisis) {
+                $control = ControlCalidad::query()->create([...$this->valores($analisis), 'entrega_id' => $entrega->id]);
+                $control->setRelation('entrega', $entrega);
+                self::sincronizarSancion($control);
+            });
     }
 
     public function porEntrega(Entrega $entrega): void
@@ -35,7 +43,37 @@ class CalificarEntregasConAnalisis
         $analisis = AnalisisCalidad::query()->where('proveedor_id', $entrega->proveedor_id)
             ->whereBetween('registrado_en', [$desde, $hasta])->latest('registrado_en')->first();
         if ($analisis !== null) {
-            ControlCalidad::query()->create([...$this->valores($analisis), 'entrega_id' => $entrega->id]);
+            $control = ControlCalidad::query()->create([...$this->valores($analisis), 'entrega_id' => $entrega->id]);
+            $control->setRelation('entrega', $entrega);
+            self::sincronizarSancion($control);
+        }
+    }
+
+    /**
+     * Sincroniza la propuesta de sanción vinculada a la entrega calificada.
+     */
+    public static function sincronizarSancion(ControlCalidad $control): void
+    {
+        $control->loadMissing('entrega');
+        if ($control->entrega === null) {
+            return;
+        }
+        $resultado = is_object($control->resultado) ? $control->resultado->value : (string) $control->resultado;
+        if (in_array($resultado, ['observado', 'rechazado'], true)) {
+            Sancion::firstOrCreate(
+                ['control_calidad_id' => $control->id],
+                [
+                    'proveedor_id' => $control->entrega->proveedor_id,
+                    'severidad' => $resultado === 'rechazado' ? 'alta' : 'media',
+                    'descuento' => $resultado === 'rechazado' ? 30.50 : 15.00,
+                    'motivo' => $control->observaciones ?: 'Resultado de calidad '.$resultado,
+                ],
+            );
+        } elseif ($resultado === 'aprobado') {
+            Sancion::query()
+                ->where('control_calidad_id', $control->id)
+                ->where('estado', 'pendiente')
+                ->delete();
         }
     }
 

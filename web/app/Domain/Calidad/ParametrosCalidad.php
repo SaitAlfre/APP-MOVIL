@@ -57,6 +57,32 @@ final class ParametrosCalidad
         return $clave === 'congelacion';
     }
 
+    /** Normaliza lecturas usuales de analizador (grados Quevenne o kg/m³ en densidad, depresión positiva en congelación). */
+    public static function normalizar(string $clave, ?float $valor): ?float
+    {
+        if ($valor === null || ! is_finite($valor)) {
+            return null;
+        }
+        if ($clave === 'densidad') {
+            if ($valor >= 20.0 && $valor <= 45.0) {
+                return round(1.0 + $valor / 1000.0, 4);
+            }
+            if ($valor >= 1000.0 && $valor <= 1100.0) {
+                return round($valor / 1000.0, 4);
+            }
+        }
+        if ($clave === 'congelacion') {
+            if ($valor >= 0.3 && $valor <= 0.8) {
+                return -$valor;
+            }
+            if (abs($valor) >= 300.0 && abs($valor) <= 800.0) {
+                return -round(abs($valor) / 1000.0, 4);
+            }
+        }
+
+        return $valor;
+    }
+
     public static function correcto(string $clave, ?float $valor, string $unidadCongelacion = '°C'): bool
     {
         if ($valor === null || ! is_finite($valor)) {
@@ -84,7 +110,8 @@ final class ParametrosCalidad
         $alertas = [];
         foreach (array_keys(self::PARAMETROS) as $clave) {
             $referencias[$clave] = self::referencia($clave, $unidadCongelacion);
-            $valor = $valores[$clave] ?? null;
+            $valorRaw = $valores[$clave] ?? null;
+            $valor = self::normalizar($clave, $valorRaw !== null ? (float) $valorRaw : null);
             if ($valor !== null && ! self::correcto($clave, $valor, $unidadCongelacion)) {
                 $alertados[] = $clave;
                 $alertas[] = self::nombre($clave).': '.self::numero($valor).' · Referencia: '.$referencias[$clave];
