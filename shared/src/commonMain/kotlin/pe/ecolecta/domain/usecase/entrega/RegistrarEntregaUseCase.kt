@@ -51,9 +51,6 @@ class RegistrarEntregaUseCase(
             return Result.failure(EntregaInvalidaException.ProveedorNoActivo(proveedor.estado))
         }
 
-        if (litros > proveedor.capacidadTotalL) {
-            return Result.failure(EntregaInvalidaException.SuperaCapacidad(proveedor.capacidadTotalL))
-        }
 
         val ahora = reloj.ahora().toEpochMilliseconds()
         val deviceId = deviceIdProvider.obtenerId()

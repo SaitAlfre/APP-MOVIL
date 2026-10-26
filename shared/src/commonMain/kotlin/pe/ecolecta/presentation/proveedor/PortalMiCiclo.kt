@@ -61,7 +61,6 @@ fun MiCicloProveedor(s: PortalProveedorState, navegar: (Pantalla) -> Unit) {
             TextoProveedor(s.conexion.etiqueta, 12, ProveedorGris)
             s.motivoConexion?.let { TextoProveedor(it, 12, ProveedorRojo) }
             s.ultimaRecepcion?.let { TextoProveedor("Última actualización recibida: ${fechaProveedor(it)}", 12, ProveedorGris) }
-            if (s.conexion == ConexionPortal.NO_DISPONIBLE) CodigoVinculacion()
         }
 
         TextoProveedor("HOY", 13, ProveedorGris, true)
@@ -111,12 +110,4 @@ private fun colorDia(dia: DiaAcopio?): Color = when {
     dia.sincronizacion != EstadoSincronizacion.SINCRONIZADO -> Color(0xFF926B22)
     dia.estado == EstadoRecojo.SIN_RECOJO -> ProveedorRojo
     else -> ProveedorVerde
-}
-
-/** UID de este celular, para que el administrador lo vincule a tu código de proveedor (proveedor_links). */
-@Composable
-private fun CodigoVinculacion() {
-    val obtenerIdentidad = org.koin.compose.koinInject<ObtenerIdentidadRemotaUseCase>()
-    val uid by produceState<String?>(null) { value = runCatching { obtenerIdentidad() }.getOrNull() }
-    uid?.let { TextoProveedor("Código de vinculación de este celular: $it", 12, ProveedorGris) }
 }

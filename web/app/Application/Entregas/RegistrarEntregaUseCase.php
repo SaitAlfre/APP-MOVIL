@@ -12,12 +12,7 @@ use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use DateTimeImmutable;
 use RuntimeException;
 
-/**
- * Guardado nunca bloqueante por red: el web escribe directo a MySQL. Bloquea si supera la
- * capacidad física del tacho, y marca una advertencia no bloqueante si la cantidad se desvía
- * más de 40% del promedio de las últimas 7 entregas del proveedor. Misma regla que el móvil
- * (ver RegistrarEntregaUseCase.kt).
- */
+/** Registra litros recibidos y advierte desviaciones del promedio sin bloquear el trabajo. */
 final class RegistrarEntregaUseCase
 {
     private const float UMBRAL_DESVIACION = 0.4;
@@ -48,10 +43,6 @@ final class RegistrarEntregaUseCase
 
         if ($proveedor->estado !== EstadoProveedor::Activo) {
             throw EntregaInvalidaException::proveedorNoActivo($proveedor->estado);
-        }
-
-        if ($litros > $proveedor->capacidadTotalL()) {
-            throw EntregaInvalidaException::superaCapacidad($proveedor->capacidadTotalL());
         }
 
         $ahora = new DateTimeImmutable;

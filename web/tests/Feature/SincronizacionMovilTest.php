@@ -67,6 +67,20 @@ class SincronizacionMovilTest extends TestCase
         return $this->withToken($token)->putJson("/api/movil/entregas/{$id}", $datos);
     }
 
+    public function test_dos_acopiadores_sincronizan_jornadas_independientes_en_la_misma_zona(): void
+    {
+        $otro = Usuario::factory()->create(['username' => 'acop_apoyo', 'pin_hash' => '2468', 'roles' => ['acopiador']]);
+        $this->enviar($this->token(), $this->entrega())->assertCreated();
+        $token = $this->token('acop_apoyo');
+        $datos = $this->entrega(['jornadaId' => 'jor-apoyo', 'acopiadorUsername' => 'acop_apoyo']);
+        $this->enviar($token, $datos, 'ent-apoyo')->assertCreated();
+        $this->enviar($token, $datos, 'ent-apoyo')->assertOk();
+
+        $this->assertSame(2, Jornada::query()->where('zona_id', $this->proveedor->zona_id)->whereNull('cerrada_en')->count());
+        $this->assertSame(2, Entrega::query()->count());
+        $this->assertSame($otro->id, Entrega::query()->where('uuid_movil', 'ent-apoyo')->firstOrFail()->usuario_id);
+    }
+
     public function test_entrega_pendiente_queda_visible_en_el_panel_del_administrador(): void
     {
         $token = $this->token();

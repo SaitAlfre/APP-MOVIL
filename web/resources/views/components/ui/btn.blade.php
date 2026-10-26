@@ -20,7 +20,7 @@
         'outline' => 'border border-eh-border-strong bg-eh-surface/65 text-eh-text hover:bg-eh-surface',
     ];
     $clases = implode(' ', [
-        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-[color,background-color,transform,box-shadow] duration-200 motion-reduce:transition-none motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eh-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         $tamanos[$size] ?? $tamanos['md'],
         $variantes[$variant] ?? $variantes['primary'],
     ]);

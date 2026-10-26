@@ -48,6 +48,7 @@ import pe.ecolecta.presentation.design.TipoBanner
 @Composable
 fun SeleccionZonaVehiculoScreen(
     alJornadaAbierta: () -> Unit,
+    alVolver: () -> Unit,
     viewModel: SeleccionZonaVehiculoViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -66,6 +67,7 @@ fun SeleccionZonaVehiculoScreen(
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        TextButton(onClick = alVolver, enabled = !estado.cargando) { Text("Volver a Inicio") }
         EncabezadoSeccion("Iniciar jornada", subtitulo = "Elige tu zona y vehículo de hoy")
 
         Column(Modifier.padding(horizontal = Espaciado.l), verticalArrangement = Arrangement.spacedBy(Espaciado.l)) {
@@ -114,17 +116,19 @@ fun SeleccionZonaVehiculoScreen(
                 }
             }
 
-            estado.ciclo?.let { ciclo ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                    FechaDelCiclo("INICIO", ciclo.inicioLargo, Modifier.weight(1f))
-                    FechaDelCiclo("FINAL", ciclo.finLargo, Modifier.weight(1f))
-                }
+            Tarjeta {
+                Text("Inicio de tu jornada", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
+                pe.ecolecta.presentation.acopiador.home.RelojJornada()
+                Text("La hora se guardará al pulsar Iniciar jornada. Al terminar se registrará la hora de cierre.",
+                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                Text("Otros acopiadores pueden trabajar en tu misma zona.",
+                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
             }
 
             estado.error?.let { Banner(it, TipoBanner.ERROR) }
 
             BotonPrimario(
-                texto = if (estado.cargando) "Abriendo..." else "Abrir jornada",
+                texto = if (estado.cargando) "Iniciando…" else "Iniciar jornada",
                 onClick = viewModel::abrirJornada,
                 habilitado = estado.puedeContinuar && !estado.cargando,
             )
@@ -213,14 +217,5 @@ private fun FilaSeleccionable(
                 Icon(Icons.Filled.Check, contentDescription = null, tint = Colores.brand, modifier = Modifier.size(20.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun FechaDelCiclo(etiqueta: String, fecha: String, modifier: Modifier = Modifier) {
-    Tarjeta(modifier = modifier) {
-        Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
-        Spacer(Modifier.height(Espaciado.xxs))
-        Text(fecha, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
     }
 }

@@ -55,12 +55,12 @@ internal fun claveSesionDe(sesion: Sesion?): String = sesion?.usuario?.id ?: CLA
 
 /**
  * Pantalla con la que arranca el ACOPIADOR. Una jornada abierta o ya terminada hoy van al inicio
- * (que muestra la activa o el resumen de la terminada); sin jornada, a la selección, que explica
- * por sí misma el caso "sin zonas activas". `internal` para probarla sin Compose.
+ * (que muestra la activa, la terminada o la invitación para iniciar). El formulario solo se abre
+ * por una acción del trabajador. `internal` para probarla sin Compose.
  */
 internal fun pantallaInicialAcopiador(inicio: InicioAcopiador): Pantalla = when (inicio) {
-    is InicioAcopiador.JornadaAbierta, is InicioAcopiador.JornadaTerminadaHoy -> Pantalla.AcopiadorHome
-    InicioAcopiador.SinZonaActiva, InicioAcopiador.SeleccionarZonaVehiculo -> Pantalla.AcopiadorSeleccionZonaVehiculo
+    is InicioAcopiador.JornadaAbierta, is InicioAcopiador.JornadaTerminadaHoy,
+    InicioAcopiador.SinZonaActiva, InicioAcopiador.SeleccionarZonaVehiculo -> Pantalla.AcopiadorHome
 }
 
 /**
@@ -164,6 +164,7 @@ fun App() {
                         Pantalla.RolNoDisponible -> RolNoDisponibleScreen(alCerrarSesion = ::cerrarSesion)
                         Pantalla.AcopiadorSeleccionZonaVehiculo -> SeleccionZonaVehiculoScreen(
                             alJornadaAbierta = { pantalla = Pantalla.AcopiadorHome },
+                            alVolver = { pantalla = Pantalla.AcopiadorHome },
                         )
                         Pantalla.AcopiadorHome,
                         Pantalla.AcopiadorLista,

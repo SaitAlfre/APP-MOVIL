@@ -10,3 +10,5 @@ WHERE rol NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
 -- Retiro aprobado por el equipo: la asociación se conserva arriba y deja de autorizar operaciones.
 DELETE FROM usuario_rol WHERE rol NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
 DELETE FROM sesion_activa WHERE rol_activo NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
+
+ALTER TABLE jornada ADD COLUMN cierre_administrativo INTEGER NOT NULL DEFAULT 0;

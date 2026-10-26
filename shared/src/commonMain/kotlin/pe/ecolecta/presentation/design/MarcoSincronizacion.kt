@@ -45,7 +45,7 @@ fun MarcoSincronizacion(visible: Boolean, permiteGesto: Boolean, contenido: @Com
     LaunchedEffect(mensaje) {
         val texto = mensaje ?: return@LaunchedEffect
         val resultado = snackbar.showSnackbar(texto,
-            actionLabel = if (estado.requiereEnlace) "Vincular" else if (estado.sinConexion || estado.problema != null) "Reintentar" else null,
+            actionLabel = if (estado.requiereEnlace) "Confirmar acceso" else if (estado.sinConexion || estado.problema != null) "Reintentar" else null,
             withDismissAction = true)
         mensaje = null
         if (resultado == SnackbarResult.ActionPerformed) sincronizar()
@@ -112,21 +112,21 @@ fun MarcoSincronizacion(visible: Boolean, permiteGesto: Boolean, contenido: @Com
     }
     if (detalles) AlertDialog(
         onDismissRequest = { detalles = false },
-        title = { Text("Sincronización con la web") },
+        title = { Text("Sincronización") },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Cuenta: ${estado.cuenta}")
                 Text(estado.servidor, style = MaterialTheme.typography.bodySmall)
                 Text("${estado.pendientes} cambios por enviar · ${estado.errores} por revisar")
                 if (estado.otrosPendientes > 0) Text("Hay ${estado.otrosPendientes} registros de otras cuentas en este teléfono. Se conservan; cada cuenta envía sus propios cambios.", style = MaterialTheme.typography.bodySmall)
-                Text(if (estado.novedades) "Hay datos en la nube por descargar" else "Las novedades se comprueban al conectar con el panel")
+                Text(if (estado.novedades) "Hay datos en la nube por descargar" else "Las novedades se comprueban al conectar con el servidor")
                 Text(estado.ultimaSync?.let { "Última sincronización completa: ${formatearFechaHora(it)}" } ?: "Aún no hay una sincronización completa confirmada")
                 estado.problema?.let { Text(it, color = Colores.peligro) }
                 Row {
                     Text("Sincronizar automáticamente", Modifier.weight(1f))
                     Switch(estado.automatico, sync::automatico, enabled = !estado.sincronizando)
                 }
-                TextButton(onClick = { detalles = false; enlazar = true }) { Text("Vincular cuenta con la web") }
+                TextButton(onClick = { detalles = false; enlazar = true }) { Text("Confirmar acceso") }
                 Text("Sin internet puedes seguir trabajando. No se borran tus cambios al reintentar.", style = MaterialTheme.typography.bodySmall)
             }
         },
@@ -135,11 +135,11 @@ fun MarcoSincronizacion(visible: Boolean, permiteGesto: Boolean, contenido: @Com
     )
     if (enlazar) AlertDialog(
         onDismissRequest = { if (!vinculando) { enlazar = false; pin = "" } },
-        title = { Text("Vincular ${estado.cuenta}") },
+        title = { Text("Confirmar acceso de ${estado.cuenta}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Ingresa el PIN de esta cuenta en el panel web. No se guarda el PIN ni se borran tus datos locales.")
-                OutlinedTextField(value = pin, onValueChange = { pin = it.take(60) }, label = { Text("PIN del panel web") },
+                Text("Usa el mismo PIN con el que entras a Ecolecta. No necesitas abrir una página web. Tus datos locales se conservan.")
+                OutlinedTextField(value = pin, onValueChange = { pin = it.take(60) }, label = { Text("PIN de tu cuenta") },
                     visualTransformation = PasswordVisualTransformation(), singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), enabled = !vinculando)
                 if (vinculando) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -151,7 +151,7 @@ fun MarcoSincronizacion(visible: Boolean, permiteGesto: Boolean, contenido: @Com
                     vinculando = true
                     try { mensaje = sync.vincular(pin) } finally { pin = ""; vinculando = false; enlazar = false }
                 }
-            }) { Text("Vincular y sincronizar") }
+            }) { Text("Confirmar y sincronizar") }
         },
         dismissButton = { TextButton(enabled = !vinculando, onClick = { enlazar = false; pin = "" }) { Text("Cancelar") } },
     )

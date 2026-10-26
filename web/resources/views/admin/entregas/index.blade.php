@@ -14,7 +14,7 @@
             <x-slot:actions>
                 <x-ui.btn type="button" variant="secondary" icon="tableCells" data-modal-open="registro-lote">Registro por lote</x-ui.btn>
                 @if ($jornadas->isNotEmpty())
-                    <x-ui.btn :href="route('admin.acopiadores.jornadas.show', $jornadas->first()->id)" icon="plus">Registrar entrega</x-ui.btn>
+                    <x-ui.btn :href="route('admin.jornadas.index')" icon="plus">Elegir jornada</x-ui.btn>
                 @else
                     <x-ui.btn :href="route('admin.acopiadores.jornadas.create')" icon="plus">Abrir jornada</x-ui.btn>
                 @endif
@@ -61,15 +61,14 @@
                 :title="$hayFiltros ? 'Sin entregas para el filtro seleccionado' : 'Aún no hay entregas registradas'"
                 :description="$hayFiltros ? 'Prueba con otra fecha, zona o búsqueda.' : 'Las entregas se registran dentro de una jornada de acopio abierta.'" />
         @else
-            <x-ui.table :headers="['Fecha y hora', 'Proveedor', 'Zona', 'Acopiador', 'Litros', 'Tachos', 'Modalidad', 'Estado']" caption="Entregas registradas">
+            <x-ui.table :headers="['Fecha y hora', 'Proveedor', 'Zona', 'Acopiador', 'Litros', 'Modalidad', 'Estado']" caption="Entregas registradas">
                 @foreach ($entregas as $entrega)
                     <tr @class(['border-b border-eh-border last:border-0 hover:bg-eh-surface-alt', 'opacity-60' => $entrega->anulada])>
-                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $entrega->registrado_en->format('d/m/Y H:i') }}</td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $entrega->registrado_en->timezone('America/Lima')->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $entrega->proveedor?->nombres ?? '—' }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->proveedor?->zona?->nombre ?? '—' }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text">{{ $entrega->jornada?->usuario?->nombres ?? '—' }}</td>
                         <td class="mono px-4 py-3 text-sm font-bold text-eh-text">{{ number_format($entrega->litros, 1) }} L</td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->tachos }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->lote_id ? 'Registro por lote' : 'Individual' }}</td>
                         <td class="px-4 py-3"><x-ui.estado :estado="$entrega->anulada ? 'anulada' : 'registrada'" /></td>
                     </tr>
@@ -106,7 +105,6 @@
                                 <tr class="border-b border-eh-border bg-eh-surface-alt">
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Proveedor</th>
                                     <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Litros</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Tachos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,11 +124,6 @@
                                             <label class="sr-only" for="lote-litros-{{ $i }}">Litros de la fila {{ $i + 1 }}</label>
                                             <input id="lote-litros-{{ $i }}" type="number" step="0.01" min="0.01" name="entregas[{{ $i }}][litros]" placeholder="0.0" @if ($i === 0) required @endif
                                                 class="w-24 rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <label class="sr-only" for="lote-tachos-{{ $i }}">Tachos de la fila {{ $i + 1 }}</label>
-                                            <input id="lote-tachos-{{ $i }}" type="number" min="1" name="entregas[{{ $i }}][tachos]" placeholder="0" @if ($i === 0) required @endif
-                                                class="w-20 rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
                                         </td>
                                     </tr>
                                 @endfor

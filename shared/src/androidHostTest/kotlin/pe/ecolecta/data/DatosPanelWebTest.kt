@@ -1,6 +1,7 @@
 package pe.ecolecta.data
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -42,6 +43,54 @@ import kotlin.time.Instant
  * web reemplaza la copia del celular sin duplicar filas ni pisar lo que el celular aún no envió.
  */
 class DatosPanelWebTest {
+    @Test
+    fun `un solo login conecta la cuenta conocida y conserva el acceso offline sin guardar el PIN`() = runBlocking {
+        val usuarios = SqlDelightUsuarioRepository(db, kotlinx.coroutines.Dispatchers.IO)
+        val hasher = Pbkdf2PinHasher()
+        var conectada = false
+        var sinRed = false
+        var rechazar = false
+        var autenticaciones = 0
+        val servidor = object : ServidorWebRepository {
+            override val configurado = true
+            override suspend fun vincular(usuarioId: String, username: String, pin: String) = error("El login no debe pedir un segundo enlace")
+            override fun observarSesion(usuarioId: String): Flow<Boolean> = flowOf(conectada)
+            override suspend fun enviarEntrega(usuarioId: String, entrega: EntregaParaServidor) = Result.success(Unit)
+            override suspend fun liquidacionesDelProveedor(usuarioId: String) = Result.success(emptyList<PagoProveedor>())
+            override suspend fun desvincular(usuarioId: String) = Unit
+            override suspend fun autenticar(username: String, pin: String): Result<SesionServidor> {
+                autenticaciones++
+                return when {
+                    sinRed -> Result.failure(pe.ecolecta.domain.repository.SinConexionRemotaException())
+                    rechazar -> Result.failure(pe.ecolecta.domain.repository.RechazoServidorException("PIN incorrecto", "credenciales"))
+                    else -> Result.success(SesionServidor("token-ficticio", Long.MAX_VALUE,
+                        CuentaServidor(991, "acop_unico", "Acopiador prueba", "99009991", listOf("acopiador"))))
+                }
+            }
+            override suspend fun guardarSesion(usuarioId: String, sesion: SesionServidor) { conectada = true }
+        }
+        val offline = LoginOfflineUseCase(usuarios, hasher, SqlDelightAuditoriaRepository(db, kotlinx.coroutines.Dispatchers.IO), reloj,
+            object : DeviceIdProvider { override fun obtenerId() = "prueba" })
+        val iniciar = IniciarSesionUseCase(offline, servidor, local, usuarios, hasher, reloj)
+        val primera = iniciar("acop_unico", "1234").getOrThrow()
+        assertTrue(primera.enlazado)
+        assertEquals(primera.usuario.id, iniciar("acop_unico", "1234").getOrThrow().usuario.id)
+        assertEquals(1, autenticaciones, "con token vigente no vuelve a pedir enlace ni autenticar")
+
+        conectada = false
+        assertTrue(iniciar("acop_unico", "1234").getOrThrow().enlazado, "renueva el acceso con el mismo login")
+        conectada = false
+        sinRed = true
+        val sinConexion = iniciar("acop_unico", "1234").getOrThrow()
+        assertTrue(!sinConexion.enlazado)
+        assertEquals(primera.usuario.id, sinConexion.usuario.id)
+        sinRed = false
+        rechazar = true
+        assertTrue(iniciar("acop_unico", "1234").isFailure, "un rechazo explícito del servidor no se oculta como falta de internet")
+        assertNotNull(usuarios.obtenerPorId(primera.usuario.id), "no elimina la cuenta ni sus registros locales")
+        Unit
+    }
+
     private val reloj = object : Reloj {
         override fun hoy() = LocalDate(2026, 9, 24)
         override fun ahora(): Instant = Clock.System.now()
@@ -202,6 +251,26 @@ class DatosPanelWebTest {
         assertEquals("PAGADA", json.decodeFromString<pe.ecolecta.domain.model.PagoProveedor>(db.portalProveedorQueries.porId("web-99").executeAsOne().contenido).estado)
         assertEquals("ATENDIDA", json.decodeFromString<pe.ecolecta.domain.model.SolicitudProveedor>(db.portalProveedorQueries.porId("recibida").executeAsOne().contenido).estado)
         assertEquals(0L, db.cambioPendienteQueries.contarPorEstado("PENDING").executeAsOne())
+    }
+
+    @Test
+    fun `cierre administrativo actualiza jornada en memoria sin borrar entrega pendiente`() = runBlocking {
+        val estado = pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository()
+        val repositorio = SqlDelightDatosServidorRepository(db, reloj, kotlinx.coroutines.Dispatchers.Unconfined, estado)
+        val inicial = datos().copy(jornadas = datos().jornadas.map { it.copy(cerradaEn = null) })
+        repositorio.aplicar(inicial)
+        val fila = db.jornadaQueries.selectPorId("web-jornada-30").executeAsOne()
+        estado.establecer(pe.ecolecta.domain.model.Jornada(fila.id, fila.usuario_id, fila.zona_id, fila.vehiculo_id,
+            LocalDate.parse(fila.fecha), fila.abierta_en, null, pe.ecolecta.domain.model.SyncState.SYNCED))
+        db.cambioPendienteQueries.marcar("jornada", fila.id, fila.usuario_id, null, 250)
+        db.entregaQueries.corregir(38.0, 1, "Sin internet", 300, "web-entrega-40")
+        repositorio.aplicar(inicial.copy(jornadas = inicial.jornadas.map { it.copy(cerradaEn = 400, cierreAdministrativo = true) }))
+        val actual = estado.observar().first()
+        assertEquals(400L, actual?.cerradaEn)
+        assertTrue(actual?.cierreAdministrativo == true)
+        assertNull(db.cambioPendienteQueries.porClave("jornada", fila.id).executeAsOneOrNull())
+        assertEquals(38.0, db.entregaQueries.selectPorId("web-entrega-40").executeAsOne().litros)
+        assertEquals("PENDING", db.entregaQueries.selectPorId("web-entrega-40").executeAsOne().sync_state)
     }
 
 }

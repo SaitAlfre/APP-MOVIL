@@ -11,7 +11,7 @@
     @endphp
 
     <x-ui.page-header :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
-        description="Datos del productor, su zona de acopio y la capacidad de sus tachos."
+        description="Datos del productor y su zona de acopio."
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $esNuevo ? 'Nuevo proveedor' : $proveedor->nombres]]">
         @unless ($esNuevo)
             <x-slot:actions>
@@ -42,9 +42,6 @@
                         :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
                     <x-ui.field name="direccion" label="Dirección o referencia" maxlength="255" :value="$proveedor?->direccion"
                         class="sm:col-span-2" placeholder="Sector Quispe, Huata" />
-                    <x-ui.field name="tachos" label="Cantidad de tachos" type="number" min="1" required :value="$proveedor?->tachos ?? 1" />
-                    <x-ui.field name="capacidad_tacho_l" label="Capacidad por tacho" type="number" step="0.01" min="0.01" required unit="L"
-                        :value="$proveedor?->capacidadTachoL ?? 40" hint="Se usa para validar los litros de cada entrega." />
                 </div>
 
                 <div class="flex justify-end gap-2 border-t border-eh-border pt-4">

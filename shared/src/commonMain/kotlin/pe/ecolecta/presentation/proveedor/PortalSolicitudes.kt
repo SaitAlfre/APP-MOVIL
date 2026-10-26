@@ -77,7 +77,7 @@ import pe.ecolecta.presentation.qr.rememberSolicitadorPermisoAlmacenamiento
             evidencia?.let { FotoAdjuntaProveedor(it); TextButton(onClick = { evidencia = null }) { Text("Quitar fotografía") } }
             errorFoto?.let { TextoProveedor(it, color = ProveedorRojo) }
             s.error?.let { TextoProveedor(it, color = ProveedorRojo) }
-            TextoProveedor("Se conservará en tu dispositivo hasta que esté disponible el envío al administrador.", 12, ProveedorGris)
+            TextoProveedor("Se guardará en este celular y se enviará con la fotografía cuando tengas conexión y tu cuenta esté enlazada.", 12, ProveedorGris)
             BotonProveedor(if(s.guardando) "Guardando…" else "Guardar reclamo", !s.guardando && litros.isNotBlank() && motivo.isNotBlank() && descripcion.trim().length >= 10) {
                 vm.reclamar(if(motivo == "Entrega no registrada") null else entregaId, litros, motivo, descripcion, evidencia)
             }
@@ -124,15 +124,24 @@ import pe.ecolecta.presentation.qr.rememberSolicitadorPermisoAlmacenamiento
             )
             TextoProveedor(solicitud.motivo, bold = true)
             TextoProveedor(solicitud.descripcion)
+            solicitud.respuesta?.takeIf { it.isNotBlank() }?.let { respuesta ->
+                TarjetaProveedor(color = Color(0xFFE3F1E8)) {
+                    TextoProveedor("Respuesta de administración", 13, ProveedorVerde, true)
+                    TextoProveedor(respuesta, 14)
+                    solicitud.resueltaEn?.let { TextoProveedor(fechaProveedor(it), 12, ProveedorGris) }
+                }
+            }
             solicitud.litros?.let { TextoProveedor("Litros solicitados: ${decimalProveedor(it)} L") }
             if(solicitud.tipo == "TRASLADO") TextoProveedor("Destino: ${s.zonas.firstOrNull { it.id == solicitud.referenciaId }?.nombre ?: solicitud.referenciaId}")
             if(solicitud.evidencia != null) {
                 var verFoto by remember(solicitud.id) { mutableStateOf(false) }
                 TextButton(onClick = { verFoto = !verFoto }) { Text(if(verFoto) "Ocultar fotografía" else "Ver fotografía adjunta") }
                 if(verFoto) FotoAdjuntaProveedor(solicitud.evidencia)
+            } else if (solicitud.evidenciaDisponible) {
+                TextoProveedor("La evidencia fotográfica está recibida en el panel web.", 12, ProveedorGris)
             }
             OutlinedButton(onClick = {
-                compartir("Ecolactea Digital — Solicitud ${solicitud.id}\nProveedor: ${s.proveedor!!.nombres} (${s.proveedor.codigo})\nTipo: ${solicitud.tipo}\nReferencia: ${solicitud.referenciaId ?: "Entrega no registrada"}\nMotivo: ${solicitud.motivo}\nLitros: ${solicitud.litros ?: "No aplica"}\n${solicitud.descripcion}\n${fechaProveedor(solicitud.creadaEn)}\nPendiente de recepción y revisión administrativa. La fotografía adjunta permanece en el dispositivo.")
+                compartir("Ecolactea Digital — Solicitud ${solicitud.id}\nProveedor: ${s.proveedor!!.nombres} (${s.proveedor.codigo})\nTipo: ${solicitud.tipo}\nReferencia: ${solicitud.referenciaId ?: "Entrega no registrada"}\nMotivo: ${solicitud.motivo}\nLitros: ${solicitud.litros ?: "No aplica"}\n${solicitud.descripcion}\n${fechaProveedor(solicitud.creadaEn)}\nEstado: ${solicitud.estado}\nRespuesta: ${solicitud.respuesta ?: "Sin respuesta todavía"}")
             }, modifier = Modifier.fillMaxWidth()) { Text("Compartir resumen") }
         } }
     }

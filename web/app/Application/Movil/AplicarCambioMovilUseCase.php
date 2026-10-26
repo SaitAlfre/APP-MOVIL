@@ -33,6 +33,7 @@ use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\SinRecojo;
 use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
@@ -51,7 +52,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AplicarCambioMovilUseCase
 {
-    public const ENTIDADES = ['zona', 'vehiculo', 'usuario', 'proveedor', 'jornada', 'comunicado', 'calidad', 'reclamo', 'liquidacion', 'traslado'];
+    public const ENTIDADES = ['zona', 'vehiculo', 'usuario', 'proveedor', 'jornada', 'comunicado', 'calidad', 'reclamo', 'liquidacion', 'traslado', 'sin_recojo'];
 
     /** @param  array<string, mixed>  $datos */
     public function ejecutar(Usuario $autor, string $entidad, array $datos): ?int
@@ -72,6 +73,7 @@ class AplicarCambioMovilUseCase
                 'usuario' => $this->usuario($autor, $datos),
                 'proveedor' => $this->proveedor($autor, $datos),
                 'jornada' => $this->jornada($autor, $datos),
+                'sin_recojo' => $this->sinRecojo($autor, $datos),
                 'comunicado' => $this->comunicado($autor, $datos),
                 'calidad' => $this->calidad($autor, $datos),
                 'reclamo' => $this->reclamo($autor, $datos),
@@ -79,12 +81,13 @@ class AplicarCambioMovilUseCase
                 'liquidacion' => $this->liquidacion($datos),
             };
         });
+        });
     }
 
     private function autorizar(Usuario $autor, string $entidad): void
     {
         $permitidos = match ($entidad) {
-            'jornada' => ['admin', 'acopiador'],
+            'jornada', 'sin_recojo' => ['admin', 'acopiador'],
             'calidad' => ['admin', 'calidad'],
             'reclamo', 'traslado' => ['admin', 'proveedor'],
             default => ['admin'],
@@ -178,8 +181,8 @@ class AplicarCambioMovilUseCase
         $proveedor = $this->porServidorId(Proveedor::class, $datos) ?? Proveedor::query()->where('codigo', $datos['codigo'])->first();
         $ficha = new DatosProveedor(
             codigo: $datos['codigo'], nombres: $datos['nombres'], dni: $datos['dni'], telefono: $datos['telefono'] ?? null,
-            direccion: $datos['direccion'] ?? null, zonaId: $zona->id, tachos: (int) $datos['tachos'],
-            capacidadTachoL: (float) $datos['capacidadTachoL'],
+            direccion: $datos['direccion'] ?? null, zonaId: $zona->id, tachos: (int) ($datos['tachos'] ?? $proveedor?->tachos ?? 1),
+            capacidadTachoL: (float) ($datos['capacidadTachoL'] ?? $proveedor?->capacidad_tacho_l ?? 40),
             dueno: $datos['dueno'] ?? null, responsableIncluido: array_key_exists('dueno', $datos),
         );
         $id = $proveedor === null
@@ -217,6 +220,9 @@ class AplicarCambioMovilUseCase
         if ($jornada !== null && $jornada->usuario_id !== $autor->id && ! $autor->tieneRol('admin')) {
             throw new CambioMovilRechazadoException('Esta jornada la abrió otra cuenta: debe enviarla su propia cuenta.', 'autor_distinto', 403);
         }
+        if ($jornada?->cerrada_en !== null && Auditoria::query()->where('entidad', 'jornada')->where('entidad_id', $jornada->id)->where('accion', 'cerrar_jornada')->exists()) {
+            $cerradaEn = $jornada->cerrada_en;
+        }
         $valores = [
             'zona_id' => $zona->id, 'vehiculo_id' => $vehiculo->id, 'abierta_en' => $abiertaEn, 'cerrada_en' => $cerradaEn,
             'fecha' => $abiertaEn->setTimezone('America/Lima')->toDateString(),
@@ -227,6 +233,47 @@ class AplicarCambioMovilUseCase
         $jornada->update($valores);
 
         return $jornada->id;
+    }
+
+    private function sinRecojo(Usuario $autor, array $datos): int
+    {
+        $marca = SinRecojo::query()->where('uuid_movil', $datos['uuid'])->lockForUpdate()->first();
+        if ($marca !== null && $marca->usuario_id !== $autor->id && ! $autor->tieneRol('admin')) {
+            throw CambioMovilRechazadoException::sinPermiso();
+        }
+        if ($marca !== null && $marca->actualizado_en > $datos['actualizadoEn']) {
+            return $marca->id;
+        }
+        $proveedor = Proveedor::query()->where('codigo', $datos['proveedorCodigo'])->first()
+            ?? throw CambioMovilRechazadoException::noExiste('El proveedor', $datos['proveedorCodigo']);
+        if ($marca !== null && $marca->proveedor_id !== $proveedor->id) {
+            throw new CambioMovilRechazadoException('No se puede cambiar el proveedor de un registro existente.');
+        }
+        $jornadaId = $this->jornada($autor, [...$datos, 'uuid' => $datos['jornadaId']]);
+        $jornada = Jornada::query()->findOrFail($jornadaId);
+        $valores = [
+            'jornada_id' => $jornadaId, 'proveedor_id' => $proveedor->id,
+            'usuario_id' => $jornada->usuario_id, 'zona_id' => $jornada->zona_id,
+            'fecha' => $datos['fecha'], 'motivo' => $datos['motivo'], 'detalle' => $datos['detalle'] ?? null,
+            'registrada_en' => $this->instante($datos['registradoEn']),
+            'deshecha' => $datos['deshecha'],
+            'deshecha_en' => isset($datos['deshechaEn']) ? $this->instante($datos['deshechaEn']) : null,
+            'actualizado_en' => $datos['actualizadoEn'],
+        ];
+        if ($marca !== null) {
+            if ($marca->actualizado_en === $datos['actualizadoEn']) {
+                if ($marca->deshecha !== $datos['deshecha'] || $marca->motivo !== $datos['motivo'] || $marca->detalle !== ($datos['detalle'] ?? null)) {
+                    throw new CambioMovilRechazadoException('El registro cambió: descarga su versión actual.', 'conflicto', 409);
+                }
+
+                return $marca->id;
+            }
+            $marca->update($valores);
+
+            return $marca->id;
+        }
+
+        return SinRecojo::query()->create([...$valores, 'uuid_movil' => $datos['uuid']])->id;
     }
 
     /** Comunicado publicado (o retirado) desde la app: su código es el id del celular. */
@@ -291,29 +338,62 @@ class AplicarCambioMovilUseCase
     /** Reclamo de una entrega hecho por el proveedor en el portal; el admin lo resuelve desde la app o la web. */
     private function reclamo(Usuario $autor, array $datos): int
     {
-        $reclamo = ReclamoProveedor::query()->where('uuid_movil', $datos['uuid'])->first();
+        $reclamo = preg_match('/^web-reclamo-(\d+)$/', $datos['uuid'], $m) === 1
+            ? ReclamoProveedor::query()->whereKey((int) $m[1])->lockForUpdate()->first()
+            : ReclamoProveedor::query()->where('uuid_movil', $datos['uuid'])->lockForUpdate()->first();
         $estado = match (strtoupper($datos['estado'] ?? '')) {
             'APROBADA', 'ATENDIDA' => 'resuelto', 'RECHAZADA' => 'rechazado', default => 'pendiente',
         };
         if ($reclamo !== null) {
-            if ($reclamo->estado === 'pendiente' && $estado !== 'pendiente' && $autor->tieneRol('admin')) {
-                $reclamo->update(['estado' => $estado, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
+            $proveedor = Proveedor::query()->findOrFail($reclamo->proveedor_id);
+            if (! $autor->tieneRol('admin') && $proveedor->usuario_id !== $autor->id) {
+                throw CambioMovilRechazadoException::sinPermiso();
+            }
+            if ($estado !== 'pendiente') {
+                if (! $autor->tieneRol('admin')) {
+                    throw CambioMovilRechazadoException::sinPermiso();
+                }
+                app(ResolverReclamoProveedorUseCase::class)->ejecutar(
+                    $reclamo->id, $autor, $estado, $datos['respuesta'] ?? '',
+                    isset($datos['entregaUuid']) ? $this->entregaDe($datos['entregaUuid'])?->id : null,
+                );
             }
 
             return $reclamo->id;
         }
 
-        $entrega = $this->entregaDe((string) ($datos['entregaUuid'] ?? ''))
-            ?? throw CambioMovilRechazadoException::esperando('El reclamo se enviará cuando el panel tenga la entrega reclamada.');
-        $proveedor = Proveedor::query()->findOrFail($entrega->proveedor_id);
+        if ($estado !== 'pendiente') {
+            throw new CambioMovilRechazadoException('Primero envía el reclamo pendiente antes de resolverlo.', 'esperando', 409, false);
+        }
+        $entrega = $this->entregaDe((string) ($datos['entregaUuid'] ?? ''));
+        if (! empty($datos['entregaUuid']) && $entrega === null) {
+            throw CambioMovilRechazadoException::esperando('El reclamo se enviará cuando el panel tenga la entrega reclamada.');
+        }
+        $proveedor = $entrega?->proveedor ?? ($this->porServidorId(Proveedor::class, $datos, 'proveedorId')
+            ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'] ?? '')->first());
+        if ($proveedor === null) {
+            throw CambioMovilRechazadoException::esperando('El proveedor del reclamo aún no está registrado en el panel.');
+        }
         if (! $autor->tieneRol('admin') && $proveedor->usuario_id !== $autor->id) {
             throw CambioMovilRechazadoException::sinPermiso();
         }
 
+        $evidencia = $datos['evidencia'] ?? null;
+        if ($evidencia !== null) {
+            $contenido = preg_match('/^data:image\/(jpeg|png);base64,([A-Za-z0-9+\/=]+)$/', $evidencia, $imagen) === 1
+                ? base64_decode($imagen[2], true) : false;
+            $info = $contenido !== false ? @getimagesizefromstring($contenido) : false;
+            if ($contenido === false || strlen($contenido) > 750000 || $info === false
+                || ! in_array($info['mime'], ['image/jpeg', 'image/png'], true) || $info[0] > 1600 || $info[1] > 1600) {
+                throw new CambioMovilRechazadoException('La evidencia debe ser una imagen JPG o PNG de hasta 750 KB y 1600 píxeles.');
+            }
+        }
+
         return ReclamoProveedor::query()->create([
-            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id, 'entrega_id' => $entrega->id,
-            'litros_originales' => $entrega->litros, 'litros_solicitados' => $datos['litros'] ?? $entrega->litros,
-            'motivo' => mb_strimwidth(trim($datos['motivo']) ?: 'Reclamo desde la app', 0, 255, '…'), 'estado' => $estado,
+            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id, 'entrega_id' => $entrega?->id,
+            'litros_originales' => $entrega?->litros ?? 0, 'litros_solicitados' => $datos['litros'] ?? $entrega?->litros ?? 0,
+            'motivo' => mb_strimwidth(trim($datos['motivo'] ?? '') ?: 'Reclamo desde la app', 0, 255, '…'),
+            'descripcion' => $datos['descripcion'] ?? null, 'evidencia' => $evidencia, 'estado' => 'pendiente',
         ])->id;
     }
 
@@ -340,10 +420,19 @@ class AplicarCambioMovilUseCase
         if ($solicitud !== null && $solicitud->proveedor_id !== $proveedor->id) {
             throw CambioMovilRechazadoException::sinPermiso();
         }
+        if ($solicitud === null && $destino->id === $proveedor->zona_id) {
+            throw new CambioMovilRechazadoException('Selecciona una zona diferente a la zona actual del proveedor.');
+        }
+        if ($solicitud === null && SolicitudTraslado::query()->where('proveedor_id', $proveedor->id)->where('estado', 'PENDIENTE')->exists()) {
+            throw new CambioMovilRechazadoException('El proveedor ya tiene un traslado pendiente de revisión.', 'traslado_pendiente', 409);
+        }
         $solicitud ??= SolicitudTraslado::query()->create([
             'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id,
             'zona_destino_id' => $destino->id, 'motivo' => $datos['motivo'], 'estado' => 'PENDIENTE',
         ]);
+        if ($resolver && $solicitud->estado !== 'PENDIENTE' && $solicitud->estado !== $estado) {
+            throw new CambioMovilRechazadoException('El traslado ya tiene una decisión distinta. Sincroniza para ver el resultado.', 'solicitud_resuelta', 409);
+        }
         if ($resolver && $solicitud->estado === 'PENDIENTE') {
             if ($estado === 'APROBADA') {
                 $anterior = $proveedor->zona_id;
@@ -358,7 +447,7 @@ class AplicarCambioMovilUseCase
                     'valor_antes' => "zona={$anterior}", 'valor_despues' => "zona={$solicitud->zona_destino_id}",
                 ]);
             }
-            $solicitud->update(['estado' => $estado, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
+            $solicitud->update(['estado' => $estado, 'respuesta' => trim($datos['respuesta'] ?? '') ?: ($estado === 'APROBADA' ? 'Traslado autorizado por administración.' : 'Traslado rechazado por administración.'), 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
         }
 
         return $solicitud->id;
@@ -370,7 +459,11 @@ class AplicarCambioMovilUseCase
         $proveedor = $this->porServidorId(Proveedor::class, $datos, 'proveedorId')
             ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'])->first()
             ?? throw CambioMovilRechazadoException::noExiste('El proveedor', $datos['proveedorCodigo']);
-        $liquidacion = Liquidacion::query()->where('proveedor_id', $proveedor->id)->whereDate('periodo_inicio', $datos['desde'])->first();
+        $liquidacion = Liquidacion::query()->where('proveedor_id', $proveedor->id)
+            ->whereDate('periodo_inicio', $datos['desde'])->whereDate('periodo_fin', $datos['hasta'])->lockForUpdate()->first();
+        if ($liquidacion !== null && abs((float) $liquidacion->precio_litro - (float) $datos['precio']) > 0.0005) {
+            throw new CambioMovilRechazadoException('El periodo ya está liquidado con otro precio. Sincroniza y revisa el importe oficial antes de registrar un pago.', 'liquidacion_distinta', 409);
+        }
         $id = $liquidacion?->id ?? app(GenerarLiquidacionUseCase::class)->ejecutar(
             $proveedor->id, new DateTimeImmutable($datos['desde']), new DateTimeImmutable($datos['hasta']), (float) $datos['precio'],
         )->id;

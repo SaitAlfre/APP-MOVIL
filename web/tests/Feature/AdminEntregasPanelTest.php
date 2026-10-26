@@ -76,7 +76,7 @@ class AdminEntregasPanelTest extends TestCase
         $porZona->assertOk();
         $this->assertEqualsCanonicalizing(['Ana Norte', 'Carla Anulada'], $this->proveedoresListados($porZona));
 
-        $porFecha = $this->get('/admin/entregas?fecha='.now()->subDays(3)->toDateString());
+        $porFecha = $this->get('/admin/entregas?fecha='.now('America/Lima')->subDays(3)->toDateString());
         $this->assertSame(['Beto Sur'], $this->proveedoresListados($porFecha));
 
         $porEstado = $this->get('/admin/entregas?estado=anulada');
@@ -105,7 +105,7 @@ class AdminEntregasPanelTest extends TestCase
         Entrega::factory()->create(['litros' => 25, 'registrado_en' => now()]);
         Entrega::factory()->create(['litros' => 75, 'registrado_en' => now()->subDays(2)]);
 
-        $respuesta = $this->get('/admin/entregas?fecha='.now()->subDays(2)->toDateString());
+        $respuesta = $this->get('/admin/entregas?fecha='.now('America/Lima')->subDays(2)->toDateString());
 
         // El total del filtro cambia…
         $respuesta->assertViewHas('litrosFiltrados', 75.0);

@@ -43,6 +43,7 @@ data class Entrega(
             loteId: String?,
             modalidad: ModalidadEntrega = ModalidadEntrega.MEDIANTE_ACOPIADOR,
         ): Result<Entrega> {
+            if (!litros.isFinite() || litros > 18_500.0) return Result.failure(IllegalArgumentException("Ingresa una cantidad válida de hasta 18 500 litros."))
             if (litros <= 0.0) return Result.failure(EntregaInvalidaException.LitrosNoPositivos)
             if (tachos <= 0) return Result.failure(EntregaInvalidaException.TachosInvalidos)
             return Result.success(

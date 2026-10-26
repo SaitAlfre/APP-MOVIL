@@ -10,6 +10,7 @@ import pe.ecolecta.domain.model.EstadoProveedor
 import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.Proveedor
 import pe.ecolecta.domain.usecase.entrega.RegistrarEntregaUseCase
+import kotlin.test.assertEquals
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
@@ -55,7 +56,7 @@ class RegistrarEntregaUseCaseTest {
     }
 
     @Test
-    fun `bloquea si los litros superan la capacidad fisica del tacho`() = runTest {
+    fun `los litros no dependen de la capacidad historica de tachos`() = runTest {
         sembrarProveedor(tachos = 2, capacidadTachoL = 40.0) // capacidad total = 80 L
 
         val resultado = useCase(
@@ -63,8 +64,8 @@ class RegistrarEntregaUseCaseTest {
             litros = 90.0, tachos = 2, observaciones = null,
         )
 
-        assertTrue(resultado.isFailure)
-        assertIs<EntregaInvalidaException.SuperaCapacidad>(resultado.exceptionOrNull())
+        assertTrue(resultado.isSuccess)
+        assertEquals(90.0, resultado.getOrThrow().entrega.litros)
     }
 
     @Test

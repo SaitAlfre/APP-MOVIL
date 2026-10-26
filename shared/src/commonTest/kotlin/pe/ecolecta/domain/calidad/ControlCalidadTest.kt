@@ -132,6 +132,46 @@ class ControlCalidadTest {
         assertEquals(-0.525, lectura.puntoCongelacion)
         assertEquals(6.65, lectura.ph)
     }
+
+    @Test
+    fun `parsea densidad en grados Quevenne y congelacion positiva normalizandolos`() {
+        val texto = """
+            LACTOMAT ANALYZER
+            S/N: 77102 Mode: 1
+            Fat: 3.50%
+            SNF: 8.80%
+            Dens: 29.5
+            Freezing: 0.530 C
+            pH: 6.70
+        """.trimIndent()
+
+        val lectura = ParserComprobanteLactomat.parsear(texto)
+
+        assertEquals("77102", lectura.serialAnalizador)
+        assertEquals(3.50, lectura.grasa)
+        assertEquals(8.80, lectura.sng)
+        // 29.5 °Q -> 1.0295 g/cm³
+        assertEquals(1.0295, lectura.densidad)
+        // 0.530 C depresión -> -0.530 °C
+        assertEquals(-0.530, lectura.puntoCongelacion)
+        assertEquals(6.70, lectura.ph)
+    }
+
+    @Test
+    fun `congelacion manual y OCR coinciden en grados y milesimas`() {
+        for (valor in listOf(0.53, -0.53, 530.0, -530.0)) {
+            assertEquals(-0.53, normalizarValorCalidad("congelacion", valor))
+            assertEquals(-0.53, ParserComprobanteLactomat.parsear("Freezing: $valor").puntoCongelacion)
+        }
+        assertEquals(-900.0, normalizarValorCalidad("congelacion", -900.0))
+    }
+
+    @Test
+    fun `parsea densidad en kg por metro cubico`() {
+        val texto = "Densidad: 1030 kg/m3"
+        val lectura = ParserComprobanteLactomat.parsear(texto)
+        assertEquals(1.030, lectura.densidad)
+    }
 }
 
 internal val comprobanteLactomatReferencia = """

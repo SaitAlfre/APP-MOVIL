@@ -44,7 +44,7 @@
                 @endif
             </x-ui.empty>
         @else
-            <x-ui.table :headers="['Código', 'Nombre', 'DNI', 'Zona', 'Tachos', 'Estado', 'Litros sem.', 'Última entrega', 'Cuenta', '']"
+            <x-ui.table :headers="['Código', 'Nombre', 'DNI', 'Zona', 'Estado', 'Litros sem.', 'Última entrega', 'Cuenta', '']"
                 caption="Listado de proveedores registrados">
                 @foreach ($proveedores as $proveedor)
                     @php
@@ -58,7 +58,6 @@
                         </td>
                         <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $proveedor->dni }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $zonas->get($proveedor->zonaId)?->nombre ?? '—' }}</td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $proveedor->tachos }} × {{ number_format($proveedor->capacidadTachoL, 0) }} L</td>
                         <td class="px-4 py-3"><x-ui.estado :estado="$proveedor->estado->value" /></td>
                         <td class="mono px-4 py-3 font-medium text-eh-text">{{ number_format($resumen['litros'], 1) }} L</td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">

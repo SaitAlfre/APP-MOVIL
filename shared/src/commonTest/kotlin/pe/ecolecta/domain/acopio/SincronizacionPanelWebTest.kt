@@ -189,7 +189,7 @@ class SincronizacionPanelWebTest {
         assertEquals(setOf("Juan Pérez"), r.cuentasSinEnlazar)
         val local = entregas.filtrar().single()
         assertEquals(SyncState.PENDING, local.syncState, "el dato no fue rechazado: sigue en cola hasta enlazar")
-        assertTrue(local.syncError!!.contains("iniciar sesión en este celular con conexión"))
+        assertTrue(local.syncError!!.contains("confirma tu acceso para sincronizar"))
         assertTrue(panel.filas.value.isEmpty())
 
         val mensaje = mensajeSincronizacion(r)
@@ -298,51 +298,33 @@ class SincronizacionPanelWebTest {
     }
 
     @Test
-    fun `con panel y firestore solo queda sincronizada cuando ambos confirmaron`() = runTest {
+    fun `la confirmacion de la API basta aunque el antiguo canal adicional rechace escrituras`() = runTest {
         preparar()
-        val celulares = FakeRegistroAcopioRemoto()
-        celulares.rechazar = true
-        val ambos = sincronizador(celulares)
+        val antiguo = FakeRegistroAcopioRemoto().also { it.rechazar = true }
+        val envio = sincronizador(antiguo)
         registrar("j1", "p1", "u1", "z1", "v1", 15.0, 1, null).getOrThrow()
-
-        assertEquals(1, ambos().parciales)
-        assertEquals(1, panel.filas.value.size, "el panel (oficial) ya la tiene")
-        val parcial = entregas.filtrar().single()
-        assertEquals(SyncState.ERROR, parcial.syncState, "pero falta la copia del proveedor")
-        assertEquals(
-            "Recibida por el panel web; falta la copia para el celular del proveedor: PERMISSION_DENIED",
-            parcial.syncError,
-            "el motivo no aparenta que todos los destinos la recibieron",
-        )
-
-        celulares.rechazar = false
-        ambos()
+        val resultado = envio()
+        assertEquals(1, resultado.enviados)
+        assertEquals(0, resultado.parciales)
         assertEquals(1, panel.filas.value.size)
-        assertEquals(1, celulares.documentos.value.size)
+        assertEquals(0, antiguo.documentos.value.size, "no se escribe una segunda copia")
         assertEquals(SyncState.SYNCED, entregas.filtrar().single().syncState)
+        assertEquals(null, entregas.filtrar().single().syncError)
     }
 
     @Test
-    fun `si el panel la recibe pero firestore no tiene conexion queda pendiente y se reintenta sin duplicar en el panel`() = runTest {
+    fun `un error antiguo de la copia adicional se limpia al reenviar sin duplicar en la API`() = runTest {
         preparar()
-        val celulares = FakeRegistroAcopioRemoto()
-        celulares.enLinea.value = false
-        val ambos = sincronizador(celulares)
-        registrar("j1", "p1", "u1", "z1", "v1", 15.0, 1, null).getOrThrow()
-
-        val r = ambos()
-
-        assertEquals(1, r.parciales, "el panel la recibió: es un envío parcial, no una falta de conexión total")
-        assertEquals(0, r.sinConexion)
-        assertTrue(mensajeSincronizacion(r).contains("recibido(s) por el panel web, pero falta la copia"))
-        val local = entregas.filtrar().single()
-        assertEquals(SyncState.PENDING, local.syncState)
-        assertEquals("Recibida por el panel web; falta la copia para el celular del proveedor: Sin conexión a internet", local.syncError)
-        celulares.enLinea.value = true
-        ambos()
+        val antiguo = FakeRegistroAcopioRemoto().also { it.enLinea.value = false }
+        val envio = sincronizador(antiguo)
+        val entrega = registrar("j1", "p1", "u1", "z1", "v1", 15.0, 1, null).getOrThrow().entrega
+        panel.enviarEntrega("u1", preparador.preparar(entrega)).getOrThrow()
+        entregas.registrarFalloSync(entrega.id, entrega.updatedAt, "Recibida por el panel web; falta la copia", true)
+        assertEquals(1, envio().enviados)
         assertEquals(1, panel.filas.value.size)
-        assertEquals(listOf("crear:${local.id}"), panel.auditoria, "el reenvío al panel no crea otra fila ni otra alta")
         assertEquals(SyncState.SYNCED, entregas.filtrar().single().syncState)
+        assertEquals(null, entregas.filtrar().single().syncError)
+        assertEquals(0, antiguo.documentos.value.size)
     }
 
     @Test

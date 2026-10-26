@@ -84,7 +84,7 @@ class AdminReportesViewModel(
         ejecutar { admin -> aprobarLiquidacion(desde, precio, admin.usuario.id).map { "Liquidación aprobada para $it proveedores. Ya la ven en «Mis pagos»." } }
     }
 
-    fun pagar(desde: LocalDate) = ejecutar { admin -> marcarPagada(desde, admin.usuario.id).map { "Liquidación marcada como pagada." } }
+    fun pagar(desde: LocalDate) = ejecutar { admin -> marcarPagada(desde, admin.usuario.id).map { "Registro de pago guardado. Cuando hay panel configurado, figurará como pagado después de su confirmación al sincronizar." } }
 
     fun publicar(mensaje: String, alPublicar: () -> Unit) = ejecutar { admin ->
         publicarComunicado(mensaje, admin.usuario.id, admin.usuario.nombres).map { alPublicar(); "Comunicado publicado para todos los proveedores." }

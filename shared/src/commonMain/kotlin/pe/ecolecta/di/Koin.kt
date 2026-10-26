@@ -146,7 +146,7 @@ val dataModule = module {
         if (get<pe.ecolecta.domain.repository.ServidorWebRepository>().configurado) get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>()
         else pe.ecolecta.domain.repository.PinesParaServidor.Ninguno
     }
-    single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default, getOrNull()) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
     // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
     // plataforma (EcolectaApp.kt / KoinIOS.kt): Firebase es Android-only y la URL del panel web se fija
@@ -224,13 +224,13 @@ val domainModule = module {
 
     factory { ListarAuditoriaUseCase(get()) }
 
-    factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get()) }
+    factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get(), getOrNull()) }
     factory { pe.ecolecta.domain.usecase.admin.ObservarAlertasAdminUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.OcultarAlertaUseCase(get(), get()) }
-    factory { pe.ecolecta.domain.usecase.admin.ResolverSolicitudUseCase(get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.ResolverSolicitudUseCase(get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.ObservarLiquidacionesUseCase(get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.AprobarLiquidacionUseCase(get(), get(), get(), get(), get()) }
-    factory { pe.ecolecta.domain.usecase.admin.MarcarLiquidacionPagadaUseCase(get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.MarcarLiquidacionPagadaUseCase(get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.PublicarComunicadoUseCase(get(), get()) }
     factory { ObtenerColaSyncUseCase(get()) }
 
@@ -399,6 +399,7 @@ val presentationModule = module {
             obtenerSesionUseCase = get(),
             listarZonasUseCase = get(),
             proveedorIdPreseleccionado = proveedorIdPreseleccionado,
+            reloj = get(),
         )
     }
 
@@ -429,6 +430,7 @@ val presentationModule = module {
 
     viewModel {
         ListaProveedoresViewModel(
+            usuarios = get(),
             obtenerJornadaEnCursoUseCase = get(),
             obtenerSesionUseCase = get(),
             listarProveedoresPorZonaUseCase = get(),

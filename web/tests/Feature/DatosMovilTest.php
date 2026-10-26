@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
+use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
@@ -74,6 +75,25 @@ class DatosMovilTest extends TestCase
         $this->assertSame([$propio->id], collect($datos->json('entregas'))->pluck('proveedorId')->unique()->values()->all());
         $otros = collect($datos->json('usuarios'))->where('id', '!=', $cuenta->id);
         $this->assertTrue($otros->every(fn ($u) => $u['dni'] === null), 'no expone el DNI de otras personas');
+    }
+
+    public function test_acopiador_recibe_recojos_del_equipo_solo_en_sus_zonas_de_trabajo(): void
+    {
+        $cuenta = Usuario::factory()->create(['username' => 'acop_equipo', 'pin_hash' => '1357', 'roles' => ['acopiador']]);
+        $companero = Usuario::factory()->create(['roles' => ['acopiador']]);
+        $propia = Jornada::factory()->create(['usuario_id' => $cuenta->id]);
+        $compartida = Jornada::factory()->create(['usuario_id' => $companero->id, 'zona_id' => $propia->zona_id]);
+        $otraZona = Jornada::factory()->create(['usuario_id' => $companero->id]);
+        $visible = Entrega::factory()->create(['jornada_id' => $compartida->id, 'usuario_id' => $companero->id, 'zona_id' => $propia->zona_id]);
+        $ajena = Entrega::factory()->create(['jornada_id' => $otraZona->id, 'usuario_id' => $companero->id, 'zona_id' => $otraZona->zona_id]);
+
+        $datos = $this->withToken($this->token('acop_equipo'))->getJson('/api/movil/datos')->assertOk();
+
+        $ids = collect($datos->json('entregas'))->pluck('id')->all();
+        $this->assertContains($visible->id, $ids);
+        $this->assertNotContains($ajena->id, $ids);
+        $this->assertSame($companero->id, collect($datos->json('entregas'))->firstWhere('id', $visible->id)['usuarioId']);
+        $this->assertNull(collect($datos->json('usuarios'))->firstWhere('id', $companero->id)['dni']);
     }
 
     public function test_sin_token_no_hay_datos(): void

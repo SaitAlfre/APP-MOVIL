@@ -33,7 +33,7 @@ class AdminModulesTest extends TestCase
         Entrega::factory()->create(['jornada_id' => $jornada->id, 'litros' => 30]);
         Entrega::factory()->create(['jornada_id' => $jornada->id, 'litros' => 15]);
 
-        $response = $this->get('/admin/acopiadores');
+        $response = $this->get('/admin/acopiadores?fecha=');
 
         $response->assertOk();
         $response->assertSee('Juan Perez');

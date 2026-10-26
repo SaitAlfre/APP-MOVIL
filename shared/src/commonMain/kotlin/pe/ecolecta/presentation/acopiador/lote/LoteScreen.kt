@@ -111,13 +111,7 @@ fun LoteScreen(
                             iconoInicial = Icons.Filled.WaterDrop,
                             modifier = Modifier.weight(1f),
                         )
-                        CampoTexto(
-                            fila.tachos,
-                            { viewModel.actualizarTachos(index, it) },
-                            "Tachos",
-                            iconoInicial = Icons.Filled.Inventory2,
-                            modifier = Modifier.weight(1f),
-                        )
+
                     }
                 }
             }
@@ -182,7 +176,7 @@ private fun TotalDelLote(litros: Double, tachos: Int) {
             Text("Total del lote", style = MaterialTheme.typography.bodyMedium, color = Colores.onBrandContainer)
             Spacer(Modifier.height(Espaciado.xxs))
             Text(
-                "${formatearLitros(litros)} · $tachos tachos",
+                formatearLitros(litros),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Colores.onBrandContainer,
             )

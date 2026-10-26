@@ -129,6 +129,35 @@ fun AdminDashboardScreen(
                 }
             }
 
+            if (resumen != null) {
+                AdminCard(Modifier.padding(bottom = 12.dp), radio = 14, padding = 14) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            AdminTexto("Análisis de calidad · Hoy", 13, AdminColor.texto, FontWeight.Bold)
+                            AdminTexto("${cifra(resumen.litrosHoy)} L acopiados", 13, AdminColor.verde, FontWeight.ExtraBold)
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(AdminColor.crema).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                AdminTexto(resumen.calidadAprobadaHoy.toString(), 15, AdminColor.verde, FontWeight.Bold)
+                                AdminTexto("Aprobados", 10, AdminColor.gris)
+                            }
+                            Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(AdminColor.crema).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                AdminTexto(resumen.calidadObservadaHoy.toString(), 15, AdminColor.ambar, FontWeight.Bold)
+                                AdminTexto("Observados", 10, AdminColor.gris)
+                            }
+                            Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(AdminColor.crema).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                AdminTexto(resumen.calidadRechazadaHoy.toString(), 15, if (resumen.calidadRechazadaHoy > 0) AdminColor.rojo else AdminColor.gris, FontWeight.Bold)
+                                AdminTexto("Rechazados", 10, AdminColor.gris)
+                            }
+                        }
+                        AdminTexto(
+                            "El saldo disponible para producción se consulta en la web e incluye calidad, recepción, mermas y lotes asignados.",
+                            11, AdminColor.gris,
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(4.dp))
             AdminSeccion("Acciones pendientes")
             val pendientes = alertas.alertas.take(3)

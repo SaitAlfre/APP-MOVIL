@@ -45,6 +45,7 @@ class ListaProveedoresViewModel(
     private val deshacerSinRecojoUseCase: DeshacerSinRecojoUseCase,
     private val sincronizar: SincronizarRegistrosAcopioUseCase,
     private val reloj: Reloj,
+    private val usuarios: pe.ecolecta.domain.repository.UsuarioRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ListaProveedoresUiState(remotoConfigurado = sincronizar.configurado))
     val uiState: StateFlow<ListaProveedoresUiState> = _uiState.asStateFlow()
@@ -52,6 +53,7 @@ class ListaProveedoresViewModel(
     init {
         viewModelScope.launch {
             val zonas = listarZonasUseCase().first()
+            val usuarioId = obtenerSesionUseCase().first()?.usuario?.id.orEmpty()
 
             obtenerJornadaEnCursoUseCase()
                 .flatMapLatest { jornada ->
@@ -65,7 +67,8 @@ class ListaProveedoresViewModel(
                             listarProveedoresPorZonaUseCase(jornada.zonaId),
                             observarEntregasUseCase(zonaId = jornada.zonaId),
                             sinRecojoRepository.observarPorZona(jornada.zonaId, ciclo.inicio, ciclo.fin),
-                        ) { proveedores, entregas, marcas ->
+                            usuarios.observarTodos(),
+                        ) { proveedores, entregas, marcas, cuentas ->
                             _uiState.value.copy(
                                 cargando = false,
                                 ciclo = ciclo,
@@ -73,6 +76,8 @@ class ListaProveedoresViewModel(
                                 zonaNombre = zonaNombre,
                                 jornadaId = jornada.id,
                                 jornadaAbierta = jornada.estaAbierta,
+                                usuarioId = usuarioId,
+                                nombresAcopiadores = cuentas.associate { it.id to it.nombres },
                                 filas = construirFilasAcopio(
                                     ciclo = ciclo,
                                     zonaId = jornada.zonaId,

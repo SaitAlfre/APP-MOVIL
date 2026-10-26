@@ -44,9 +44,9 @@ class RechazoServidorException(mensaje: String, val codigo: String?, val definit
  * conexión (el PIN nunca se guarda). Los datos siguen guardados en el celular.
  */
 class SinSesionServidorException(val nombre: String?, revocada: Boolean = false) : Exception(
-    "Sin enviar: la cuenta de ${nombre ?: "este usuario"} " +
-        (if (revocada) "ya no tiene sesión válida con el panel web (venció o fue revocada)" else "no está enlazada con el panel web") +
-        ". ${nombre ?: "Esa cuenta"} debe iniciar sesión en este celular con conexión a internet para enlazarla; la entrega sigue guardada aquí.",
+    "${nombre ?: "Tu cuenta"}: confirma tu acceso para sincronizar" +
+        (if (revocada) " porque la sesión venció o fue revocada" else " al recuperar conexión") +
+        ". Usa tu mismo usuario y PIN de Ecolecta. Tus registros siguen guardados en este teléfono.",
 )
 
 /**

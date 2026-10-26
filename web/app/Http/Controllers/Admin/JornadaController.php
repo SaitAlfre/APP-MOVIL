@@ -2,116 +2,104 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Entregas\ObtenerResumenJornadaUseCase;
-use App\Application\Jornadas\AbrirJornadaUseCase;
-use App\Application\Jornadas\CerrarJornadaUseCase;
-use App\Application\Jornadas\ListarJornadasUseCase;
-use App\Domain\Jornadas\Exceptions\ZonaOcupadaException;
-use App\Domain\Jornadas\JornadaRepositoryInterface;
-use App\Domain\Proveedores\ProveedorRepositoryInterface;
+use App\Application\Jornadas\ConsultarHojaRutaQuery;
 use App\Domain\Recepcion\RecepcionAcopioRepositoryInterface;
-use App\Domain\Usuarios\Rol;
-use App\Domain\Usuarios\UsuarioRepositoryInterface;
-use App\Domain\Vehiculos\VehiculoRepositoryInterface;
-use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Persistence\Eloquent\Auditoria;
+use App\Infrastructure\Persistence\Eloquent\Jornada;
+use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Usuario;
+use App\Infrastructure\Persistence\Eloquent\Vehiculo;
+use App\Infrastructure\Persistence\Eloquent\Zona;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class JornadaController extends Controller
 {
-    public function index(
-        ListarJornadasUseCase $listar,
-        ObtenerResumenJornadaUseCase $obtenerResumen,
-        UsuarioRepositoryInterface $usuarios,
-        ZonaRepositoryInterface $zonas,
-        VehiculoRepositoryInterface $vehiculos,
-        RecepcionAcopioRepositoryInterface $recepciones,
-    ): View {
-        $jornadas = $listar->ejecutar();
-
-        // Litros medidos en planta, para mostrar la diferencia junto a lo registrado en campo.
-        $recepcionesPorJornada = $recepciones->porJornadas(
-            collect($jornadas->items())->map(fn ($jornada) => $jornada->id)->filter()->values()->all(),
-        );
-
-        $filas = collect($jornadas->items())->map(function ($jornada) use ($usuarios, $zonas, $vehiculos, $obtenerResumen, $recepcionesPorJornada) {
-            $resumen = $obtenerResumen->ejecutar($jornada->id, 0);
-
-            return [
-                'jornada' => $jornada,
-                'usuario' => $usuarios->buscarPorId($jornada->usuarioId),
-                'zona' => $zonas->buscarPorId($jornada->zonaId),
-                'vehiculo' => $vehiculos->buscarPorId($jornada->vehiculoId),
-                'litros' => $resumen['litros'],
-                'entregas' => $resumen['entregas'],
-                'recepcion' => $recepcionesPorJornada[$jornada->id] ?? null,
-            ];
-        });
+    public function index(Request $request, RecepcionAcopioRepositoryInterface $recepciones): View
+    {
+        $datos = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d'],
+            'usuario_id' => ['nullable', 'integer', 'exists:usuarios,id'], 'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
+            'estado' => ['nullable', 'in:abierta,cerrada']]);
+        $fecha = $request->has('fecha') ? ($datos['fecha'] ?? null) : now('America/Lima')->toDateString();
+        $query = Jornada::query()->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha))
+            ->when($datos['usuario_id'] ?? null, fn ($q, $id) => $q->where('usuario_id', $id))
+            ->when($datos['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
+            ->when($datos['estado'] ?? null, fn ($q, $estado) => $estado === 'abierta' ? $q->whereNull('cerrada_en') : $q->whereNotNull('cerrada_en'));
+        $paginador = (clone $query)->with(['usuario', 'zona', 'vehiculo'])
+            ->withSum(['entregas as litros' => fn ($q) => $q->where('anulada', false)], 'litros')
+            ->withCount(['entregas as recojos_count' => fn ($q) => $q->where('anulada', false)])
+            ->orderByDesc('abierta_en')->paginate(20)->withQueryString();
 
         return view('admin.jornadas.index', [
-            'filas' => $filas,
-            'paginador' => $jornadas,
+            'paginador' => $paginador, 'fecha' => $fecha, 'total' => (clone $query)->count(),
+            'abiertas' => (clone $query)->whereNull('cerrada_en')->count(),
+            'recepciones' => $recepciones->porJornadas($paginador->pluck('id')->all()),
+            'zonas' => Zona::query()->orderBy('nombre')->get(),
+            'acopiadores' => Usuario::query()->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->get(),
         ]);
     }
 
-    public function create(UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas, VehiculoRepositoryInterface $vehiculos): View
+    public function create(): View
     {
         return view('admin.jornadas.create', [
-            'acopiadores' => $usuarios->conRol(Rol::Acopiador),
-            'zonas' => $zonas->activas(),
-            'vehiculos' => $vehiculos->activos(),
+            'acopiadores' => Usuario::query()->where('activo', true)->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->get()->all(),
+            'zonas' => Zona::query()->where('activo', true)->orderBy('nombre')->get()->all(),
+            'vehiculos' => Vehiculo::query()->where('activo', true)->orderBy('nombre')->get()->all(),
         ]);
     }
 
-    public function store(Request $request, AbrirJornadaUseCase $abrirJornada): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'usuario_id' => ['required', 'integer'],
-            'zona_id' => ['required', 'integer', 'exists:zonas,id'],
-            'vehiculo_id' => ['required', 'integer', 'exists:vehiculos,id'],
-        ]);
+        $datos = $request->validate(['usuario_id' => ['required', 'integer', 'exists:usuarios,id'],
+            'zona_id' => ['required', 'integer', Rule::exists('zonas', 'id')->where('activo', true)],
+            'vehiculo_id' => ['required', 'integer', Rule::exists('vehiculos', 'id')->where('activo', true)]]);
 
-        try {
-            $jornada = $abrirJornada->ejecutar($request->integer('usuario_id'), $request->integer('zona_id'), $request->integer('vehiculo_id'));
-        } catch (ZonaOcupadaException $e) {
-            return back()->withErrors(['zona_id' => $this->mensajeSeguro($e)])->withInput();
+        return DB::transaction(function () use ($datos): RedirectResponse {
+            $usuario = Usuario::query()->lockForUpdate()->findOrFail($datos['usuario_id']);
+            if (! $usuario->activo || ! $usuario->tieneRol('acopiador') || $usuario->estaBloqueada()) {
+                return back()->withErrors(['usuario_id' => 'Selecciona un acopiador activo y habilitado.'])->withInput();
+            }
+            $existente = Jornada::query()->where('usuario_id', $usuario->id)->whereNull('cerrada_en')->orderBy('abierta_en')->first();
+            if ($existente !== null) {
+                return redirect()->route('admin.acopiadores.jornadas.show', $existente)->with('estado', 'El acopiador ya tiene una jornada abierta. Se conserva su zona y vehículo.');
+            }
+            $cerrada = Jornada::query()->where('usuario_id', $usuario->id)->whereDate('fecha', now('America/Lima')->toDateString())->first();
+            if ($cerrada !== null) {
+                return redirect()->route('admin.acopiadores.jornadas.show', $cerrada)->with('estado', 'La jornada de hoy ya terminó. Puedes revisar sus registros.');
+            }
+            $jornada = Jornada::query()->create([...$datos, 'fecha' => now('America/Lima')->toDateString(), 'abierta_en' => now(), 'seguimiento_activo' => false]);
+
+            return redirect()->route('admin.acopiadores.jornadas.show', $jornada)->with('estado', 'Jornada iniciada. El acopiador la recibirá al sincronizar.');
+        });
+    }
+
+    public function show(int $jornada, ConsultarHojaRutaQuery $hoja): View
+    {
+        $entidad = Jornada::query()->with(['usuario', 'zona', 'vehiculo'])->findOrFail($jornada);
+
+        return view('admin.jornadas.show', ['jornada' => $entidad, 'hoja' => $hoja->ejecutar($entidad),
+            'recientes' => $entidad->entregas()->with('proveedor')->latest('registrado_en')->paginate(20, ['*'], 'entregas_page')->withQueryString(),
+            'litros' => (float) $entidad->entregas()->where('anulada', false)->sum('litros'),
+            'entregas' => $entidad->entregas()->where('anulada', false)->count(),
+            'proveedores' => Proveedor::query()->where('zona_id', $entidad->zona_id)->where('estado', 'activo')->orderBy('nombres')->get(),
+        ]);
+    }
+
+    public function cerrar(Request $request, int $jornada): RedirectResponse
+    {
+        $datos = $request->validate(['motivo' => ['required', 'string', 'min:5', 'max:255']]);
+        $registro = Jornada::query()->lockForUpdate()->findOrFail($jornada);
+        if ($registro->cerrada_en === null) {
+            $registro->update(['cerrada_en' => now(), 'seguimiento_activo' => false]);
+            Auditoria::query()->create(['entidad' => 'jornada', 'entidad_id' => $registro->id, 'accion' => 'cerrar_jornada',
+                'motivo' => $datos['motivo'], 'usuario_id' => auth('operador')->id(), 'ocurrido_en' => now(),
+                'valor_antes' => 'cerradaEn=null', 'valor_despues' => 'Cerrada desde administración']);
         }
 
-        return redirect()->route('admin.acopiadores.jornadas.show', $jornada->id);
-    }
-
-    public function show(
-        int $jornada,
-        JornadaRepositoryInterface $jornadas,
-        ObtenerResumenJornadaUseCase $obtenerResumen,
-        UsuarioRepositoryInterface $usuarios,
-        ZonaRepositoryInterface $zonas,
-        VehiculoRepositoryInterface $vehiculos,
-        ProveedorRepositoryInterface $proveedores,
-    ): View {
-        $entidad = $jornadas->buscarPorId($jornada);
-        abort_if($entidad === null, 404);
-
-        $resumen = $obtenerResumen->ejecutar($entidad->id);
-
-        return view('admin.jornadas.show', [
-            'jornada' => $entidad,
-            'acopiador' => $usuarios->buscarPorId($entidad->usuarioId),
-            'zona' => $zonas->buscarPorId($entidad->zonaId),
-            'vehiculo' => $vehiculos->buscarPorId($entidad->vehiculoId),
-            'litros' => $resumen['litros'],
-            'entregas' => $resumen['entregas'],
-            'recientes' => $resumen['recientes'],
-            'proveedores' => collect($proveedores->activosPorZona($entidad->zonaId))->keyBy('id'),
-        ]);
-    }
-
-    public function cerrar(int $jornada, CerrarJornadaUseCase $cerrarJornada): RedirectResponse
-    {
-        $cerrarJornada->ejecutar($jornada);
-
-        return redirect()->route('admin.acopiadores.index')->with('estado', 'Jornada cerrada correctamente.');
+        return redirect()->route('admin.acopiadores.jornadas.show', $registro)->with('estado', 'Jornada terminada. Los registros recibidos se conservan.');
     }
 }

@@ -99,6 +99,8 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::patch('acopiadores/jornadas/{jornada}/cerrar', [AdminJornadaController::class, 'cerrar'])->name('acopiadores.jornadas.cerrar');
 
             Route::post('acopiadores/jornadas/{jornada}/entregas', [JornadaEntregaController::class, 'store'])->name('acopiadores.entregas.store');
+            Route::patch('acopiadores/entregas/{entrega}/corregir', [JornadaEntregaController::class, 'corregir'])->whereNumber('entrega')->name('acopiadores.entregas.corregir');
+            Route::patch('acopiadores/marcas/{marca}/deshacer', [JornadaEntregaController::class, 'deshacerMarca'])->whereNumber('marca')->name('acopiadores.marcas.deshacer');
             Route::post('acopiadores/entregas/sumar', [JornadaEntregaController::class, 'sumar'])->name('acopiadores.entregas.sumar');
             Route::post('acopiadores/entregas/{entrega}/anular', [JornadaEntregaController::class, 'anular'])->name('acopiadores.entregas.anular');
         });
@@ -149,6 +151,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
 
         Route::middleware('permiso:sanciones,ver')->group(function () {
             Route::get('sanciones', [SancionController::class, 'index'])->name('sanciones.index');
+            Route::get('sanciones/reclamos/{reclamo}/evidencia', [SancionController::class, 'evidencia'])->name('sanciones.reclamos.evidencia');
         });
         Route::middleware('permiso:sanciones,gestionar')->group(function () {
             Route::patch('sanciones/{sancion}', [SancionController::class, 'resolver'])->name('sanciones.resolver');

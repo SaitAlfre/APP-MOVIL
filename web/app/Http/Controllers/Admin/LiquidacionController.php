@@ -11,6 +11,7 @@ use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Configuracion;
+use App\Infrastructure\Persistence\Eloquent\Liquidacion as LiquidacionEloquent;
 use DateTimeImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,8 +32,8 @@ class LiquidacionController extends Controller
         return view('admin.liquidaciones.index', [
             'filas' => $filas,
             'paginador' => $liquidaciones,
-            'totalPendiente' => $filas->filter(fn (array $fila) => $fila['liquidacion']->estado->value === 'pendiente')->sum(fn (array $fila) => $fila['liquidacion']->montoTotal),
-            'totalPagado' => $filas->filter(fn (array $fila) => $fila['liquidacion']->estado->value === 'pagada')->sum(fn (array $fila) => $fila['liquidacion']->montoTotal),
+            'totalPendiente' => LiquidacionEloquent::query()->where('estado', 'pendiente')->sum('monto_total'),
+            'totalPagado' => LiquidacionEloquent::query()->where('estado', 'pagada')->sum('monto_total'),
         ]);
     }
 
@@ -65,8 +66,8 @@ class LiquidacionController extends Controller
         $request->validate([
             'proveedor_id' => ['required', 'integer'],
             'periodo_inicio' => ['required', 'date'],
-            'periodo_fin' => ['required', 'date'],
-            'precio_litro' => ['required', 'numeric', 'gt:0'],
+            'periodo_fin' => ['required', 'date', 'after_or_equal:periodo_inicio'],
+            'precio_litro' => ['required', 'numeric', 'gt:0', 'decimal:0,3'],
         ]);
 
         try {

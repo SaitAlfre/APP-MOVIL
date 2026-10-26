@@ -67,18 +67,18 @@ class AdminAlertasViewModel(
     }
 
     /** Aprobar traslado o marcar reclamo como atendido. */
-    fun aprobar(alerta: AlertaAdmin) = ejecutar(alerta, exito = if (alerta.tipo == TipoAlertaAdmin.TRASLADO) "Traslado autorizado. El proveedor ya pertenece a su nueva zona." else "Reclamo marcado como atendido.") { admin ->
+    fun aprobar(alerta: AlertaAdmin, respuesta: String = "") = ejecutar(alerta, exito = "Decisión guardada. El panel validará el cambio al sincronizar y el proveedor recibirá la respuesta.") { admin ->
         when {
-            alerta.id.startsWith("solicitud:") -> resolverSolicitud(alerta.referenciaId, aprobar = true, adminId = admin)
+            alerta.id.startsWith("solicitud:") -> resolverSolicitud(alerta.referenciaId, aprobar = true, adminId = admin, respuesta = respuesta)
             alerta.id.startsWith("traslado:") -> autorizarTraslado(alerta.referenciaId, admin)
             else -> Result.failure(IllegalStateException("Esta alerta se revisa desde su módulo."))
         }
     }
 
     /** Rechaza la solicitud o traslado; conflictos y calidad solo se ocultan de la bandeja. */
-    fun rechazar(alerta: AlertaAdmin, motivo: String) = ejecutar(alerta, exito = "Solicitud rechazada.") { admin ->
+    fun rechazar(alerta: AlertaAdmin, motivo: String) = ejecutar(alerta, exito = "Decisión guardada para sincronizar con el panel y notificar al proveedor.") { admin ->
         when {
-            alerta.id.startsWith("solicitud:") -> resolverSolicitud(alerta.referenciaId, aprobar = false, adminId = admin)
+            alerta.id.startsWith("solicitud:") -> resolverSolicitud(alerta.referenciaId, aprobar = false, adminId = admin, respuesta = motivo)
             alerta.id.startsWith("traslado:") -> rechazarTraslado(alerta.referenciaId, admin, motivo.ifBlank { "Rechazado desde alertas" })
             else -> ocultarAlerta(alerta.id, admin)
         }

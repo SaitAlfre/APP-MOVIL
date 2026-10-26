@@ -154,12 +154,12 @@ class CambiosMovilTest extends TestCase
     public function test_reclamo_del_proveedor_y_su_resolucion_por_el_admin(): void
     {
         $cuenta = Usuario::factory()->create(['username' => 'prov_app', 'pin_hash' => '1357', 'roles' => ['proveedor']]);
-        $proveedor = Proveedor::factory()->create(['usuario_id' => $cuenta->id]);
-        $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'litros' => 40, 'uuid_movil' => 'ent-1']);
+        $proveedor = Proveedor::factory()->create(['usuario_id' => $cuenta->id, 'capacidad_tacho_l' => 40]);
+        $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'litros' => 40, 'tachos' => 2, 'uuid_movil' => 'ent-1']);
         $datos = ['uuid' => 'sol-1', 'entregaUuid' => 'ent-1', 'litros' => 42, 'motivo' => 'Faltan 2 litros', 'estado' => 'PENDIENTE'];
 
         $this->cambiar($this->token('prov_app'), 'reclamo', $datos)->assertOk();
-        $this->cambiar($this->token('admin_app'), 'reclamo', [...$datos, 'estado' => 'ATENDIDA'])->assertOk();
+        $this->cambiar($this->token('admin_app'), 'reclamo', [...$datos, 'estado' => 'ATENDIDA', 'respuesta' => 'Se confirma la diferencia de dos litros.'])->assertOk();
 
         $reclamo = ReclamoProveedor::query()->where('uuid_movil', 'sol-1')->sole();
         $this->assertSame($entrega->id, $reclamo->entrega_id);

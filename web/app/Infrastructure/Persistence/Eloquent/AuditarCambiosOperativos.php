@@ -27,6 +27,7 @@ class AuditarCambiosOperativos
         Zona::class => ['zona', ['nombre', 'activo']],
         Vehiculo::class => ['vehiculo', ['nombre', 'placa', 'activo']],
         Proveedor::class => ['proveedor', ['codigo', 'nombres', 'zona_id', 'estado', 'tachos', 'capacidad_tacho_l', 'usuario_id']],
+        SinRecojo::class => ['sin_recojo', ['uuid_movil', 'jornada_id', 'proveedor_id', 'usuario_id', 'zona_id', 'fecha', 'motivo', 'detalle', 'deshecha', 'deshecha_en']],
         Jornada::class => ['jornada', ['usuario_id', 'vehiculo_id', 'zona_id', 'fecha', 'abierta_en', 'cerrada_en']],
     ];
 

@@ -16,6 +16,7 @@ use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Ruta;
 use App\Infrastructure\Persistence\Eloquent\Sancion;
+use App\Infrastructure\Persistence\Eloquent\SinRecojo;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Venta;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -86,6 +87,7 @@ class AppServiceProvider extends ServiceProvider
             Vehiculo::class,
             Proveedor::class,
             Jornada::class,
+            SinRecojo::class,
         ] as $modelo) {
             $modelo::observe(AuditarCambiosOperativos::class);
         }

@@ -31,11 +31,12 @@ class TrasladoMovilTest extends TestCase
         $this->withToken($token)->putJson('/api/movil/cambios/traslado', [...$datos, 'estado' => 'APROBADA'])->assertForbidden();
         $solicitud = SolicitudTraslado::query()->firstOrFail();
         $this->actingAs($admin, 'operador')->get('/admin/sanciones')->assertOk()->assertSee('Solicitudes de traslado');
-        $this->actingAs($admin, 'operador')->patch(route('admin.sanciones.traslados.resolver', $solicitud), ['estado' => 'APROBADA'])->assertRedirect();
+        $this->actingAs($admin, 'operador')->patch(route('admin.sanciones.traslados.resolver', $solicitud), ['estado' => 'APROBADA', 'respuesta' => 'Ruta disponible; traslado autorizado.'])->assertRedirect()->assertSessionHasNoErrors();
         auth('operador')->forgetUser();
         $this->assertSame($destino->id, $proveedor->fresh()->zona_id);
         $this->withToken($token)->getJson('/api/movil/datos')->assertOk()
-            ->assertJsonPath('solicitudes.0.estado', 'APROBADA')->assertJsonPath('solicitudes.0.tipo', 'TRASLADO');
+            ->assertJsonPath('solicitudes.0.estado', 'APROBADA')->assertJsonPath('solicitudes.0.tipo', 'TRASLADO')
+            ->assertJsonPath('solicitudes.0.respuesta', 'Ruta disponible; traslado autorizado.');
     }
 
     public function test_un_proveedor_no_puede_enviar_ni_leer_traslados_ajenos(): void

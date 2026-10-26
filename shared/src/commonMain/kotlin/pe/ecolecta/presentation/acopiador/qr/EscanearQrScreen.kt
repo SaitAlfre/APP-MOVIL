@@ -222,7 +222,6 @@ private fun VistaResultado(resultado: EstadoEscaneoQr.Resultado, alEscanearOtro:
             DivisorSutil()
             Spacer(Modifier.height(Espaciado.s))
             Dato("Zona", resultado.nombreZona)
-            Dato("Tachos", "${proveedor.tachos} × ${formatearLitros(proveedor.capacidadTachoL)}", ultimo = true)
         }
 
         mensajeBloqueo(proveedor, resultado)?.let { Banner(it, TipoBanner.ADVERTENCIA) }

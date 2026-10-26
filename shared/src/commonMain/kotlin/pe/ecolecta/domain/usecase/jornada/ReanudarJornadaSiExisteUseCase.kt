@@ -7,8 +7,7 @@ import pe.ecolecta.domain.repository.JornadaRepository
 /**
  * Al entrar al módulo Acopiador, retoma la jornada abierta del usuario si existe — sin importar el
  * día en que se abrió. Antes esto solo miraba la jornada de HOY: una jornada olvidada de un día
- * anterior quedaba huérfana (invisible en la UI, sin forma de cerrarla) pero seguía bloqueando su
- * zona vía [JornadaRepository.obtenerAbiertaPorZona]. Si por algún motivo excepcional hubiera más de
+ * anterior quedaba invisible, sin forma de cerrarla. Si por algún motivo excepcional hubiera más de
  * una jornada abierta a la vez para el mismo usuario, se retoma la más antigua primero (ver
  * `selectAbiertaPorUsuario` en jornada.sq): el usuario la cierra con el botón normal y, al volver a
  * entrar, esta misma función recupera la siguiente — nunca se elige una arbitrariamente.

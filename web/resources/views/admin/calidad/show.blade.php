@@ -93,10 +93,17 @@
             <x-ui.card padding="p-5">
                 <h2 class="mb-2 text-sm font-semibold text-eh-text">Entregas calificadas</h2>
                 @forelse ($analisis->controles as $control)
-                    <p class="mono text-xs text-eh-text-muted">
-                        #{{ $control->entrega_id }} · {{ $control->entrega ? number_format((float) $control->entrega->litros, 1).' L' : '' }}
-                        · <x-ui.estado :estado="$control->resultado->value" />
-                    </p>
+                    <div class="border-b border-eh-border pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
+                        <p class="mono text-xs text-eh-text">
+                            Entrega #{{ $control->entrega_id }} · {{ $control->entrega ? number_format((float) $control->entrega->litros, 1).' L' : '' }}
+                            · <x-ui.estado :estado="$control->resultado->value" />
+                        </p>
+                        @foreach ($control->sanciones as $sancion)
+                            <p class="text-[11px] text-eh-red mt-1">
+                                Sanción: #{{ $sancion->id }} ({{ ucfirst($sancion->severidad->value ?? $sancion->severidad) }}) · S/ {{ number_format((float) $sancion->descuento, 2) }} · {{ ucfirst($sancion->estado->value ?? $sancion->estado) }}
+                            </p>
+                        @endforeach
+                    </div>
                 @empty
                     <p class="text-xs text-eh-text-muted">Ninguna todavía: se calificarán las entregas de este proveedor del {{ $registrado->format('d/m/Y') }} cuando se registren.</p>
                 @endforelse

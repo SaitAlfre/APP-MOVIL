@@ -1,4 +1,5 @@
 """Regresión del ejecutor; todos los datos son ficticios y temporales."""
+import hashlib
 import importlib.util
 import json
 import os
@@ -22,6 +23,45 @@ check = module('verificar_documentacion')
 
 
 class VerificacionesTest(unittest.TestCase):
+    def test_evidencia_historica_no_exige_congelar_el_codigo_actual(self):
+        revision = 'a' * 40
+        historical = b'codigo que se probo'
+        report = check.ROOT / 'docs/pruebas/ejecuciones/recibo.json'
+        responses = [
+            subprocess.CompletedProcess([], 0, revision + '\n'),
+            subprocess.CompletedProcess([], 0, historical),
+        ]
+        with patch.object(check.subprocess, 'run', side_effect=responses) as run:
+            errors = check.historical_source_errors(report, {'app.kt': hashlib.sha256(historical).hexdigest()})
+        self.assertEqual([], errors)
+        self.assertEqual(['git', 'show', revision + ':app.kt'], run.call_args.args[0])
+        self.assertIn('docs/pruebas/ejecuciones/recibo.json', run.call_args_list[0].args[0])
+
+    def test_evidencia_historica_rechaza_huella_alterada(self):
+        responses = [
+            subprocess.CompletedProcess([], 0, 'a' * 40 + '\n'),
+            subprocess.CompletedProcess([], 0, b'contenido original'),
+        ]
+        with patch.object(check.subprocess, 'run', side_effect=responses):
+            errors = check.historical_source_errors(check.ROOT / 'recibo.json', {'app.kt': '0' * 64})
+        self.assertEqual(1, len(errors))
+        self.assertIn('no coincide', errors[0])
+
+    def test_evidencia_historica_rechaza_archivo_ausente(self):
+        responses = [
+            subprocess.CompletedProcess([], 0, 'a' * 40 + '\n'),
+            subprocess.CompletedProcess([], 128, b''),
+        ]
+        with patch.object(check.subprocess, 'run', side_effect=responses):
+            errors = check.historical_source_errors(check.ROOT / 'recibo.json', {'ausente.kt': '0' * 64})
+        self.assertEqual(1, len(errors))
+
+    def test_evidencia_sin_historial_no_se_presenta_como_valida(self):
+        with patch.object(check.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '')):
+            errors = check.historical_source_errors(check.ROOT / 'recibo.json', {'app.kt': '0' * 64})
+        self.assertEqual(1, len(errors))
+        self.assertIn('no se pudo identificar', errors[0])
+
     def test_log_sanea_ruta_correo_token_y_pin_sin_cambiar_conteos(self):
         address = 'prueba'+'@'+'ejemplo'+'.invalid'
         token = 'ghp_' + 'X'*30
@@ -152,32 +192,6 @@ class VerificacionesTest(unittest.TestCase):
         self.assertGreaterEqual(len(stories),41)
         self.assertEqual(len(tasks),len(set(tasks)))
         self.assertTrue(all(len(v['criteria'])>=2 for v in stories.values()))
-
-    def test_fuente_actual_se_verifica_por_su_hash(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
-            p=Path(d)/'fuente.kt';p.write_bytes(b'actual ficticio')
-            self.assertEqual('working-tree',check.source_version(p.name,qa.digest(p.read_bytes())))
-
-    def test_fuente_historica_exige_blob_git_con_hash_exacto(self):
-        commit='a'*40;anterior=b'version ficticia ejecutada'
-        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
-            (Path(d)/'fuente.kt').write_bytes(b'version nueva')
-            responses=[subprocess.CompletedProcess([],0,commit+'\n',''),subprocess.CompletedProcess([],0,anterior,b'')]
-            with patch.object(check.subprocess,'run',side_effect=responses):
-                self.assertEqual('git:'+commit,check.source_version('fuente.kt',qa.digest(anterior)))
-
-    def test_fuente_historica_alterada_no_se_acepta(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
-            (Path(d)/'fuente.kt').write_bytes(b'actual ficticio')
-            responses=[subprocess.CompletedProcess([],0,'a'*40+'\n',''),subprocess.CompletedProcess([],0,b'otro contenido',b'')]
-            with patch.object(check.subprocess,'run',side_effect=responses):
-                self.assertIsNone(check.source_version('fuente.kt',qa.digest(b'version ausente')))
-
-    def test_fuente_fuera_del_repositorio_o_hash_invalido_se_rechaza(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)), patch.object(check.subprocess,'run') as run:
-            self.assertIsNone(check.source_version('../externo.kt','a'*64))
-            self.assertIsNone(check.source_version('fuente.kt','hash-invalido'))
-            run.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

@@ -3,12 +3,14 @@
 namespace App\Application\Movil;
 
 use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
+use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\SinRecojo;
 use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
@@ -29,6 +31,8 @@ class ExportarDatosMovilQuery
 
     public function ejecutar(Usuario $usuario): array
     {
+        Comunicado::query()->where('estado', 'programado')->where('publicar_en', '<=', now())
+            ->update(['estado' => 'publicado', 'publicado_en' => now()]);
         $admin = $usuario->tieneRol('admin');
         $desde = now()->subDays(self::DIAS_OPERACION)->startOfDay();
         $miFicha = Proveedor::query()->where('usuario_id', $usuario->id)->first();
@@ -41,8 +45,13 @@ class ExportarDatosMovilQuery
 
         $entregas = Entrega::query()->where('registrado_en', '>=', $desde)->orderBy('id');
         if (! $admin) {
-            $entregas->where(function ($q) use ($usuario, $miFicha) {
+            $entregas->where(function ($q) use ($usuario, $miFicha, $desde) {
                 $q->where('usuario_id', $usuario->id);
+                if ($usuario->tieneRol('acopiador')) {
+                    $q->orWhereIn('zona_id', Jornada::query()->select('zona_id')
+                        ->where('usuario_id', $usuario->id)
+                        ->where('fecha', '>=', $desde->toDateString()));
+                }
                 if ($miFicha !== null) {
                     $q->orWhere('proveedor_id', $miFicha->id);
                 }
@@ -50,8 +59,22 @@ class ExportarDatosMovilQuery
         }
         $entregas = $entregas->get();
 
-        $jornadas = Jornada::query()->where(function ($q) use ($entregas, $desde, $admin, $usuario) {
-            $q->whereIn('id', $entregas->pluck('jornada_id')->unique());
+        $sinRecojos = SinRecojo::query()->where('fecha', '>=', $desde->toDateString())
+            ->when(! $admin, function ($q) use ($usuario, $miFicha, $desde) {
+                $q->where(function ($q) use ($usuario, $miFicha, $desde) {
+                    $q->where('usuario_id', $usuario->id);
+                    if ($usuario->tieneRol('acopiador')) {
+                        $q->orWhereIn('zona_id', Jornada::query()->select('zona_id')->where('usuario_id', $usuario->id)
+                            ->where('fecha', '>=', $desde->toDateString()));
+                    }
+                    if ($miFicha !== null) {
+                        $q->orWhere('proveedor_id', $miFicha->id);
+                    }
+                });
+            })->orderBy('id')->get();
+
+        $jornadas = Jornada::query()->where(function ($q) use ($entregas, $sinRecojos, $desde, $admin, $usuario) {
+            $q->whereIn('id', $entregas->pluck('jornada_id')->merge($sinRecojos->pluck('jornada_id'))->unique());
             if ($admin) {
                 $q->orWhere('fecha', '>=', $desde->toDateString());
             } else {
@@ -81,7 +104,7 @@ class ExportarDatosMovilQuery
         // Cuentas: el admin ve todas las que usan la app; los demás, la suya y los nombres de quienes
         // aparecen en su operación (sin DNI), para que la app muestre "registrado por".
         $idsReferidos = $jornadas->pluck('usuario_id')->merge($entregas->pluck('usuario_id'))
-            ->merge($proveedores->pluck('usuario_id'))->merge($analisis->pluck('usuario_id'))->filter()->unique();
+            ->merge($sinRecojos->pluck('usuario_id'))->merge($proveedores->pluck('usuario_id'))->merge($analisis->pluck('usuario_id'))->filter()->unique();
         $usuarios = Usuario::query()
             ->when(! $admin, fn ($q) => $q->whereIn('id', $idsReferidos->push($usuario->id)))
             ->orderBy('id')->get()
@@ -94,7 +117,10 @@ class ExportarDatosMovilQuery
                 'referenciaId' => null, 'zonaDestinoId' => $t->zona_destino_id, 'litros' => null,
                 'motivo' => 'Traslado de zona', 'descripcion' => $t->motivo,
                 'creadaEn' => $t->created_at->getTimestampMs(), 'estado' => $t->estado,
+                'respuesta' => $t->respuesta, 'resueltaEn' => $t->resuelto_en?->getTimestampMs(),
             ]);
+
+        $cierresAdministrativos = Auditoria::query()->where('entidad', 'jornada')->where('accion', 'cerrar_jornada')->whereIn('entidad_id', $jornadas->pluck('id'))->pluck('entidad_id')->flip();
 
         return [
             'servidorEn' => now()->getTimestampMs(),
@@ -126,7 +152,7 @@ class ExportarDatosMovilQuery
                 'id' => $j->id, 'uuidMovil' => $j->uuid_movil, 'usuarioId' => $j->usuario_id,
                 'zonaId' => $j->zona_id, 'vehiculoId' => $j->vehiculo_id, 'fecha' => $j->fecha->toDateString(),
                 'abiertaEn' => $j->abierta_en?->getTimestampMs() ?? $j->fecha->getTimestampMs(),
-                'cerradaEn' => $j->cerrada_en?->getTimestampMs(),
+                'cerradaEn' => $j->cerrada_en?->getTimestampMs(), 'cierreAdministrativo' => isset($cierresAdministrativos[$j->id]),
             ])->values(),
             'entregas' => $entregas->map(fn (Entrega $e) => [
                 'id' => $e->id, 'uuidMovil' => $e->uuid_movil, 'jornadaId' => $e->jornada_id,
@@ -134,6 +160,12 @@ class ExportarDatosMovilQuery
                 'vehiculoId' => $e->vehiculo_id, 'litros' => (float) $e->litros, 'tachos' => (int) $e->tachos,
                 'observaciones' => $e->observaciones, 'registradoEn' => $e->registrado_en->getTimestampMs(),
                 'revision' => $e->revisionMovil(), 'anulada' => (bool) $e->anulada, 'actualizadoEn' => $e->updated_at?->getTimestampMs() ?? 0,
+            ])->values(),
+            'sinRecojos' => $sinRecojos->map(fn (SinRecojo $m) => [
+                'id' => $m->uuid_movil, 'jornadaId' => $m->jornada_id, 'proveedorId' => $m->proveedor_id,
+                'usuarioId' => $m->usuario_id, 'zonaId' => $m->zona_id, 'fecha' => $m->fecha->toDateString(),
+                'motivo' => $m->motivo, 'detalle' => $m->detalle, 'registradaEn' => $m->registrada_en->getTimestampMs(),
+                'deshecha' => $m->deshecha, 'deshechaEn' => $m->deshecha_en?->getTimestampMs(), 'actualizadoEn' => $m->actualizado_en,
             ])->values(),
             'analisis' => $analisis->map(fn (AnalisisCalidad $a) => [
                 'id' => $a->id, 'uuid' => $a->uuid, 'proveedorId' => $a->proveedor_id, 'usuarioId' => $a->usuario_id,
@@ -156,13 +188,18 @@ class ExportarDatosMovilQuery
                     'descuento' => (float) $p->descuento_sanciones, 'total' => (float) $p->monto_total,
                     'estado' => strtoupper($p->estado->value), 'fechaPago' => $p->pagada_en?->toDateString(),
                 ])->values(),
-            'solicitudes' => ReclamoProveedor::query()->with('entrega')
+            'solicitudes' => ReclamoProveedor::query()->select([
+                'id', 'uuid_movil', 'proveedor_id', 'entrega_id', 'litros_solicitados', 'motivo',
+                'descripcion', 'respuesta', 'resuelto_en', 'created_at', 'estado',
+            ])->selectRaw('CASE WHEN evidencia IS NULL THEN 0 ELSE 1 END AS evidencia_disponible')->with('entrega')
                 ->when(! $admin, fn ($q) => $q->where('proveedor_id', $puedeDatosProveedor ? ($miFicha?->id ?? 0) : 0))
                 ->orderBy('id')->get()->map(fn (ReclamoProveedor $r) => [
                     'id' => $r->uuid_movil ?? "web-reclamo-{$r->id}", 'proveedorId' => $r->proveedor_id,
                     'referenciaId' => $r->entrega?->uuid_movil ?? ($r->entrega_id ? "web-entrega-{$r->entrega_id}" : null),
                     'litros' => (float) $r->litros_solicitados, 'motivo' => $r->motivo,
-                    'descripcion' => $r->motivo, 'creadaEn' => $r->created_at->getTimestampMs(),
+                    'descripcion' => $r->descripcion ?? $r->motivo, 'creadaEn' => $r->created_at->getTimestampMs(),
+                    'respuesta' => $r->respuesta, 'resueltaEn' => $r->resuelto_en?->getTimestampMs(),
+                    'evidenciaDisponible' => (bool) $r->evidencia_disponible,
                     'estado' => match ($r->estado) {
                         'resuelto' => 'ATENDIDA', 'rechazado' => 'RECHAZADA', default => 'PENDIENTE'
                     },

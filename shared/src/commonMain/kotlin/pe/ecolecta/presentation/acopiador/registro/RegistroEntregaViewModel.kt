@@ -28,6 +28,7 @@ class RegistroEntregaViewModel(
     private val obtenerSesionUseCase: ObtenerSesionUseCase,
     private val listarZonasUseCase: ListarZonasUseCase,
     proveedorIdPreseleccionado: String? = null,
+    private val reloj: pe.ecolecta.domain.Reloj = pe.ecolecta.domain.RelojSistema(),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegistroEntregaUiState(proveedorId = proveedorIdPreseleccionado.orEmpty()))
     val uiState: StateFlow<RegistroEntregaUiState> = _uiState.asStateFlow()
@@ -35,8 +36,7 @@ class RegistroEntregaViewModel(
     private var jornada: Jornada? = null
     private var usuarioId: String? = null
 
-    // Ids de proveedores que ya tienen una entrega hoy, para preseleccionar por defecto al primero
-    // que todavía falta atender y avisar en la tarjeta si el elegido ya fue registrado.
+    // Permite advertir si el proveedor elegido ya tiene un recojo; nunca elige otro automáticamente.
     private var proveedoresConEntregaHoy: Set<String> = emptySet()
 
     init {
@@ -45,17 +45,15 @@ class RegistroEntregaViewModel(
             jornada = obtenerJornadaEnCursoUseCase().first()
             jornada?.let { j ->
                 val zonaNombre = listarZonasUseCase().first().firstOrNull { it.id == j.zonaId }?.nombre.orEmpty()
-                proveedoresConEntregaHoy = listarEntregasUseCase(jornadaId = j.id)
-                    .filterNot(Entrega::anulada)
+                proveedoresConEntregaHoy = listarEntregasUseCase(zonaId = j.zonaId)
+                    .filter { !it.anulada && pe.ecolecta.domain.acopio.fechaAcopioDe(it.registradoEn) == pe.ecolecta.domain.acopio.hoyAcopio(reloj) }
                     .map(Entrega::proveedorId)
                     .toSet()
                 _uiState.update { it.copy(zonaNombre = zonaNombre) }
 
                 listarProveedoresPorZonaUseCase(j.zonaId).collect { lista ->
                     _uiState.update { estado ->
-                        val proveedorId = estado.proveedorId.ifBlank {
-                            (lista.firstOrNull { it.id !in proveedoresConEntregaHoy } ?: lista.firstOrNull())?.id.orEmpty()
-                        }
+                        val proveedorId = estado.proveedorId.takeIf { id -> lista.any { it.id == id } }.orEmpty()
                         estado.copy(
                             proveedores = lista,
                             proveedorId = proveedorId,
@@ -67,10 +65,15 @@ class RegistroEntregaViewModel(
         }
     }
 
-    fun onProveedorCambia(id: String) = _uiState.update {
-        it.copy(proveedorId = id, error = null, entregadoHoyDelSeleccionado = id in proveedoresConEntregaHoy)
+    fun prepararNuevoRecojo() = _uiState.update {
+        if (it.cargando) it else it.copy(litros = "", tachos = "1", observaciones = "", error = null,
+            modalidad = ModalidadEntrega.MEDIANTE_ACOPIADOR, guardadoExitoso = false, entregaDuplicada = null, advertenciaDesviacion = false)
     }
-    fun onLitrosCambia(valor: String) = _uiState.update { it.copy(litros = valor, error = null) }
+
+    fun onProveedorCambia(id: String) = _uiState.update {
+        it.copy(proveedorId = id, litros = "", observaciones = "", tachos = "1", error = null, entregadoHoyDelSeleccionado = id in proveedoresConEntregaHoy)
+    }
+    fun onLitrosCambia(valor: String) = _uiState.update { it.copy(litros = valor.replace(',', '.'), error = null) }
     fun aplicarPreset(valor: Double) = _uiState.update { it.copy(litros = if (valor == valor.toLong().toDouble()) valor.toLong().toString() else valor.toString()) }
 
     /** Suma [delta] a los litros actuales (atajos +0.5/+1/+5/+10 de la pantalla de registro). */
@@ -90,7 +93,7 @@ class RegistroEntregaViewModel(
 
     fun guardar(omitirChequeoDuplicado: Boolean = false, quedarseParaOtra: Boolean = false) {
         val estado = _uiState.value
-        if (estado.cargando) return
+        if (estado.cargando || estado.guardadoExitoso || !estado.puedeGuardar) return
         val j = jornada ?: return
         val uId = usuarioId ?: return
         val litros = estado.litros.toDoubleOrNull() ?: return
@@ -103,10 +106,20 @@ class RegistroEntregaViewModel(
         _uiState.update { it.copy(cargando = true, error = null) }
 
         viewModelScope.launch {
+            val actual = obtenerJornadaEnCursoUseCase().first()
+            if (actual == null || !actual.estaAbierta || actual.id != j.id) {
+                _uiState.update { it.copy(cargando = false, error = "La jornada ya terminó. Vuelve al inicio para revisar sus registros.") }
+                return@launch
+            }
+
             if (!omitirChequeoDuplicado) {
-                val existentes = listarEntregasUseCase(jornadaId = j.id, proveedorId = estado.proveedorId).filterNot { it.anulada }
+                val existentes = listarEntregasUseCase(zonaId = j.zonaId, proveedorId = estado.proveedorId)
+                    .filter { !it.anulada && pe.ecolecta.domain.acopio.fechaAcopioDe(it.registradoEn) == pe.ecolecta.domain.acopio.hoyAcopio(reloj) }
+                    .sortedByDescending { it.registradoEn }
                 if (existentes.isNotEmpty()) {
-                    _uiState.update { it.copy(cargando = false, entregaDuplicada = EntregaExistente(existentes.first(), litros, tachos)) }
+                    val previa = existentes.first()
+                    _uiState.update { it.copy(cargando = false, entregaDuplicada = EntregaExistente(previa, litros, tachos,
+                        puedeSumar = previa.usuarioId == uId && previa.jornadaId == j.id)) }
                     return@launch
                 }
             }
@@ -158,6 +171,7 @@ class RegistroEntregaViewModel(
         val estado = _uiState.value
         if (estado.cargando) return
         val duplicada = estado.entregaDuplicada ?: return
+        if (!duplicada.puedeSumar) return
         val uId = usuarioId ?: return
 
         viewModelScope.launch {

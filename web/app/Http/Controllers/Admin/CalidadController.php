@@ -85,6 +85,11 @@ class CalidadController extends Controller
         ];
         // Como en la app: se acepta coma o punto decimal.
         $request->merge(['valores' => array_map(fn ($v) => is_string($v) ? str_replace(',', '.', trim($v)) : $v, (array) $request->input('valores', []))]);
+        $valores = $request->input('valores', []);
+        if (isset($valores['congelacion']) && is_numeric($valores['congelacion'])) {
+            $valores['congelacion'] = ParametrosCalidad::normalizar('congelacion', (float) $valores['congelacion']);
+            $request->merge(['valores' => $valores]);
+        }
         foreach (array_keys(ParametrosCalidad::PARAMETROS) as $clave) {
             $reglas["valores.{$clave}"] = ['nullable', 'numeric', ParametrosCalidad::permiteNegativo($clave) ? 'between:-5,5' : 'min:0'];
         }
@@ -118,7 +123,7 @@ class CalidadController extends Controller
 
     public function show(string $analisis): View
     {
-        $registro = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario', 'controles.entrega'])->where('uuid', $analisis)->firstOrFail();
+        $registro = AnalisisCalidad::query()->with(['proveedor.zona', 'usuario', 'controles.entrega', 'controles.sanciones'])->where('uuid', $analisis)->firstOrFail();
 
         return view('admin.calidad.show', ['analisis' => $registro]);
     }

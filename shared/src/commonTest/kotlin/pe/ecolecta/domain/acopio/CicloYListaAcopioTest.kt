@@ -40,6 +40,23 @@ internal fun entregaDePrueba(id: String, proveedorId: String, litros: Double, is
         .getOrThrow().copy(syncState = syncState, anulada = anulada)
 
 class CicloYListaAcopioTest {
+    @Test
+    fun `los filtros distinguen recojos propios de otros acopiadores sin confundir los anulados`() {
+        val fecha = LocalDate(2026, 9, 24)
+        val filas = construirFilasAcopio(
+            cicloAcopioDe(fecha, "FAON"), "z1",
+            listOf(proveedorDePrueba("a"), proveedorDePrueba("b"), proveedorDePrueba("c")),
+            listOf(
+                entregaDePrueba("e1", "a", 10.0, "2026-09-24T12:00:00Z"),
+                entregaDePrueba("e2", "b", 20.0, "2026-09-24T12:00:00Z").copy(usuarioId = "u2"),
+                entregaDePrueba("e3", "c", 30.0, "2026-09-24T12:00:00Z", anulada = true).copy(usuarioId = "u2"),
+            ), emptyList(), true,
+        )
+        assertEquals(listOf("a"), filtrarFilas(filas, fecha, "", FiltroLista.MIOS, "u1").map { it.proveedor.id })
+        assertEquals(listOf("b"), filtrarFilas(filas, fecha, "", FiltroLista.OTROS, "u1").map { it.proveedor.id })
+        assertEquals(listOf("c"), filtrarFilas(filas, fecha, "", FiltroLista.PENDIENTES, "u1").map { it.proveedor.id })
+    }
+
     // 24/09/2026 es el día 267 del año → ciclo 45, día 3: del 22 al 27 de septiembre.
     private val hoy = LocalDate(2026, 9, 24)
     private val ciclo = cicloAcopioDe(hoy, "FAON")

@@ -29,7 +29,12 @@
                         @foreach ($sanciones as $sancion)
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $sancion->proveedor?->nombres ?? '—' }}</td>
-                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">CQ-{{ str_pad((string) $sancion->control_calidad_id, 3, '0', STR_PAD_LEFT) }}</td>
+                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">
+    CQ-{{ str_pad((string) $sancion->control_calidad_id, 3, '0', STR_PAD_LEFT) }}
+    @if ($sancion->controlCalidad?->entrega_id)
+        <span class="block text-[11px] text-eh-primary font-sans font-medium">Entrega #{{ $sancion->controlCalidad->entrega_id }}</span>
+    @endif
+</td>
                                 <td class="px-4 py-3"><x-ui.badge variant="yellow" :label="ucfirst($sancion->tipo ?? 'calidad')" /></td>
                                 <td class="px-4 py-3"><x-ui.badge :variant="$severidades[$sancion->severidad] ?? 'gray'" :label="ucfirst($sancion->severidad)" /></td>
                                 <td class="mono px-4 py-3 text-sm font-medium text-eh-red">-S/ {{ number_format((float) $sancion->descuento, 2) }}</td>
@@ -85,10 +90,22 @@
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="mono px-4 py-3 text-xs font-medium text-eh-text">REC-{{ str_pad((string) $reclamo->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $reclamo->proveedor?->nombres ?? '—' }}</td>
-                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">E-{{ $reclamo->entrega_id }}</td>
+                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $reclamo->entrega_id ? 'E-'.$reclamo->entrega_id : 'Sin registrar' }}</td>
                                 <td class="mono px-4 py-3 text-xs text-eh-text">{{ number_format((float) $reclamo->litros_originales, 1) }} L</td>
                                 <td class="mono px-4 py-3 text-xs font-medium text-eh-primary">{{ number_format((float) $reclamo->litros_solicitados, 1) }} L</td>
-                                <td class="max-w-44 truncate px-4 py-3 text-xs text-eh-text-muted" title="{{ $reclamo->motivo }}">{{ $reclamo->motivo }}</td>
+                                <td class="max-w-72 px-4 py-3 text-xs text-eh-text-muted">
+                                    <p class="font-medium text-eh-text">{{ $reclamo->motivo }}</p>
+                                    @if ($reclamo->descripcion)
+                                        <p class="mt-1 whitespace-pre-wrap">{{ $reclamo->descripcion }}</p>
+                                    @endif
+                                    @if ($reclamo->evidencia)
+                                        <a class="mt-2 inline-block text-eh-primary underline" href="{{ route('admin.sanciones.reclamos.evidencia', $reclamo) }}" target="_blank" rel="noopener">Ver evidencia fotográfica</a>
+                                    @endif
+                                    @if ($reclamo->respuesta)
+                                        <p class="mt-2 font-medium text-eh-text">Respuesta: {{ $reclamo->respuesta }}</p>
+                                        <p>{{ $reclamo->resuelto_en?->format('d/m/Y H:i') }}</p>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3"><x-ui.estado :estado="$reclamo->estado" /></td>
                                 <td class="px-4 py-3 text-right">
                                     @if ($puedeGestionar && $reclamo->estado === 'pendiente')
@@ -117,7 +134,7 @@
                         $entrega->id => 'E-'.$entrega->id.' · '.($entrega->proveedor?->nombres ?? 'Proveedor').' · '.number_format((float) $entrega->litros, 1).' L · '.$entrega->registrado_en->format('d/m/Y'),
                     ])->all()" />
                 <x-ui.field name="litros_solicitados" label="Litros solicitados por el proveedor" type="number" step="0.01" min="0.01" required unit="L" />
-                <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. error en el pesaje del tacho" />
+                <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. diferencia en los litros registrados" />
                 <div class="flex justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Registrar reclamo</x-ui.btn>
@@ -146,8 +163,13 @@
                             </div>
                         </div>
                         <x-ui.alert type="warning">
-                            Aprobar el ajuste modifica los litros de la entrega original y queda registrado en auditoría.
+                            Aprobar modifica los litros y recalcula su liquidación pendiente. Si ya fue pagada, el ajuste se bloqueará. La decisión queda en auditoría.
                         </x-ui.alert>
+                        @if ($reclamo->entrega_id === null)
+                            <x-ui.alert type="info">Registra primero la entrega que falta y selecciónala aquí para aprobar el ajuste. Debe pertenecer a este proveedor.</x-ui.alert>
+                            <x-ui.select name="entrega_id" label="Entrega para vincular al aprobar" placeholder="Seleccionar entrega"
+                                :options="$entregas->where('proveedor_id', $reclamo->proveedor_id)->mapWithKeys(fn ($e) => [$e->id => 'E-'.$e->id.' · '.number_format((float) $e->litros, 2).' L · '.$e->registrado_en->format('d/m/Y')])->all()" />
+                        @endif
                         <x-ui.select name="estado" label="Decisión" required
                             :options="['resuelto' => 'Aprobar el ajuste de litros', 'rechazado' => 'Rechazar el reclamo']" />
                         <div class="flex flex-col gap-1">
@@ -177,19 +199,24 @@
                         <tr class="border-b border-eh-border">
                             <td class="px-4 py-3">{{ $traslado->proveedor?->nombres }}</td>
                             <td class="px-4 py-3">{{ $traslado->destino?->nombre }}</td>
-                            <td class="px-4 py-3">{{ $traslado->motivo }}</td>
+                            <td class="px-4 py-3">
+                                <p>{{ $traslado->motivo }}</p>
+                                @if ($traslado->respuesta)
+                                    <p class="mt-2 text-xs text-eh-text-muted">Respuesta: {{ $traslado->respuesta }}</p>
+                                @endif
+                            </td>
                             <td class="px-4 py-3">{{ $traslado->estado }}</td>
                             <td class="px-4 py-3">
                                 @if ($operador->tieneRol('admin') && $traslado->estado === 'PENDIENTE')
-                                    <div class="flex gap-2">
-                                        @foreach (['APROBADA' => 'Aprobar', 'RECHAZADA' => 'Rechazar'] as $estado => $etiqueta)
-                                            <form method="POST" action="{{ route('admin.sanciones.traslados.resolver', $traslado) }}" data-confirm="¿{{ $etiqueta }} esta solicitud de traslado?">
+                                    <div class="min-w-60">
+                                            <form method="POST" action="{{ route('admin.sanciones.traslados.resolver', $traslado) }}" class="space-y-2" data-once>
                                                 @csrf
                                                 @method('PATCH')
-                                                <input type="hidden" name="estado" value="{{ $estado }}">
-                                                <x-ui.btn type="submit" size="sm" variant="secondary">{{ $etiqueta }}</x-ui.btn>
+                                                <x-ui.select name="estado" label="Decisión" required :options="['APROBADA' => 'Aprobar traslado', 'RECHAZADA' => 'Rechazar traslado']" />
+                                                <label class="block text-xs" for="respuesta-traslado-{{ $traslado->id }}">Respuesta al proveedor</label>
+                                                <textarea id="respuesta-traslado-{{ $traslado->id }}" name="respuesta" required maxlength="500" rows="2" class="w-full rounded-lg border border-eh-border bg-eh-surface p-2 text-sm"></textarea>
+                                                <x-ui.btn type="submit" size="sm" variant="secondary">Guardar decisión</x-ui.btn>
                                             </form>
-                                        @endforeach
                                     </div>
                                 @endif
                             </td>

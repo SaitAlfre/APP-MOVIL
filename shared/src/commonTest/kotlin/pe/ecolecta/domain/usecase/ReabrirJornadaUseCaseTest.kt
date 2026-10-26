@@ -6,7 +6,6 @@ import kotlinx.datetime.LocalDate
 import pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository
 import pe.ecolecta.domain.ConfiguracionJornada
 import pe.ecolecta.domain.ReaperturaJornadaException
-import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.fake.FakeAuditoriaRepository
 import pe.ecolecta.domain.fake.FakeDeviceIdProvider
 import pe.ecolecta.domain.fake.FakeEntregaRepository
@@ -139,14 +138,14 @@ class ReabrirJornadaUseCaseTest {
     }
 
     @Test
-    fun `no reabre si otro acopiador ocupo la zona`() = runTest {
+    fun `reabre aunque otro acopiador trabaje en la misma zona`() = runTest {
         val jornada = jornadaCerradaHace(minutos = 5)
         abrir("u2", "zona-1", "v2").getOrThrow()
 
         val resultado = reabrir(jornada.id, "u1", "Cerré por error antes de la ruta")
 
-        assertIs<ZonaOcupadaException>(resultado.exceptionOrNull())
-        assertFalse(jornadas.obtenerPorId(jornada.id)!!.estaAbierta)
+        assertTrue(resultado.isSuccess)
+        assertTrue(jornadas.obtenerPorId(jornada.id)!!.estaAbierta)
     }
 
     @Test

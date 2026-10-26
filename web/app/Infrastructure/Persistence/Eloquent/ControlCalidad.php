@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Eloquent;
 use App\Domain\Calidad\EstadoCalidad;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ControlCalidad extends Model
 {
@@ -27,6 +28,11 @@ class ControlCalidad extends Model
     public function entrega(): BelongsTo
     {
         return $this->belongsTo(Entrega::class, 'entrega_id');
+    }
+
+    public function sanciones(): HasMany
+    {
+        return $this->hasMany(Sancion::class, 'control_calidad_id');
     }
 
     public function usuario(): BelongsTo

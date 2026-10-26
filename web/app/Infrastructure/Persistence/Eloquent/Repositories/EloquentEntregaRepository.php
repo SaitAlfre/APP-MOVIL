@@ -7,6 +7,7 @@ use App\Domain\Auditoria\AuditoriaRepositoryInterface;
 use App\Domain\Entregas\Entrega as EntregaDominio;
 use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Entrega as EntregaEloquent;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -88,29 +89,33 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
     public function litrosPorProveedorEnRango(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): float
     {
+        $inicio = CarbonImmutable::parse($desde->format('Y-m-d'), 'America/Lima')->startOfDay()->utc();
+        $fin = CarbonImmutable::parse($hasta->format('Y-m-d'), 'America/Lima')->endOfDay()->utc();
+
         return (float) EntregaEloquent::query()
             ->where('proveedor_id', $proveedorId)
             ->where('anulada', false)
-            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
+            ->whereBetween('registrado_en', [$inicio, $fin])
             ->sum('litros');
     }
 
     public function litrosPorDiaDelProveedor(int $proveedorId, DateTimeImmutable $desde, DateTimeImmutable $hasta): array
     {
+        $inicio = CarbonImmutable::parse($desde->format('Y-m-d'), 'America/Lima')->startOfDay()->utc();
+        $fin = CarbonImmutable::parse($hasta->format('Y-m-d'), 'America/Lima')->endOfDay()->utc();
+
         return EntregaEloquent::query()
             ->where('proveedor_id', $proveedorId)
             ->where('anulada', false)
-            ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
-            ->selectRaw('DATE(registrado_en) as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
-            ->groupBy(DB::raw('DATE(registrado_en)'))
-            ->orderBy('fecha')
-            ->get()
-            ->map(fn ($fila) => [
-                'fecha' => (string) $fila->fecha,
-                'litros' => (float) $fila->litros,
-                'entregas' => (int) $fila->entregas,
+            ->whereBetween('registrado_en', [$inicio, $fin])
+            ->orderBy('registrado_en')->get(['registrado_en', 'litros'])
+            ->groupBy(fn (EntregaEloquent $e) => $e->registrado_en->copy()->setTimezone('America/Lima')->toDateString())
+            ->map(fn ($filas, string $fecha) => [
+                'fecha' => $fecha,
+                'litros' => (float) $filas->sum('litros'),
+                'entregas' => $filas->count(),
             ])
-            ->all();
+            ->values()->all();
     }
 
     public function resumenPorProveedores(array $proveedorIds, DateTimeImmutable $desde, DateTimeImmutable $hasta): array
@@ -179,9 +184,15 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
     public function tendenciaParaReporte(DateTimeImmutable $desde, DateTimeImmutable $hasta, ?int $zonaId = null): array
     {
+        $diaLocal = $desde->getOffset() === 0 ? 'DATE(registrado_en)' : match (DB::connection()->getDriverName()) {
+            'sqlite' => "DATE(registrado_en, '-5 hours')",
+            'pgsql' => "DATE(registrado_en - INTERVAL '5 hours')",
+            default => 'DATE(DATE_SUB(registrado_en, INTERVAL 5 HOUR))',
+        };
+
         return $this->consultaReporte($desde, $hasta, $zonaId)
-            ->selectRaw('DATE(registrado_en) as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
-            ->groupBy(DB::raw('DATE(registrado_en)'))
+            ->selectRaw($diaLocal.' as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
+            ->groupBy(DB::raw($diaLocal))
             ->orderBy('fecha')
             ->get()
             ->map(fn ($fila) => [
@@ -263,7 +274,7 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
         return $consulta->get()
             ->map(fn (EntregaEloquent $entrega) => [
-                'fecha' => $entrega->registrado_en->format('Y-m-d H:i:s'),
+                'fecha' => $entrega->registrado_en->timezone('America/Lima')->format('Y-m-d H:i:s'),
                 'proveedor_codigo' => (string) $entrega->proveedor_codigo,
                 'proveedor' => (string) $entrega->proveedor,
                 'zona' => (string) $entrega->zona,
@@ -378,8 +389,8 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
         return EntregaEloquent::query()
             ->where('entregas.anulada', false)
             ->whereBetween('entregas.registrado_en', [
-                $desde->format('Y-m-d 00:00:00'),
-                $hasta->format('Y-m-d 23:59:59'),
+                $desde->setTime(0, 0)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+                $hasta->setTime(23, 59, 59)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
             ])
             ->when($zonaId !== null, fn (Builder $consulta) => $consulta->where('entregas.zona_id', $zonaId));
     }

@@ -188,7 +188,7 @@ class AuditoriaSeguridadTest extends TestCase
     {
         $admin = $this->admin();
         $entrega = Entrega::factory()->create(['litros' => 100]);
-        $this->post(route('admin.liquidaciones.store'), ['proveedor_id' => $entrega->proveedor_id, 'periodo_inicio' => now()->toDateString(), 'periodo_fin' => now()->toDateString(), 'precio_litro' => 2])->assertSessionHasNoErrors();
+        $this->post(route('admin.liquidaciones.store'), ['proveedor_id' => $entrega->proveedor_id, 'periodo_inicio' => now('America/Lima')->toDateString(), 'periodo_fin' => now('America/Lima')->toDateString(), 'precio_litro' => 2])->assertSessionHasNoErrors();
         $id = DB::table('liquidaciones')->value('id');
         $this->patch(route('admin.liquidaciones.pagar', $id))->assertSessionHasNoErrors();
         $cambio = Auditoria::query()->where('entidad', 'liquidacion')->where('accion', 'actualizar')->firstOrFail();

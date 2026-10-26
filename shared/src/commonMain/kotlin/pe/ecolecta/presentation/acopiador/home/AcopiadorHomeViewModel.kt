@@ -88,6 +88,7 @@ class AcopiadorHomeViewModel(
                             zonaNombre = zonaNombre,
                             vehiculoInfo = vehiculo?.let { v -> "${v.nombre} · ${v.placa}" }.orEmpty(),
                             horaInicio = jornada?.let { j -> formatearHoraAcopio(j.abiertaEn) }.orEmpty(),
+                            abiertaEn = jornada?.abiertaEn,
                             litrosHoy = entregas.filterNot(Entrega::anulada).sumOf(Entrega::litros),
                             entregasHoy = entregas.count { e -> !e.anulada },
                             pendientesSync = pendientes,
@@ -96,6 +97,7 @@ class AcopiadorHomeViewModel(
                             jornadaId = jornada?.id,
                             jornadaAbierta = jornadaAbierta,
                             horaCierre = jornada?.cerradaEn?.let(::formatearHoraAcopio),
+                            cierreAdministrativo = jornada?.cierreAdministrativo == true,
                         )
                     }
                 }

@@ -78,7 +78,7 @@ data class RegistrosProveedor(
 /**
  * Combina lo que hay en este celular con lo recibido del servidor, SOLO para [proveedor]:
  * - todo lo que no sea de su ficha (otro id local u otro código) se descarta aquí aunque llegue;
- * - si un registro existe en ambos lados, manda la copia del servidor (es la confirmada);
+ * - una fila ya presente en la base oficial/local manda sobre copias antiguas del canal retirado;
  * - un registro solo local conserva su estado real de sincronización (nunca se muestra confirmado).
  */
 fun combinarRegistrosProveedor(
@@ -88,7 +88,14 @@ fun combinarRegistrosProveedor(
     recibidos: List<RegistroAcopioCompartido>,
     remotoDisponible: Boolean,
 ): RegistrosProveedor {
-    val propios = recibidos.filter { it.proveedorCodigo == proveedor.codigo }
+    val entregasPorId = entregasLocales.filter { it.proveedorId == proveedor.id }.associateBy { it.id }
+    val marcasPorId = marcasLocales.filter { it.proveedorId == proveedor.id }.associateBy { it.id }
+    val propios = recibidos.filter { recibido ->
+        recibido.proveedorCodigo == proveedor.codigo && when (recibido.tipo) {
+            TipoRegistroCompartido.ENTREGA -> recibido.id !in entregasPorId
+            TipoRegistroCompartido.SIN_RECOJO -> recibido.id !in marcasPorId
+        }
+    }
     val entregasRecibidas = propios.filter { it.tipo == TipoRegistroCompartido.ENTREGA && it.litros != null }
     val marcasRecibidas = propios.filter { it.tipo == TipoRegistroCompartido.SIN_RECOJO }
     val idsRecibidos = propios.map { it.id }.toSet()

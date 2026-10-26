@@ -40,12 +40,12 @@ class LoginViewModel(
                     if (inicio.enlazado) vincularServidor.yaEnlazado() else vincularServidor(usuario.id, usuario.username, estado.pin)
                     if (usuario.roles.size == 1) {
                         seleccionarRolUseCase(usuario, usuario.roles.first()).fold(
-                            onSuccess = { _uiState.update { it.copy(cargando = false, sesionIniciada = true) } },
+                            onSuccess = { _uiState.update { it.copy(cargando = false, pin = "", sesionIniciada = true) } },
                             onFailure = { error -> _uiState.update { it.copy(cargando = false, error = mensajeDeError(error)) } },
                         )
                     } else {
                         _uiState.update {
-                            it.copy(cargando = false, usuarioAutenticadoId = usuario.id, requiereSeleccionRol = true)
+                            it.copy(cargando = false, pin = "", usuarioAutenticadoId = usuario.id, requiereSeleccionRol = true)
                         }
                     }
                 },

@@ -61,6 +61,7 @@ data class JornadaServidor(
     val fecha: String,
     val abiertaEn: Long,
     val cerradaEn: Long? = null,
+    val cierreAdministrativo: Boolean = false,
 )
 
 @Serializable
@@ -131,6 +132,14 @@ data class SolicitudServidor(
     val id: String, val proveedorId: Long, val referenciaId: String?, val litros: Double?,
     val motivo: String, val descripcion: String = "", val creadaEn: Long, val estado: String,
     val tipo: String = "RECLAMO", val zonaDestinoId: Long? = null,
+    val respuesta: String? = null, val resueltaEn: Long? = null, val evidenciaDisponible: Boolean = false,
+)
+
+@Serializable
+data class SinRecojoServidor(
+    val id: String, val jornadaId: Long, val proveedorId: Long, val usuarioId: Long, val zonaId: Long,
+    val fecha: String, val motivo: String, val detalle: String? = null, val registradaEn: Long,
+    val deshecha: Boolean = false, val deshechaEn: Long? = null, val actualizadoEn: Long,
 )
 
 /**
@@ -153,6 +162,7 @@ data class DatosServidor(
     /** null = panel anterior; no implica borrar los datos ya guardados. */
     val pagos: List<PagoServidor>? = null,
     val solicitudes: List<SolicitudServidor>? = null,
+    val sinRecojos: List<SinRecojoServidor>? = null,
 )
 
 /** Guarda en la base del celular lo que llega del panel web. */

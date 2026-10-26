@@ -34,6 +34,7 @@ data class RecojoDelDia(
     val registradoEn: Long,
     val sincronizacion: EstadoSincronizacion,
     val anulada: Boolean = false,
+    val usuarioId: String = "",
 )
 
 data class SinRecojoDelDia(
@@ -117,6 +118,7 @@ fun Entrega.aRecojoDelDia(remotoDisponible: Boolean) = RecojoDelDia(
     registradoEn = registradoEn,
     sincronizacion = estadoSincronizacionDe(syncState, remotoDisponible),
     anulada = anulada,
+    usuarioId = usuarioId,
 )
 
 fun MarcaSinRecojo.aSinRecojoDelDia(remotoDisponible: Boolean) = SinRecojoDelDia(

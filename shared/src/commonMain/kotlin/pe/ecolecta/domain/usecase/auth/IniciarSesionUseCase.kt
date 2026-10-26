@@ -1,33 +1,29 @@
 package pe.ecolecta.domain.usecase.auth
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import pe.ecolecta.domain.PinInvalidoException
 import pe.ecolecta.domain.Reloj
-import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.model.Rol
+import pe.ecolecta.domain.model.Usuario
 import pe.ecolecta.domain.repository.DatosServidorLocalRepository
 import pe.ecolecta.domain.repository.RechazoServidorException
-import pe.ecolecta.domain.repository.SinConexionRemotaException
 import pe.ecolecta.domain.repository.ServidorWebRepository
+import pe.ecolecta.domain.repository.SinConexionRemotaException
 import pe.ecolecta.domain.repository.UsuarioRepository
 import pe.ecolecta.domain.security.PinHasher
-import kotlinx.coroutines.CancellationException
 
 /** [enlazado] = el servidor ya validó la cuenta y su token quedó guardado (no hace falta volver a enlazar). */
 data class InicioSesion(val usuario: Usuario, val enlazado: Boolean)
 
-/**
- * Con servidor disponible valida el acceso vigente, incluso si el PIN local coincide. Solo una falta
- * de conexión permite usar el acceso offline válido; un rechazo del servidor nunca lo convierte en éxito.
- * La validación remota actualiza el PIN local y el perfil. El bloqueo local por intentos no se salta.
- */
 class IniciarSesionUseCase(
-    private val loginOffline: LoginOfflineUseCase,
-    private val servidor: ServidorWebRepository,
-    private val datosLocales: DatosServidorLocalRepository,
     private val usuarios: UsuarioRepository,
+    private val loginOffline: LoginOfflineUseCase,
     private val pinHasher: PinHasher,
+    private val datosLocales: DatosServidorLocalRepository,
+    private val servidor: ServidorWebRepository,
     private val reloj: Reloj,
 ) {
     suspend operator fun invoke(username: String, pin: String): Result<InicioSesion> {
@@ -39,7 +35,8 @@ class IniciarSesionUseCase(
         ) {
             return Result.failure(error)
         }
-        val sesion = servidor.autenticar(username.trim(), pin).getOrElse { remoto ->
+        val respuesta = withTimeoutOrNull(8_000) { servidor.autenticar(username.trim(), pin) }
+        val sesion = (respuesta ?: Result.failure(SinConexionRemotaException("Tiempo de espera agotado"))).getOrElse { remoto ->
             if (remoto is SinConexionRemotaException) return inicioLocal(local)
             if (remoto is RechazoServidorException && remoto.codigo in setOf("credenciales", "cuenta_bloqueada", "perfil_no_disponible")) {
                 usuarios.obtenerPorUsername(username.trim())?.let { datosLocales.requerirVerificacion(it.id) }

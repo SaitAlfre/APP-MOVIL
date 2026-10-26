@@ -18,13 +18,16 @@ fun iniciarKoinIOS() {
                 single { DatabaseDriverFactory() }
                 single<DeviceIdProvider> { DeviceIdProviderIOS() }
                 single { ExportadorQr() }
-                // Sin Firebase en iOS en esta versión (ver shared/build.gradle.kts): los registros quedan
-                // "guardados en este celular", nunca se finge que están sincronizados.
-                single<RegistroAcopioRemotoRepository> { RegistroAcopioRemotoRepositoryPendiente() }
+                single<RegistroAcopioRemotoRepository> {
+                    pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryApi(
+                        get(), get(), get(), get(), get(), get(), get(), get(), get(),
+                        estado = { get<pe.ecolecta.domain.usecase.sync.CoordinadorSync>().estado },
+                    )
+                }
                 single<IdentidadRemotaProvider> { IdentidadRemotaProviderPendiente() }
             },
-            // Sin URL de panel web en iOS en esta versión: se muestra "no configurado", sin fingir envíos.
-            moduloServidorWeb(urlBase = "", nombreDispositivo = "iOS", io = kotlinx.coroutines.Dispatchers.Default),
+            // Comparte la misma API oficial que Android.
+            moduloServidorWeb(urlBase = "https://ecolecta-5cfec46d4968.herokuapp.com", nombreDispositivo = "iOS", io = kotlinx.coroutines.Dispatchers.Default),
         )
     }
 }

@@ -32,11 +32,11 @@ final class Liquidacion
             throw LiquidacionInvalidaException::periodoInvalido();
         }
 
-        if ($precioLitro <= 0.0) {
+        if (! is_finite($precioLitro) || $precioLitro <= 0.0) {
             throw LiquidacionInvalidaException::precioInvalido();
         }
 
-        if ($litrosTotales <= 0.0) {
+        if (! is_finite($litrosTotales) || $litrosTotales <= 0.0) {
             throw LiquidacionInvalidaException::sinEntregas();
         }
 

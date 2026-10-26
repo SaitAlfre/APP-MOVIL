@@ -111,9 +111,8 @@ class SincronizacionViewModel(
 
     private companion object {
         const val AVISO_SIN_ENLAZAR =
-            "Tu cuenta no está enlazada con el panel web en este celular, así que tus entregas no pueden enviarse todavía. " +
-                "La cuenta debe existir en el panel con el mismo usuario y PIN. " +
-                "Cierra sesión y vuelve a entrar teniendo conexión: no se pierde ninguna entrega ni tu jornada."
+            "Confirma tu acceso desde el botón de sincronización con tu mismo PIN de Ecolecta. " +
+                "Tus entregas y tu jornada siguen guardadas en este teléfono."
     }
 
     /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */

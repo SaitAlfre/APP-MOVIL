@@ -38,9 +38,10 @@ class FakeJornadaRepository : JornadaRepository {
         jornadas.value = jornadas.value + jornada
     }
 
-    override suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada? {
-        val ocupante = obtenerAbiertaPorZona(jornada.zonaId)
-        if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) return ocupante
+    override suspend fun insertarSiUsuarioLibre(jornada: Jornada): Jornada? {
+        val ocupante = obtenerAbiertaPorUsuario(jornada.usuarioId)
+            ?: obtenerPorUsuarioYFecha(jornada.usuarioId, jornada.fecha)
+        if (ocupante != null) return ocupante
         insertar(jornada)
         return null
     }
@@ -50,10 +51,10 @@ class FakeJornadaRepository : JornadaRepository {
         jornadas.value = jornadas.value.map { if (it.id == id) it.copy(cerradaEn = cerradaEn) else it }
     }
 
-    override suspend fun reabrirSiZonaLibre(id: String): Jornada? {
+    override suspend fun reabrirSiUsuarioLibre(id: String): Jornada? {
         val jornada = obtenerPorId(id) ?: error("La jornada no existe.")
-        val ocupante = obtenerAbiertaPorZona(jornada.zonaId)
-        if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) return ocupante
+        val ocupante = obtenerAbiertaPorUsuario(jornada.usuarioId)
+        if (ocupante != null && ocupante.id != id) return ocupante
         jornadas.value = jornadas.value.map { if (it.id == id) it.copy(cerradaEn = null) else it }
         return null
     }

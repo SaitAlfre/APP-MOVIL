@@ -69,11 +69,10 @@ import pe.ecolecta.presentation.design.formatearLitros
 
 @Composable
 fun AcopiadorHomeScreen(
-    alRegistrarEntrega: () -> Unit,
     alEscanearQr: () -> Unit,
     alVerResumen: () -> Unit,
-    alSincronizar: () -> Unit,
     alAbrirJornada: () -> Unit,
+    alContinuarRecojo: () -> Unit,
     viewModel: AcopiadorHomeViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
@@ -95,7 +94,6 @@ fun AcopiadorHomeScreen(
             if (estado.jornadaTerminada) {
                 TarjetaJornadaTerminada(
                     estado = estado,
-                    alSincronizar = alSincronizar,
                     alReabrir = viewModel::solicitarReapertura,
                     alCerrarSesion = viewModel::solicitarCierreSesion,
                 )
@@ -103,6 +101,7 @@ fun AcopiadorHomeScreen(
                 TarjetaSinJornada(alAbrirJornada)
             } else {
                 TarjetaJornadaActiva(estado)
+                BotonPrimario("Ver hoja de ruta", alContinuarRecojo, icono = Icons.Filled.LocalDrink)
 
                 Text(
                     "ACCIONES RÁPIDAS",
@@ -110,15 +109,15 @@ fun AcopiadorHomeScreen(
                     color = Colores.textSecundario,
                     modifier = Modifier.padding(top = Espaciado.xs),
                 )
-                GridAccionesRapidas(
-                    alRegistrarEntrega = alRegistrarEntrega,
-                    alEscanearQr = alEscanearQr,
-                    alVerResumen = alVerResumen,
-                    alSincronizar = alSincronizar,
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                    TarjetaAccion("Escanear QR", Icons.Filled.QrCodeScanner, Colores.surface, Colores.textPrimary,
+                        Modifier.weight(1f), alEscanearQr, conBorde = true)
+                    TarjetaAccion("Ver resumen", Icons.Filled.Assignment, Colores.surface, Colores.textPrimary,
+                        Modifier.weight(1f), alVerResumen, conBorde = true)
+                }
 
                 BotonBorde(
-                    texto = if (estado.cerrandoJornada) "Cerrando jornada…" else "Cerrar jornada",
+                    texto = if (estado.cerrandoJornada) "Terminando jornada…" else "Terminar jornada",
                     color = Colores.peligro,
                     icono = Icons.Filled.EventBusy,
                     habilitado = !estado.cerrandoJornada,
@@ -140,8 +139,8 @@ fun AcopiadorHomeScreen(
                     titulo = "Todavía no registraste entregas hoy",
                     descripcion = "Tus entregas del día aparecerán aquí apenas las registres.",
                     icono = Icons.Filled.Inventory2,
-                    textoAccion = if (estado.jornadaAbierta) "Registrar primera entrega" else null,
-                    alPresionarAccion = if (estado.jornadaAbierta) alRegistrarEntrega else null,
+                    textoAccion = null,
+                    alPresionarAccion = null,
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
@@ -185,14 +184,15 @@ fun AcopiadorHomeScreen(
         AlertDialog(
             onDismissRequest = viewModel::cancelarCierreJornada,
             shape = MaterialTheme.shapes.large,
-            title = { Text("¿Cerrar la jornada?") },
+            title = { Text("¿Terminar tu jornada?") },
             text = {
                 Text(
-                    "Se finalizará tu jornada de hoy. Tus entregas, los \"sin recojo\" y los pendientes por " +
-                        "sincronizar no se pierden; después del cierre, cualquier corrección queda auditada.",
+                    "Has registrado ${estado.entregasHoy} entregas y ${formatearLitros(estado.litrosHoy)}. " +
+                        "${estado.proveedoresPendientesHoy} proveedores de la zona no tienen entregas tuyas. " +
+                        "La hora de cierre se guardará automáticamente. Los datos pendientes de sincronizar se conservan.",
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Cerrar jornada", color = Colores.peligro) } },
+            confirmButton = { TextButton(onClick = viewModel::confirmarCierreJornada) { Text("Terminar jornada", color = Colores.peligro) } },
             dismissButton = { TextButton(onClick = viewModel::cancelarCierreJornada) { Text("Cancelar") } },
         )
     }
@@ -233,7 +233,6 @@ fun AcopiadorHomeScreen(
 @Composable
 private fun TarjetaJornadaTerminada(
     estado: AcopiadorHomeUiState,
-    alSincronizar: () -> Unit,
     alReabrir: () -> Unit,
     alCerrarSesion: () -> Unit,
 ) {
@@ -278,10 +277,9 @@ private fun TarjetaJornadaTerminada(
                 TipoBanner.ADVERTENCIA,
             )
             Spacer(Modifier.height(Espaciado.s))
-            BotonPrimario("Sincronizar ahora", alSincronizar, icono = Icons.Filled.Sync)
         }
         Spacer(Modifier.height(Espaciado.s))
-        BotonBorde(
+        if (!estado.cierreAdministrativo) BotonBorde(
             texto = "¿Cerraste por error? Reabrir jornada",
             color = Colores.brand,
             icono = Icons.Filled.EventRepeat,
@@ -408,15 +406,16 @@ private fun EncabezadoJornada(nombre: String, pendientesSync: Int) {
 @Composable
 private fun TarjetaSinJornada(alAbrirJornada: () -> Unit) {
     Tarjeta {
-        Text("No tienes una jornada abierta", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
+        Text("Tu jornada de hoy", style = MaterialTheme.typography.titleLarge, color = Colores.textPrimary)
+        RelojJornada()
         Spacer(Modifier.height(Espaciado.xxs))
         Text(
-            "Abre tu jornada para registrar entregas y ver a los proveedores de tu ruta de hoy.",
+            "Todavía no has iniciado. Confirma tu zona y vehículo cuando estés listo para comenzar el recojo.",
             style = MaterialTheme.typography.bodyMedium,
             color = Colores.textSecundario,
         )
         Spacer(Modifier.height(Espaciado.s))
-        BotonPrimario("Abrir jornada", alAbrirJornada, icono = Icons.Filled.EventAvailable)
+        BotonPrimario("Iniciar jornada", alAbrirJornada, icono = Icons.Filled.EventAvailable)
     }
 }
 
@@ -446,6 +445,8 @@ private fun TarjetaJornadaActiva(estado: AcopiadorHomeUiState) {
         if (detalleRuta.isNotBlank()) {
             Text(detalleRuta, style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
         }
+        Text("Inicio: ${estado.horaInicio}", style = MaterialTheme.typography.bodyMedium, color = Colores.textSecundario)
+        RelojJornada(estado.abiertaEn)
         Spacer(Modifier.height(Espaciado.m))
         Row(Modifier.fillMaxWidth()) {
             EstadisticaJornada(formatearLitros(estado.litrosHoy).removeSuffix(" L"), "L", "Litros", Modifier.weight(1f))
@@ -454,7 +455,7 @@ private fun TarjetaJornadaActiva(estado: AcopiadorHomeUiState) {
         }
         if (estado.pendientesSync > 0) {
             Spacer(Modifier.height(Espaciado.m))
-            Banner("${estado.pendientesSync} entregas pendientes de sincronización", TipoBanner.ADVERTENCIA)
+            Banner("${estado.pendientesSync} registros guardados en el teléfono · pendientes de sincronizar", TipoBanner.ADVERTENCIA)
         }
     }
 }
@@ -466,26 +467,6 @@ private fun EstadisticaJornada(valor: String, unidad: String, etiqueta: String, 
         Text(unidad, style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
         Spacer(Modifier.height(2.dp))
         Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-/** Grilla 2×2 de las acciones que el acopiador usa a cada rato: registrar, escanear, resumir, sincronizar. */
-@Composable
-private fun GridAccionesRapidas(
-    alRegistrarEntrega: () -> Unit,
-    alEscanearQr: () -> Unit,
-    alVerResumen: () -> Unit,
-    alSincronizar: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-            TarjetaAccion("Registrar entrega", Icons.Filled.LocalDrink, Colores.brand, Colores.onBrand, Modifier.weight(1f), alRegistrarEntrega)
-            TarjetaAccion("Escanear QR", Icons.Filled.QrCodeScanner, Colores.info, Color.White, Modifier.weight(1f), alEscanearQr)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-            TarjetaAccion("Ver resumen", Icons.Filled.Assignment, Colores.surface, Colores.textPrimary, Modifier.weight(1f), alVerResumen, conBorde = true)
-            TarjetaAccion("Sincronizar", Icons.Filled.Sync, Colores.surface, Colores.textPrimary, Modifier.weight(1f), alSincronizar, conBorde = true)
-        }
     }
 }
 
@@ -563,10 +544,10 @@ private fun DialogoCorreccionRapida(
     onCancelar: () -> Unit,
 ) {
     var litros by remember { mutableStateOf(entrega.litros.toString()) }
-    var tachos by remember { mutableStateOf(entrega.tachos.toString()) }
+
     var motivo by remember { mutableStateOf("") }
     val litrosValor = litros.toDoubleOrNull()
-    val tachosValor = tachos.toIntOrNull()
+    val tachosValor = entrega.tachos.coerceAtLeast(1)
 
     AlertDialog(
         onDismissRequest = onCancelar,
@@ -575,7 +556,7 @@ private fun DialogoCorreccionRapida(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 CampoTexto(litros, { litros = it }, "Litros", iconoInicial = Icons.Filled.LocalDrink)
-                CampoTexto(tachos, { tachos = it }, "Tachos", iconoInicial = Icons.Filled.Inventory2)
+
                 CampoTexto(motivo, { motivo = it }, "Motivo (obligatorio)")
                 Text(
                     "¿Te equivocaste de proveedor? Puedes anular esta entrega en su lugar.",
@@ -587,8 +568,8 @@ private fun DialogoCorreccionRapida(
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirmar(litrosValor!!, tachosValor!!, motivo) },
-                enabled = motivo.isNotBlank() && (litrosValor ?: 0.0) > 0.0 && (tachosValor ?: 0) > 0,
+                onClick = { onConfirmar(litrosValor!!, tachosValor, motivo) },
+                enabled = motivo.isNotBlank() && (litrosValor ?: 0.0) > 0.0,
             ) { Text("Confirmar") }
         },
         dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } },

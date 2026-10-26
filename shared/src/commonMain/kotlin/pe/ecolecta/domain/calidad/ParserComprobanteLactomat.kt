@@ -10,17 +10,17 @@ object ParserComprobanteLactomat {
     // Varias marcas de analizador (LACTOMAT/Lactoscan/Ekomilk, etc.) imprimen en español o en inglés
     // según el firmware; se incluyen ambas formas y abreviaturas usuales para no depender de una sola.
     private val nombresPorClave = mapOf(
-        "temperatura" to listOf("Temperatura", "Temp", "Temperature"),
-        "grasa" to listOf("Grasa", "Fat"),
-        "sng" to listOf("SNG", "SNF", "S.N.G", "S.N.F"),
-        "densidad" to listOf("Densidad", "Density"),
-        "proteina" to listOf("Proteina", "Proteína", "Protein"),
-        "lactosa" to listOf("Lactosa", "Lactose"),
-        "sales" to listOf("Sales", "Salts", "Salt"),
-        "solidos" to listOf("Total solidos", "Sólidos totales", "Total sólidos", "Total Solids", "Solids"),
-        "agua" to listOf("Agua anadida", "Agua añadida", "Added Water", "Water"),
-        "congelacion" to listOf("Punto cong", "Freezing Point", "Freezing", "F.P"),
-        "ph" to listOf("pH"),
+        "temperatura" to listOf("Temperatura", "Temp.", "Temp", "Temperature", "T°", "T."),
+        "grasa" to listOf("Grasa", "Fat", "FAT", "Gras.", "Gras"),
+        "sng" to listOf("SNG", "SNF", "S.N.G.", "S.N.G", "S.N.F.", "S.N.F"),
+        "densidad" to listOf("Densidad", "Density", "Dens.", "Dens", "Sp.Gr.", "Sp.Gr"),
+        "proteina" to listOf("Proteina", "Proteína", "Protein", "Prot.", "Prot"),
+        "lactosa" to listOf("Lactosa", "Lactose", "Lact.", "Lact"),
+        "sales" to listOf("Sales", "Salts", "Salt", "Sal.", "Minerales"),
+        "solidos" to listOf("Total solidos", "Sólidos totales", "Total sólidos", "Total Solids", "Solids", "Solidos", "Sólidos", "S.T.", "ST"),
+        "agua" to listOf("Agua anadida", "Agua añadida", "Added Water", "Water", "Agua adicionada", "Agua adic.", "Agua anad.", "Agua"),
+        "congelacion" to listOf("Punto cong", "Punto congelacion", "Punto congelación", "Pto. cong", "Pto cong", "Freezing Point", "Freezing", "F.P.", "F.P", "FP"),
+        "ph" to listOf("pH", "PH", "Ph"),
     )
 
     /** Une la etiqueta con el primer número que aparece después de ella, sin cruzar de línea ni de signo. */
@@ -48,22 +48,26 @@ object ParserComprobanteLactomat {
         return null
     }
 
-    fun parsear(texto: String): LecturaCalidad = LecturaCalidad(
-        serialAnalizador = tokenDespues(texto, "S/N", "SN", "Serial"),
-        modoAnalizador = tokenDespues(texto, "Mode", "Modo"),
-        temperatura = valorDe(texto, nombresPorClave.getValue("temperatura")),
-        grasa = valorDe(texto, nombresPorClave.getValue("grasa")),
-        sng = valorDe(texto, nombresPorClave.getValue("sng")),
-        densidad = valorDe(texto, nombresPorClave.getValue("densidad")),
-        proteina = valorDe(texto, nombresPorClave.getValue("proteina")),
-        lactosa = valorDe(texto, nombresPorClave.getValue("lactosa")),
-        sales = valorDe(texto, nombresPorClave.getValue("sales")),
-        solidosTotales = valorDe(texto, nombresPorClave.getValue("solidos")),
-        aguaAnadida = valorDe(texto, nombresPorClave.getValue("agua")),
-        puntoCongelacion = valorDe(texto, nombresPorClave.getValue("congelacion")),
-        ph = valorDe(texto, nombresPorClave.getValue("ph")),
-        fechaHoraEpochMs = fechaHora(texto),
-    )
+    fun parsear(texto: String): LecturaCalidad {
+        val densNorm = normalizarValorCalidad("densidad", valorDe(texto, nombresPorClave.getValue("densidad")))
+        val congNorm = normalizarValorCalidad("congelacion", valorDe(texto, nombresPorClave.getValue("congelacion")))
+        return LecturaCalidad(
+            serialAnalizador = tokenDespues(texto, "S/N", "SN", "Serial", "Serie", "No.", "No", "N°"),
+            modoAnalizador = tokenDespues(texto, "Mode", "Modo", "Cal", "Calibracion"),
+            temperatura = valorDe(texto, nombresPorClave.getValue("temperatura")),
+            grasa = valorDe(texto, nombresPorClave.getValue("grasa")),
+            sng = valorDe(texto, nombresPorClave.getValue("sng")),
+            densidad = densNorm,
+            proteina = valorDe(texto, nombresPorClave.getValue("proteina")),
+            lactosa = valorDe(texto, nombresPorClave.getValue("lactosa")),
+            sales = valorDe(texto, nombresPorClave.getValue("sales")),
+            solidosTotales = valorDe(texto, nombresPorClave.getValue("solidos")),
+            aguaAnadida = valorDe(texto, nombresPorClave.getValue("agua")),
+            puntoCongelacion = congNorm,
+            ph = valorDe(texto, nombresPorClave.getValue("ph")),
+            fechaHoraEpochMs = fechaHora(texto),
+        )
+    }
 
     /** Claves cuya etiqueta aparece más de una vez seguida de un número: la lectura es ambigua y conviene revisarla. */
     fun dudosos(texto: String): Set<String> = nombresPorClave.filterValues { nombres ->
