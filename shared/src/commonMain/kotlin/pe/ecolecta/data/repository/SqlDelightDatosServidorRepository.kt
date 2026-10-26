@@ -78,12 +78,18 @@ class SqlDelightDatosServidorRepository(
             db.controlCalidadQueries.borrarResumenesAntiguos()
             datos.analisis.forEach { analisis(it, proveedores, usuarios) }
             comunicados(datos.comunicados)
+            datos.tarifas?.let { tarifas ->
+                val contenido = Json.encodeToString(pe.ecolecta.domain.model.PreciosProveedor(tarifas, datos.servidorEn.takeIf { it > 0 } ?: ahora))
+                proveedores.values.forEach { proveedor ->
+                    db.portalProveedorQueries.recibir("precios-$proveedor", proveedor, "PRECIOS", contenido, ahora)
+                }
+            }
             datos.pagos?.forEach { pago ->
                 val proveedor = proveedores[pago.proveedorId] ?: local(PROVEEDOR, pago.proveedorId) ?: return@forEach
                 val id = "web-${pago.id}"
                 if (!db.tieneCambioPendiente(EntidadCambio.LIQUIDACION, id)) {
                     val valor = PagoProveedor(id, proveedor, pago.desde, pago.hasta, pago.litros, pago.precio,
-                        pago.bruto, pago.descuento, pago.total, pago.estado, pago.fechaPago)
+                        pago.bruto, pago.descuento, pago.total, pago.estado, pago.fechaPago, porTemporadas = pago.porTemporadas)
                     db.portalProveedorQueries.recibir(id, proveedor, "PAGO", Json.encodeToString(valor), ahora)
                 }
             }

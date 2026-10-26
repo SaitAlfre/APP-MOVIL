@@ -125,6 +125,7 @@ data class PagoServidor(
     val id: Long, val proveedorId: Long, val desde: String, val hasta: String,
     val litros: Double, val precio: Double, val bruto: Double, val descuento: Double,
     val total: Double, val estado: String, val fechaPago: String? = null,
+    val porTemporadas: Boolean = false,
 )
 
 @Serializable
@@ -163,6 +164,7 @@ data class DatosServidor(
     val pagos: List<PagoServidor>? = null,
     val solicitudes: List<SolicitudServidor>? = null,
     val sinRecojos: List<SinRecojoServidor>? = null,
+    val tarifas: List<pe.ecolecta.domain.model.TarifaLeche>? = null,
 )
 
 /** Guarda en la base del celular lo que llega del panel web. */

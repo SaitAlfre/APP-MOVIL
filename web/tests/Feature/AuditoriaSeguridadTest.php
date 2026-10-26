@@ -11,6 +11,7 @@ use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Producto;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -186,6 +187,7 @@ class AuditoriaSeguridadTest extends TestCase
 
     public function test_liquidacion_y_pago_registran_valor_anterior_y_nuevo(): void
     {
+        TarifaLeche::factory()->create(['precio' => 2, 'desde' => '2020-01-01', 'hasta' => '2035-12-31']);
         $admin = $this->admin();
         $entrega = Entrega::factory()->create(['litros' => 100]);
         $this->post(route('admin.liquidaciones.store'), ['proveedor_id' => $entrega->proveedor_id, 'periodo_inicio' => now('America/Lima')->toDateString(), 'periodo_fin' => now('America/Lima')->toDateString(), 'precio_litro' => 2])->assertSessionHasNoErrors();

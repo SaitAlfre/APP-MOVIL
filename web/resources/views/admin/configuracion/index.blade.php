@@ -35,9 +35,7 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-ui.select name="moneda" label="Moneda" required :options="['PEN' => 'PEN (S/)']"
                     :selected="$configuracion['moneda']" :disabled="! $puedeGestionar" />
-                <x-ui.field name="precio_base_litro" label="Precio base por litro (S/)" type="number" step="0.0001" min="0.0001" required
-                    :value="$configuracion['precio_base_litro']" :disabled="! $puedeGestionar"
-                    hint="Se usa como valor inicial al generar una liquidación." />
+                <a href="{{ route('admin.tarifas.index') }}" class="self-center text-sm underline text-eh-primary">Administrar precios por temporada y vigencia</a>
                 <x-ui.select name="inicio_semana" label="Inicio de la semana operativa" required :options="$dias"
                     :selected="$configuracion['inicio_semana']" :disabled="! $puedeGestionar" />
                 <x-ui.select name="dia_pago" label="Día de pago" required :options="$dias"

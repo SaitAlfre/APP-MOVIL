@@ -34,7 +34,7 @@
             <p class="mono mt-1 text-2xl font-bold text-eh-text">{{ number_format($liquidacion->litrosTotales, 1) }} L</p>
         </x-ui.card>
         <x-ui.card padding="p-4">
-            <p class="text-xs text-eh-text-muted">Precio por litro</p>
+            <p class="text-xs text-eh-text-muted">{{ count(array_unique(array_column($detalleDiario, 'precio'))) > 1 ? 'Precio promedio del periodo' : 'Precio por litro' }}</p>
             <p class="mono mt-1 text-2xl font-bold text-eh-text">S/ {{ number_format($liquidacion->precioLitro, 3) }}</p>
         </x-ui.card>
         <x-ui.card padding="p-4">
@@ -48,6 +48,7 @@
             Detalle por día — {{ $liquidacion->periodoInicio->format('d/m/Y') }} a {{ $liquidacion->periodoFin->format('d/m/Y') }}
         </h2>
 
+        <p class="mb-3 text-xs text-eh-text-muted">Cada subtotal diario se redondea a dos decimales. El importe bruto es la suma de esos subtotales, antes de descuentos.</p>
         @if (count($detalleDiario) === 0)
             <p class="rounded-xl bg-eh-surface-alt px-4 py-8 text-center text-sm text-eh-text-muted">
                 No hay entregas registradas en el periodo. El importe se calculó con los litros guardados al generar la liquidación.
@@ -71,8 +72,8 @@
                                 <td class="mono px-4 py-2 text-xs text-eh-text">{{ $fecha->format('d/m/Y') }}</td>
                                 <td class="mono px-4 py-2 text-xs text-eh-text-muted">{{ $dia['entregas'] }}</td>
                                 <td class="mono px-4 py-2 text-xs font-medium text-eh-text">{{ number_format($dia['litros'], 1) }} L</td>
-                                <td class="mono px-4 py-2 text-xs text-eh-text-muted">S/ {{ number_format($liquidacion->precioLitro, 3) }}</td>
-                                <td class="mono px-4 py-2 text-xs font-medium text-eh-text">S/ {{ number_format($dia['litros'] * $liquidacion->precioLitro, 2) }}</td>
+                                <td class="mono px-4 py-2 text-xs text-eh-text-muted">S/ {{ number_format($dia['precio'] ?? $liquidacion->precioLitro, 3) }}</td>
+                                <td class="mono px-4 py-2 text-xs font-medium text-eh-text">S/ {{ number_format($dia['subtotal'] ?? $dia['litros'] * $liquidacion->precioLitro, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -81,7 +82,7 @@
                             <td colspan="3" class="px-4 py-2 text-sm font-semibold text-eh-text">Total del periodo</td>
                             <td class="mono px-4 py-2 text-sm font-bold text-eh-text">{{ number_format($totalDetalle, 1) }} L</td>
                             <td class="px-4 py-2"></td>
-                            <td class="mono px-4 py-2 text-sm font-bold text-eh-primary">S/ {{ number_format($totalDetalle * $liquidacion->precioLitro, 2) }}</td>
+                            <td class="mono px-4 py-2 text-sm font-bold text-eh-primary">S/ {{ number_format($importeBruto, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>

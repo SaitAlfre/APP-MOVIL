@@ -11,6 +11,7 @@
     <x-ui.page-header title="Liquidaciones y pagos" description="Gestión de liquidaciones a proveedores por periodo">
         @if ($puedeGestionar)
             <x-slot:actions>
+                <x-ui.btn :href="route('admin.tarifas.index')" variant="secondary">Precios por temporada</x-ui.btn>
                 <x-ui.btn :href="route('admin.liquidaciones.create')" icon="plus">Generar liquidación</x-ui.btn>
             </x-slot:actions>
         @endif
@@ -19,9 +20,9 @@
     <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <x-ui.kpi label="Liquidaciones en esta página" :value="$paginador->count()" icon="banknotes" color="blue" />
         <x-ui.kpi label="Pendiente de pago" :value="'S/ '.number_format($totalPendiente, 2)" icon="clock" color="yellow"
-            hint="Suma de las liquidaciones pendientes visibles en esta página." />
+            hint="Suma de todas las liquidaciones pendientes." />
         <x-ui.kpi label="Pagado" :value="'S/ '.number_format($totalPagado, 2)" icon="check" color="green"
-            hint="Suma de las liquidaciones ya pagadas visibles en esta página." />
+            hint="Suma de todas las liquidaciones pagadas." />
     </div>
 
     <x-ui.card>
@@ -30,12 +31,13 @@
                 description="Genera la primera con el botón «Generar liquidación».">
                 @if ($puedeGestionar)
                     <x-slot:action>
+                        <x-ui.btn :href="route('admin.tarifas.index')" variant="secondary">Precios por temporada</x-ui.btn>
                         <x-ui.btn :href="route('admin.liquidaciones.create')" icon="plus" size="sm">Generar liquidación</x-ui.btn>
                     </x-slot:action>
                 @endif
             </x-ui.empty>
         @else
-            <x-ui.table :headers="['Periodo', 'Proveedor', 'Litros', 'Precio/L', 'Importe', 'Estado', 'Fecha de pago', '']" caption="Liquidaciones generadas">
+            <x-ui.table :headers="['Periodo', 'Proveedor', 'Litros', 'Precio/L promedio', 'Importe', 'Estado', 'Fecha de pago', '']" caption="Liquidaciones generadas">
                 @foreach ($filas as $fila)
                     @php $liquidacion = $fila['liquidacion']; @endphp
                     <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">

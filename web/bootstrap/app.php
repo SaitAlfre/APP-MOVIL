@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -38,6 +39,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (ThrottleRequestsException $error, Request $request) {
+            if (! $request->routeIs('login.store') || $request->expectsJson()) {
+                return null;
+            }
+            $segundos = max(1, (int) ($error->getHeaders()['Retry-After'] ?? 60));
+
+            return response()->view('auth.login', [
+                'avisoAcceso' => "Demasiados intentos de acceso. Espera {$segundos} segundos y vuelve a ingresar. Si el bloqueo continúa después de esperar, contacta al administrador.",
+            ], 429, $error->getHeaders());
+        });
+
         $exceptions->report(function (QueryException $error) {
             Log::error('Error de persistencia', [
                 'tipo' => $error::class,

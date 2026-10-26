@@ -62,6 +62,7 @@ import pe.ecolecta.domain.repository.UsuarioRepository
     val total: Double,
     val estado: String,
     val fechaPago: String? = null,
+    val porTemporadas: Boolean = false,
 )
 @Serializable private data class RespuestaLiquidaciones(val proveedorCodigo: String, val liquidaciones: List<LiquidacionServidor>)
 
@@ -164,7 +165,7 @@ class ServidorWebRepositoryKtor(
             PagoProveedor(
                 id = "$PREFIJO_PAGO_SERVIDOR${it.id}", proveedorId = "", desde = it.desde, hasta = it.hasta,
                 litros = it.litros, precio = it.precio, bruto = it.bruto, descuento = it.descuento, total = it.total,
-                estado = it.estado, fechaPago = it.fechaPago,
+                estado = it.estado, fechaPago = it.fechaPago, porTemporadas = it.porTemporadas,
             )
         }
     }

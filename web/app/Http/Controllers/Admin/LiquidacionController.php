@@ -10,7 +10,6 @@ use App\Domain\Liquidaciones\Exceptions\LiquidacionInvalidaException;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Infrastructure\Persistence\Eloquent\Configuracion;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion as LiquidacionEloquent;
 use DateTimeImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -45,11 +44,13 @@ class LiquidacionController extends Controller
     ): View {
         $entidad = $liquidaciones->buscarPorId($liquidacion);
         abort_if($entidad === null, 404);
+        $registro = LiquidacionEloquent::findOrFail($liquidacion);
 
         return view('admin.liquidaciones.show', [
             'liquidacion' => $entidad,
+            'importeBruto' => (float) $registro->monto_total + (float) $registro->descuento_sanciones,
             'proveedor' => $proveedores->buscarPorId($entidad->proveedorId),
-            'detalleDiario' => $entregas->litrosPorDiaDelProveedor($entidad->proveedorId, $entidad->periodoInicio, $entidad->periodoFin),
+            'detalleDiario' => $registro->detalle_valorado ?? $entregas->litrosPorDiaDelProveedor($entidad->proveedorId, $entidad->periodoInicio, $entidad->periodoFin),
         ]);
     }
 
@@ -57,7 +58,6 @@ class LiquidacionController extends Controller
     {
         return view('admin.liquidaciones.create', [
             'proveedores' => collect($proveedores->paginar(500)->items()),
-            'precioBase' => Configuracion::find('precio_base_litro')?->valor ?: '1.80',
         ]);
     }
 
@@ -67,7 +67,7 @@ class LiquidacionController extends Controller
             'proveedor_id' => ['required', 'integer'],
             'periodo_inicio' => ['required', 'date'],
             'periodo_fin' => ['required', 'date', 'after_or_equal:periodo_inicio'],
-            'precio_litro' => ['required', 'numeric', 'gt:0', 'decimal:0,3'],
+            'precio_litro' => ['nullable', 'numeric', 'gt:0', 'decimal:0,3'],
         ]);
 
         try {
@@ -75,7 +75,6 @@ class LiquidacionController extends Controller
                 proveedorId: $request->integer('proveedor_id'),
                 periodoInicio: new DateTimeImmutable($request->string('periodo_inicio')->toString()),
                 periodoFin: new DateTimeImmutable($request->string('periodo_fin')->toString()),
-                precioLitro: (float) $request->input('precio_litro'),
             );
         } catch (LiquidacionInvalidaException|RuntimeException $e) {
             return back()->withErrors(['proveedor_id' => $this->mensajeSeguro($e)])->withInput();

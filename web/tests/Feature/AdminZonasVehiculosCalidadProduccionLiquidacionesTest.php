@@ -5,10 +5,11 @@ namespace Tests\Feature;
 use App\Application\Calidad\CalificarEntregasConAnalisis;
 use App\Domain\Calidad\EstadoAnalisis;
 use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
-use App\Infrastructure\Persistence\Eloquent\Sancion;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Sancion;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -240,6 +241,7 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
 
     public function test_un_admin_puede_generar_una_liquidacion_calculada_automaticamente(): void
     {
+        TarifaLeche::factory()->create(['precio' => 1.5, 'desde' => '2020-01-01', 'hasta' => '2035-12-31']);
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
         Entrega::factory()->create([
@@ -289,6 +291,7 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
 
     public function test_un_admin_puede_marcar_una_liquidacion_como_pagada(): void
     {
+        TarifaLeche::factory()->create(['precio' => 2, 'desde' => '2020-01-01', 'hasta' => '2035-12-31']);
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
         Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'litros' => 10, 'registrado_en' => now(), 'anulada' => false]);

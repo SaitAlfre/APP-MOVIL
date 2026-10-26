@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\ProveedorQrController;
 use App\Http\Controllers\Admin\RecepcionController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\SancionController;
+use App\Http\Controllers\Admin\TarifaLecheController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\VentaController;
@@ -208,10 +209,13 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         });
 
         Route::middleware('permiso:liquidaciones,ver')->group(function () {
+            Route::get('precios-leche', [TarifaLecheController::class, 'index'])->name('tarifas.index');
             Route::get('liquidaciones', [LiquidacionController::class, 'index'])->name('liquidaciones.index');
             Route::get('liquidaciones/{liquidacion}', [LiquidacionController::class, 'show'])->whereNumber('liquidacion')->name('liquidaciones.show');
         });
         Route::middleware('permiso:liquidaciones,gestionar')->group(function () {
+            Route::post('precios-leche', [TarifaLecheController::class, 'store'])->name('tarifas.store');
+            Route::put('precios-leche/{tarifa}', [TarifaLecheController::class, 'update'])->whereNumber('tarifa')->name('tarifas.update');
             Route::get('liquidaciones/nueva', [LiquidacionController::class, 'create'])->name('liquidaciones.create');
             Route::post('liquidaciones', [LiquidacionController::class, 'store'])->name('liquidaciones.store');
             Route::patch('liquidaciones/{liquidacion}/pagar', [LiquidacionController::class, 'marcarPagada'])->name('liquidaciones.pagar');

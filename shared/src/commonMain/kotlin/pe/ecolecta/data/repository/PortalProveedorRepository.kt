@@ -23,6 +23,11 @@ class PortalProveedorRepository(private val db: EcolectaDatabase) : pe.ecolecta.
         .asFlow().mapToList(Dispatchers.Default).map { rows ->
             rows.filter { it.tipo == "PAGO" }.map { json.decodeFromString<PagoProveedor>(it.contenido) }
         }
+    override fun precios(proveedorId: String) = db.portalProveedorQueries.porProveedor(proveedorId)
+        .asFlow().mapToList(Dispatchers.Default).map { rows ->
+            rows.firstOrNull { it.tipo == "PRECIOS" }?.let { json.decodeFromString<pe.ecolecta.domain.model.PreciosProveedor>(it.contenido) }
+                ?: pe.ecolecta.domain.model.PreciosProveedor()
+        }
     override suspend fun guardar(solicitud: SolicitudProveedor) = withContext(Dispatchers.Default) {
         db.transaction {
             db.portalProveedorQueries.guardar(solicitud.id, solicitud.proveedorId, "SOLICITUD", json.encodeToString(solicitud), solicitud.creadaEn)

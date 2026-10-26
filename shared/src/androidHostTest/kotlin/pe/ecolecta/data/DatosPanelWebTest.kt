@@ -43,6 +43,25 @@ import kotlin.time.Instant
  * web reemplaza la copia del celular sin duplicar filas ni pisar lo que el celular aún no envió.
  */
 class DatosPanelWebTest {
+    @Test fun `precios recibidos sobreviven a recrear el repositorio y vacio explicito retira tarifas`() = runBlocking {
+        val datos = DatosServidor(
+            servidorEn = 1000,
+            zonas = listOf(ZonaServidor(999, "Zona precios")),
+            proveedores = listOf(ProveedorServidor(999, "PRV-PRECIO", "Proveedor precio", "87654321", zonaId = 999)),
+            tarifas = listOf(pe.ecolecta.domain.model.TarifaLeche(1, 1.805, "2026-10-01", "2026-10-31")),
+        )
+        val importador = SqlDelightDatosServidorRepository(db, reloj, kotlinx.coroutines.Dispatchers.IO)
+        importador.aplicar(datos)
+        val proveedor = db.proveedorQueries.selectTodos().executeAsList().first { it.codigo == "PRV-PRECIO" }.id
+        val guardados = pe.ecolecta.data.repository.PortalProveedorRepository(db).precios(proveedor).first()
+        assertEquals(1.805, guardados.vigente(LocalDate.parse("2026-10-26"))?.precio)
+        assertEquals(1000L, guardados.recibidoEn)
+        importador.aplicar(datos.copy(tarifas = null))
+        assertEquals(guardados, pe.ecolecta.data.repository.PortalProveedorRepository(db).precios(proveedor).first())
+        importador.aplicar(datos.copy(tarifas = emptyList()))
+        assertTrue(pe.ecolecta.data.repository.PortalProveedorRepository(db).precios(proveedor).first().tarifas.isEmpty())
+    }
+
     @Test
     fun `un solo login conecta la cuenta conocida y conserva el acceso offline sin guardar el PIN`() = runBlocking {
         val usuarios = SqlDelightUsuarioRepository(db, kotlinx.coroutines.Dispatchers.IO)

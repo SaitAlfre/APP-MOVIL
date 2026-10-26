@@ -28,13 +28,17 @@
 
             <h1 class="sr-only">Iniciar sesión</h1>
 
+            @isset($avisoAcceso)
+                <div role="alert" aria-live="polite" class="mb-4 rounded-xl border border-eh-red/20 bg-eh-red-soft p-3 text-sm text-eh-red">{{ $avisoAcceso }}</div>
+            @endisset
+
             <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-4" data-once>
                 @csrf
 
                 <div class="flex flex-col gap-1">
-                    <label for="username" class="text-[11px] font-semibold text-eh-text">Código, usuario o DNI</label>
+                    <label for="username" class="text-[11px] font-semibold text-eh-text">Usuario</label>
                     <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus
-                        autocomplete="username" placeholder="ADM-001 o 29876543"
+                        autocomplete="username" placeholder="Tu nombre de usuario" spellcheck="false" autocapitalize="none"
                         @if ($errors->any()) aria-invalid="true" aria-describedby="login-error" @endif
                         class="rounded-xl border border-eh-border-strong bg-eh-surface px-3.5 py-3 text-sm text-eh-text transition-colors focus:border-eh-sage focus:outline-none focus:ring-[3px] focus:ring-eh-sage/15">
                 </div>

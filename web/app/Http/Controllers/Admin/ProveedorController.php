@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Liquidaciones\CalcularImporteTemporadas;
 use App\Application\Proveedores\ActualizarProveedorUseCase;
 use App\Application\Proveedores\CambiarEstadoProveedorUseCase;
 use App\Application\Proveedores\CrearProveedorUseCase;
@@ -21,7 +22,7 @@ use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProveedorRequest;
 use App\Http\Requests\Admin\UpdateProveedorRequest;
-use App\Infrastructure\Persistence\Eloquent\Configuracion;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use DateTimeImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,8 +51,8 @@ class ProveedorController extends Controller
         $paginador = $listar->ejecutar(15, $busqueda, $zonaId, $estado);
 
         // Litros y última entrega de la semana en curso, resueltos en una sola consulta.
-        $inicioSemana = new DateTimeImmutable('monday this week');
-        $hoy = new DateTimeImmutable('today');
+        $inicioSemana = new DateTimeImmutable('monday this week', new \DateTimeZone('America/Lima'));
+        $hoy = new DateTimeImmutable('today', new \DateTimeZone('America/Lima'));
         $ids = collect($paginador->items())->map(fn ($proveedor) => $proveedor->id)->filter()->values()->all();
         $resumenSemana = $entregas->resumenPorProveedores($ids, $inicioSemana, $hoy);
 
@@ -86,10 +87,17 @@ class ProveedorController extends Controller
         $pestana = $request->string('tab')->toString();
         $pestana = in_array($pestana, $pestanas, true) ? $pestana : 'resumen';
 
-        $inicioSemana = new DateTimeImmutable('monday this week');
-        $hoy = new DateTimeImmutable('today');
+        $inicioSemana = new DateTimeImmutable('monday this week', new \DateTimeZone('America/Lima'));
+        $hoy = new DateTimeImmutable('today', new \DateTimeZone('America/Lima'));
         $litrosSemana = $entregas->litrosPorProveedorEnRango($entidad->id, $inicioSemana, $hoy);
-        $precioLitro = (float) (Configuracion::find('precio_base_litro')?->valor ?: 0);
+        $tarifaVigente = TarifaLeche::whereDate('desde', '<=', $hoy->format('Y-m-d'))->whereDate('hasta', '>=', $hoy->format('Y-m-d'))->first();
+        $precioLitro = (float) ($tarifaVigente?->precio ?? 0);
+        $calcular = app(CalcularImporteTemporadas::class);
+        try {
+            $totalEstimado = $calcular->calcular($entidad->id, $inicioSemana, $hoy, $calcular->tarifas($inicioSemana, $hoy))['bruto'];
+        } catch (\RuntimeException) {
+            $totalEstimado = null;
+        }
 
         $ultimas = $entregas->ultimasDelProveedor($entidad->id, 20);
         $controlesPorEntrega = collect($ultimas)
@@ -102,7 +110,7 @@ class ProveedorController extends Controller
             'cuenta' => $entidad->usuarioId !== null ? $usuarios->buscarPorId($entidad->usuarioId) : null,
             'pestana' => $pestana,
             'litrosSemana' => $litrosSemana,
-            'precioLitro' => $precioLitro,
+            'precioLitro' => $precioLitro, 'tarifaVigente' => $tarifaVigente, 'totalEstimado' => $totalEstimado,
             'entregas' => $ultimas,
             'controles' => $controlesPorEntrega,
             'liquidaciones' => $liquidaciones->ultimasDelProveedor($entidad->id, 10),

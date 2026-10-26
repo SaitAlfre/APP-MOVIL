@@ -87,7 +87,7 @@ fun etiquetaPago(estado: String) = when(estado.uppercase()) {
             }
             TarjetaProveedor(color = ProveedorFondo) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    listOf("Litros" to "${decimalProveedor(pago.litros)} L", "Precio" to "S/ ${decimalProveedor(pago.precio, 3)}", "Descuento" to "S/ ${decimalProveedor(pago.descuento)}").forEach { (label, value) ->
+                    listOf("Litros" to "${decimalProveedor(pago.litros)} L", (if (pago.porTemporadas) "Precio promedio" else "Precio/L") to "S/ ${decimalProveedor(pago.precio, 3)}", "Descuento" to "S/ ${decimalProveedor(pago.descuento)}").forEach { (label, value) ->
                         Column(Modifier.weight(1f)) { TextoProveedor(value, 12, bold = true); TextoProveedor(label, 10, ProveedorGris) }
                     }
                 }

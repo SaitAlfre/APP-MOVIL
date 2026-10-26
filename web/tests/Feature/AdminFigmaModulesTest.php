@@ -13,6 +13,7 @@ use App\Infrastructure\Persistence\Eloquent\MovimientoProducto;
 use App\Infrastructure\Persistence\Eloquent\Producto;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Sancion;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -96,6 +97,7 @@ class AdminFigmaModulesTest extends TestCase
 
     public function test_sancion_aprobada_se_descuenta_una_sola_vez_de_la_liquidacion(): void
     {
+        TarifaLeche::factory()->create(['precio' => 2, 'desde' => '2020-01-01', 'hasta' => '2035-12-31']);
         $entrega = Entrega::factory()->create(['litros' => 100, 'registrado_en' => now()]);
         $sancion = Sancion::create([
             'proveedor_id' => $entrega->proveedor_id, 'tipo' => 'calidad', 'severidad' => 'alta',

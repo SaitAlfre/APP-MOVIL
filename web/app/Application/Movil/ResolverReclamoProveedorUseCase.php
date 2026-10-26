@@ -2,6 +2,7 @@
 
 namespace App\Application\Movil;
 
+use App\Application\Liquidaciones\CalcularImporteTemporadas;
 use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Domain\Liquidaciones\EstadoLiquidacion;
 use App\Domain\Movil\CambioMovilRechazadoException;
@@ -72,6 +73,15 @@ final class ResolverReclamoProveedorUseCase
                         DateTimeImmutable::createFromInterface($liquidacion->periodo_fin),
                     );
                     $bruto = round($totalLitros * (float) $liquidacion->precio_litro, 2);
+                    if ($liquidacion->tarifas_aplicadas !== null) {
+                        $valorado = app(CalcularImporteTemporadas::class)->calcular(
+                            $reclamo->proveedor_id, DateTimeImmutable::createFromInterface($liquidacion->periodo_inicio),
+                            DateTimeImmutable::createFromInterface($liquidacion->periodo_fin), $liquidacion->tarifas_aplicadas,
+                        );
+                        $bruto = $valorado['bruto'];
+                        $liquidacion->detalle_valorado = $valorado['detalle'];
+                        $liquidacion->precio_litro = $valorado['precio'];
+                    }
                     $sanciones = (float) Sancion::query()->where('aplicada_liquidacion_id', $liquidacion->id)->sum('descuento');
                     $descuento = min($sanciones > 0 ? $sanciones : (float) $liquidacion->descuento_sanciones, $bruto);
                     $liquidacion->update([

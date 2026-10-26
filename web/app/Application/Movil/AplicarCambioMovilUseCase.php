@@ -464,8 +464,12 @@ class AplicarCambioMovilUseCase
             throw new CambioMovilRechazadoException('El periodo ya está liquidado con otro precio. Sincroniza y revisa el importe oficial antes de registrar un pago.', 'liquidacion_distinta', 409);
         }
         $id = $liquidacion?->id ?? app(GenerarLiquidacionUseCase::class)->ejecutar(
-            $proveedor->id, new DateTimeImmutable($datos['desde']), new DateTimeImmutable($datos['hasta']), (float) $datos['precio'],
+            $proveedor->id, new DateTimeImmutable($datos['desde']), new DateTimeImmutable($datos['hasta']),
         )->id;
+        $oficial = Liquidacion::findOrFail($id);
+        if (abs((float) $oficial->precio_litro - (float) $datos['precio']) > 0.0005) {
+            throw new CambioMovilRechazadoException('El precio enviado no coincide con las tarifas del periodo. Genera la liquidación en la web y sincroniza antes de pagar.', 'liquidacion_distinta', 409);
+        }
         if (strtoupper($datos['estado']) === 'PAGADA' && Liquidacion::query()->findOrFail($id)->estado !== EstadoLiquidacion::Pagada) {
             app(MarcarLiquidacionPagadaUseCase::class)->ejecutar($id);
         }

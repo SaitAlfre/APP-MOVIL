@@ -6,7 +6,6 @@
     @php
         $usuario = auth('operador')->user();
         $puedeGestionar = $usuario->puede('proveedores', 'gestionar');
-        $totalEstimado = $litrosSemana * $precioLitro;
 
         $pestanas = collect([
             ['key' => 'resumen', 'label' => 'Resumen'],
@@ -36,10 +35,10 @@
             <p class="mono text-2xl font-bold text-eh-text">{{ number_format($litrosSemana, 1) }} <span class="text-sm font-medium text-eh-text-muted">L</span></p>
         </x-ui.card>
         <x-ui.card padding="p-4">
-            <p class="mb-1 text-xs text-eh-text-muted">Precio base vigente</p>
+            <p class="mb-1 text-xs text-eh-text-muted">Precio vigente hoy</p>
             <p class="mono text-2xl font-bold text-eh-text">
                 @if ($precioLitro > 0)
-                    S/ {{ number_format($precioLitro, 2) }} <span class="text-sm font-medium text-eh-text-muted">/L</span>
+                    S/ {{ number_format($precioLitro, 3) }} <span class="text-sm font-medium text-eh-text-muted">/L</span>
                 @else
                     <span class="text-sm font-medium text-eh-text-muted">Sin precio configurado</span>
                 @endif
@@ -48,13 +47,13 @@
         <x-ui.card padding="p-4">
             <p class="mb-1 text-xs text-eh-text-muted">Total estimado de la semana</p>
             <p class="mono text-2xl font-bold text-eh-primary">
-                @if ($precioLitro > 0)
+                @if ($totalEstimado !== null)
                     S/ {{ number_format($totalEstimado, 2) }}
                 @else
-                    <span class="text-sm font-medium text-eh-text-muted">—</span>
+                    <span class="text-sm font-medium text-eh-text-muted">Faltan precios del periodo</span>
                 @endif
             </p>
-            <p class="mt-1 text-[11px] text-eh-text-muted">Referencial: la liquidación oficial se calcula al generarla.</p>
+            <p class="mt-1 text-[11px] text-eh-text-muted">Importe bruto por fecha de entrega, antes de descuentos. La liquidación oficial se emite por separado.</p>
         </x-ui.card>
     </div>
 
@@ -157,12 +156,12 @@
                 @if (count($liquidaciones) === 0)
                     <x-ui.empty icon="banknotes" title="Sin liquidaciones" description="Aún no se ha generado ninguna liquidación para este proveedor." />
                 @else
-                    <x-ui.table :headers="['Periodo', 'Litros', 'Precio/L', 'Importe', 'Estado', 'Generada']" caption="Liquidaciones del proveedor">
+                    <x-ui.table :headers="['Periodo', 'Litros', 'Precio/L promedio', 'Importe', 'Estado', 'Generada']" caption="Liquidaciones del proveedor">
                         @foreach ($liquidaciones as $liquidacion)
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm text-eh-text">{{ $liquidacion->periodoInicio->format('d/m/Y') }} — {{ $liquidacion->periodoFin->format('d/m/Y') }}</td>
                                 <td class="mono px-4 py-3 text-sm text-eh-text">{{ number_format($liquidacion->litrosTotales, 1) }} L</td>
-                                <td class="mono px-4 py-3 text-sm text-eh-text-muted">S/ {{ number_format($liquidacion->precioLitro, 2) }}</td>
+                                <td class="mono px-4 py-3 text-sm text-eh-text-muted">S/ {{ number_format($liquidacion->precioLitro, 3) }}</td>
                                 <td class="mono px-4 py-3 text-sm font-semibold text-eh-text">S/ {{ number_format($liquidacion->montoTotal, 2) }}</td>
                                 <td class="px-4 py-3"><x-ui.estado :estado="$liquidacion->estado->value" /></td>
                                 <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $liquidacion->generadaEn->format('d/m/Y') }}</td>

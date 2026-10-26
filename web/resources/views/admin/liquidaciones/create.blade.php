@@ -16,8 +16,8 @@
                     :options="$proveedores->mapWithKeys(fn ($proveedor) => [$proveedor->id => $proveedor->codigo.' · '.$proveedor->nombres])->all()" />
                 <x-ui.field name="periodo_inicio" label="Periodo desde" type="date" required :max="now()->toDateString()" />
                 <x-ui.field name="periodo_fin" label="Periodo hasta" type="date" required :max="now()->toDateString()" />
-                <x-ui.field name="precio_litro" label="Precio por litro (S/)" type="number" step="0.001" min="0.001" required
-                    :value="$precioBase" hint="Precio base configurado en Configuración." />
+                <p class="text-sm text-eh-text-muted sm:col-span-2">El precio se aplica según la fecha de cada entrega. Si el periodo cruza temporadas, se usan los precios de cada una.</p>
+                <a class="text-sm underline text-eh-primary" href="{{ route('admin.tarifas.index') }}">Consultar o configurar precios por temporada</a>
             </div>
 
             <x-ui.alert type="info">

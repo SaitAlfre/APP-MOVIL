@@ -12,6 +12,7 @@ use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\SinRecojo;
 use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -178,13 +179,17 @@ class ExportarDatosMovilQuery
                 'alertas' => $a->alertas ?? [], 'textoComprobante' => $a->texto_comprobante, 'visita' => (object) ($a->visita ?? []),
                 'registradoEn' => $a->registrado_en->getTimestampMs(),
             ])->values(),
+            'tarifas' => TarifaLeche::orderBy('desde')->get()->map(fn ($t) => [
+                'id' => $t->id, 'precio' => (float) $t->precio, 'desde' => $t->desde->toDateString(), 'hasta' => $t->hasta->toDateString(),
+            ])->values(),
             'pagos' => Liquidacion::query()
                 ->when(! $admin, fn ($q) => $q->where('proveedor_id', $puedeDatosProveedor ? ($miFicha?->id ?? 0) : 0))
                 ->orderBy('id')->get()->map(fn (Liquidacion $p) => [
                     'id' => $p->id, 'proveedorId' => $p->proveedor_id,
                     'desde' => $p->periodo_inicio->toDateString(), 'hasta' => $p->periodo_fin->toDateString(),
                     'litros' => (float) $p->litros_totales, 'precio' => (float) $p->precio_litro,
-                    'bruto' => round((float) $p->litros_totales * (float) $p->precio_litro, 2),
+                    'porTemporadas' => count($p->tarifas_aplicadas ?? []) > 1,
+                    'bruto' => round((float) $p->monto_total + (float) $p->descuento_sanciones, 2),
                     'descuento' => (float) $p->descuento_sanciones, 'total' => (float) $p->monto_total,
                     'estado' => strtoupper($p->estado->value), 'fechaPago' => $p->pagada_en?->toDateString(),
                 ])->values(),

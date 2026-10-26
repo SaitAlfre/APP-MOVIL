@@ -18,13 +18,13 @@ import pe.ecolecta.presentation.navegacion.Pantalla
         Column(Modifier.fillMaxWidth().background(ProveedorTinta).padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column(Modifier.weight(1f)) {
-                    TextoProveedor(s.ciclo.resumenCorto, 12, Color.White.copy(alpha = .75f))
+                    TextoProveedor("Mi resumen · ${fechaTarifa(s.hoy.toString())}", 12, Color.White.copy(alpha = .75f))
                     TextoProveedor(s.proveedor!!.nombres, 20, Color.White, true)
                     TextoProveedor("${s.proveedor.codigo} · Zona ${s.zona}", 12, Color.White.copy(alpha = .75f))
                 }
                 EtiquetaProveedor(
                     when (s.conexion) {
-                        ConexionPortal.EN_LINEA -> "Sincronizado"
+                        ConexionPortal.EN_LINEA -> "Conectado"
                         ConexionPortal.SIN_CONEXION -> "Sin conexión"
                         ConexionPortal.CONECTANDO -> "Conectando"
                         ConexionPortal.NO_DISPONIBLE -> "Sin servidor"
@@ -35,13 +35,28 @@ import pe.ecolecta.presentation.navegacion.Pantalla
             }
             listOf(
                 listOf("Litros hoy" to "${decimalProveedor(s.diaHoy?.totalLitros ?: 0.0)} L", "Litros del ciclo" to "${decimalProveedor(s.totalCiclo)} L"),
-                listOf("Precio por litro" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.precio, 3)}" } ?: "Sin liquidación"), "Última liquidación" to (s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)}" } ?: "Sin liquidación")),
             ).forEach { fila -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 fila.forEach { (etiqueta, valor) -> TarjetaProveedor(Modifier.weight(1f), Color.White.copy(alpha = .15f)) {
                     TextoProveedor(etiqueta, 11, Color.White.copy(alpha = .8f)); TextoProveedor(valor, 20, Color.White, true)
                 } }
             } }
-            s.ultimaLiquidacion?.let { TextoProveedor("Liquidación del ${it.desde} al ${it.hasta} · ${etiquetaPago(it.estado)}", 12, Color.White.copy(alpha = .75f)) }
+            TarjetaProveedor(Modifier.fillMaxWidth(), Color.White.copy(alpha = .15f)) {
+                TextoProveedor("PRECIO POR LITRO · HOY", 11, Color.White.copy(alpha = .8f), true)
+                val tarifa = s.precioVigente
+                val textoPrecio = tarifa?.let { "S/ ${decimalProveedor(it.precio, 3)}" } ?: when {
+                    s.precios.recibidoEn == null -> "Precio por consultar"
+                    s.conexion != ConexionPortal.EN_LINEA -> "Sin precio vigente guardado"
+                    else -> "Precio no configurado"
+                }
+                TextoProveedor(textoPrecio, 22, Color.White, true)
+                TextoProveedor(tarifa?.let { "Vigente del ${fechaTarifa(it.desde)} al ${fechaTarifa(it.hasta)}" }
+                    ?: if (s.precios.recibidoEn == null) "Sincroniza para consultar el precio publicado por administración."
+                    else "No hay una tarifa recibida vigente para hoy. Consulta con administración.", 12, Color.White.copy(alpha = .8f))
+                if (s.conexion != ConexionPortal.EN_LINEA) {
+                    TextoProveedor("Sin verificación en línea: el precio podría haber cambiado.", 12, Color(0xFFFFE4A5))
+                }
+                s.precios.recibidoEn?.let { TextoProveedor("Precios recibidos: ${fechaProveedor(it)}", 11, Color.White.copy(alpha = .7f)) }
+            }
         }
         Column(Modifier.padding(horizontal = 16.dp).offset(y = (-12).dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             TarjetaHoyProveedor(s, navegar)
@@ -50,27 +65,25 @@ import pe.ecolecta.presentation.navegacion.Pantalla
                     TextoProveedor("ÚLTIMA CALIDAD", 11, ProveedorGris, true)
                     val ultima = s.calidad.firstOrNull()
                     TextoProveedor(ultima?.let { etiquetaCalidad(it.estado) } ?: "Sin análisis", 14, ProveedorVerde, true)
-                    TextoProveedor(ultima?.let { "pH ${it.ph ?: "—"} · Gr ${it.grasa ?: "—"}%" } ?: "Aún no registrada", 12, ProveedorGris)
+                    TextoProveedor(ultima?.let { fechaProveedor(it.registradoEn) } ?: "Aún no registrada", 12, ProveedorGris)
                 }
                 TarjetaProveedor(Modifier.weight(1f), accion = { navegar(Pantalla.ProveedorPagos) }) {
-                    TextoProveedor("PAGO", 11, ProveedorGris, true)
-                    TextoProveedor(s.ultimaLiquidacion?.let { etiquetaPago(it.estado) } ?: "Sin liquidación", 14, Color(0xFF926B22), true)
-                    TextoProveedor(s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)} · ${it.desde}" } ?: "Aún no hay liquidaciones", 12, ProveedorGris)
+                    TextoProveedor("ÚLTIMA LIQUIDACIÓN", 11, ProveedorGris, true)
+                    TextoProveedor(s.ultimaLiquidacion?.let { etiquetaPago(it.estado) } ?: "Sin liquidación recibida", 14, Color(0xFF926B22), true)
+                    TextoProveedor(s.ultimaLiquidacion?.let { "S/ ${decimalProveedor(it.total)} · ${it.desde}" } ?: "Aquí verás el importe y si ya fue pagado.", 12, ProveedorGris)
                 }
             }
+            s.avisoPagos?.let { aviso -> TarjetaProveedor(color = Color(0xFFFFF0D1)) { TextoProveedor(aviso, 12, ProveedorGris) } }
             ComunicadosProveedor()
             TarjetaProveedor(color = Color(0xFFE3F1E8)) {
                 TextoProveedor("INFORMACIÓN", 11, ProveedorVerde, true)
                 TextoProveedor("Tu ciclo de acopio", 14, bold = true)
-                TextoProveedor("El recojo se organiza en ciclos de 6 días, con las mismas fechas que ve tu acopiador. Los pagos se liquidan por semana contable (jueves a miércoles) y los importes se muestran cuando exista una liquidación registrada.", 13, ProveedorGris)
+                TextoProveedor("El ciclo agrupa tus entregas de 6 días. El precio se aplica según la fecha de cada entrega. Administración emite la liquidación y registra el pago; el total del ciclo no significa que ya esté pagado.", 13, ProveedorGris)
             }
             if(s.proveedor?.estado != EstadoProveedor.ACTIVO) EtiquetaProveedor("Cuenta ${s.proveedor?.estado?.name?.lowercase()}", true)
-            TextoProveedor("ACCIONES", 13, ProveedorGris, true)
+            TextoProveedor("¿QUÉ NECESITAS HACER?", 13, ProveedorGris, true)
             listOf(
                 Triple("📅", "Mi ciclo", Pantalla.ProveedorMiCiclo),
-                Triple("🥛", "Mis entregas", Pantalla.ProveedorEntregas),
-                Triple("🔬", "Mi calidad", Pantalla.ProveedorCalidad),
-                Triple("💰", "Mis pagos", Pantalla.ProveedorPagos),
                 Triple("📲", "Mostrar QR", Pantalla.ProveedorMiQr),
                 Triple("📝", "Reportar diferencia", Pantalla.ProveedorReclamos),
                 Triple("🚛", "Solicitar traslado", Pantalla.ProveedorTraslado),
@@ -98,7 +111,7 @@ import pe.ecolecta.presentation.navegacion.Pantalla
                 Column(Modifier.weight(1f)) {
                     TextoProveedor(fechaProveedor(e.registradoEn), 13, ProveedorGris, true)
                     TextoProveedor("${decimalProveedor(e.litros)} L", 22, bold = true)
-                    TextoProveedor("${e.tachos} tachos · ${s.usuarios[e.usuarioId] ?: "Acopiador no disponible"}", 13, ProveedorGris)
+                    TextoProveedor("${s.usuarios[e.usuarioId] ?: "Acopiador no disponible"}", 13, ProveedorGris)
                 }
                 EtiquetaProveedor(if(e.anulada) "Anulada" else if(e.syncState == SyncState.SYNCED) "✓ Registrada" else "Por confirmar", e.anulada || e.syncState != SyncState.SYNCED)
             }
@@ -115,7 +128,7 @@ import pe.ecolecta.presentation.navegacion.Pantalla
             TarjetaProveedor {
                 TextoProveedor(fechaProveedor(e.registradoEn), 13, ProveedorGris)
                 TextoProveedor("${decimalProveedor(e.litros)} L", 28, bold = true)
-                TextoProveedor("${e.tachos} tachos · ${s.usuarios[e.usuarioId] ?: "Sin nombre de acopiador"}")
+                TextoProveedor("${s.usuarios[e.usuarioId] ?: "Sin nombre de acopiador"}")
                 TextoProveedor("Referencia: ${e.id}", 12, ProveedorGris)
                 TextoProveedor(e.observaciones ?: "Sin observaciones", 14)
                 EtiquetaProveedor(if(e.anulada) "Anulada" else if(e.syncState == SyncState.SYNCED) "Registrada" else "Pendiente de sincronización", e.anulada || e.syncState != SyncState.SYNCED)
@@ -164,3 +177,8 @@ import pe.ecolecta.presentation.navegacion.Pantalla
         }
     }
 }
+
+private fun fechaTarifa(valor: String): String = runCatching {
+    val fecha = kotlinx.datetime.LocalDate.parse(valor)
+    "${fecha.dayOfMonth.toString().padStart(2, '0')}/${fecha.monthNumber.toString().padStart(2, '0')}/${fecha.year}"
+}.getOrDefault(valor)

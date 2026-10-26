@@ -53,6 +53,7 @@ data class PagoProveedor(
     val estado: String,
     val fechaPago: String? = null,
     val estadoPendiente: String? = null,
+    val porTemporadas: Boolean = false,
 ) {
     fun comprobante(nombre: String, codigo: String): String = """
         ECOLACTEA DIGITAL — COMPROBANTE DE LIQUIDACIÓN
@@ -60,7 +61,7 @@ data class PagoProveedor(
         Proveedor: $nombre ($codigo)
         Periodo: $desde al $hasta
         Litros: $litros
-        Precio por litro: S/ $precio
+        ${if (porTemporadas) "Precio promedio del periodo" else "Precio por litro"}: S/ $precio
         Importe bruto: S/ $bruto
         Descuentos: S/ $descuento
         Total: S/ $total

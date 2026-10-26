@@ -27,6 +27,7 @@ data class PortalProveedorState(
     val entregas: List<Entrega> = emptyList(),
     val calidad: List<ControlCalidad> = emptyList(),
     val pagos: List<PagoProveedor> = emptyList(),
+    val precios: PreciosProveedor = PreciosProveedor(),
     val solicitudes: List<SolicitudProveedor> = emptyList(),
     /** Entregas y "sin recojo" propios (locales + recibidos del servidor), para "Mi ciclo". */
     val recojos: List<RecojoDelDia> = emptyList(),
@@ -42,6 +43,7 @@ data class PortalProveedorState(
     /** Estado real de la consulta de liquidaciones al panel web; null si todo está al día. */
     val avisoPagos: String? = null,
 ) {
+    val precioVigente get() = precios.vigente(hoy)
     val zona get() = zonas.firstOrNull { it.id == proveedor?.zonaId }?.nombre ?: "Sin zona disponible"
     val inicioSemana get() = inicioSemanaProveedor(hoy)
     val finSemana get() = inicioSemana.plus(DatePeriod(days = 6))
@@ -67,7 +69,7 @@ data class PortalProveedorState(
 enum class ConexionPortal(val etiqueta: String) {
     NO_CONFIGURADA("Este celular no tiene sincronización configurada: solo ves lo guardado aquí."),
     CONECTANDO("Conectando con el servidor…"),
-    EN_LINEA("Conectado: tus registros están al día."),
+    EN_LINEA("Conectado: se muestran los registros recibidos."),
     SIN_CONEXION("Sin conexión: se muestra lo último recibido. Lo nuevo aparecerá al reconectar."),
     NO_DISPONIBLE("No se pudo consultar el servidor."),
 }
@@ -116,6 +118,7 @@ class PortalProveedorViewModel(
                 if (remoto.configurado) escucha = launch { escucharServidor(proveedor.codigo) }
                 if (servidorWeb.configurado) launch { recibirLiquidaciones(sesion.usuario.id, proveedor) }
                 else _state.update { it.copy(avisoPagos = "Esta versión no consulta el panel web: solo ves liquidaciones guardadas en este celular.") }
+                launch { portal.precios(proveedor.id).collect { precios -> _state.update { it.copy(precios = precios) } } }
                 val registrosPropios = combine(
                     entregasRepository.observarPorProveedor(proveedor.id),
                     sinRecojoRepository.observarPorProveedor(proveedor.id),
@@ -132,6 +135,7 @@ class PortalProveedorViewModel(
                 ) { registros, calidad, pagos, solicitudes ->
                     _state.value.copy(
                         cargando = false,
+                        hoy = reloj.ahora().toLocalDateTime(TimeZone.of("America/Lima")).date,
                         entregas = registros.entregas,
                         recojos = registros.recojos,
                         sinRecojos = registros.sinRecojos,
@@ -154,7 +158,7 @@ class PortalProveedorViewModel(
     private suspend fun recibirLiquidaciones(usuarioId: String, proveedor: Proveedor) {
         servidorWeb.observarSesion(usuarioId).collectLatest { enlazada ->
             if (!enlazada) {
-                _state.update { it.copy(avisoPagos = "Tu cuenta aún no está enlazada con el panel web: se muestran las liquidaciones guardadas en este celular.") }
+                _state.update { it.copy(avisoPagos = "No se pudo verificar tu sesión: se muestran los pagos guardados. Conéctate y vuelve a iniciar sesión si el aviso continúa.") }
                 return@collectLatest
             }
             servidorWeb.liquidacionesDelProveedor(usuarioId).fold(
@@ -190,6 +194,10 @@ class PortalProveedorViewModel(
                 is EventoRegistrosRemotos.NoDisponible -> _state.update { it.copy(conexion = ConexionPortal.NO_DISPONIBLE, motivoConexion = evento.motivo) }
             }
         }
+    }
+
+    fun actualizarFecha() {
+        _state.update { it.copy(hoy = reloj.ahora().toLocalDateTime(TimeZone.of("America/Lima")).date) }
     }
 
     fun limpiarMensaje() { _state.update { it.copy(error = null, confirmacion = null) } }
@@ -228,7 +236,7 @@ class PortalProveedorViewModel(
         viewModelScope.launch {
             try {
                 accion()
-                _state.update { it.copy(confirmacion = "Solicitud guardada en este celular. Se enviará automáticamente cuando haya conexión y tu cuenta esté enlazada. En Mis solicitudes verás su estado y la respuesta de administración.") }
+                _state.update { it.copy(confirmacion = "Solicitud guardada en este celular. Se enviará automáticamente cuando haya conexión y una sesión válida. En Mis solicitudes verás su estado y la respuesta de administración.") }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { _state.update { it.copy(error = e.message ?: "No se pudo guardar. Inténtalo nuevamente.") } }
             finally { _state.update { it.copy(guardando = false) } }

@@ -14,6 +14,12 @@ import pe.ecolecta.presentation.proveedor.nav.*
 @Composable
 fun ProveedorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit, vm: PortalProveedorViewModel = koinViewModel()) {
     val s by vm.state.collectAsState()
+    LaunchedEffect(vm) {
+        while (true) {
+            vm.actualizarFecha()
+            kotlinx.coroutines.delay(30_000)
+        }
+    }
     CalidadBackHandler(pantalla != Pantalla.ProveedorHome) { onCambiarPantalla(Pantalla.ProveedorHome) }
     EcolectaTheme(oscuroForzado = false) {
         Scaffold(containerColor = ProveedorFondo, bottomBar = {

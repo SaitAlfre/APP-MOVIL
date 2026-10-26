@@ -279,7 +279,8 @@ class MovilController extends Controller
                 'hasta' => $l->periodo_fin->toDateString(),
                 'litros' => (float) $l->litros_totales,
                 'precio' => (float) $l->precio_litro,
-                'bruto' => round((float) $l->litros_totales * (float) $l->precio_litro, 2),
+                'porTemporadas' => count($l->tarifas_aplicadas ?? []) > 1,
+                'bruto' => round((float) $l->monto_total + (float) $l->descuento_sanciones, 2),
                 'descuento' => (float) $l->descuento_sanciones,
                 'total' => (float) $l->monto_total,
                 // Estado real del panel, sin traducirlo a otro: `pendiente` = calculada con monto

@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -168,6 +169,7 @@ class CambiosMovilTest extends TestCase
 
     public function test_liquidacion_aprobada_y_pagada_en_la_app(): void
     {
+        TarifaLeche::factory()->create(['precio' => 1.8, 'desde' => '2020-01-01', 'hasta' => '2035-12-31']);
         $proveedor = Proveedor::factory()->create(['codigo' => 'PRV-LIQ']);
         Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'litros' => 50, 'registrado_en' => '2026-09-15 12:00:00']);
         $token = $this->token('admin_app');
