@@ -30,7 +30,13 @@ class GuardarAnalisisCalidadUseCase
      */
     public function ejecutar(array $datos, Usuario $tecnico): AnalisisCalidad
     {
-        $valores = collect(array_keys(ParametrosCalidad::PARAMETROS))->mapWithKeys(fn (string $clave) => [$clave => $datos['valores'][$clave] ?? null])->all();
+        $valores = collect(array_keys(ParametrosCalidad::PARAMETROS))->mapWithKeys(function (string $clave) use ($datos) {
+            $val = $datos['valores'][$clave] ?? null;
+            $val = $val !== null && $val !== '' ? (float) $val : null;
+
+            return [$clave => ParametrosCalidad::normalizar($clave, $val)];
+        })->all();
+
         if (collect($valores)->every(fn ($valor) => $valor === null)) {
             throw new InvalidArgumentException('Ingresa al menos un resultado del análisis antes de guardar.');
         }

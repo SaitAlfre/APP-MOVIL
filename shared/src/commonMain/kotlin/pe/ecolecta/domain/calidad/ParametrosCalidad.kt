@@ -2,6 +2,7 @@ package pe.ecolecta.domain.calidad
 
 import pe.ecolecta.domain.model.ControlCalidad
 import pe.ecolecta.domain.model.LecturaCalidad
+import kotlin.math.round
 
 data class ParametroCalidad(
     val clave: String,
@@ -25,7 +26,7 @@ val parametrosCalidad = listOf(
     ParametroCalidad("lactosa", "Lactosa", "%", 4.2, 5.5, "4.7"),
     ParametroCalidad("sales", "Sales", "%", 0.6, 0.85, "0.70"),
     ParametroCalidad("solidos", "Sólidos totales", "%", 11.2, 16.0, "12.2"),
-    ParametroCalidad("agua", "Agua añadida", "%", 0.0, 0.0, "99.9"),
+    ParametroCalidad("agua", "Agua añadida", "%", 0.0, 0.0, "0.0"),
     ParametroCalidad("congelacion", "Punto de congelación", "°C", -0.555, -0.515, "-0.530"),
     ParametroCalidad("ph", "pH", "", 6.5, 6.8, "6.7"),
 )
@@ -34,6 +35,17 @@ val parametrosCalidad = listOf(
 fun permiteNegativo(clave: String) = clave == "congelacion"
 
 fun String.numeroCalidad(): Double? = trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
+
+/** Normaliza lecturas usuales de analizador (p. ej. grados Quevenne en densidad o depresión positiva en congelación). */
+fun normalizarValorCalidad(clave: String, valor: Double?): Double? {
+    if (valor == null || !valor.isFinite()) return null
+    return when {
+        clave == "densidad" && valor in 20.0..45.0 -> round((1.0 + valor / 1000.0) * 10000.0) / 10000.0
+        clave == "densidad" && valor in 1000.0..1100.0 -> round((valor / 1000.0) * 10000.0) / 10000.0
+        clave == "congelacion" && valor in 0.3..0.8 -> -valor
+        else -> valor
+    }
+}
 
 fun LecturaCalidad.valores() = mapOf(
     "temperatura" to temperatura, "grasa" to grasa, "sng" to sng, "densidad" to densidad,

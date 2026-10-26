@@ -29,7 +29,12 @@
                         @foreach ($sanciones as $sancion)
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $sancion->proveedor?->nombres ?? '—' }}</td>
-                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">CQ-{{ str_pad((string) $sancion->control_calidad_id, 3, '0', STR_PAD_LEFT) }}</td>
+                                <td class="mono px-4 py-3 text-xs text-eh-text-muted">
+    CQ-{{ str_pad((string) $sancion->control_calidad_id, 3, '0', STR_PAD_LEFT) }}
+    @if ($sancion->controlCalidad?->entrega_id)
+        <span class="block text-[11px] text-eh-primary font-sans font-medium">Entrega #{{ $sancion->controlCalidad->entrega_id }}</span>
+    @endif
+</td>
                                 <td class="px-4 py-3"><x-ui.badge variant="yellow" :label="ucfirst($sancion->tipo ?? 'calidad')" /></td>
                                 <td class="px-4 py-3"><x-ui.badge :variant="$severidades[$sancion->severidad] ?? 'gray'" :label="ucfirst($sancion->severidad)" /></td>
                                 <td class="mono px-4 py-3 text-sm font-medium text-eh-red">-S/ {{ number_format((float) $sancion->descuento, 2) }}</td>

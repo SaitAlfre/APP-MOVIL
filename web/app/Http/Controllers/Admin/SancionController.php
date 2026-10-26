@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Calidad\CalificarEntregasConAnalisis;
 use App\Application\Movil\AplicarCambioMovilUseCase;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
@@ -23,7 +24,7 @@ class SancionController extends Controller
 
         return view('admin.sanciones.index', [
             'solicitudesTraslado' => SolicitudTraslado::with(['proveedor', 'destino'])->latest()->paginate(15, ['*'], 'traslados'),
-            'sanciones' => Sancion::with(['proveedor', 'controlCalidad'])->latest()->paginate(15, ['*'], 'sanciones'),
+            'sanciones' => Sancion::with(['proveedor', 'controlCalidad.entrega'])->latest()->paginate(15, ['*'], 'sanciones'),
             'reclamos' => ReclamoProveedor::with(['proveedor', 'entrega'])->latest()->paginate(15, ['*'], 'reclamos'),
             'entregas' => Entrega::with('proveedor')->where('anulada', false)->latest('registrado_en')->limit(100)->get(),
         ]);
@@ -53,6 +54,7 @@ class SancionController extends Controller
 
     public function resolverReclamo(Request $request, ReclamoProveedor $reclamo): RedirectResponse
     {
+        abort_unless(auth('operador')->user()->tieneRol('admin'), 403, 'Solo administración puede resolver reclamos de volumen.');
         $datos = $request->validate([
             'estado' => ['required', Rule::in(['resuelto', 'rechazado'])],
             'respuesta' => ['required', 'string', 'max:500'],
@@ -90,20 +92,6 @@ class SancionController extends Controller
     private function crearPropuestasDesdeCalidad(): void
     {
         ControlCalidad::query()->with('entrega')->whereIn('resultado', ['observado', 'rechazado'])->get()
-            ->each(function (ControlCalidad $control): void {
-                if ($control->entrega === null) {
-                    return;
-                }
-                $resultado = $control->resultado->value;
-                Sancion::firstOrCreate(
-                    ['control_calidad_id' => $control->id],
-                    [
-                        'proveedor_id' => $control->entrega->proveedor_id,
-                        'severidad' => $resultado === 'rechazado' ? 'alta' : 'media',
-                        'descuento' => $resultado === 'rechazado' ? 30.50 : 15,
-                        'motivo' => $control->observaciones ?: 'Resultado de calidad '.$resultado,
-                    ],
-                );
-            });
+            ->each(fn (ControlCalidad $control) => CalificarEntregasConAnalisis::sincronizarSancion($control));
     }
 }
