@@ -4,7 +4,6 @@ import pe.ecolecta.domain.ConfiguracionJornada
 import pe.ecolecta.domain.DeviceIdProvider
 import pe.ecolecta.domain.ReaperturaJornadaException
 import pe.ecolecta.domain.Reloj
-import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.model.AccionAuditoria
 import pe.ecolecta.domain.model.Auditoria
 import pe.ecolecta.domain.model.Jornada
@@ -60,6 +59,7 @@ class ReabrirJornadaUseCase(
         val motivoLimpio = motivo.trim()
         if (motivoLimpio.length < MOTIVO_MINIMO) throw ReaperturaJornadaException.MotivoObligatorio
         val jornada = jornadaRepository.obtenerPorId(jornadaId) ?: throw ReaperturaJornadaException.NoEncontrada
+        require(!jornada.cierreAdministrativo) { "La jornada fue terminada desde administración. Coordina con el administrador." }
         if (jornada.usuarioId != usuarioId) throw ReaperturaJornadaException.NoPertenece
         val cerradaEn = jornada.cerradaEn ?: throw ReaperturaJornadaException.YaAbierta
         if (jornada.fecha != reloj.hoy()) throw ReaperturaJornadaException.NoEsDeHoy
@@ -68,8 +68,8 @@ class ReabrirJornadaUseCase(
         val admin = autorizacion?.let { validarAdmin(it, usuarioId) }
         if (requiereAutorizacion(jornada) && admin == null) throw ReaperturaJornadaException.FueraDePlazo(plazoMinutos)
 
-        val ocupante = jornadaRepository.reabrirSiZonaLibre(jornadaId)
-        if (ocupante != null) throw ZonaOcupadaException(jornada.zonaId)
+        val ocupante = jornadaRepository.reabrirSiUsuarioLibre(jornadaId)
+        if (ocupante != null) throw ReaperturaJornadaException.OtraJornadaAbierta
 
         val ahora = reloj.ahora().toEpochMilliseconds()
         runCatching {

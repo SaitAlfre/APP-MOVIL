@@ -41,7 +41,7 @@ class AdminJornadaEntregaTest extends TestCase
         $this->assertDatabaseHas('jornadas', ['usuario_id' => $acopiador->id, 'zona_id' => $zona->id]);
     }
 
-    public function test_no_se_puede_abrir_una_jornada_en_una_zona_ya_ocupada_por_otro_acopiador(): void
+    public function test_varios_acopiadores_pueden_abrir_jornada_en_la_misma_zona(): void
     {
         $this->comoAdmin();
         $zona = Zona::factory()->create();
@@ -57,8 +57,8 @@ class AdminJornadaEntregaTest extends TestCase
             'vehiculo_id' => $vehiculo->id,
         ]);
 
-        $response->assertSessionHasErrors('zona_id');
-        $this->assertDatabaseCount('jornadas', 1);
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('jornadas', 2);
     }
 
     public function test_un_admin_puede_registrar_una_entrega_en_nombre_del_acopiador_de_la_jornada(): void
@@ -84,7 +84,7 @@ class AdminJornadaEntregaTest extends TestCase
         ]);
     }
 
-    public function test_no_se_puede_registrar_una_entrega_que_supera_la_capacidad_del_proveedor(): void
+    public function test_los_litros_no_dependen_de_los_tachos_historicos(): void
     {
         $this->comoAdmin();
         $acopiador = Usuario::factory()->create(['roles' => ['acopiador']]);
@@ -98,8 +98,8 @@ class AdminJornadaEntregaTest extends TestCase
             'tachos' => 1,
         ]);
 
-        $response->assertSessionHasErrors('litros');
-        $this->assertDatabaseCount('entregas', 0);
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('entregas', 1);
     }
 
     public function test_registrar_una_entrega_duplicada_del_mismo_proveedor_muestra_opcion_de_sumar(): void
@@ -134,9 +134,9 @@ class AdminJornadaEntregaTest extends TestCase
         $this->comoAdmin();
         $jornada = Jornada::factory()->create(['cerrada_en' => null]);
 
-        $response = $this->patch("/admin/acopiadores/jornadas/{$jornada->id}/cerrar");
+        $response = $this->patch("/admin/acopiadores/jornadas/{$jornada->id}/cerrar", ['motivo' => 'Fin del trabajo de campo']);
 
-        $response->assertRedirect(route('admin.acopiadores.index'));
+        $response->assertRedirect(route('admin.acopiadores.jornadas.show', $jornada->id));
         $this->assertNotNull($jornada->fresh()->cerrada_en);
     }
 

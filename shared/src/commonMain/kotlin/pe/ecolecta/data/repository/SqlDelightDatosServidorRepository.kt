@@ -1,5 +1,8 @@
 package pe.ecolecta.data.repository
 
+import kotlinx.coroutines.flow.first
+import pe.ecolecta.data.local.aDominio
+import pe.ecolecta.domain.repository.JornadaEnCursoRepository
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import pe.ecolecta.domain.model.PagoProveedor
@@ -36,6 +39,7 @@ class SqlDelightDatosServidorRepository(
     private val db: EcolectaDatabase,
     private val reloj: Reloj,
     private val dispatcher: CoroutineDispatcher,
+    private val jornadaEnCurso: JornadaEnCursoRepository? = null,
 ) : DatosServidorLocalRepository {
 
     override suspend fun aplicar(datos: DatosServidor) = withContext(dispatcher) {
@@ -49,6 +53,21 @@ class SqlDelightDatosServidorRepository(
             }.toMap()
             val jornadas = datos.jornadas.mapNotNull { j -> jornada(j, zonas, vehiculos, usuarios)?.let { j.id to it } }.toMap()
             datos.entregas.forEach { entrega(it, jornadas, proveedores, zonas, vehiculos, usuarios) }
+            datos.sinRecojos?.forEach { marca ->
+                val proveedor = proveedores[marca.proveedorId] ?: return@forEach
+                val jornada = jornadas[marca.jornadaId] ?: return@forEach
+                val zona = zonas[marca.zonaId] ?: return@forEach
+                db.sinRecojoQueries.recibir(
+                    id = marca.id, jornada_id = jornada, proveedor_id = proveedor,
+                    usuario_id = usuarioLocal(marca.usuarioId, usuarios), zona_id = zona, fecha = marca.fecha,
+                    motivo = marca.motivo, detalle = marca.detalle, registrada_en = marca.registradaEn,
+                    deshecha = if (marca.deshecha) 1L else 0L, deshecha_en = marca.deshechaEn,
+                    updated_at = marca.actualizadoEn,
+                )
+                db.sinRecojoQueries.actualizarRecibida(motivo = marca.motivo, detalle = marca.detalle,
+                    deshecha = if (marca.deshecha) 1L else 0L, deshecha_en = marca.deshechaEn,
+                    updated_at = marca.actualizadoEn, id = marca.id)
+            }
             db.controlCalidadQueries.borrarResumenesAntiguos()
             datos.analisis.forEach { analisis(it, proveedores, usuarios) }
             comunicados(datos.comunicados)
@@ -76,6 +95,12 @@ class SqlDelightDatosServidorRepository(
             }
             if (datos.completo) retirarAusentes(zonas.values.toSet(), vehiculos.values.toSet(), usuarios.values.toSet(), proveedores.values.toSet(), ahora)
         }
+        jornadaEnCurso?.observar()?.first()?.let { actual ->
+            db.jornadaQueries.selectPorId(actual.id).executeAsOneOrNull()?.aDominio()?.let { recibida ->
+                if (recibida != actual) jornadaEnCurso.establecer(recibida)
+            }
+        }
+        Unit
     }
 
     override suspend fun guardarCuenta(cuenta: CuentaServidor, pinHash: String, pinSalt: String, ahora: Long): String =
@@ -226,6 +251,12 @@ class SqlDelightDatosServidorRepository(
             id = id, usuario_id = usuarioId, zona_id = zonaId, vehiculo_id = vehiculoId, fecha = j.fecha,
             abierta_en = j.abiertaEn, cerrada_en = j.cerradaEn,
         )
+        if (j.cierreAdministrativo && j.cerradaEn != null) {
+            db.jornadaQueries.cerrarDesdeAdministracion(j.cerradaEn, id)
+            db.cambioPendienteQueries.porClave("jornada", id).executeAsOneOrNull()?.let {
+                db.cambioPendienteQueries.completar("jornada", id, it.marcado_en)
+            }
+        }
         val actual = db.jornadaQueries.selectPorId(id).executeAsOneOrNull()
         if (actual != null && actual.sync_state == "SYNCED" && !db.tieneCambioPendiente(EntidadCambio.JORNADA, id) &&
             (actual.usuario_id != usuarioId || actual.zona_id != zonaId || actual.vehiculo_id != vehiculoId ||

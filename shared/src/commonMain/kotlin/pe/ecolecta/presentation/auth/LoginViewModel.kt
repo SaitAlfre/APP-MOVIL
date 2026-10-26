@@ -36,15 +36,13 @@ class LoginViewModel(
             iniciarSesion(estado.username, estado.pin).fold(
                 onSuccess = { inicio ->
                     val usuario = inicio.usuario
-                    // En segundo plano: el ingreso offline no espera a la red. Si el panel ya validó la
-                    // cuenta (cuenta nueva o PIN cambiado en la web), solo se traen sus datos.
-                    if (inicio.enlazado) vincularServidor.yaEnlazado() else vincularServidor(usuario.id, usuario.username, estado.pin)
                     if (usuario.roles.size == 1) {
                         seleccionarRolUseCase(usuario, usuario.roles.first())
-                        _uiState.update { it.copy(cargando = false, sesionIniciada = true) }
+                        if (inicio.enlazado) vincularServidor.yaEnlazado()
+                        _uiState.update { it.copy(cargando = false, pin = "", sesionIniciada = true) }
                     } else {
                         _uiState.update {
-                            it.copy(cargando = false, usuarioAutenticadoId = usuario.id, requiereSeleccionRol = true)
+                            it.copy(cargando = false, pin = "", usuarioAutenticadoId = usuario.id, requiereSeleccionRol = true)
                         }
                     }
                 },

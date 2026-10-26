@@ -41,8 +41,8 @@ class ReporteDashboardTest extends TestCase
         ]);
 
         $response = $this->get(route('admin.reportes.index', [
-            'desde' => now()->toDateString(),
-            'hasta' => now()->toDateString(),
+            'desde' => now('America/Lima')->toDateString(),
+            'hasta' => now('America/Lima')->toDateString(),
             'zona_id' => $zonaNorte->id,
         ]));
 
@@ -72,8 +72,8 @@ class ReporteDashboardTest extends TestCase
         ]);
 
         $response = $this->get(route('admin.reportes.exportar', [
-            'desde' => now()->toDateString(),
-            'hasta' => now()->toDateString(),
+            'desde' => now('America/Lima')->toDateString(),
+            'hasta' => now('America/Lima')->toDateString(),
             'zona_id' => $zona->id,
         ]));
 

@@ -174,6 +174,37 @@ class InicioAcopiadorTest {
         cerrarSesion,
     ).also { store.put("seleccion", it) }
 
+    @Test
+    fun `registro exige elegir proveedor admite coma y un doble toque guarda un solo recojo`() = runTest(dispatcher) {
+        iniciarSesion()
+        abrirJornada("u1", "z1", "v1").getOrThrow()
+        val proveedores = FakeProveedorRepository()
+        proveedores.insertar(pe.ecolecta.domain.acopio.proveedorDePrueba("p1"))
+        val vm = pe.ecolecta.presentation.acopiador.registro.RegistroEntregaViewModel(
+            ObtenerJornadaEnCursoUseCase(enCurso), ListarProveedoresPorZonaUseCase(proveedores),
+            pe.ecolecta.domain.usecase.entrega.ListarEntregasUseCase(entregas),
+            pe.ecolecta.domain.usecase.entrega.RegistrarEntregaUseCase(entregas, proveedores, reloj, FakeDeviceIdProvider()),
+            CorregirEntregaUseCase(entregas, reloj, FakeDeviceIdProvider(), ReglaEdicionEntrega(FakeGestionPortalRepository())),
+            ObtenerSesionUseCase(sesiones), ListarZonasUseCase(zonas), reloj = reloj,
+        ).also { store.put("registro", it) }
+        advanceUntilIdle()
+        assertEquals("", vm.uiState.value.proveedorId, "no asigna leche al primer proveedor sin elegirlo")
+        vm.onProveedorCambia("p1")
+        vm.onLitrosCambia("13,5")
+        assertEquals("Guardar 13.5 L", vm.uiState.value.textoGuardar)
+        vm.guardar()
+        vm.guardar()
+        advanceUntilIdle()
+        assertEquals(1, entregas.filtrar().size)
+        assertEquals(13.5, entregas.filtrar().single().litros)
+        vm.confirmarNavegacion()
+        vm.prepararNuevoRecojo()
+        assertEquals("", vm.uiState.value.litros, "al volver no reutiliza la cantidad ya guardada")
+        assertEquals("p1", vm.uiState.value.proveedorId)
+        assertFalse(vm.uiState.value.puedeGuardar)
+        assertEquals(1, entregas.filtrar().size, "limpiar el formulario no guarda ni borra recojos")
+    }
+
     // --- Estado 1: jornada abierta -------------------------------------------------------------
 
     @Test
@@ -283,7 +314,7 @@ class InicioAcopiadorTest {
         zonasActivas.value = listOf(Zona("z1", "FAON-MARKAPAJO", false))
 
         assertIs<InicioAcopiador.SinZonaActiva>(resolver("u1"))
-        assertEquals(Pantalla.AcopiadorSeleccionZonaVehiculo, reabrirApp())
+        assertEquals(Pantalla.AcopiadorHome, reabrirApp())
 
         val seleccion = crearSeleccion()
         advanceUntilIdle()
@@ -343,10 +374,10 @@ class InicioAcopiadorTest {
     }
 
     @Test
-    fun `sin jornada del dia reabrir la app va a la seleccion y una nueva seleccion no navega sola`() = runTest(dispatcher) {
+    fun `sin jornada del dia reabrir la app va a Inicio y el formulario no abre una jornada solo`() = runTest(dispatcher) {
         iniciarSesion()
         assertIs<InicioAcopiador.SeleccionarZonaVehiculo>(resolver("u1"))
-        assertEquals(Pantalla.AcopiadorSeleccionZonaVehiculo, reabrirApp())
+        assertEquals(Pantalla.AcopiadorHome, reabrirApp())
 
         val seleccion = crearSeleccion()
         advanceUntilIdle()

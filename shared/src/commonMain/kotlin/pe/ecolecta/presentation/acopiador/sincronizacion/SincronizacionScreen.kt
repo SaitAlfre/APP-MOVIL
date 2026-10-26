@@ -47,6 +47,9 @@ import pe.ecolecta.presentation.design.formatearLitros
 @Composable
 fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewModel = koinViewModel()) {
     val estado by viewModel.uiState.collectAsState()
+    val coordinador = org.koin.compose.koinInject<pe.ecolecta.domain.usecase.sync.CoordinadorSync>()
+    val conexion by coordinador.estado.collectAsState()
+
     val resumen = estado.resumen
 
     // El ViewModel vive toda la sesión (no se recrea al cambiar de pestaña): sin esto, la cola
@@ -64,31 +67,20 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
             Modifier.padding(horizontal = Espaciado.l),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m),
         ) {
-            if (estado.cuentaEnlazada) {
-                Banner("Cuenta enlazada con el panel web.", TipoBanner.INFO)
-            }
             Tarjeta {
-                Text("Cola de sincronización", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
-                Text(
-                    "La sincronización se ejecuta automáticamente al tener conexión. «Sincronizar ahora» envía y descarga los cambios. Envía todo lo " +
-                        "guardado en este celular, cada entrega con la cuenta de quien la registró o modificó; los contadores son solo tuyos.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Colores.textSecundario,
-                )
-                Spacer(Modifier.height(Espaciado.m))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                    MiniEstadistica("Pendientes", resumen.pendientes, if (resumen.pendientes > 0) Colores.advertencia else Colores.textPrimary, Modifier.weight(1f))
-                    MiniEstadistica("Sincronizados", resumen.sincronizados, Colores.exito, Modifier.weight(1f))
-                    MiniEstadistica("Rechazados", resumen.errores, if (resumen.errores > 0) Colores.peligro else Colores.textPrimary, Modifier.weight(1f))
-                    MiniEstadistica("Conflictos", resumen.conflictos, if (resumen.conflictos > 0) Colores.peligro else Colores.textPrimary, Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(Espaciado.m))
+                Text("Tus registros", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
+                Text("${conexion.pendientes} por enviar · ${conexion.errores} por revisar",
+                    style = MaterialTheme.typography.bodyLarge, color = Colores.textPrimary)
+                Text(conexion.ultimaSync?.let { "Última sincronización: ${formatearFechaHora(it)}" }
+                    ?: "Todavía no hay una sincronización completa confirmada.",
+                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                Spacer(Modifier.height(Espaciado.s))
                 BotonPrimario("Sincronizar ahora", viewModel::reintentar, icono = Icons.Filled.Sync)
             }
 
             // Sin enlace, el aviso del servidor pide justamente volver a iniciar sesión: no contradecirlo.
             if (resumen.pendientes > 0 && estado.avisoServidor == null) {
-                Banner("No cierres sesión hasta sincronizar los registros pendientes.", TipoBanner.ADVERTENCIA)
+                Banner("Tus registros pendientes se conservan en este teléfono.", TipoBanner.INFO)
             }
 
             estado.avisoServidor?.let { Banner(it, TipoBanner.ADVERTENCIA) }

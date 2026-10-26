@@ -63,6 +63,38 @@ class PersistenciaListaAcopioTest {
     private fun abrir() = JdbcSqliteDriver(url, schema = EcolectaDatabase.Schema)
 
     @Test
+    fun `al retirar el canal antiguo las marcas confirmadas quedan pendientes de enviar a la API sin borrar datos`() = runTest {
+        abrir().use { driver ->
+            val db = EcolectaDatabase(driver)
+            db.sinRecojoQueries.insertar("marca-antigua", "j1", "p1", "u1", "z1", "2026-09-24", "SIN_LECHE", "Se conserva", 100, 100)
+            db.sinRecojoQueries.marcarSincronizada(id = "marca-antigua", updated_at = 100)
+            EcolectaDatabase.Schema.migrate(driver, 18, 19)
+            val marca = db.sinRecojoQueries.selectPorId("marca-antigua").executeAsOne()
+            assertEquals("PENDING", marca.sync_state)
+            assertEquals("Se conserva", marca.detalle)
+            assertEquals(100L, marca.updated_at)
+            assertEquals("marca-antigua", marca.id)
+        }
+    }
+
+    @Test
+    fun `dos usuarios comparten zona y el doble inicio del mismo usuario conserva su jornada`() = runTest {
+        abrir().use { driver ->
+            val db = EcolectaDatabase(driver)
+            val repo = SqlDelightJornadaRepository(db, Dispatchers.Unconfined)
+            val uno = Jornada("j1", "u1", "z1", "v1", reloj.hoy(), reloj.ahora().toEpochMilliseconds(), null, SyncState.PENDING)
+            val dos = uno.copy(id = "j2", usuarioId = "u2", vehiculoId = "v2")
+            assertEquals(null, repo.insertarSiUsuarioLibre(uno))
+            assertEquals(null, repo.insertarSiUsuarioLibre(dos))
+            assertEquals("j1", repo.insertarSiUsuarioLibre(uno.copy(id = "doble", zonaId = "z2"))?.id)
+            assertEquals(2, repo.observarTodas().first().size)
+            repo.cerrar("j1", reloj.ahora().toEpochMilliseconds())
+            assertEquals(null, repo.reabrirSiUsuarioLibre("j1"))
+            assertEquals(2L, repo.contarAbiertas())
+        }
+    }
+
+    @Test
     fun `sin recojo y entregas sobreviven a cerrar y reabrir la app`() = runTest {
         var driver = abrir()
         var db = EcolectaDatabase(driver)
@@ -151,6 +183,7 @@ class PersistenciaListaAcopioTest {
         DatabaseSeeder(db, reloj, Pbkdf2PinHasher()).sembrarSiEsNecesario()
         val proveedorId = db.proveedorQueries.selectTodos().executeAsList().first().id
         db.portalProveedorQueries.guardar("liq-1", proveedorId, "PAGO", """{"estado":"PAGADA","total":120.5}""", 1)
+        driver.execute(null, "ALTER TABLE jornada DROP COLUMN cierre_administrativo", 0)
         val antes = instantanea(driver)
         assertTrue(antes.getValue("entrega").isNotEmpty(), "la base de prueba debe tener entregas")
         driver.close()
@@ -158,7 +191,7 @@ class PersistenciaListaAcopioTest {
         // 3) Abrir con la app nueva: el driver ve user_version viejo y ejecuta las migraciones 11 y 12.
         driver = abrir()
         val despues = instantanea(driver)
-        antes.forEach { (tabla, filas) -> assertEquals(filas, despues[tabla], "la tabla $tabla cambió al migrar") }
+        antes.forEach { (tabla, filas) -> assertEquals(if (tabla == "jornada") filas.map { "$it|0" } else filas, despues[tabla], "la tabla $tabla cambió al migrar") }
         assertTrue("sin_recojo" in despues && "registro_recibido" in despues && "token_servidor" in despues)
         assertEquals(versionNueva, versionDe(driver))
 
@@ -178,6 +211,7 @@ class PersistenciaListaAcopioTest {
         driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_expira_en", 0)
         driver.execute(null, "DROP TABLE preferencia_sync", 0)
         driver.execute(null, "DROP TABLE version_entrega_servidor", 0)
+        driver.execute(null, "ALTER TABLE jornada DROP COLUMN cierre_administrativo", 0)
         driver.execute(null, "PRAGMA user_version = 15", 0)
         EcolectaDatabase(driver).tokenServidorQueries.guardar("u1", "token-anterior", 900, 100)
         driver.close()

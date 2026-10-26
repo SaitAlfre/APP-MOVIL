@@ -1,5 +1,6 @@
 package pe.ecolecta.presentation.acopiador.lista
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -13,12 +14,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -40,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.compose.koinInject
 import pe.ecolecta.domain.acopio.CicloAcopio
 import pe.ecolecta.domain.acopio.DiaAcopio
 import pe.ecolecta.domain.acopio.EstadoRecojo
@@ -70,6 +81,8 @@ fun ListaProveedoresScreen(
     viewModel: ListaProveedoresViewModel = koinViewModel(),
 ) {
     val estado by viewModel.uiState.collectAsState()
+    val coordinador = koinInject<pe.ecolecta.domain.usecase.sync.CoordinadorSync>()
+    val sync by coordinador.estado.collectAsState()
 
     if (estado.cargando) {
         IndicadorCarga(mensaje = "Cargando tu lista…")
@@ -90,17 +103,20 @@ fun ListaProveedoresScreen(
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoSeccion(
-            "Lista de acopio",
-            subtitulo = ciclo.resumenCorto,
-            accion = { PildoraPendientes(pendientesSync) },
+            "Hoja de ruta",
+            subtitulo = "${estado.zonaNombre} · ${estado.avance.registrados} de ${estado.avance.asignados} atendidos",
         )
         Column(
             Modifier.padding(horizontal = Espaciado.l),
             verticalArrangement = Arrangement.spacedBy(Espaciado.s),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                ChipSeleccionable("Hoy", estado.modo == ModoLista.HOY) { viewModel.cambiarModo(ModoLista.HOY) }
-                ChipSeleccionable("Ciclo (6 días)", estado.modo == ModoLista.CICLO) { viewModel.cambiarModo(ModoLista.CICLO) }
+            Text(sync.ultimaSync?.let { "Actualizado: ${pe.ecolecta.presentation.design.formatearFechaHora(it)}" }
+                ?: "Datos de este teléfono · sin actualización confirmada",
+                style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+            if (sync.sinConexion) Text("Sin internet: los nuevos recojos se guardan aquí hasta conectar.",
+                style = MaterialTheme.typography.bodySmall, color = Colores.advertencia)
+            TextButton(onClick = { viewModel.cambiarModo(if (estado.modo == ModoLista.HOY) ModoLista.CICLO else ModoLista.HOY) }) {
+                Text(if (estado.modo == ModoLista.HOY) "Consultar historial del ciclo" else "Volver a la hoja de ruta")
             }
             if (!estado.remotoConfigurado) {
                 Banner(
@@ -110,7 +126,7 @@ fun ListaProveedoresScreen(
                 )
             }
             if (!estado.jornadaAbierta) {
-                Banner("Tu jornada está cerrada. Para corregir, reábrela desde Jornada (queda auditado).", TipoBanner.ADVERTENCIA)
+                Banner("Tu jornada está cerrada. Para corregir, reábrela desde Inicio (queda auditado).", TipoBanner.ADVERTENCIA)
             }
             estado.error?.let { Banner(it, TipoBanner.ERROR) }
         }
@@ -166,14 +182,12 @@ private fun VistaHoy(
             Modifier.padding(horizontal = Espaciado.l, vertical = Espaciado.xs),
             verticalArrangement = Arrangement.spacedBy(Espaciado.s),
         ) {
-            TarjetaCiclo(ciclo)
-            TarjetaAvance(estado)
             CampoBusqueda(estado.busqueda, viewModel::buscar, "Buscar proveedor o código")
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(Espaciado.xs),
             ) {
-                FiltroLista.entries.forEach { filtro ->
+                listOf(FiltroLista.TODOS, FiltroLista.PENDIENTES, FiltroLista.REGISTRADOS, FiltroLista.SIN_RECOJO).forEach { filtro ->
                     ChipSeleccionable(filtro.etiqueta, estado.filtro == filtro) { viewModel.filtrar(filtro) }
                 }
             }
@@ -195,9 +209,12 @@ private fun VistaHoy(
                 items(estado.visibles, key = { it.proveedor.id }) { fila ->
                     FilaDeHoy(
                         fila = fila,
+                        numero = estado.filas.indexOf(fila) + 1,
                         dia = fila.dia(hoy),
                         jornadaAbierta = estado.jornadaAbierta,
                         procesando = estado.procesando,
+                        usuarioId = estado.usuarioId,
+                        nombresAcopiadores = estado.nombresAcopiadores,
                         onRegistrar = { alRegistrarEntrega(fila.proveedor.id) },
                         onSinRecojo = { alMarcarSinRecojo(fila) },
                         onDeshacer = { marcaId -> viewModel.deshacerSinRecojo(marcaId) },
@@ -210,83 +227,69 @@ private fun VistaHoy(
 }
 
 @Composable
-private fun TarjetaAvance(estado: ListaProveedoresUiState) {
-    val avance = estado.avance
-    Tarjeta {
-        Text("AVANCE DE HOY · ZONA ${estado.zonaNombre.uppercase()}", color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
-        Spacer(Modifier.height(Espaciado.xxs))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Cifra("${avance.asignados}", "Asignados", Colores.textPrimary)
-            Cifra("${avance.registrados}", "Registrados", Colores.exito)
-            Cifra("${avance.pendientes}", "Pendientes", Colores.info)
-            Cifra("${avance.sinRecojo}", "Sin recojo", Colores.advertencia)
-        }
-    }
-}
-
-@Composable
-private fun Cifra(valor: String, etiqueta: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(valor, color = color, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text(etiqueta, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
 private fun FilaDeHoy(
     fila: FilaAcopio,
+    numero: Int,
     dia: DiaAcopio?,
     jornadaAbierta: Boolean,
     procesando: Boolean,
+    usuarioId: String,
+    nombresAcopiadores: Map<String, String>,
     onRegistrar: () -> Unit,
     onSinRecojo: () -> Unit,
     onDeshacer: (String) -> Unit,
     onDetalle: () -> Unit,
 ) {
     val estadoRecojo = dia?.estado ?: EstadoRecojo.PENDIENTE
-    val detalle = when (estadoRecojo) {
-        EstadoRecojo.PENDIENTE -> "Pendiente · todavía no registrado"
-        EstadoRecojo.REGISTRADO -> dia!!.let { d ->
-            val veces = if (d.recojos.size > 1) " · ${d.recojos.size} entregas" else ""
-            "Último registro ${formatearHoraAcopio(d.horaUltima!!)}$veces"
-        }
-        EstadoRecojo.SIN_RECOJO -> "Sin recojo · ${dia!!.sinRecojo!!.textoMotivo}"
+    val atendido = estadoRecojo == EstadoRecojo.REGISTRADO
+    val color = when (estadoRecojo) {
+        EstadoRecojo.REGISTRADO -> Colores.exito
+        EstadoRecojo.SIN_RECOJO -> Colores.textSecundario
+        EstadoRecojo.PENDIENTE -> Colores.advertencia
     }
-
-    Tarjeta(onClick = onDetalle) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(fila.proveedor.codigo, color = Colores.textSecundario, style = MaterialTheme.typography.labelMedium)
-                // Nombre completo tal como está guardado (no se separa en apellido/nombre).
-                Text(fila.proveedor.nombres, color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                fila.proveedor.dueno?.let { Text(it, color = Colores.textSecundario, style = MaterialTheme.typography.bodySmall) }
-                Text(detalle, color = Colores.textSecundario, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-            Spacer(Modifier.width(Espaciado.s))
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Espaciado.xxs)) {
-                when (estadoRecojo) {
-                    EstadoRecojo.PENDIENTE -> ChipEstado("Pendiente", Colores.info, mostrarPunto = false)
-                    EstadoRecojo.REGISTRADO -> {
-                        Text(formatearLitros(dia!!.totalLitros), color = Colores.textPrimary, style = MaterialTheme.typography.titleMedium)
-                        ChipEstado("Registrado", Colores.exito, mostrarPunto = false)
-                    }
-                    EstadoRecojo.SIN_RECOJO -> ChipEstado("Sin recojo", Colores.advertencia, mostrarPunto = false)
+    var menu by remember { mutableStateOf(false) }
+    Surface(
+        onClick = if (jornadaAbierta && estadoRecojo == EstadoRecojo.PENDIENTE) onRegistrar else onDetalle,
+        modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
+        color = if (atendido) Colores.brandContainer else Colores.surface,
+        border = BorderStroke(1.dp, if (atendido) Colores.exito.copy(alpha = 0.5f) else Colores.borde),
+    ) {
+        Row(Modifier.padding(start = Espaciado.m, top = Espaciado.s, bottom = Espaciado.s, end = Espaciado.xs),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+            Surface(color = color, shape = MaterialTheme.shapes.medium, modifier = Modifier.size(40.dp)) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (atendido) Icon(Icons.Default.Check, "Atendido", tint = Colores.bgBase)
+                    else Text(numero.toString(), style = MaterialTheme.typography.titleMedium, color = Colores.bgBase)
                 }
-                dia?.sincronizacion?.let { ChipSincronizacion(it) }
             }
-        }
-        if (jornadaAbierta) {
-            Spacer(Modifier.height(Espaciado.xs))
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                when (estadoRecojo) {
-                    EstadoRecojo.PENDIENTE -> {
-                        BotonPildora("Registrar", Colores.brand, Colores.onBrand, onRegistrar)
-                        BotonPildora("Sin recojo", Colores.advertencia, Colores.onSecundario, if (procesando) null else onSinRecojo)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(fila.proveedor.nombres, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
+                Text(fila.proveedor.direccion?.takeIf { it.isNotBlank() } ?: fila.proveedor.codigo,
+                    style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                Text(when (estadoRecojo) {
+                    EstadoRecojo.REGISTRADO -> "${formatearLitros(dia!!.totalLitros)} acopiados"
+                    EstadoRecojo.SIN_RECOJO -> "No acopiado · ${dia!!.sinRecojo!!.textoMotivo}"
+                    EstadoRecojo.PENDIENTE -> "Pendiente de recojo"
+                }, style = MaterialTheme.typography.labelMedium, color = color)
+                dia?.recojos?.lastOrNull()?.let { recojo ->
+                    val autor = if (recojo.usuarioId == usuarioId) "ti" else nombresAcopiadores[recojo.usuarioId] ?: "otro acopiador"
+                    Text("Por $autor · ${formatearHoraAcopio(recojo.registradoEn)}", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                }
+            }
+            Text(if (atendido) "Atendido" else if (estadoRecojo == EstadoRecojo.SIN_RECOJO) "Ver" else "Atender",
+                style = MaterialTheme.typography.labelMedium, color = color)
+            Box {
+                IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, "Opciones de ${fila.proveedor.nombres}", tint = Colores.textSecundario) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text("Ver registros") }, onClick = { menu = false; onDetalle() })
+                    if (jornadaAbierta && estadoRecojo == EstadoRecojo.PENDIENTE) {
+                        DropdownMenuItem(text = { Text("Marcar no acopiado") }, enabled = !procesando, onClick = { menu = false; onSinRecojo() })
                     }
-                    EstadoRecojo.REGISTRADO -> BotonPildora("Registrar otra entrega", Colores.brandContainer, Colores.onBrandContainer, onRegistrar)
-                    EstadoRecojo.SIN_RECOJO -> {
-                        val marcaId = dia!!.sinRecojo!!.id
-                        BotonPildora("Deshacer sin recojo", Colores.advertencia, Colores.onSecundario, if (procesando) null else ({ onDeshacer(marcaId) }))
+                    if (jornadaAbierta && estadoRecojo == EstadoRecojo.REGISTRADO) {
+                        DropdownMenuItem(text = { Text("Registrar segundo recojo") }, onClick = { menu = false; onRegistrar() })
+                    }
+                    if (jornadaAbierta && estadoRecojo == EstadoRecojo.SIN_RECOJO) {
+                        DropdownMenuItem(text = { Text("Deshacer no acopiado") }, enabled = !procesando, onClick = { menu = false; onDeshacer(dia!!.sinRecojo!!.id) })
                     }
                 }
             }

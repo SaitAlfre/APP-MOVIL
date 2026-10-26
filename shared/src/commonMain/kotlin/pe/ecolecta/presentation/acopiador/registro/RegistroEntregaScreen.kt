@@ -64,7 +64,7 @@ import pe.ecolecta.presentation.design.EnlaceTexto
 import pe.ecolecta.presentation.design.Espaciado
 import pe.ecolecta.presentation.design.TipoBanner
 
-private val PRESETS = listOf(0.5, 1.0, 5.0, 10.0)
+private val PRESETS = listOf(10.0, 20.0, 30.0, 40.0)
 
 @Composable
 fun RegistroEntregaScreen(
@@ -79,11 +79,12 @@ fun RegistroEntregaScreen(
     ),
 ) {
     val estado by viewModel.uiState.collectAsState()
-    var cambiandoProveedor by remember { mutableStateOf(false) }
+    var cambiandoProveedor by remember { mutableStateOf(proveedorIdPreseleccionado == null) }
+    LaunchedEffect(viewModel) { viewModel.prepararNuevoRecojo() }
 
     LaunchedEffect(estado.guardadoExitoso) {
         if (estado.guardadoExitoso) {
-            if (estado.advertenciaDesviacion) delay(1400)
+            delay(if (estado.advertenciaDesviacion) 1400 else 800)
             viewModel.confirmarNavegacion()
             alGuardar()
         }
@@ -106,7 +107,7 @@ fun RegistroEntregaScreen(
                     estado.proveedores.forEach { proveedor ->
                         FilaProveedor(
                             titulo = "${proveedor.codigo} - ${proveedor.nombres}",
-                            detalle = "${proveedor.tachos} tachos",
+                            detalle = proveedor.codigo,
                             seleccionado = proveedor.id == estado.proveedorId,
                             onClick = { viewModel.onProveedorCambia(proveedor.id); cambiandoProveedor = false },
                         )
@@ -137,7 +138,7 @@ private fun TarjetaProveedorSeleccionado(estado: RegistroEntregaUiState, expandi
         Column(Modifier.padding(Espaciado.m)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "PROVEEDOR SELECCIONADO",
+                    "REGISTRO DE ACOPIO",
                     style = MaterialTheme.typography.labelMedium,
                     color = Colores.brandText,
                     fontWeight = FontWeight.Bold,
@@ -150,21 +151,16 @@ private fun TarjetaProveedorSeleccionado(estado: RegistroEntregaUiState, expandi
             }
             if (proveedor != null) {
                 Spacer(Modifier.height(Espaciado.xxs))
-                Text(proveedor.nombres, style = MaterialTheme.typography.titleLarge, color = Colores.onBrandContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(proveedor.nombres, style = MaterialTheme.typography.titleLarge, color = Colores.onBrandContainer, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 Text(
-                    "${proveedor.codigo} · Zona ${estado.zonaNombre} · ${proveedor.tachos} tachos",
+                    "${proveedor.codigo} · ${estado.zonaNombre}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Colores.onBrandContainer,
                 )
-                Spacer(Modifier.height(Espaciado.xs))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.xxs)) {
-                    val (icono, color, texto) = if (estado.entregadoHoyDelSeleccionado) {
-                        Triple(Icons.Filled.WarningAmber, Colores.advertencia, "Ya tiene una entrega registrada hoy")
-                    } else {
-                        Triple(Icons.Filled.CheckCircle, Colores.exito, "Sin entrega registrada hoy")
-                    }
-                    Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-                    Text(texto, style = MaterialTheme.typography.labelLarge, color = color)
+                if (estado.entregadoHoyDelSeleccionado) {
+                    Spacer(Modifier.height(Espaciado.xs))
+                    Text("Ya hay un recojo hoy. Al guardar podrás confirmar si es otro recojo real.",
+                        style = MaterialTheme.typography.bodySmall, color = Colores.advertencia)
                 }
             } else {
                 Spacer(Modifier.height(Espaciado.xxs))
@@ -239,61 +235,62 @@ private fun FilaProveedor(titulo: String, detalle: String, seleccionado: Boolean
 @Composable
 internal fun FormularioEntrega(estado: RegistroEntregaUiState, viewModel: RegistroEntregaViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(Espaciado.m)) {
-        Text("Litros recibidos", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-        CampoLitrosGrande(estado.litros, viewModel::onLitrosCambia)
-        Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-            PRESETS.forEach { preset ->
-                ChipCantidad("+${if (preset == preset.toLong().toDouble()) preset.toLong().toString() else preset.toString()}", Modifier.weight(1f)) {
-                    viewModel.sumarLitros(preset)
+        Surface(shape = MaterialTheme.shapes.large, color = Colores.surface, border = BorderStroke(1.dp, Colores.borde)) {
+            Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                Text("Litros recibidos", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                    IconButton(onClick = { viewModel.sumarLitros(-1.0) }, enabled = !estado.cargando) {
+                        Icon(Icons.Filled.Remove, "Restar un litro", tint = Colores.brand)
+                    }
+                    Box(Modifier.weight(1f)) { CampoLitrosGrande(estado.litros, viewModel::onLitrosCambia) }
+                    IconButton(onClick = { viewModel.sumarLitros(1.0) }, enabled = !estado.cargando) {
+                        Icon(Icons.Filled.Add, "Sumar un litro", tint = Colores.brand)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                    PRESETS.forEach { preset ->
+                        ChipCantidad("${preset.toInt()} L", Modifier.weight(1f)) { if (!estado.cargando) viewModel.aplicarPreset(preset) }
+                    }
                 }
             }
         }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.m)) {
-            Column(Modifier.weight(1f)) {
-                Text("Tachos", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                Spacer(Modifier.height(Espaciado.xxs))
-                SelectorTachos(estado.tachos, onSumar = viewModel::sumarTachos)
-            }
-            Column(Modifier.weight(1f)) {
-                Text("Modalidad", style = MaterialTheme.typography.titleSmall, color = Colores.textPrimary)
-                Spacer(Modifier.height(Espaciado.xxs))
-                SelectorModalidad(estado.modalidad, viewModel::onModalidadCambia)
-            }
-        }
-
-        CampoTexto(
-            estado.observaciones,
-            viewModel::onObservacionesCambia,
-            "Observaciones (opcional)",
-            iconoInicial = Icons.AutoMirrored.Filled.Notes,
+        OutlinedTextField(
+            value = estado.observaciones, onValueChange = viewModel::onObservacionesCambia,
+            modifier = Modifier.fillMaxWidth(), label = { Text("Observación (opcional)") },
+            placeholder = { Text("Ej. demora o novedad del recojo") },
+            minLines = 2, maxLines = 4, enabled = !estado.cargando,
+            shape = MaterialTheme.shapes.medium,
         )
 
         estado.error?.let { Banner(it, TipoBanner.ERROR) }
+        if (estado.guardadoExitoso) Banner("Recojo guardado en este teléfono.", TipoBanner.EXITO)
         if (estado.guardadoExitoso && estado.advertenciaDesviacion) {
             Banner("Guardado. La cantidad se desvía bastante del promedio reciente de este proveedor.", TipoBanner.ADVERTENCIA)
         }
 
         BotonPrimario(
-            texto = if (estado.cargando) "Guardando..." else "Guardar entrega",
+            texto = if (estado.cargando) "Guardando…" else estado.textoGuardar,
             onClick = { viewModel.guardar() },
-            habilitado = estado.puedeGuardar && !estado.cargando,
+            habilitado = estado.puedeGuardar && !estado.cargando && !estado.guardadoExitoso,
         )
-        BotonSecundario(
-            texto = "Limpiar y registrar otra",
-            onClick = { viewModel.guardar(quedarseParaOtra = true) },
-            habilitado = estado.puedeGuardar && !estado.cargando,
-        )
+        Text("Se guarda en este teléfono y se envía cuando haya conexión.",
+            style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
     }
 
-    estado.entregaDuplicada?.let {
+    estado.entregaDuplicada?.let { duplicada ->
         AlertDialog(
             onDismissRequest = viewModel::cerrarAvisoDuplicado,
             shape = MaterialTheme.shapes.large,
             title = { Text("Este proveedor ya tiene una entrega hoy") },
-            text = { Text("¿Quieres sumar esta cantidad a la entrega existente o registrarla aparte?") },
-            confirmButton = { TextButton(onClick = viewModel::sumarADuplicada) { Text("Sumar") } },
-            dismissButton = { TextButton(onClick = viewModel::registrarAparte) { Text("Registrar aparte") } },
+            text = { Text(if (duplicada.puedeSumar) "¿Quieres sumar esta cantidad a tu entrega existente o registrar un segundo recojo?"
+                else "Hay otro recojo registrado hoy a las ${pe.ecolecta.presentation.design.formatearHoraAcopio(duplicada.entrega.registradoEn)}. Confirma solo si estás realizando un segundo recojo real. El registro anterior se conservará.") },
+            confirmButton = { TextButton(onClick = viewModel::registrarAparte) { Text("Es un segundo recojo") } },
+            dismissButton = {
+                androidx.compose.foundation.layout.Row {
+                    if (duplicada.puedeSumar) TextButton(onClick = viewModel::sumarADuplicada) { Text("Sumar al mío") }
+                    TextButton(onClick = viewModel::cerrarAvisoDuplicado) { Text("Volver") }
+                }
+            },
         )
     }
 }
@@ -303,7 +300,7 @@ internal fun FormularioEntrega(estado: RegistroEntregaUiState, viewModel: Regist
 private fun CampoLitrosGrande(valor: String, onValorCambia: (String) -> Unit) {
     OutlinedTextField(
         value = valor,
-        onValueChange = { nuevo -> if (nuevo.count { c -> c == '.' } <= 1 && nuevo.all { c -> c.isDigit() || c == '.' }) onValorCambia(nuevo) },
+        onValueChange = { nuevo -> val normalizado = nuevo.replace(',', '.'); if (normalizado.count { c -> c == '.' } <= 1 && normalizado.all { c -> c.isDigit() || c == '.' }) onValorCambia(normalizado) },
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text("0.0", style = MaterialTheme.typography.headlineSmall, color = Colores.textSecundario) },
         textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.End, color = Colores.textPrimary),

@@ -9,9 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
-import pe.ecolecta.data.auth.FirebaseAuthAnonimoProvider
 import pe.ecolecta.data.local.DatabaseDriverFactory
-import pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryFirebase
 import pe.ecolecta.di.iniciarKoin
 import pe.ecolecta.di.moduloServidorWeb
 import pe.ecolecta.domain.DeviceIdProvider
@@ -52,20 +50,12 @@ class EcolectaApp : Application() {
                     single { DatabaseDriverFactory(androidContext()) }
                     single<DeviceIdProvider> { DeviceIdProviderAndroid(androidContext()) }
                     single { ExportadorQr(androidContext()) }
-                    // Firebase: solo Android (ver shared/build.gradle.kts). Nunca en el módulo común
-                    // para que iOS siga compilando sin el SDK nativo de Firebase.
-                    // RegistroAcopioRemotoRepositoryFirebase recibe la MISMA instancia de
-                    // IdentidadRemotaProvider que usa Perfil — el candado contra sesiones anónimas
-                    // duplicadas solo protege si todos pasan por ese único punto (ver FirebaseAuthAnonimoProvider).
-                    single<IdentidadRemotaProvider> {
-                        if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.auth.IdentidadRemotaProviderPendiente()
-                        else FirebaseAuthAnonimoProvider()
-                    }
-                    // Vista local (-PlocalPreview=true, sin google-services.json): sin la copia de
-                    // Firestore. La sincronización con el panel web sigue usando SERVIDOR_URL.
+                    single<IdentidadRemotaProvider> { pe.ecolecta.data.auth.IdentidadRemotaProviderPendiente() }
                     single<RegistroAcopioRemotoRepository> {
-                        if (BuildConfig.LOCAL_PREVIEW) pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryPendiente()
-                        else RegistroAcopioRemotoRepositoryFirebase(get())
+                        pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryApi(
+                            get(), get(), get(), get(), get(), get(), get(), get(), get(),
+                            estado = { get<pe.ecolecta.domain.usecase.sync.CoordinadorSync>().estado },
+                        )
                     }
                 },
                 // Panel web: fuente oficial de entregas y liquidaciones. Sin URL al compilar, la app lo

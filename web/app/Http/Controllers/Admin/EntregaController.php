@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Zona;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class EntregaController extends Controller
                         ->orWhereHas('jornada.usuario', fn ($usuarios) => $usuarios->where('nombres', 'like', $termino));
                 });
             })
-            ->when($request->filled('fecha'), fn ($interno) => $interno->whereDate('registrado_en', $request->date('fecha')))
+            ->when($request->filled('fecha'), fn ($interno) => $interno->whereBetween('registrado_en', [CarbonImmutable::parse($request->input('fecha'), 'America/Lima')->startOfDay()->utc(), CarbonImmutable::parse($request->input('fecha'), 'America/Lima')->endOfDay()->utc()]))
             ->when($request->filled('zona_id'), fn ($interno) => $interno->where('zona_id', $request->integer('zona_id')))
             ->when($request->filled('estado'), fn ($interno) => $interno->where('anulada', $request->string('estado')->toString() === 'anulada'));
 
@@ -48,8 +49,8 @@ class EntregaController extends Controller
         return view('admin.entregas.index', [
             'entregas' => $entregas,
             'litrosFiltrados' => (float) $filtrada(Entrega::query())->where('anulada', false)->sum('litros'),
-            'litrosHoy' => (float) Entrega::whereDate('registrado_en', today())->where('anulada', false)->sum('litros'),
-            'entregasHoy' => Entrega::whereDate('registrado_en', today())->where('anulada', false)->count(),
+            'litrosHoy' => (float) Entrega::whereBetween('registrado_en', [now('America/Lima')->startOfDay()->utc(), now('America/Lima')->endOfDay()->utc()])->where('anulada', false)->sum('litros'),
+            'entregasHoy' => Entrega::whereBetween('registrado_en', [now('America/Lima')->startOfDay()->utc(), now('America/Lima')->endOfDay()->utc()])->where('anulada', false)->count(),
             'jornadas' => Jornada::with(['zona', 'usuario'])->whereNull('cerrada_en')->latest('abierta_en')->get(),
             'proveedores' => Proveedor::with('zona')->where('estado', 'activo')->orderBy('nombres')->get(),
             'zonasDisponibles' => Zona::query()->orderBy('nombre')->get(),
@@ -67,16 +68,21 @@ class EntregaController extends Controller
             'jornada_id' => ['required', 'integer', 'exists:jornadas,id'],
             'entregas' => ['required', 'array', 'min:1', 'max:50'],
             'entregas.*.proveedor_id' => ['required', 'integer', 'distinct', 'exists:proveedores,id'],
-            'entregas.*.litros' => ['required', 'numeric', 'gt:0'],
-            'entregas.*.tachos' => ['required', 'integer', 'min:1'],
+            'entregas.*.litros' => ['required', 'numeric', 'gt:0', 'max:18500'],
+            'entregas.*.tachos' => ['sometimes', 'integer', 'min:1'],
         ]);
         $jornada = Jornada::whereKey($datos['jornada_id'])->whereNull('cerrada_en')->firstOrFail();
+        foreach ($datos['entregas'] as $fila) {
+            if (! Proveedor::query()->whereKey($fila['proveedor_id'])->where('zona_id', $jornada->zona_id)->where('estado', 'activo')->exists()) {
+                return back()->withErrors(['entregas' => 'Todos los proveedores deben estar activos y pertenecer a la zona de la jornada.'])->withInput();
+            }
+        }
         $loteId = (string) Str::uuid();
 
         try {
             DB::transaction(function () use ($datos, $jornada, $loteId, $registrar): void {
                 foreach ($datos['entregas'] as $fila) {
-                    $registrar->ejecutar($jornada->id, (int) $fila['proveedor_id'], $jornada->usuario_id, $jornada->zona_id, $jornada->vehiculo_id, (float) $fila['litros'], (int) $fila['tachos'], 'Registro por lote desde el panel web.', $loteId);
+                    $registrar->ejecutar($jornada->id, (int) $fila['proveedor_id'], $jornada->usuario_id, $jornada->zona_id, $jornada->vehiculo_id, (float) $fila['litros'], (int) ($fila['tachos'] ?? 1), 'Registro por lote desde el panel web.', $loteId);
                 }
             });
         } catch (EntregaInvalidaException|RuntimeException $exception) {

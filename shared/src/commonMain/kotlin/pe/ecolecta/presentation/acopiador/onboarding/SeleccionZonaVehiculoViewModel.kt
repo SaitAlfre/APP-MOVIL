@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.ecolecta.domain.Reloj
-import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.usecase.auth.CerrarSesionUseCase
 import pe.ecolecta.domain.usecase.auth.ObtenerSesionUseCase
 import pe.ecolecta.domain.usecase.jornada.AbrirJornadaUseCase
@@ -71,9 +70,9 @@ class SeleccionZonaVehiculoViewModel(
         return s.copy(zonaId = asignada ?: actual ?: activas.firstOrNull()?.id)
     }
 
-    fun seleccionarZona(id: String) = _uiState.update { it.copy(zonaId = id, zonaElegidaManualmente = true) }
+    fun seleccionarZona(id: String) = _uiState.update { it.copy(zonaId = id, zonaElegidaManualmente = true, error = null) }
 
-    fun seleccionarVehiculo(id: String) = _uiState.update { it.copy(vehiculoId = id) }
+    fun seleccionarVehiculo(id: String) = _uiState.update { it.copy(vehiculoId = id, error = null) }
 
     /** "Cerrar sesión" debe existir también sin jornada abierta: si no, esta pantalla sería una trampa. */
     fun solicitarCierreSesion() = _uiState.update { it.copy(mostrarConfirmacionCierreSesion = true) }
@@ -106,12 +105,7 @@ class SeleccionZonaVehiculoViewModel(
             abrirJornadaUseCase(usuario.id, zonaId, vehiculoId).fold(
                 onSuccess = { _uiState.update { it.copy(cargando = false, jornadaAbierta = true) } },
                 onFailure = { error ->
-                    val mensaje = if (error is ZonaOcupadaException) {
-                        val nombreZona = estado.zonas.firstOrNull { it.id == zonaId }?.nombre ?: "seleccionada"
-                        "La zona $nombreZona ya tiene un acopiador con una jornada abierta. Elige otra zona o coordina con él."
-                    } else {
-                        error.message ?: "No se pudo abrir la jornada."
-                    }
+                    val mensaje = error.message ?: "No se pudo iniciar la jornada."
                     _uiState.update { it.copy(cargando = false, error = mensaje) }
                 },
             )

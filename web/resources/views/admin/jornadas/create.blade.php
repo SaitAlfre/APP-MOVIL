@@ -33,7 +33,7 @@
                 </div>
 
                 <p class="text-xs text-eh-text-muted">
-                    Una zona solo puede tener una jornada abierta a la vez. La fecha es la de hoy y se registra automáticamente.
+                    Varios acopiadores pueden trabajar en la misma zona. Cada uno mantiene su jornada. La fecha y hora de inicio se registran automáticamente (Perú).
                 </p>
 
                 <div class="flex justify-end gap-2 border-t border-eh-border pt-4">

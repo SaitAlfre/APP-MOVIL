@@ -1,0 +1,3 @@
+-- Las marcas confirmadas por el canal anterior todavía deben llegar a la API oficial.
+-- Se conservan ids, contenido e historial; el envío es idempotente.
+UPDATE sin_recojo SET sync_state = 'PENDING', sync_error = NULL WHERE sync_state = 'SYNCED';

@@ -5,7 +5,6 @@ import kotlinx.coroutines.test.runTest
 import pe.ecolecta.data.security.InMemoryJornadaEnCursoRepository
 import kotlinx.datetime.LocalDate
 import pe.ecolecta.domain.JornadaDelDiaCerradaException
-import pe.ecolecta.domain.ZonaOcupadaException
 import pe.ecolecta.domain.fake.FakeJornadaRepository
 import pe.ecolecta.domain.fake.FakeReloj
 import pe.ecolecta.domain.usecase.jornada.AbrirJornadaUseCase
@@ -44,14 +43,14 @@ class AbrirJornadaUseCaseTest {
     }
 
     @Test
-    fun `rechaza abrir jornada en una zona que ya tiene otro acopiador con jornada abierta`() = runTest {
+    fun `permite dos acopiadores en la misma zona con jornadas independientes`() = runTest {
         useCase("u1", "zona-1", "vehiculo-1").getOrThrow()
 
         val resultado = useCase("u2", "zona-1", "vehiculo-2")
 
-        assertTrue(resultado.isFailure)
-        assertIs<ZonaOcupadaException>(resultado.exceptionOrNull())
-        assertEquals(1, jornadaRepository.observarTodas().first().size, "no debe crear una segunda jornada en la zona ocupada")
+        assertTrue(resultado.isSuccess)
+        assertEquals("u2", resultado.getOrThrow().usuarioId)
+        assertEquals(2, jornadaRepository.observarTodas().first().size)
     }
 
     @Test

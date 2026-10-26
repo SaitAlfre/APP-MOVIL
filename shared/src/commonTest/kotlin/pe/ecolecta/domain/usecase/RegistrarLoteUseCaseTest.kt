@@ -71,16 +71,16 @@ class RegistrarLoteUseCaseTest {
     }
 
     @Test
-    fun `si un item excede la capacidad no se guarda ninguna entrega del lote`() = runTest {
+    fun `si un item tiene litros invalidos no se guarda ninguna entrega del lote`() = runTest {
         sembrarProveedor("a")
         sembrarProveedor("b", capacidadTachoL = 10.0)
 
         val resultado = useCase(
             "j1", "u1", "z1", "v1",
-            listOf(ItemLote("a", 20.0, 1), ItemLote("b", 50.0, 1)),
+            listOf(ItemLote("a", 20.0, 1), ItemLote("b", -1.0, 1)),
         )
 
-        assertIs<EntregaInvalidaException.SuperaCapacidad>(resultado.exceptionOrNull())
+        assertIs<EntregaInvalidaException.LitrosNoPositivos>(resultado.exceptionOrNull())
         assertTrue(entregaRepository.filtrar(jornadaId = "j1").isEmpty(), "el lote debe ser todo o nada")
     }
 }

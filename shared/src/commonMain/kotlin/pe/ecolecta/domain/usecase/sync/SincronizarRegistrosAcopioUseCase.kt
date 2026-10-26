@@ -26,8 +26,8 @@ import pe.ecolecta.domain.repository.ZonaRepository
  * - [sinConexion]: el servidor no respondió; se reintenta solo.
  * - [sinEnlazar]: la cuenta que debe enviarlo no tiene sesión con el panel en este celular. No es un error
  *   del servidor ni se arregla reintentando: [cuentasSinEnlazar] deben iniciar sesión con conexión.
- * - [parciales]: el panel web la recibió pero falta la copia para el celular del proveedor (Firestore).
- * - [fallidos]: el servidor (o Firestore) respondió y NO aceptó el dato; el motivo queda en el registro.
+ * - [parciales]: reservado para resultados anteriores; el envío actual usa un único destino.
+ * - [fallidos]: el servidor respondió y NO aceptó el dato; el motivo queda en el registro.
  */
 data class ResultadoSincronizacion(
     val enviados: Int,
@@ -41,31 +41,9 @@ data class ResultadoSincronizacion(
     val total: Int get() = enviados + sinConexion + fallidos + sinEnlazar + parciales
 }
 
-/**
- * Envía las entregas (nuevas, corregidas o anuladas) y los "sin recojo" que están pendientes o con error
- * en ESTE celular a los destinos configurados:
- *
- * - Panel web ([ServidorWebRepository]): fuente OFICIAL de entregas, la base que consulta el
- *   administrador. Solo entregas: el panel no tiene "sin recojo".
- * - Firestore ([RegistroAcopioRemotoRepository]): copia para el celular del proveedor ("Mi ciclo").
- *
- * Un registro pasa a SYNCED solo cuando TODOS los destinos configurados confirmaron la escritura — y
- * solo si no cambió mientras se enviaba, para no dar por sincronizada una corrección que no salió.
- *
- * - Sin conexión: el registro sigue PENDING (con el motivo en `sync_error`) y se reintenta después.
- * - Cuenta sin sesión con el panel en este celular: sigue PENDING con el motivo; se enviará cuando esa
- *   cuenta inicie sesión con conexión (el enlace dispara un envío). No se presenta como error del servidor.
- * - Rechazo (el servidor respondió y no aceptó el dato): queda en ERROR con el motivo visible, y se
- *   reintenta; si el panel la recibió pero Firestore no, queda como envío parcial con ambos destinos dichos.
- * - El token que firma es el del autor del último cambio (ver [PreparadorEntregaServidor.remitente]).
- * - Cada destino usa el id del registro como clave, así que un reintento sobrescribe el mismo
- *   documento / la misma fila y nunca crea duplicados, aunque el primer envío sí hubiera llegado.
- * - Sin ningún destino configurado no hace nada: los datos quedan "guardados en este celular", que es
- *   lo que la interfaz muestra.
- * - Los conflictos (CONFLICT) no se tocan: los resuelve el ADMIN.
- *
- * Es `single`: el [Mutex] evita dos envíos simultáneos del mismo registro desde el ciclo periódico y
- * desde un "Sincronizar ahora".
+/** Envía los registros locales al servidor oficial. Cada confirmación conserva el mismo id y
+ * solo marca la versión enviada. Sin conexión se conserva la cola; los conflictos requieren revisión.
+ * El canal alternativo se conserva únicamente para repositorios locales de pruebas sin servidor.
  */
 class SincronizarRegistrosAcopioUseCase(
     private val entregaRepository: EntregaRepository,
@@ -93,7 +71,7 @@ class SincronizarRegistrosAcopioUseCase(
         var sinConexion = 0
         var fallidos = 0
         var sinEnlazar = 0
-        var parciales = 0
+        val parciales = 0
         val cuentasSinEnlazar = linkedSetOf<String>()
         var motivoSinConexion: String? = null
         val codigos = mutableMapOf<String, String?>()
@@ -141,11 +119,6 @@ class SincronizarRegistrosAcopioUseCase(
                             error.nombre?.let(cuentasSinEnlazar::add)
                             sinEnlazar++
                         }
-                        // El panel ya la tiene; falta Firestore. Se reintenta (el panel responde "sin cambios").
-                        error is EnvioParcialException -> {
-                            alFallar(error.message ?: "Envío parcial.", error.cause !is SinConexionRemotaException)
-                            parciales++
-                        }
                         else -> {
                             alFallar(error.message ?: "El servidor rechazó el envío.", true)
                             fallidos++
@@ -168,7 +141,7 @@ class SincronizarRegistrosAcopioUseCase(
             )
         }
 
-        // "Sin recojo" solo viaja al celular del proveedor: sin Firestore se queda guardado aquí.
+        // El adaptador de producción envía estas marcas a la misma API oficial.
         if (remoto.configurado) for (marca in sinRecojoRepository.pendientesDeSincronizar()) {
             if (usuarioId != null && marca.usuarioId != usuarioId) continue
             enviar(
@@ -195,22 +168,12 @@ class SincronizarRegistrosAcopioUseCase(
             } catch (e: Exception) {
                 return Result.failure(e)
             }
-            servidor.enviarEntrega(preparador.remitente(entrega), datos).onFailure { return Result.failure(it) }
+            return servidor.enviarEntrega(preparador.remitente(entrega), datos)
         }
         if (!remoto.configurado) return Result.success(Unit)
-        return remoto.publicar(entrega.aCompartido(codigo, nombre)).recoverCatching { error ->
-            // El panel ya la tiene pero el celular del proveedor no: no se da por sincronizada y el
-            // motivo lo dice, para no aparentar que todos los destinos la recibieron.
-            throw if (servidor.configurado) EnvioParcialException(error) else error
-        }
+        return remoto.publicar(entrega.aCompartido(codigo, nombre))
     }
 }
-
-/** El panel web confirmó la entrega, pero la copia para el celular del proveedor (Firestore) falló. */
-class EnvioParcialException(causa: Throwable) : Exception(
-    "Recibida por el panel web; falta la copia para el celular del proveedor: ${causa.message ?: "error desconocido"}",
-    causa,
-)
 
 /** Traduce una entrega local a lo que entiende el panel web. */
 fun interface PreparadorEntregaServidor {

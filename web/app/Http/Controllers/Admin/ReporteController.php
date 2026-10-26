@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Reportes\ObtenerResumenGeneralUseCase;
 use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,7 +35,7 @@ class ReporteController extends Controller
         return response()->streamDownload(function () use ($reporte) {
             $salida = fopen('php://output', 'w');
             fwrite($salida, "\xEF\xBB\xBF");
-            fputcsv($salida, ['Fecha', 'Código', 'Proveedor', 'Zona', 'Vehículo', 'Placa', 'Litros', 'Tachos'], ';');
+            fputcsv($salida, ['Fecha', 'Código', 'Proveedor', 'Zona', 'Vehículo', 'Placa', 'Litros'], ';');
 
             foreach ($reporte['entregas'] as $entrega) {
                 fputcsv($salida, [
@@ -45,7 +46,6 @@ class ReporteController extends Controller
                     $entrega['vehiculo'],
                     $entrega['placa'],
                     number_format($entrega['litros'], 2, ',', ''),
-                    $entrega['tachos'],
                 ], ';');
             }
 
@@ -56,7 +56,7 @@ class ReporteController extends Controller
     /** @return array{DateTimeImmutable, DateTimeImmutable, int|null} */
     private function filtros(Request $request): array
     {
-        $hoy = new DateTimeImmutable('today');
+        $hoy = CarbonImmutable::today('America/Lima');
         $validados = $request->validate([
             'desde' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.$hoy->modify('-1 year')->format('Y-m-d')],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:'.$hoy->format('Y-m-d'), 'after_or_equal:desde'],
@@ -64,8 +64,8 @@ class ReporteController extends Controller
         ]);
 
         return [
-            new DateTimeImmutable($validados['desde'] ?? $hoy->modify('-29 days')->format('Y-m-d')),
-            new DateTimeImmutable($validados['hasta'] ?? $hoy->format('Y-m-d')),
+            new DateTimeImmutable($validados['desde'] ?? $hoy->modify('-29 days')->format('Y-m-d'), new \DateTimeZone('America/Lima')),
+            new DateTimeImmutable($validados['hasta'] ?? $hoy->format('Y-m-d'), new \DateTimeZone('America/Lima')),
             isset($validados['zona_id']) ? (int) $validados['zona_id'] : null,
         ];
     }

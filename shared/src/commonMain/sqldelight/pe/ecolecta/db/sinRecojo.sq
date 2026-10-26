@@ -59,3 +59,14 @@ WHERE id = :id AND updated_at = :updated_at AND sync_state IN ('PENDING', 'ERROR
 
 contarPendientes:
 SELECT COUNT(*) FROM sin_recojo WHERE sync_state IN ('PENDING', 'ERROR');
+
+recibir:
+INSERT OR IGNORE INTO sin_recojo(id, jornada_id, proveedor_id, usuario_id, zona_id, fecha, motivo, detalle,
+    registrada_en, deshecha, deshecha_en, sync_state, updated_at)
+VALUES (:id, :jornada_id, :proveedor_id, :usuario_id, :zona_id, :fecha, :motivo, :detalle,
+    :registrada_en, :deshecha, :deshecha_en, 'SYNCED', :updated_at);
+
+actualizarRecibida:
+UPDATE sin_recojo SET motivo = :motivo, detalle = :detalle, deshecha = :deshecha,
+    deshecha_en = :deshecha_en, updated_at = :updated_at, sync_error = NULL
+WHERE id = :id AND sync_state = 'SYNCED' AND updated_at <= :updated_at;

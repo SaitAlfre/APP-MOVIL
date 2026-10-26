@@ -117,7 +117,7 @@
                         $entrega->id => 'E-'.$entrega->id.' · '.($entrega->proveedor?->nombres ?? 'Proveedor').' · '.number_format((float) $entrega->litros, 1).' L · '.$entrega->registrado_en->format('d/m/Y'),
                     ])->all()" />
                 <x-ui.field name="litros_solicitados" label="Litros solicitados por el proveedor" type="number" step="0.01" min="0.01" required unit="L" />
-                <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. error en el pesaje del tacho" />
+                <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. diferencia en los litros registrados" />
                 <div class="flex justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Registrar reclamo</x-ui.btn>

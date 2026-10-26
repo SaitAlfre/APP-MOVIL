@@ -4,13 +4,10 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.googleServices) apply false
 }
 
-// Vista local explícita para probar el portal cuando no se ha entregado google-services.json.
-// La compilación normal conserva Firebase y falla si su configuración no está disponible.
+// Vista local de demostración. La app normal usa únicamente la API de Ecolecta.
 val localPreview = providers.gradleProperty("localPreview").orNull == "true"
-if (!localPreview) apply(plugin = "com.google.gms.google-services")
 
 // URL del panel web (Laravel) al que se envían las entregas y del que se leen las liquidaciones. No es un
 // secreto: cada usuario se autentica con su propio usuario y PIN. Se toma de `-Pecolecta.servidorUrl=...`

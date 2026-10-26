@@ -43,9 +43,6 @@ class RegistrarLoteUseCase(
             if (proveedor.estado != EstadoProveedor.ACTIVO) {
                 return Result.failure(EntregaInvalidaException.ProveedorNoActivo(proveedor.estado))
             }
-            if (item.litros > proveedor.capacidadTotalL) {
-                return Result.failure(EntregaInvalidaException.SuperaCapacidad(proveedor.capacidadTotalL))
-            }
 
             val entrega = Entrega.crear(
                 id = nuevoId(),

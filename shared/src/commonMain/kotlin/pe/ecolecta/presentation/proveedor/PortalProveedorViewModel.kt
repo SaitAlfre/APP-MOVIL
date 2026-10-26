@@ -180,7 +180,7 @@ class PortalProveedorViewModel(
                     if (!evento.desdeCache) recibidosRepository.guardar(propios, ahora)
                     _state.update {
                         it.copy(
-                            conexion = if (evento.desdeCache) ConexionPortal.SIN_CONEXION else ConexionPortal.EN_LINEA,
+                            conexion = if (evento.desdeCache) it.conexion else ConexionPortal.EN_LINEA,
                             motivoConexion = null,
                             ultimaRecepcion = if (evento.desdeCache) it.ultimaRecepcion else ahora,
                         )

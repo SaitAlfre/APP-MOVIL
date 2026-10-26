@@ -73,7 +73,6 @@
                                 'Celular' => $proveedor->telefono ?: '—',
                                 'Dirección' => $proveedor->direccion ?: '—',
                                 'Zona' => $zona?->nombre ?? '—',
-                                'Tachos' => $proveedor->tachos.' × '.number_format($proveedor->capacidadTachoL, 1).' L',
                                 'Cuenta vinculada' => $cuenta?->username ?? 'Sin cuenta',
                             ] as $clave => $valor)
                                 <div class="flex justify-between gap-4 border-b border-eh-surface-alt pb-2 text-sm">
@@ -101,7 +100,6 @@
                                         <p class="text-sm font-semibold text-eh-text">{{ $ultimaEntrega->registradoEn->format('d/m/Y H:i') }}</p>
                                         <p class="text-xs text-eh-text-muted">
                                             <span class="mono">{{ number_format($ultimaEntrega->litros, 1) }} L</span> ·
-                                            {{ $ultimaEntrega->tachos }} tacho(s) ·
                                             Calidad: {{ $controlUltima?->resultado->value ? ucfirst($controlUltima->resultado->value) : 'Pendiente' }}
                                         </p>
                                     </div>
@@ -117,13 +115,12 @@
                 @if (count($entregas) === 0)
                     <x-ui.empty icon="droplets" title="Sin entregas registradas" description="Cuando el acopiador registre una entrega de este proveedor aparecerá aquí." />
                 @else
-                    <x-ui.table :headers="['Fecha', 'Litros', 'Tachos', 'Calidad', 'Observaciones']" caption="Últimas entregas del proveedor">
+                    <x-ui.table :headers="['Fecha', 'Litros', 'Calidad', 'Observaciones']" caption="Últimas entregas del proveedor">
                         @foreach ($entregas as $entrega)
                             @php $control = $controles[$entrega->id] ?? null; @endphp
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm text-eh-text">{{ $entrega->registradoEn->format('d/m/Y H:i') }}</td>
                                 <td class="mono px-4 py-3 text-sm font-medium text-eh-text">{{ number_format($entrega->litros, 1) }} L</td>
-                                <td class="mono px-4 py-3 text-sm text-eh-text-muted">{{ $entrega->tachos }}</td>
                                 <td class="px-4 py-3">
                                     @if ($control)
                                         <x-ui.estado :estado="$control->resultado->value" />

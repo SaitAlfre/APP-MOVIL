@@ -142,7 +142,7 @@ val dataModule = module {
     single { pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.CambiosLocalesRepository> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
     single<pe.ecolecta.domain.repository.PinesParaServidor> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
-    single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default) }
+    single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default, get()) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
     // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
     // plataforma (EcolectaApp.kt / KoinIOS.kt): Firebase es Android-only y la URL del panel web se fija
@@ -395,6 +395,7 @@ val presentationModule = module {
             obtenerSesionUseCase = get(),
             listarZonasUseCase = get(),
             proveedorIdPreseleccionado = proveedorIdPreseleccionado,
+            reloj = get(),
         )
     }
 
@@ -425,6 +426,7 @@ val presentationModule = module {
 
     viewModel {
         ListaProveedoresViewModel(
+            usuarios = get(),
             obtenerJornadaEnCursoUseCase = get(),
             obtenerSesionUseCase = get(),
             listarProveedoresPorZonaUseCase = get(),

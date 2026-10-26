@@ -212,10 +212,10 @@ private fun DialogoCorreccion(
     onCancelar: () -> Unit,
 ) {
     var litros by remember { mutableStateOf(entrega.litros.toString()) }
-    var tachos by remember { mutableStateOf(entrega.tachos.toString()) }
+
     var motivo by remember { mutableStateOf("") }
     val litrosValor = litros.toDoubleOrNull()
-    val tachosValor = tachos.toIntOrNull()
+    val tachosValor = entrega.tachos.coerceAtLeast(1)
 
     AlertDialog(
         onDismissRequest = onCancelar,
@@ -224,14 +224,14 @@ private fun DialogoCorreccion(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 CampoTexto(litros, { litros = it }, "Litros", iconoInicial = Icons.Filled.LocalDrink)
-                CampoTexto(tachos, { tachos = it }, "Tachos", iconoInicial = Icons.Filled.Inventory2)
+
                 CampoTexto(motivo, { motivo = it }, "Motivo (obligatorio)")
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirmar(litrosValor!!, tachosValor!!, motivo) },
-                enabled = motivo.isNotBlank() && (litrosValor ?: 0.0) > 0.0 && (tachosValor ?: 0) > 0,
+                onClick = { onConfirmar(litrosValor!!, tachosValor, motivo) },
+                enabled = motivo.isNotBlank() && (litrosValor ?: 0.0) > 0.0,
             ) { Text("Confirmar") }
         },
         dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } },

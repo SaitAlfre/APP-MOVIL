@@ -52,10 +52,11 @@ class SqlDelightJornadaRepository(
         Unit
     }
 
-    override suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada? = withContext(dispatcher) {
+    override suspend fun insertarSiUsuarioLibre(jornada: Jornada): Jornada? = withContext(dispatcher) {
         db.jornadaQueries.transactionWithResult {
-            val ocupante = db.jornadaQueries.selectAbiertaPorZona(zona_id = jornada.zonaId).executeAsOneOrNull()?.aDominio()
-            if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) {
+            val ocupante = db.jornadaQueries.selectAbiertaPorUsuario(jornada.usuarioId).executeAsOneOrNull()?.aDominio()
+                ?: db.jornadaQueries.selectPorUsuarioYFecha(jornada.usuarioId, jornada.fecha.toString()).executeAsOneOrNull()?.aDominio()
+            if (ocupante != null) {
                 ocupante
             } else {
                 db.jornadaQueries.insertar(
@@ -79,11 +80,11 @@ class SqlDelightJornadaRepository(
         Unit
     }
 
-    override suspend fun reabrirSiZonaLibre(id: String): Jornada? = withContext(dispatcher) {
+    override suspend fun reabrirSiUsuarioLibre(id: String): Jornada? = withContext(dispatcher) {
         db.jornadaQueries.transactionWithResult {
             val jornada = db.jornadaQueries.selectPorId(id).executeAsOne().aDominio()
-            val ocupante = db.jornadaQueries.selectAbiertaPorZona(zona_id = jornada.zonaId).executeAsOneOrNull()?.aDominio()
-            if (ocupante != null && ocupante.usuarioId != jornada.usuarioId) {
+            val ocupante = db.jornadaQueries.selectAbiertaPorUsuario(jornada.usuarioId).executeAsOneOrNull()?.aDominio()
+            if (ocupante != null && ocupante.id != id) {
                 ocupante
             } else {
                 db.jornadaQueries.reabrir(id)

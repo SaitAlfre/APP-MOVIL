@@ -50,12 +50,11 @@
         </form>
     </x-ui.card>
 
-    <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         <x-ui.kpi label="Litros acopiados" :value="number_format($resumen['litros'], 1)" unit="L" icon="droplets" color="green"
             :trend="$variacion_litros !== null ? number_format(abs($variacion_litros), 1).'% vs. periodo anterior' : 'Sin periodo anterior comparable'"
             :trend-up="($variacion_litros ?? 0) >= 0" />
         <x-ui.kpi label="Entregas registradas" :value="number_format($resumen['entregas'])" icon="clipboardList" color="blue" />
-        <x-ui.kpi label="Tachos recibidos" :value="number_format($resumen['tachos'])" icon="cube" color="blue" />
         <x-ui.kpi label="Promedio por entrega" :value="number_format($resumen['promedio_litros'], 1)" unit="L" icon="chartBar" color="green" />
         <x-ui.kpi label="Proveedores atendidos" :value="number_format($resumen['proveedores'])" icon="userCircle" color="green" />
     </div>
@@ -95,7 +94,7 @@
             <x-ui.empty icon="documentText" title="No hay entregas para los filtros seleccionados"
                 description="Ajusta el rango de fechas o quita el filtro de zona." />
         @else
-            <x-ui.table :headers="['Fecha', 'Proveedor', 'Zona', 'Vehículo', 'Tachos', 'Litros']" caption="Entregas registradas en el periodo seleccionado">
+            <x-ui.table :headers="['Fecha', 'Proveedor', 'Zona', 'Vehículo', 'Litros']" caption="Entregas registradas en el periodo seleccionado">
                 @foreach ($entregas as $entrega)
                     <tr data-report-row class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                         <td class="mono whitespace-nowrap px-4 py-3 text-xs text-eh-text-muted">{{ \Illuminate\Support\Carbon::parse($entrega['fecha'])->format('d/m/Y H:i') }}</td>
@@ -107,7 +106,6 @@
                         <td class="px-4 py-3 text-xs text-eh-text">
                             {{ $entrega['vehiculo'] }} <span class="mono text-eh-text-muted">· {{ $entrega['placa'] }}</span>
                         </td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $entrega['tachos'] }}</td>
                         <td class="mono px-4 py-3 text-sm font-bold text-eh-text">{{ number_format($entrega['litros'], 1) }} L</td>
                     </tr>
                 @endforeach

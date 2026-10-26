@@ -99,6 +99,8 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::patch('acopiadores/jornadas/{jornada}/cerrar', [AdminJornadaController::class, 'cerrar'])->name('acopiadores.jornadas.cerrar');
 
             Route::post('acopiadores/jornadas/{jornada}/entregas', [JornadaEntregaController::class, 'store'])->name('acopiadores.entregas.store');
+            Route::patch('acopiadores/entregas/{entrega}/corregir', [JornadaEntregaController::class, 'corregir'])->whereNumber('entrega')->name('acopiadores.entregas.corregir');
+            Route::patch('acopiadores/marcas/{marca}/deshacer', [JornadaEntregaController::class, 'deshacerMarca'])->whereNumber('marca')->name('acopiadores.marcas.deshacer');
             Route::post('acopiadores/entregas/sumar', [JornadaEntregaController::class, 'sumar'])->name('acopiadores.entregas.sumar');
             Route::post('acopiadores/entregas/{entrega}/anular', [JornadaEntregaController::class, 'anular'])->name('acopiadores.entregas.anular');
         });

@@ -33,7 +33,7 @@ fun AcopiadorShell(pantalla: Pantalla, onCambiarPantalla: (Pantalla) -> Unit) {
 
     when (pantalla) {
         is Pantalla.AcopiadorRegistroEntrega -> PantallaApilada(
-            titulo = "Registrar entrega",
+            titulo = "Registrar recojo",
             alVolver = { onCambiarPantalla(if (pantalla.volverALista) Pantalla.AcopiadorLista else Pantalla.AcopiadorHome) },
             pendientesSync = pendientesSync,
         ) {
@@ -130,11 +130,10 @@ private fun PantallaConPestanas(pantalla: Pantalla, onCambiarPantalla: (Pantalla
                     pendientesSync = pendientesSync,
                 )
                 else -> AcopiadorHomeScreen(
-                    alRegistrarEntrega = { onCambiarPantalla(Pantalla.AcopiadorRegistroEntrega()) },
                     alEscanearQr = { onCambiarPantalla(Pantalla.AcopiadorEscanearQr) },
                     alVerResumen = { onCambiarPantalla(Pantalla.AcopiadorResumen) },
-                    alSincronizar = { onCambiarPantalla(Pantalla.AcopiadorSincronizacion) },
                     alAbrirJornada = { onCambiarPantalla(Pantalla.AcopiadorSeleccionZonaVehiculo) },
+                    alContinuarRecojo = { onCambiarPantalla(Pantalla.AcopiadorLista) },
                 )
             }
         }

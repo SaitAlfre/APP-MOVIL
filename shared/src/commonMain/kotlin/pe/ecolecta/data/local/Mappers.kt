@@ -91,6 +91,7 @@ internal fun JornadaFila.aDominio(): Jornada = Jornada(
     fecha = LocalDate.parse(fecha),
     abiertaEn = abierta_en,
     cerradaEn = cerrada_en,
+    cierreAdministrativo = cierre_administrativo == 1L,
     syncState = enumDeColumna("jornada", "sync_state", sync_state),
 )
 

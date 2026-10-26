@@ -6,7 +6,8 @@ CREATE TABLE jornada (
     fecha TEXT NOT NULL,
     abierta_en INTEGER NOT NULL,
     cerrada_en INTEGER,
-    sync_state TEXT NOT NULL DEFAULT 'PENDING'
+    sync_state TEXT NOT NULL DEFAULT 'PENDING',
+    cierre_administrativo INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX jornada_fecha_idx ON jornada(fecha);
@@ -66,3 +67,7 @@ actualizarDesdeServidor:
 UPDATE jornada SET usuario_id = :usuario_id, zona_id = :zona_id, vehiculo_id = :vehiculo_id, fecha = :fecha,
     abierta_en = :abierta_en, cerrada_en = :cerrada_en
 WHERE id = :id AND sync_state = 'SYNCED';
+
+
+cerrarDesdeAdministracion:
+UPDATE jornada SET cerrada_en = :cerrada_en, cierre_administrativo = 1, sync_state = 'SYNCED' WHERE id = :id;

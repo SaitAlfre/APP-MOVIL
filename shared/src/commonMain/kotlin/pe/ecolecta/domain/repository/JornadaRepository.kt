@@ -15,19 +15,16 @@ interface JornadaRepository {
     suspend fun insertar(jornada: Jornada)
 
     /**
-     * Inserta [jornada] solo si la zona no tiene ya una jornada abierta de un usuario distinto, todo
-     * dentro de una única operación atómica — evita la condición de carrera entre comprobar la zona
-     * e insertar que permitiría, con dos llamadas solapadas (p. ej. doble tap), abrir dos jornadas en
-     * la misma zona. Devuelve la jornada que ya ocupa la zona si no se insertó, o null si se insertó.
+     * Inserta atómicamente si el usuario no tiene otra abierta ni una del mismo día.
+     * Devuelve la existente si no insertó. Otros acopiadores pueden compartir la zona.
      */
-    suspend fun insertarSiZonaLibre(jornada: Jornada): Jornada?
+    suspend fun insertarSiUsuarioLibre(jornada: Jornada): Jornada?
 
     suspend fun cerrar(id: String, cerradaEn: Long)
 
     /**
-     * Vuelve a abrir la jornada [id] (debe estar cerrada) solo si su zona no quedó ocupada por la
-     * jornada abierta de otro usuario, en una única operación atómica. Devuelve esa jornada ocupante
-     * si no se reabrió, o null si se reabrió.
+     * Reabre atómicamente si el usuario no tiene otra jornada abierta.
+     * Devuelve esa otra jornada si no reabrió, o null si reabrió.
      */
-    suspend fun reabrirSiZonaLibre(id: String): Jornada?
+    suspend fun reabrirSiUsuarioLibre(id: String): Jornada?
 }

@@ -42,7 +42,7 @@ class SancionController extends Controller
     {
         $datos = $request->validate([
             'entrega_id' => ['required', 'integer', 'exists:entregas,id'],
-            'litros_solicitados' => ['required', 'numeric', 'gt:0'],
+            'litros_solicitados' => ['required', 'numeric', 'gt:0', 'max:18500'],
             'motivo' => ['required', 'string', 'max:255'],
         ]);
         $entrega = Entrega::findOrFail($datos['entrega_id']);
@@ -62,8 +62,8 @@ class SancionController extends Controller
         DB::transaction(function () use ($datos, $reclamo): void {
             if ($datos['estado'] === 'resuelto') {
                 $entrega = Entrega::with('proveedor')->lockForUpdate()->findOrFail($reclamo->entrega_id);
-                $capacidad = (float) $entrega->proveedor->capacidad_tacho_l * $entrega->proveedor->tachos;
-                abort_if((float) $reclamo->litros_solicitados > $capacidad, 422, 'Los litros solicitados superan la capacidad registrada.');
+                abort_if($entrega->anulada, 409, 'Este recojo fue anulado. No puede corregirse mediante un reclamo.');
+                abort_if((float) $reclamo->litros_solicitados <= 0 || (float) $reclamo->litros_solicitados > 18500, 422, 'Revisa la cantidad de litros solicitada.');
                 $entrega->update(['litros' => $reclamo->litros_solicitados, 'observaciones' => trim(($entrega->observaciones ? $entrega->observaciones.' ' : '').'Ajustada por reclamo #'.$reclamo->id.'.')]);
             }
             $reclamo->update($datos + ['resuelto_por' => auth('operador')->id(), 'resuelto_en' => now()]);

@@ -89,7 +89,7 @@ private fun FilaEntrega(nombre: String, entrega: Entrega) {
                 Text(formatearHoraAcopio(entrega.registradoEn), style = MaterialTheme.typography.labelMedium, color = Colores.textSecundario)
                 Text(nombre, style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    "${entrega.tachos} tachos · ${entrega.modalidad.etiqueta()}",
+                    entrega.modalidad.etiqueta(),
                     style = MaterialTheme.typography.bodySmall,
                     color = Colores.textSecundario,
                 )

@@ -2,6 +2,7 @@ package pe.ecolecta.presentation.acopiador.nav
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Sync
@@ -14,8 +15,8 @@ import pe.ecolecta.presentation.design.ItemNavegacion
 import pe.ecolecta.presentation.navegacion.Pantalla
 
 enum class PestanaAcopiador(val pantalla: Pantalla, val etiqueta: String, val icono: ImageVector) {
-    JORNADA(Pantalla.AcopiadorHome, "Jornada", Icons.Outlined.LocalShipping),
-    PROVEEDORES(Pantalla.AcopiadorLista, "Proveedores", Icons.Outlined.Groups),
+    JORNADA(Pantalla.AcopiadorHome, "Inicio", Icons.Outlined.Home),
+    PROVEEDORES(Pantalla.AcopiadorLista, "Ruta", Icons.Outlined.Groups),
     ENTREGAS(Pantalla.AcopiadorEntregas, "Entregas", Icons.Outlined.WaterDrop),
     SINCRONIZACION(Pantalla.AcopiadorSincronizacion, "Sincronizar", Icons.Outlined.Sync),
     PERFIL(Pantalla.AcopiadorPerfil, "Perfil", Icons.Outlined.Person),

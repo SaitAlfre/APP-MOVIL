@@ -53,6 +53,7 @@ data class JornadaServidor(
     val fecha: String,
     val abiertaEn: Long,
     val cerradaEn: Long? = null,
+    val cierreAdministrativo: Boolean = false,
 )
 
 @Serializable
@@ -125,6 +126,13 @@ data class SolicitudServidor(
     val tipo: String = "RECLAMO", val zonaDestinoId: Long? = null,
 )
 
+@Serializable
+data class SinRecojoServidor(
+    val id: String, val jornadaId: Long, val proveedorId: Long, val usuarioId: Long, val zonaId: Long,
+    val fecha: String, val motivo: String, val detalle: String? = null, val registradaEn: Long,
+    val deshecha: Boolean = false, val deshechaEn: Long? = null, val actualizadoEn: Long,
+)
+
 /**
  * Copia de lo que el panel web publica para una cuenta (`GET /api/movil/datos`). El panel es la fuente
  * oficial: el celular actualiza con esto sus catálogos y su operación reciente.
@@ -145,6 +153,7 @@ data class DatosServidor(
     /** null = panel anterior; no implica borrar los datos ya guardados. */
     val pagos: List<PagoServidor>? = null,
     val solicitudes: List<SolicitudServidor>? = null,
+    val sinRecojos: List<SinRecojoServidor>? = null,
 )
 
 /** Guarda en la base del celular lo que llega del panel web. */

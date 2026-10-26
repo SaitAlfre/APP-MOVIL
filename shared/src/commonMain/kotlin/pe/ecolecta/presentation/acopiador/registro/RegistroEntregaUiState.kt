@@ -4,7 +4,7 @@ import pe.ecolecta.domain.model.Entrega
 import pe.ecolecta.domain.model.ModalidadEntrega
 import pe.ecolecta.domain.model.Proveedor
 
-data class EntregaExistente(val entrega: Entrega, val litrosNuevos: Double, val tachosNuevos: Int)
+data class EntregaExistente(val entrega: Entrega, val litrosNuevos: Double, val tachosNuevos: Int, val puedeSumar: Boolean = true)
 
 data class RegistroEntregaUiState(
     val proveedores: List<Proveedor> = emptyList(),
@@ -21,8 +21,10 @@ data class RegistroEntregaUiState(
     val guardadoExitoso: Boolean = false,
     val entregaDuplicada: EntregaExistente? = null,
 ) {
+    val textoGuardar: String get() = litros.toDoubleOrNull()?.let { "Guardar ${pe.ecolecta.presentation.design.formatearLitros(it)}" } ?: "Guardar recojo"
+
     val puedeGuardar: Boolean
-        get() = proveedorId.isNotBlank() && (litros.toDoubleOrNull() ?: 0.0) > 0.0 && (tachos.toIntOrNull() ?: 0) > 0
+        get() = proveedorId.isNotBlank() && (litros.toDoubleOrNull() ?: 0.0) > 0.0
 
     val proveedorSeleccionado: Proveedor?
         get() = proveedores.firstOrNull { it.id == proveedorId }

@@ -179,9 +179,15 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
     public function tendenciaParaReporte(DateTimeImmutable $desde, DateTimeImmutable $hasta, ?int $zonaId = null): array
     {
+        $diaLocal = $desde->getOffset() === 0 ? 'DATE(registrado_en)' : match (DB::connection()->getDriverName()) {
+            'sqlite' => "DATE(registrado_en, '-5 hours')",
+            'pgsql' => "DATE(registrado_en - INTERVAL '5 hours')",
+            default => 'DATE(DATE_SUB(registrado_en, INTERVAL 5 HOUR))',
+        };
+
         return $this->consultaReporte($desde, $hasta, $zonaId)
-            ->selectRaw('DATE(registrado_en) as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
-            ->groupBy(DB::raw('DATE(registrado_en)'))
+            ->selectRaw($diaLocal.' as fecha, COALESCE(SUM(litros), 0) as litros, COUNT(*) as entregas')
+            ->groupBy(DB::raw($diaLocal))
             ->orderBy('fecha')
             ->get()
             ->map(fn ($fila) => [
@@ -263,7 +269,7 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
 
         return $consulta->get()
             ->map(fn (EntregaEloquent $entrega) => [
-                'fecha' => $entrega->registrado_en->format('Y-m-d H:i:s'),
+                'fecha' => $entrega->registrado_en->timezone('America/Lima')->format('Y-m-d H:i:s'),
                 'proveedor_codigo' => (string) $entrega->proveedor_codigo,
                 'proveedor' => (string) $entrega->proveedor,
                 'zona' => (string) $entrega->zona,
@@ -378,8 +384,8 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
         return EntregaEloquent::query()
             ->where('entregas.anulada', false)
             ->whereBetween('entregas.registrado_en', [
-                $desde->format('Y-m-d 00:00:00'),
-                $hasta->format('Y-m-d 23:59:59'),
+                $desde->setTime(0, 0)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+                $hasta->setTime(23, 59, 59)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
             ])
             ->when($zonaId !== null, fn (Builder $consulta) => $consulta->where('entregas.zona_id', $zonaId));
     }

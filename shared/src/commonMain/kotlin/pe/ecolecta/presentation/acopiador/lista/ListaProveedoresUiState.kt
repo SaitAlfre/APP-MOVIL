@@ -10,8 +10,10 @@ import pe.ecolecta.domain.acopio.avanceDelDia
 enum class FiltroLista(val etiqueta: String) {
     TODOS("Todos"),
     PENDIENTES("Pendientes"),
-    REGISTRADOS("Registrados"),
-    SIN_RECOJO("Sin recojo"),
+    REGISTRADOS("Atendidos"),
+    MIOS("Atendidos por mí"),
+    OTROS("Por otro acopiador"),
+    SIN_RECOJO("No acopiados"),
 }
 
 /** Dos vistas de la misma información: la lista de trabajo de hoy, o la hoja del ciclo en tabla. */
@@ -28,6 +30,8 @@ data class ListaProveedoresUiState(
     val filtro: FiltroLista = FiltroLista.TODOS,
     val jornadaId: String? = null,
     val jornadaAbierta: Boolean = false,
+    val usuarioId: String = "",
+    val nombresAcopiadores: Map<String, String> = emptyMap(),
     /** false: este celular no tiene sincronización remota; todo queda "guardado en este celular". */
     val remotoConfigurado: Boolean = false,
     /** Proveedor cuyo detalle del ciclo está abierto (nunca edita entregas: solo las muestra). */
@@ -41,7 +45,7 @@ data class ListaProveedoresUiState(
     val resumen: String
         get() = with(avance) { "$asignados asignados · $registrados registrados · $pendientes pendientes · $sinRecojo sin recojo" }
 
-    val visibles: List<FilaAcopio> get() = hoy?.let { filtrarFilas(filas, it, busqueda, filtro) } ?: emptyList()
+    val visibles: List<FilaAcopio> get() = hoy?.let { filtrarFilas(filas, it, busqueda, filtro, usuarioId) } ?: emptyList()
 
     val detalle: FilaAcopio? get() = filas.firstOrNull { it.proveedor.id == detalleProveedorId }
 
@@ -51,7 +55,7 @@ data class ListaProveedoresUiState(
 fun estadoDeHoy(fila: FilaAcopio, hoy: LocalDate): EstadoRecojo = fila.dia(hoy)?.estado ?: EstadoRecojo.PENDIENTE
 
 /** Búsqueda por nombre completo o código, y filtro por el estado del recojo de [hoy]. */
-fun filtrarFilas(filas: List<FilaAcopio>, hoy: LocalDate, busqueda: String, filtro: FiltroLista): List<FilaAcopio> {
+fun filtrarFilas(filas: List<FilaAcopio>, hoy: LocalDate, busqueda: String, filtro: FiltroLista, usuarioId: String = ""): List<FilaAcopio> {
     val texto = busqueda.trim().lowercase()
     return filas
         .filter { fila ->
@@ -65,6 +69,8 @@ fun filtrarFilas(filas: List<FilaAcopio>, hoy: LocalDate, busqueda: String, filt
                 FiltroLista.TODOS -> true
                 FiltroLista.PENDIENTES -> estadoDeHoy(fila, hoy) == EstadoRecojo.PENDIENTE
                 FiltroLista.REGISTRADOS -> estadoDeHoy(fila, hoy) == EstadoRecojo.REGISTRADO
+                FiltroLista.MIOS -> fila.dia(hoy)?.recojos?.any { it.usuarioId == usuarioId } == true
+                FiltroLista.OTROS -> fila.dia(hoy)?.recojos?.any { it.usuarioId.isNotBlank() && it.usuarioId != usuarioId } == true
                 FiltroLista.SIN_RECOJO -> estadoDeHoy(fila, hoy) == EstadoRecojo.SIN_RECOJO
             }
         }

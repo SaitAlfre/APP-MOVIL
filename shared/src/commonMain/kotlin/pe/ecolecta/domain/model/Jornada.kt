@@ -11,6 +11,7 @@ data class Jornada(
     val abiertaEn: Long,
     val cerradaEn: Long?,
     val syncState: SyncState,
+    val cierreAdministrativo: Boolean = false,
 ) {
     val estaAbierta: Boolean get() = cerradaEn == null
 }

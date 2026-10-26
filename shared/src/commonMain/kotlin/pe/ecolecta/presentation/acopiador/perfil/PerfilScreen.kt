@@ -87,9 +87,6 @@ fun PerfilScreen(
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Dato("Versión", VERSION_APP)
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
-                // Lo necesita el administrador para vincular este celular en Firebase (acopiador_links).
-                Dato("Vinculación de sincronización", estado.uidFirebase ?: "Sin sincronización en este celular")
-                DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Dato(
                     "Panel web",
                     when (estado.sesionPanelWeb) {
@@ -101,7 +98,7 @@ fun PerfilScreen(
                 DivisorSutil(Modifier.padding(vertical = Espaciado.xs))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Servidor", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
-                    val servidor = estadoServidor(estado.uidFirebase != null || estado.sesionPanelWeb == true, estado.pendientesSync)
+                    val servidor = estadoServidor(estado.sesionPanelWeb == true, estado.pendientesSync)
                     Text(
                         servidor.texto,
                         style = MaterialTheme.typography.bodyLarge,

@@ -32,7 +32,7 @@ data class EstadoSincronizacion(
     val texto: String get() = when {
         sincronizando -> "Sincronizando…"
         sinConexion -> "Sin conexión · $pendientes por enviar"
-        requiereEnlace -> "Vincula tu cuenta con la web"
+        requiereEnlace -> "Confirma tu acceso para sincronizar"
         problema != null -> "No se completó la sincronización"
         errores > 0 -> "$errores cambios requieren revisión"
         pendientes > 0 && novedades -> "$pendientes por enviar · Hay novedades"
@@ -124,7 +124,6 @@ class CoordinadorSync(
                 val otros = enviar(id)
                 if (resultado.sinConexion > 0 || otros.sinConexion) advertencia = "Hay cambios por enviar; se volverá a intentar al conectar."
                 if (resultado.sinEnlazar > 0) advertencia = "Hay cuentas sin enlazar. Inicia sesión con conexión para enviar sus cambios."
-                if (resultado.parciales > 0) advertencia = "El panel web recibió entregas, pero falta su copia adicional para el proveedor. Los reintentos conservarán los mismos registros."
                 if (resultado.fallidos > 0 || otros.conError > 0) advertencia = "Algunos cambios fueron rechazados. Revisa los detalles de sincronización."
             }
             val datos = servidor.descargarDatos(id).getOrThrow()
@@ -134,7 +133,7 @@ class CoordinadorSync(
                 usuarios = datos.usuarios.sortedBy { it.id }, proveedores = datos.proveedores.sortedBy { it.id },
                 jornadas = datos.jornadas.sortedBy { it.id }, entregas = datos.entregas.sortedBy { it.id },
                 analisis = datos.analisis.sortedBy { it.id }, comunicados = datos.comunicados.sortedBy { it.id },
-                pagos = datos.pagos?.sortedBy { it.id }, solicitudes = datos.solicitudes?.sortedBy { it.id })
+                pagos = datos.pagos?.sortedBy { it.id }, solicitudes = datos.solicitudes?.sortedBy { it.id }, sinRecojos = datos.sinRecojos?.sortedBy { it.id })
             val comparable = Sha256.hash(Json.encodeToString(normalizada).encodeToByteArray())
                 .joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
             if (aplicar) {
