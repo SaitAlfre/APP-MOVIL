@@ -49,6 +49,7 @@ import pe.ecolecta.presentation.admin.design.haceTiempo
 import pe.ecolecta.presentation.admin.alertas.etiqueta
 import pe.ecolecta.presentation.navegacion.Pantalla
 import kotlin.time.Clock
+import kotlinx.coroutines.launch
 
 private data class Mosaico(val etiqueta: String, val valor: Int, val icono: String, val color: Color, val fondo: Color, val destino: Pantalla)
 
@@ -60,6 +61,8 @@ fun AdminDashboardScreen(
     viewModel: AdminDashboardViewModel = koinViewModel(),
     alertasViewModel: AdminAlertasViewModel = koinViewModel(),
 ) {
+    val sync = org.koin.compose.koinInject<pe.ecolecta.domain.usecase.sync.CoordinadorSync>()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val estado by viewModel.uiState.collectAsState()
     val alertas by alertasViewModel.uiState.collectAsState()
     val acciones = recordarAccionesAlerta(alertasViewModel, alertas, alNavegar)
@@ -76,7 +79,7 @@ fun AdminDashboardScreen(
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     AdminPildoraSync(resumen?.entregasPendientes ?: 0)
-                    IconButton(onClick = viewModel::cargar, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = { scope.launch { sync.ejecutar(manual = true); viewModel.cargar() } }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Outlined.Refresh, contentDescription = "Actualizar", tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(20.dp))
                     }
                 }

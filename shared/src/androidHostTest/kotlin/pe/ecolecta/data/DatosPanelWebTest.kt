@@ -176,4 +176,32 @@ class DatosPanelWebTest {
         assertEquals(inicio.usuario.id, offline("demo_calidad", "1234").getOrThrow().id)
         assertNull(db.usuarioQueries.selectPorId(inicio.usuario.id).executeAsOne().bloqueado_hasta)
     }
+    @Test
+    fun `una correccion remota conserva la edicion offline y crea conflicto`() = kotlinx.coroutines.runBlocking {
+        val inicial = datos()
+        local.aplicar(inicial.copy(entregas = inicial.entregas.map { it.copy(actualizadoEn = 100) }))
+        val id = "web-entrega-40"
+        db.entregaQueries.corregir(litros = 38.0, tachos = 1, observaciones = "Cambio sin red", updated_at = 200, id = id)
+        local.aplicar(inicial.copy(entregas = inicial.entregas.map { it.copy(litros = 35.0, actualizadoEn = 300) }))
+        val fila = db.entregaQueries.selectPorId(id).executeAsOne()
+        assertEquals(38.0, fila.litros)
+        assertEquals(35.0, fila.litros_servidor)
+        assertEquals("CONFLICT", fila.sync_state)
+        assertEquals(300L, db.versionEntregaQueries.obtener(id).executeAsOne())
+    }
+
+    @Test
+    fun `pagos y decisiones del panel se guardan sin volver a entrar en la cola`() = kotlinx.coroutines.runBlocking {
+        val copia = datos().copy(
+            pagos = listOf(pe.ecolecta.domain.repository.PagoServidor(99, 21, "2026-10-08", "2026-10-14", 20.0, 2.0, 40.0, 0.0, 40.0, "PAGADA")),
+            solicitudes = listOf(pe.ecolecta.domain.repository.SolicitudServidor("recibida", 21, null, 20.0, "Revisión", creadaEn = 100, estado = "ATENDIDA")),
+        )
+        local.aplicar(copia)
+        local.aplicar(copia)
+        val json = kotlinx.serialization.json.Json
+        assertEquals("PAGADA", json.decodeFromString<pe.ecolecta.domain.model.PagoProveedor>(db.portalProveedorQueries.porId("web-99").executeAsOne().contenido).estado)
+        assertEquals("ATENDIDA", json.decodeFromString<pe.ecolecta.domain.model.SolicitudProveedor>(db.portalProveedorQueries.porId("recibida").executeAsOne().contenido).estado)
+        assertEquals(0L, db.cambioPendienteQueries.contarPorEstado("PENDING").executeAsOne())
+    }
+
 }

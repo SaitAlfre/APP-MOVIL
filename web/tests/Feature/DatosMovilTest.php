@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
+use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -95,5 +97,29 @@ class DatosMovilTest extends TestCase
         $this->assertSame('OBSERVADO', $analisis['estado']);
         $this->assertSame(['grasa'], $analisis['visita']['parametrosAlertados']);
         $this->assertSame('3.0 a 6.0 %', $analisis['visita']['referencias']['grasa']);
+    }
+
+    public function test_pagos_y_resoluciones_regresan_al_proveedor_sin_exponer_los_ajenos(): void
+    {
+        $cuenta = Usuario::factory()->create(['username' => 'portal_sync', 'pin_hash' => '1357', 'roles' => ['proveedor']]);
+        $propio = Proveedor::factory()->create(['usuario_id' => $cuenta->id]);
+        $ajeno = Proveedor::factory()->create();
+        foreach ([$propio, $ajeno] as $proveedor) {
+            $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id]);
+            ReclamoProveedor::query()->create([
+                'uuid_movil' => "reclamo-{$proveedor->id}", 'proveedor_id' => $proveedor->id, 'entrega_id' => $entrega->id,
+                'litros_originales' => 20, 'litros_solicitados' => 21, 'motivo' => 'Revisar medida', 'estado' => 'resuelto',
+            ]);
+            Liquidacion::query()->create([
+                'proveedor_id' => $proveedor->id, 'periodo_inicio' => '2026-10-08', 'periodo_fin' => '2026-10-14',
+                'litros_totales' => 20, 'precio_litro' => 2, 'monto_total' => 40, 'descuento_sanciones' => 0,
+                'estado' => 'pagada', 'generada_en' => now(), 'pagada_en' => now(),
+            ]);
+        }
+        $datos = $this->withToken($this->token('portal_sync'))->getJson('/api/movil/datos')->assertOk();
+        $this->assertSame([$propio->id], collect($datos->json('pagos'))->pluck('proveedorId')->all());
+        $this->assertSame('PAGADA', $datos->json('pagos.0.estado'));
+        $this->assertSame([$propio->id], collect($datos->json('solicitudes'))->pluck('proveedorId')->all());
+        $this->assertSame('ATENDIDA', $datos->json('solicitudes.0.estado'));
     }
 }

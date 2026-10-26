@@ -43,7 +43,12 @@ class SqlDelightCambiosLocalesRepository(
 
     override suspend fun pendientes(): List<CambioParaServidor> = withContext(dispatcher) {
         db.cambioPendienteQueries.pendientes().executeAsList().map { fila ->
-            CambioParaServidor(fila.entidad, fila.local_id, fila.usuario_id, fila.marcado_en, cuerpo(fila))
+            val solicitud = if (fila.entidad == EntidadCambio.SOLICITUD) contenido<SolicitudProveedor>(fila.local_id) else null
+            val payload = cuerpo(fila)
+            CambioParaServidor(fila.entidad, fila.local_id, fila.usuario_id, fila.marcado_en, payload,
+                if (solicitud != null && (solicitud.tipo !in setOf("RECLAMO", "TRASLADO") || payload == null))
+                    "Esta solicitud aún no tiene un destino compatible en el panel. Se conserva en este teléfono; no se ha enviado." else null,
+                if (solicitud?.tipo == "TRASLADO") "traslado" else null)
         }
     }
 
@@ -51,6 +56,12 @@ class SqlDelightCambiosLocalesRepository(
         db.transaction {
             if (servidorId != null && cambio.entidad in ENTIDADES_MAPEADAS) {
                 db.servidorMapaQueries.guardar(cambio.entidad, servidorId, cambio.localId)
+            }
+            if (cambio.entidad == EntidadCambio.SOLICITUD &&
+                db.cambioPendienteQueries.porClave(cambio.entidad, cambio.localId).executeAsOneOrNull()?.marcado_en == cambio.marcadoEn) {
+                contenido<SolicitudProveedor>(cambio.localId)?.takeIf { it.estado == "PENDIENTE_ENVIO" }?.let {
+                    db.portalProveedorQueries.actualizarContenido(json.encodeToString(SolicitudProveedor.serializer(), it.copy(estado = "PENDIENTE")), it.id)
+                }
             }
             db.cambioPendienteQueries.completar(cambio.entidad, cambio.localId, cambio.marcadoEn)
         }
@@ -142,7 +153,17 @@ class SqlDelightCambiosLocalesRepository(
                     put("registradoEn", cc.registrado_en)
                 }
             }
-        EntidadCambio.SOLICITUD -> contenido<SolicitudProveedor>(c.local_id)?.takeIf { it.tipo == "RECLAMO" }?.let { s ->
+        EntidadCambio.SOLICITUD -> contenido<SolicitudProveedor>(c.local_id)?.let { s ->
+            if (s.tipo == "TRASLADO") {
+                val proveedor = db.proveedorQueries.selectPorId(s.proveedorId).executeAsOneOrNull() ?: return null
+                val zona = s.referenciaId?.let { db.zonaQueries.selectPorId(it).executeAsOneOrNull() } ?: return null
+                return buildJsonObject {
+                    put("uuid", s.id); put("proveedorCodigo", proveedor.codigo)
+                    putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId")
+                    putServidor(EntidadCambio.ZONA, zona.id, "zonaDestinoId"); put("zonaDestinoNombre", zona.nombre)
+                    put("motivo", s.descripcion); put("estado", s.estado)
+                }
+            }
             buildJsonObject {
                 put("uuid", s.id); put("entregaUuid", s.referenciaId); put("litros", s.litros)
                 put("motivo", listOf(s.motivo, s.descripcion).filter { it.isNotBlank() }.distinct().joinToString(": "))
@@ -150,7 +171,7 @@ class SqlDelightCambiosLocalesRepository(
             }
         }
         EntidadCambio.LIQUIDACION -> contenido<PagoProveedor>(c.local_id)
-            ?.takeIf { !it.id.startsWith(PREFIJO_PAGO_SERVIDOR) && it.estado.uppercase() in setOf("APROBADA", "PAGADA") }?.let { pago ->
+            ?.takeIf { it.estado.uppercase() in setOf("APROBADA", "PAGADA") }?.let { pago ->
                 val proveedor = db.proveedorQueries.selectPorId(pago.proveedorId).executeAsOneOrNull() ?: return null
                 buildJsonObject {
                     putServidor(EntidadCambio.PROVEEDOR, proveedor.id, "proveedorId"); put("proveedorCodigo", proveedor.codigo)

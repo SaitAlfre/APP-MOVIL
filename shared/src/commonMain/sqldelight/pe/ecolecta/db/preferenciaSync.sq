@@ -1,0 +1,12 @@
+CREATE TABLE preferencia_sync (usuario_id TEXT NOT NULL PRIMARY KEY, automatico INTEGER NOT NULL DEFAULT 1, ultima_sync INTEGER, huella TEXT);
+obtener:
+SELECT * FROM preferencia_sync WHERE usuario_id = ?;
+inicializar:
+INSERT OR IGNORE INTO preferencia_sync(usuario_id) VALUES (?);
+guardarAutomatico:
+UPDATE preferencia_sync SET automatico = :automatico WHERE usuario_id = :usuario;
+guardarUltima:
+UPDATE preferencia_sync SET ultima_sync = :ultima WHERE usuario_id = :usuario;
+
+guardarHuella:
+UPDATE preferencia_sync SET huella = :huella WHERE usuario_id = :usuario;

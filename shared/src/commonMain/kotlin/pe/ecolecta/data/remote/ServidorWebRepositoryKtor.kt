@@ -242,6 +242,10 @@ class ServidorWebRepositoryKtor(
         Result.failure(e)
     } catch (e: SinSesionServidorException) {
         Result.failure(e)
+    } catch (e: kotlinx.serialization.SerializationException) {
+        Result.failure(RechazoServidorException("El panel respondió con datos incompatibles. Actualiza el panel web o la app; los cambios locales se conservan.", "contrato_incompatible", false))
+    } catch (e: io.ktor.serialization.ContentConvertException) {
+        Result.failure(RechazoServidorException("No se pudo interpretar la respuesta del panel web. Los cambios locales se conservan.", "contrato_incompatible", false))
     } catch (e: Exception) {
         Result.failure(SinConexionRemotaException(e, "$SIN_RESPUESTA en $direccion"))
     }

@@ -37,7 +37,11 @@ class SqlDelightGestionPortalRepository(
         Unit
     }
 
-    override suspend fun guardarPagos(pagos: List<PagoProveedor>, en: Long) = withContext(dispatcher) {
+    override suspend fun guardarPagos(pagos: List<PagoProveedor>, en: Long) = persistirPagos(pagos, en, enviar = true)
+
+    override suspend fun recibirPagos(pagos: List<PagoProveedor>, en: Long) = persistirPagos(pagos, en, enviar = false)
+
+    private suspend fun persistirPagos(pagos: List<PagoProveedor>, en: Long, enviar: Boolean) = withContext(dispatcher) {
         db.transaction {
             pagos.forEach { pago ->
                 val contenido = json.encodeToString(pago)
@@ -47,7 +51,16 @@ class SqlDelightGestionPortalRepository(
                 } else {
                     db.portalProveedorQueries.guardar(pago.id, pago.proveedorId, "PAGO", contenido, en)
                 }
-                db.marcarCambio(EntidadCambio.LIQUIDACION, pago.id)
+                if (enviar) db.marcarCambio(EntidadCambio.LIQUIDACION, pago.id)
+                else {
+                    // Corrige el eco que versiones anteriores generaban al recibir pagos del panel.
+                    val actor = db.sesionQueries.obtener().executeAsOneOrNull()?.usuario_id
+                    val roles = actor?.let { db.usuarioRolQueries.selectPorUsuario(it).executeAsList() }.orEmpty()
+                    if ("ADMIN" !in roles) {
+                        db.cambioPendienteQueries.porClave(EntidadCambio.LIQUIDACION, pago.id).executeAsOneOrNull()
+                            ?.takeIf { it.usuario_id == actor }?.let { db.cambioPendienteQueries.completar(it.entidad, it.local_id, it.marcado_en) }
+                    }
+                }
             }
         }
     }

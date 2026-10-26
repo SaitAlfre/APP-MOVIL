@@ -83,12 +83,12 @@ class SincronizarRegistrosAcopioUseCase(
     /** El panel web (lo que ve el administrador) está configurado en esta compilación. */
     val servidorConfigurado: Boolean get() = servidor.configurado
 
-    suspend operator fun invoke(): ResultadoSincronizacion {
+    suspend operator fun invoke(usuarioId: String? = null): ResultadoSincronizacion {
         if (!configurado) return ResultadoSincronizacion(0, 0, 0)
-        return mutex.withLock { sincronizar() }
+        return mutex.withLock { sincronizar(usuarioId) }
     }
 
-    private suspend fun sincronizar(): ResultadoSincronizacion {
+    private suspend fun sincronizar(usuarioId: String?): ResultadoSincronizacion {
         var enviados = 0
         var sinConexion = 0
         var fallidos = 0
@@ -156,6 +156,7 @@ class SincronizarRegistrosAcopioUseCase(
         }
 
         for (entrega in entregaRepository.pendientesDeSincronizar()) {
+            if (usuarioId != null && preparador.remitente(entrega) != usuarioId) continue
             enviar(
                 proveedorId = entrega.proveedorId,
                 usuarioId = entrega.usuarioId,
@@ -169,6 +170,7 @@ class SincronizarRegistrosAcopioUseCase(
 
         // "Sin recojo" solo viaja al celular del proveedor: sin Firestore se queda guardado aquí.
         if (remoto.configurado) for (marca in sinRecojoRepository.pendientesDeSincronizar()) {
+            if (usuarioId != null && marca.usuarioId != usuarioId) continue
             enviar(
                 proveedorId = marca.proveedorId,
                 usuarioId = marca.usuarioId,
@@ -258,6 +260,8 @@ class PreparadorEntregaServidorLocal(
             anulada = entrega.anulada,
             motivo = motivo,
             actualizadoEn = entrega.updatedAt,
+            versionServidor = entrega.versionServidor,
+            revisionServidor = entrega.revisionServidor,
         )
     }
 
@@ -269,6 +273,6 @@ class PreparadorEntregaServidorLocal(
     override suspend fun remitente(entrega: Entrega): String = ultimoCambio(entrega)?.usuarioId ?: entrega.usuarioId
 
     private suspend fun ultimoCambio(entrega: Entrega) = auditoria.filtrar(entidad = "entrega")
-        .filter { it.entidadId == entrega.id && it.accion in setOf(AccionAuditoria.CORREGIR, AccionAuditoria.ANULAR) }
+        .filter { it.entidadId == entrega.id && it.accion in setOf(AccionAuditoria.CORREGIR, AccionAuditoria.ANULAR, AccionAuditoria.RESOLVER_CONFLICTO) }
         .maxByOrNull { it.ocurridoEn }
 }

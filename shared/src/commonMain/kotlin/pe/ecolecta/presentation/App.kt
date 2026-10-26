@@ -101,23 +101,20 @@ fun App() {
         val cerrarSesionUseCase = koinInject<CerrarSesionUseCase>()
         val resolverInicioAcopiadorUseCase = koinInject<ResolverInicioAcopiadorUseCase>()
         val obtenerPerfilProveedorUseCase = koinInject<ObtenerPerfilProveedorUseCase>()
-        val sincronizarRegistros = koinInject<SincronizarRegistrosAcopioUseCase>()
-        val sincronizarDatos = koinInject<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
-        val enviarCambios = koinInject<pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase>()
+        val coordinador = koinInject<pe.ecolecta.domain.usecase.sync.CoordinadorSync>()
         val scope = rememberCoroutineScope()
 
-        // Envía entregas y "sin recojo" pendientes de ESTE celular mientras la app está abierta, con o
-        // sin sesión (lo guardado no debe quedarse atascado por cerrar sesión). Sin backend configurado
-        // no hace nada. Cada documento usa el id del registro: reintentar nunca duplica.
-        // Luego envía los demás cambios hechos aquí (cuentas, catálogos, jornadas, calidad, comunicados,
-        // reclamos, liquidaciones) y al final trae lo que cambió en el panel web con la cuenta en sesión:
-        // primero se envía, así lo aún no enviado nunca se pisa.
-        LaunchedEffect(Unit) {
-            while (true) {
-                runCatching { sincronizarRegistros() }
-                runCatching { enviarCambios() }
-                runCatching { sincronizarDatos() }
-                delay(INTERVALO_SINCRONIZACION_MS)
+        // Solo en primer plano: una operación compartida respeta la preferencia de la cuenta.
+        // El modo manual consulta novedades sin aplicar datos; enviar/descargar requiere el botón.
+        val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+        LaunchedEffect(lifecycle) {
+            lifecycle.currentStateFlow.collectLatest { estado ->
+                if (estado.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) {
+                    while (true) {
+                        coordinador.ejecutar()
+                        delay(INTERVALO_SINCRONIZACION_MS)
+                    }
+                }
             }
         }
 
@@ -147,6 +144,12 @@ fun App() {
         val sesionViewModelStoreOwner = rememberSesionViewModelStoreOwner(claveSesion)
         CompositionLocalProvider(LocalViewModelStoreOwner provides sesionViewModelStoreOwner) {
             key(claveSesion) {
+                pe.ecolecta.presentation.design.MarcoSincronizacion(
+                    visible = pantalla != Pantalla.Splash && pantalla != Pantalla.Login && pantalla !is Pantalla.SeleccionRol,
+                    permiteGesto = pantalla in setOf(Pantalla.AcopiadorHome, Pantalla.AcopiadorLista, Pantalla.AcopiadorEntregas,
+                        Pantalla.AdminDashboard, Pantalla.AdminJornadas, Pantalla.AdminProveedores, Pantalla.AdminEntregas,
+                        Pantalla.ProveedorHome, Pantalla.ProveedorEntregas, Pantalla.ProveedorPagos, Pantalla.ProveedorSolicitudes),
+                ) {
                 Box(Modifier.fillMaxSize().background(Colores.bgBase)) { EscenarioAnimado(pantalla) {
                     when (val actual = pantalla) {
                         Pantalla.Splash -> SplashScreen()
@@ -198,6 +201,7 @@ fun App() {
                         )
                     }
                 } }
+                }
             }
         }
     }

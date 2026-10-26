@@ -159,7 +159,7 @@ class PortalProveedorViewModel(
             }
             servidorWeb.liquidacionesDelProveedor(usuarioId).fold(
                 onSuccess = { recibidas ->
-                    gestionPortal.guardarPagos(recibidas.map { it.copy(proveedorId = proveedor.id) }, reloj.ahora().toEpochMilliseconds())
+                    gestionPortal.recibirPagos(recibidas.map { it.copy(proveedorId = proveedor.id) }, reloj.ahora().toEpochMilliseconds())
                     _state.update { it.copy(avisoPagos = null) }
                 },
                 onFailure = { error ->

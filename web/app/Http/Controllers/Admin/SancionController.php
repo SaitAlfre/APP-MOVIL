@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Movil\AplicarCambioMovilUseCase;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Sancion;
+use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +22,7 @@ class SancionController extends Controller
         $this->crearPropuestasDesdeCalidad();
 
         return view('admin.sanciones.index', [
+            'solicitudesTraslado' => SolicitudTraslado::with(['proveedor', 'destino'])->latest()->paginate(15, ['*'], 'traslados'),
             'sanciones' => Sancion::with(['proveedor', 'controlCalidad'])->latest()->paginate(15, ['*'], 'sanciones'),
             'reclamos' => ReclamoProveedor::with(['proveedor', 'entrega'])->latest()->paginate(15, ['*'], 'reclamos'),
             'entregas' => Entrega::with('proveedor')->where('anulada', false)->latest('registrado_en')->limit(100)->get(),
@@ -67,6 +70,21 @@ class SancionController extends Controller
         });
 
         return back()->with('estado', 'Reclamo actualizado.');
+    }
+
+    public function resolverTraslado(Request $request, SolicitudTraslado $traslado, AplicarCambioMovilUseCase $aplicar): RedirectResponse
+    {
+        $autor = auth('operador')->user();
+        abort_unless($autor->tieneRol('admin'), 403);
+        $datos = $request->validate(['estado' => ['required', Rule::in(['APROBADA', 'RECHAZADA'])]]);
+        $traslado->load(['proveedor', 'destino']);
+        $aplicar->ejecutar($autor, 'traslado', [
+            'uuid' => $traslado->uuid_movil, 'proveedorId' => $traslado->proveedor_id,
+            'proveedorCodigo' => $traslado->proveedor->codigo, 'zonaDestinoId' => $traslado->zona_destino_id,
+            'zonaDestinoNombre' => $traslado->destino->nombre, 'motivo' => $traslado->motivo, 'estado' => $datos['estado'],
+        ]);
+
+        return back()->with('estado', 'Solicitud de traslado actualizada. El proveedor recibirá el resultado al sincronizar.');
     }
 
     private function crearPropuestasDesdeCalidad(): void

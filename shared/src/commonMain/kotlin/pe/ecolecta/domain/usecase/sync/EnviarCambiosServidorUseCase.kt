@@ -27,15 +27,21 @@ class EnviarCambiosServidorUseCase(
 ) {
     private val mutex = Mutex()
 
-    suspend operator fun invoke(): ResultadoCambios {
+    suspend operator fun invoke(usuarioId: String? = null): ResultadoCambios {
         if (!servidor.configurado) return ResultadoCambios(0, 0, false)
-        return mutex.withLock { enviar() }
+        return mutex.withLock { enviar(usuarioId) }
     }
 
-    private suspend fun enviar(): ResultadoCambios {
+    private suspend fun enviar(usuarioId: String?): ResultadoCambios {
         var enviados = 0
         var conError = 0
         for (cambio in cambios.pendientes()) {
+            if (usuarioId != null && cambio.usuarioId != usuarioId) continue
+            if (cambio.motivoNoEnviable != null) {
+                cambios.fallar(cambio, cambio.motivoNoEnviable, definitivo = true)
+                conError++
+                continue
+            }
             val cuerpo = cambio.cuerpo
             if (cuerpo == null) {
                 cambios.completar(cambio, null) // nada que enviar (fila borrada o no la recibe el panel)
@@ -46,7 +52,7 @@ class EnviarCambiosServidorUseCase(
                 continue
             }
             val resultado = try {
-                servidor.enviarCambio(cambio.usuarioId, cambio.entidad, cuerpo)
+                servidor.enviarCambio(cambio.usuarioId, cambio.entidadRemota ?: if (cambio.entidad == "solicitud") "reclamo" else cambio.entidad, cuerpo)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

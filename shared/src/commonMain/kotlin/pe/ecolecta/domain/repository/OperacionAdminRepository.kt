@@ -12,6 +12,7 @@ interface GestionPortalRepository {
     suspend fun actualizarSolicitud(solicitud: SolicitudProveedor)
     /** Inserta o reemplaza todas las liquidaciones en una única transacción. */
     suspend fun guardarPagos(pagos: List<PagoProveedor>, en: Long)
+    suspend fun recibirPagos(pagos: List<PagoProveedor>, en: Long) = guardarPagos(pagos, en)
 }
 
 interface ComunicadoRepository {

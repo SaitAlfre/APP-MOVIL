@@ -29,12 +29,20 @@ class SincronizacionViewModel(
     private val vincularServidor: VincularServidorUseCase,
     private val cambios: pe.ecolecta.domain.repository.CambiosLocalesRepository? = null,
     private val enviarCambios: pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase? = null,
+    private val coordinador: pe.ecolecta.domain.usecase.sync.CoordinadorSync? = null,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SincronizacionUiState())
     val uiState: StateFlow<SincronizacionUiState> = _uiState.asStateFlow()
 
     init {
         cargar()
+        coordinador?.let { sync ->
+            viewModelScope.launch {
+                sync.estado.collect { estado ->
+                    _uiState.update { it.copy(sincronizacionConfirmada = estado.verificado && !estado.sinConexion && estado.problema == null && estado.pendientes == 0 && estado.errores == 0) }
+                }
+            }
+        }
         cambios?.let { repo ->
             viewModelScope.launch {
                 repo.observarEstado().collect { e -> _uiState.update { it.copy(avisoCambios = pe.ecolecta.presentation.avisoCambiosServidor(e)) } }
@@ -111,6 +119,12 @@ class SincronizacionViewModel(
     /** Envía ahora lo pendiente (entregas y "sin recojo") e informa el resultado real, sin maquillarlo. */
     fun reintentar() {
         viewModelScope.launch {
+            coordinador?.let {
+                val mensaje = it.ejecutar(manual = true)
+                _uiState.update { estado -> estado.copy(mensaje = mensaje) }
+                cargar()
+                return@launch
+            }
             val mensaje = if (!sincronizarRegistros.configurado) {
                 "Este celular no tiene sincronización configurada. Tus datos están guardados solo en este dispositivo."
             } else {

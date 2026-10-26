@@ -142,7 +142,7 @@ class PersistenciaListaAcopioTest {
         val versionNueva = EcolectaDatabase.Schema.version
         var driver = JdbcSqliteDriver(url)
         EcolectaDatabase.Schema.create(driver)
-        listOf("sin_recojo", "registro_recibido", "token_servidor").forEach { driver.execute(null, "DROP TABLE $it", 0) }
+        listOf("sin_recojo", "registro_recibido", "token_servidor", "preferencia_sync", "version_entrega_servidor").forEach { driver.execute(null, "DROP TABLE $it", 0) }
         driver.execute(null, "PRAGMA user_version = 11", 0)
 
         // 2) Datos reales de demostración: cuentas, fichas, jornada, entregas (incl. anulada y en
@@ -176,6 +176,8 @@ class PersistenciaListaAcopioTest {
         var driver = abrir()
         driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_token", 0)
         driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_expira_en", 0)
+        driver.execute(null, "DROP TABLE preferencia_sync", 0)
+        driver.execute(null, "DROP TABLE version_entrega_servidor", 0)
         driver.execute(null, "PRAGMA user_version = 15", 0)
         EcolectaDatabase(driver).tokenServidorQueries.guardar("u1", "token-anterior", 900, 100)
         driver.close()
@@ -195,6 +197,21 @@ class PersistenciaListaAcopioTest {
         assertEquals("access-nuevo", nueva.token)
         assertEquals("refresh-nuevo", nueva.refresh_token)
         assertEquals(3000L, nueva.refresh_expira_en)
+        driver.close()
+    }
+
+    @Test
+    fun `preferencia manual y ultima sincronizacion sobreviven al reinicio`() {
+        var driver = abrir()
+        var db = EcolectaDatabase(driver)
+        db.preferenciaSyncQueries.inicializar("u1")
+        db.preferenciaSyncQueries.guardarAutomatico(0L, "u1")
+        db.preferenciaSyncQueries.guardarUltima(1234L, "u1")
+        driver.close()
+        driver = abrir()
+        db = EcolectaDatabase(driver)
+        assertEquals(0L, db.preferenciaSyncQueries.obtener("u1").executeAsOne().automatico)
+        assertEquals(1234L, db.preferenciaSyncQueries.obtener("u1").executeAsOne().ultima_sync)
         driver.close()
     }
 

@@ -23,6 +23,8 @@ data class CambioParaServidor(
     val usuarioId: String,
     val marcadoEn: Long,
     val cuerpo: JsonObject?,
+    val motivoNoEnviable: String? = null,
+    val entidadRemota: String? = null,
 )
 
 /** Resumen de la cola celular -> panel para la pantalla de sincronización. */

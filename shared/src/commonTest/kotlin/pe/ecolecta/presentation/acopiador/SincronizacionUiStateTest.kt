@@ -15,7 +15,9 @@ class SincronizacionUiStateTest {
 
     @Test
     fun `solo anuncia completado con enlace y sin operaciones pendientes`() {
-        val estado = SincronizacionUiState(cargando = false, cuentaEnlazada = true)
+        val estado = SincronizacionUiState(cargando = false, cuentaEnlazada = true, sincronizacionConfirmada = true)
+        assertFalse(estado.copy(sincronizacionConfirmada = false).todoSincronizado)
+        assertFalse(estado.copy(avisoCambios = "Calidad pendiente").todoSincronizado)
         assertTrue(estado.todoSincronizado)
         assertFalse(estado.copy(resumen = ResumenColaSync(1, 2, 0, 0)).todoSincronizado)
         assertFalse(estado.copy(resumen = ResumenColaSync(0, 2, 1, 0)).todoSincronizado)

@@ -70,6 +70,7 @@ data class EntregaServidor(
     val registradoEn: Long,
     val anulada: Boolean = false,
     val actualizadoEn: Long = 0,
+    val revision: String? = null,
 )
 
 /** Análisis LactoScan del panel, con los mismos campos que `control_calidad` del celular; [uuid] es su id común. */
@@ -110,6 +111,20 @@ data class AnalisisServidor(
 @Serializable
 data class ComunicadoServidor(val id: Long, val titulo: String, val contenido: String, val autor: String, val publicadoEn: Long, val codigo: String = "")
 
+@Serializable
+data class PagoServidor(
+    val id: Long, val proveedorId: Long, val desde: String, val hasta: String,
+    val litros: Double, val precio: Double, val bruto: Double, val descuento: Double,
+    val total: Double, val estado: String, val fechaPago: String? = null,
+)
+
+@Serializable
+data class SolicitudServidor(
+    val id: String, val proveedorId: Long, val referenciaId: String?, val litros: Double?,
+    val motivo: String, val descripcion: String = "", val creadaEn: Long, val estado: String,
+    val tipo: String = "RECLAMO", val zonaDestinoId: Long? = null,
+)
+
 /**
  * Copia de lo que el panel web publica para una cuenta (`GET /api/movil/datos`). El panel es la fuente
  * oficial: el celular actualiza con esto sus catálogos y su operación reciente.
@@ -127,6 +142,9 @@ data class DatosServidor(
     val entregas: List<EntregaServidor> = emptyList(),
     val analisis: List<AnalisisServidor> = emptyList(),
     val comunicados: List<ComunicadoServidor> = emptyList(),
+    /** null = panel anterior; no implica borrar los datos ya guardados. */
+    val pagos: List<PagoServidor>? = null,
+    val solicitudes: List<SolicitudServidor>? = null,
 )
 
 /** Guarda en la base del celular lo que llega del panel web. */

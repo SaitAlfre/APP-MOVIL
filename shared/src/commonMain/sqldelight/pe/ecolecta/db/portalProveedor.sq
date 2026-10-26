@@ -23,3 +23,6 @@ UPDATE portal_proveedor SET contenido = ? WHERE id = ?;
 
 porId:
 SELECT * FROM portal_proveedor WHERE id = ?;
+
+recibir:
+INSERT OR REPLACE INTO portal_proveedor(id, proveedor_id, tipo, contenido, creado_en) VALUES (?, ?, ?, ?, ?);

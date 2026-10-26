@@ -20,24 +20,24 @@ class SqlDelightEntregaRepository(
 ) : EntregaRepository {
 
     override fun observarPorJornada(jornadaId: String): Flow<List<Entrega>> =
-        db.entregaQueries.selectPorJornada(jornadaId).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.aDominio() } }
+        db.entregaQueries.selectPorJornada(jornadaId).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.conVersion() } }
 
     override fun observarPorProveedor(proveedorId: String): Flow<List<Entrega>> =
-        db.entregaQueries.selectPorProveedor(proveedorId).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.aDominio() } }
+        db.entregaQueries.selectPorProveedor(proveedorId).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.conVersion() } }
 
     override suspend fun obtenerHistorial(proveedorId: String, limite: Int, desplazamiento: Int): List<Entrega> = withContext(dispatcher) {
         db.entregaQueries.selectPorProveedorPaginado(
             proveedor_id = proveedorId,
             limite = limite.toLong(),
             desplazamiento = desplazamiento.toLong(),
-        ).executeAsList().map { it.aDominio() }
+        ).executeAsList().map { it.conVersion() }
     }
 
     override fun observarConflictos(): Flow<List<Entrega>> =
-        db.entregaQueries.selectConflictos().asFlow().mapToList(dispatcher).map { filas -> filas.map { it.aDominio() } }
+        db.entregaQueries.selectConflictos().asFlow().mapToList(dispatcher).map { filas -> filas.map { it.conVersion() } }
 
     override suspend fun obtenerPorId(id: String): Entrega? = withContext(dispatcher) {
-        db.entregaQueries.selectPorId(id).executeAsOneOrNull()?.aDominio()
+        db.entregaQueries.selectPorId(id).executeAsOneOrNull()?.conVersion()
     }
 
     override suspend fun filtrar(
@@ -57,7 +57,7 @@ class SqlDelightEntregaRepository(
             vehiculo_id = vehiculoId,
             sync_state = syncState?.name,
             lote_id = loteId,
-        ).executeAsList().map { it.aDominio() }
+        ).executeAsList().map { it.conVersion() }
     }
 
     override fun observarConFiltros(
@@ -76,7 +76,7 @@ class SqlDelightEntregaRepository(
         vehiculo_id = vehiculoId,
         sync_state = syncState?.name,
         lote_id = loteId,
-    ).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.aDominio() } }
+    ).asFlow().mapToList(dispatcher).map { filas -> filas.map { it.conVersion() } }
 
     override suspend fun registrar(entrega: Entrega, auditoria: Auditoria) = withContext(dispatcher) {
         db.entregaQueries.transaction {
@@ -137,7 +137,7 @@ class SqlDelightEntregaRepository(
     override suspend fun contarConflicto(): Long = withContext(dispatcher) { db.entregaQueries.contarConflicto().executeAsOne() }
 
     override suspend fun pendientesDeSincronizar(): List<Entrega> = withContext(dispatcher) {
-        db.entregaQueries.selectPendientesSync().executeAsList().map { it.aDominio() }
+        db.entregaQueries.selectPendientesSync().executeAsList().map { it.conVersion() }
     }
 
     override suspend fun marcarSincronizada(id: String, updatedAt: Long) = withContext(dispatcher) {
@@ -174,6 +174,10 @@ class SqlDelightEntregaRepository(
             updated_at = entrega.updatedAt,
         )
     }
+
+    private fun pe.ecolecta.db.Entrega.conVersion(): pe.ecolecta.domain.model.Entrega =
+        aDominio().copy(versionServidor = db.versionEntregaQueries.obtener(id).executeAsOneOrNull(),
+            revisionServidor = db.versionEntregaQueries.revision(id).executeAsOneOrNull()?.revision)
 
     private fun insertarOutbox(entrega: Entrega) {
         db.outboxQueries.insertar(

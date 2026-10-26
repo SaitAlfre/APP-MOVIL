@@ -150,6 +150,18 @@ final class SincronizarEntregaMovilUseCase
             throw EntregaMovilRechazadaException::cambioDeProveedor();
         }
 
+        $base = $datos['versionServidor'] ?? null;
+        $diferente = abs((float) $entrega->litros - (float) $datos['litros']) >= 0.005
+            || (int) $entrega->tachos !== (int) $datos['tachos']
+            || (bool) $entrega->anulada !== (bool) $datos['anulada']
+            || $entrega->observaciones !== $datos['observaciones'];
+        $revision = $datos['revisionServidor'] ?? null;
+        $cambioRemoto = $revision !== null ? ! hash_equals($entrega->revisionMovil(), $revision)
+            : ($base !== null && $base !== $entrega->updated_at?->getTimestampMs());
+        if ($cambioRemoto && $diferente) {
+            throw EntregaMovilRechazadaException::conflicto();
+        }
+
         $versionGuardada = (int) $entrega->version_movil;
 
         if ($datos['actualizadoEn'] < $versionGuardada) {

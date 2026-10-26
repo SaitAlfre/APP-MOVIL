@@ -229,4 +229,53 @@ class CambiosPanelWebTest {
         assertEquals("OBSERVADO", cuerpo["estado"]!!.jsonPrimitive.content)
         assertEquals("Miguel Vargas", (cuerpo["visita"] as JsonObject)["tecnicoNombre"]!!.jsonPrimitive.content)
     }
+    @Test
+    fun `reclamo y traslado usan las rutas reales y solo salen al confirmar`() = runBlocking {
+        iniciarSesionAdmin()
+        val proveedor = db.proveedorQueries.selectTodos().executeAsList().first()
+        val portal = pe.ecolecta.data.repository.PortalProveedorRepository(db)
+        val json = kotlinx.serialization.json.Json
+        portal.guardar(pe.ecolecta.domain.model.SolicitudProveedor("r-sync", proveedor.id, "RECLAMO", "entrega-1", 25.0,
+            "Litros mal registrados", "Revisar los litros anotados", creadaEn = 100))
+        portal.guardar(pe.ecolecta.domain.model.SolicitudProveedor("t-sync", proveedor.id, "TRASLADO", proveedor.zona_id, null,
+            "Traslado de zona", "Cambio de ruta de prueba", creadaEn = 101))
+        val panel = PanelFalso()
+        EnviarCambiosServidorUseCase(panel, cola)(admin.id)
+        assertEquals(setOf("reclamo", "traslado"), panel.recibidos.map { it.second }.toSet())
+        assertTrue(cola.pendientes().isEmpty())
+        val guardada = db.portalProveedorQueries.porId("t-sync").executeAsOne()
+        assertEquals("PENDIENTE", json.decodeFromString<pe.ecolecta.domain.model.SolicitudProveedor>(guardada.contenido).estado)
+    }
+
+    @Test
+    fun `sin conexion una solicitud se conserva y no se marca recibida`() = runBlocking {
+        iniciarSesionAdmin()
+        val proveedor = db.proveedorQueries.selectTodos().executeAsList().first()
+        pe.ecolecta.data.repository.PortalProveedorRepository(db).guardar(pe.ecolecta.domain.model.SolicitudProveedor(
+            "sin-red", proveedor.id, "RECLAMO", "entrega-1", 25.0, "Otro motivo", "Revisar anotaciones", creadaEn = 100))
+        EnviarCambiosServidorUseCase(PanelFalso(SinConexionRemotaException()), cola)(admin.id)
+        assertEquals(1, cola.pendientes().size)
+        assertEquals("PENDIENTE_ENVIO", kotlinx.serialization.json.Json.decodeFromString<pe.ecolecta.domain.model.SolicitudProveedor>(db.portalProveedorQueries.porId("sin-red").executeAsOne().contenido).estado)
+    }
+
+    @Test
+    fun `una cuenta no envia la cola de otra`() = runBlocking {
+        iniciarSesionAdmin()
+        SqlDelightZonaRepository(db, Dispatchers.IO).insertar(Zona("solo-admin", "Solo admin", true))
+        val panel = PanelFalso()
+        EnviarCambiosServidorUseCase(panel, cola)("otra-cuenta")
+        assertTrue(panel.recibidos.isEmpty())
+        assertEquals(1, cola.pendientes().size)
+    }
+
+    @Test
+    fun `recibir pagos del panel no crea operaciones de escritura`() = runBlocking {
+        iniciarSesionAdmin()
+        val proveedor = db.proveedorQueries.selectTodos().executeAsList().first()
+        val pago = PagoProveedor("web-99", proveedor.id, "2026-10-08", "2026-10-14", 20.0, 2.0, 40.0, 0.0, 40.0, "PAGADA")
+        pe.ecolecta.data.repository.SqlDelightGestionPortalRepository(db, Dispatchers.IO).recibirPagos(listOf(pago), 100)
+        assertTrue(cola.pendientes().isEmpty())
+        assertTrue(db.portalProveedorQueries.porId(pago.id).executeAsOne().contenido.contains("PAGADA"))
+    }
+
 }

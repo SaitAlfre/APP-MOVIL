@@ -153,6 +153,10 @@ class MovilController extends Controller
                 'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'], 'tachos' => ['required', 'integer', 'min:1', 'max:1000'],
                 'capacidadTachoL' => ['required', 'numeric', 'gt:0'], 'estado' => ['required', 'string', 'in:ACTIVO,SUSPENDIDO,RETIRADO'],
                 'usuarioUsername' => ['present', 'nullable', 'string', 'max:60']],
+            'traslado' => ['uuid' => ['required', 'string', 'max:64'], 'proveedorId' => ['nullable', 'integer'],
+                'proveedorCodigo' => ['required', 'string', 'max:60'], 'zonaDestinoId' => ['nullable', 'integer'],
+                'zonaDestinoNombre' => ['required', 'string', 'max:120'], 'motivo' => ['required', 'string', 'max:2000'],
+                'estado' => ['required', 'string', 'in:PENDIENTE_ENVIO,PENDIENTE,APROBADA,RECHAZADA']],
             'jornada' => ['uuid' => ['required', 'string', 'max:64'], 'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'],
                 'vehiculoId' => ['nullable', 'integer'], 'vehiculoPlaca' => ['required', 'string', 'max:20'],
                 'abiertaEn' => ['required', 'integer', 'min:0'], 'cerradaEn' => ['nullable', 'integer', 'min:0']],
@@ -195,6 +199,8 @@ class MovilController extends Controller
             'anulada' => ['required', 'boolean'],
             'motivo' => ['nullable', 'string', 'max:500'],
             'actualizadoEn' => ['required', 'integer', 'min:0'],
+            'versionServidor' => ['nullable', 'integer', 'min:0'],
+            'revisionServidor' => ['nullable', 'string', 'size:64'],
         ]);
         $datos['jornadaCerradaEn'] ??= null;
         $datos['observaciones'] ??= null;

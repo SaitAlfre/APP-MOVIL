@@ -321,4 +321,28 @@ class SincronizacionMovilTest extends TestCase
         // Otro celular (u otra cuenta) en la misma red debe poder enlazarse igual.
         $this->postJson('/api/movil/sesion', ['username' => 'acop_faon', 'pin' => '2468', 'dispositivo' => 'Otro'])->assertOk();
     }
+
+    public function test_una_edicion_offline_no_sobrescribe_una_correccion_posterior_del_panel(): void
+    {
+        $token = $this->token();
+        $this->enviar($token, $this->entrega())->assertCreated();
+        $entrega = Entrega::query()->where('uuid_movil', 'ent-local-1')->firstOrFail();
+        $version = $entrega->updated_at->getTimestampMs();
+        $entrega->forceFill(['litros' => 35, 'updated_at' => $entrega->updated_at->copy()->addSeconds(10)])->save();
+        $this->enviar($token, $this->entrega(['litros' => 37, 'actualizadoEn' => 1_790_000_200_000, 'versionServidor' => $version]))
+            ->assertStatus(409)->assertJsonPath('codigo', 'conflicto');
+        $this->assertEquals(35, (float) $entrega->fresh()->litros);
+    }
+
+    public function test_la_revision_detecta_cambios_incluso_en_el_mismo_segundo(): void
+    {
+        $token = $this->token();
+        $this->enviar($token, $this->entrega())->assertCreated();
+        $entrega = Entrega::query()->where('uuid_movil', 'ent-local-1')->firstOrFail();
+        $revision = $entrega->revisionMovil();
+        $entrega->update(['litros' => 35]);
+        $this->enviar($token, $this->entrega(['litros' => 37, 'actualizadoEn' => 1_790_000_200_000, 'revisionServidor' => $revision]))
+            ->assertStatus(409)->assertJsonPath('codigo', 'conflicto');
+        $this->assertEquals(35, (float) $entrega->fresh()->litros);
+    }
 }

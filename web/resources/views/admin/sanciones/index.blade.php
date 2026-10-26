@@ -166,4 +166,38 @@
             @endif
         @endforeach
     @endif
+    <section class="mt-6">
+        <h2 class="mb-3 text-sm font-semibold text-eh-text">Solicitudes de traslado</h2>
+        <x-ui.card>
+            @if ($solicitudesTraslado->isEmpty())
+                <p class="p-4 text-sm text-eh-text-muted">No hay solicitudes de traslado.</p>
+            @else
+                <x-ui.table :headers="['Proveedor', 'Destino solicitado', 'Motivo', 'Estado', '']" caption="Solicitudes de traslado">
+                    @foreach ($solicitudesTraslado as $traslado)
+                        <tr class="border-b border-eh-border">
+                            <td class="px-4 py-3">{{ $traslado->proveedor?->nombres }}</td>
+                            <td class="px-4 py-3">{{ $traslado->destino?->nombre }}</td>
+                            <td class="px-4 py-3">{{ $traslado->motivo }}</td>
+                            <td class="px-4 py-3">{{ $traslado->estado }}</td>
+                            <td class="px-4 py-3">
+                                @if ($operador->tieneRol('admin') && $traslado->estado === 'PENDIENTE')
+                                    <div class="flex gap-2">
+                                        @foreach (['APROBADA' => 'Aprobar', 'RECHAZADA' => 'Rechazar'] as $estado => $etiqueta)
+                                            <form method="POST" action="{{ route('admin.sanciones.traslados.resolver', $traslado) }}" data-confirm="¿{{ $etiqueta }} esta solicitud de traslado?">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="estado" value="{{ $estado }}">
+                                                <x-ui.btn type="submit" size="sm" variant="secondary">{{ $etiqueta }}</x-ui.btn>
+                                            </form>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+                <div class="p-4">{{ $solicitudesTraslado->links() }}</div>
+            @endif
+        </x-ui.card>
+    </section>
 @endsection

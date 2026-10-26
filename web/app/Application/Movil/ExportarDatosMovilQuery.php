@@ -6,7 +6,10 @@ use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
+use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -83,6 +86,15 @@ class ExportarDatosMovilQuery
             ->orderBy('id')->get()
             ->filter(fn (Usuario $u) => $this->rolesMovil($u) !== []);
 
+        $traslados = SolicitudTraslado::query()
+            ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+            ->orderBy('id')->get()->map(fn (SolicitudTraslado $t) => [
+                'id' => $t->uuid_movil, 'proveedorId' => $t->proveedor_id, 'tipo' => 'TRASLADO',
+                'referenciaId' => null, 'zonaDestinoId' => $t->zona_destino_id, 'litros' => null,
+                'motivo' => 'Traslado de zona', 'descripcion' => $t->motivo,
+                'creadaEn' => $t->created_at->getTimestampMs(), 'estado' => $t->estado,
+            ]);
+
         return [
             'servidorEn' => now()->getTimestampMs(),
             // Solo la copia del admin trae todo el catálogo: lo que falte en ella se retiró en el panel.
@@ -116,7 +128,7 @@ class ExportarDatosMovilQuery
                 'proveedorId' => $e->proveedor_id, 'usuarioId' => $e->usuario_id, 'zonaId' => $e->zona_id,
                 'vehiculoId' => $e->vehiculo_id, 'litros' => (float) $e->litros, 'tachos' => (int) $e->tachos,
                 'observaciones' => $e->observaciones, 'registradoEn' => $e->registrado_en->getTimestampMs(),
-                'anulada' => (bool) $e->anulada, 'actualizadoEn' => $e->updated_at?->getTimestampMs() ?? 0,
+                'revision' => $e->revisionMovil(), 'anulada' => (bool) $e->anulada, 'actualizadoEn' => $e->updated_at?->getTimestampMs() ?? 0,
             ])->values(),
             'analisis' => $analisis->map(fn (AnalisisCalidad $a) => [
                 'id' => $a->id, 'uuid' => $a->uuid, 'proveedorId' => $a->proveedor_id, 'usuarioId' => $a->usuario_id,
@@ -129,6 +141,27 @@ class ExportarDatosMovilQuery
                 'alertas' => $a->alertas ?? [], 'textoComprobante' => $a->texto_comprobante, 'visita' => (object) ($a->visita ?? []),
                 'registradoEn' => $a->registrado_en->getTimestampMs(),
             ])->values(),
+            'pagos' => Liquidacion::query()
+                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+                ->orderBy('id')->get()->map(fn (Liquidacion $p) => [
+                    'id' => $p->id, 'proveedorId' => $p->proveedor_id,
+                    'desde' => $p->periodo_inicio->toDateString(), 'hasta' => $p->periodo_fin->toDateString(),
+                    'litros' => (float) $p->litros_totales, 'precio' => (float) $p->precio_litro,
+                    'bruto' => round((float) $p->litros_totales * (float) $p->precio_litro, 2),
+                    'descuento' => (float) $p->descuento_sanciones, 'total' => (float) $p->monto_total,
+                    'estado' => strtoupper($p->estado->value), 'fechaPago' => $p->pagada_en?->toDateString(),
+                ])->values(),
+            'solicitudes' => ReclamoProveedor::query()->with('entrega')
+                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+                ->orderBy('id')->get()->map(fn (ReclamoProveedor $r) => [
+                    'id' => $r->uuid_movil ?? "web-reclamo-{$r->id}", 'proveedorId' => $r->proveedor_id,
+                    'referenciaId' => $r->entrega?->uuid_movil ?? ($r->entrega_id ? "web-entrega-{$r->entrega_id}" : null),
+                    'litros' => (float) $r->litros_solicitados, 'motivo' => $r->motivo,
+                    'descripcion' => $r->motivo, 'creadaEn' => $r->created_at->getTimestampMs(),
+                    'estado' => match ($r->estado) {
+                        'resuelto' => 'ATENDIDA', 'rechazado' => 'RECHAZADA', default => 'PENDIENTE'
+                    },
+                ])->concat($traslados)->values(),
             'comunicados' => $comunicados->map(fn (Comunicado $c) => [
                 'id' => $c->id, 'codigo' => $c->codigo, 'titulo' => $c->titulo, 'contenido' => $c->contenido,
                 'autor' => $autores[$c->autor_id] ?? 'Administración',

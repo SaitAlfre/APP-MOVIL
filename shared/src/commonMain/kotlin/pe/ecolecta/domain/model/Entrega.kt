@@ -24,6 +24,8 @@ data class Entrega(
     val litrosServidor: Double? = null,
     val tachosServidor: Double? = null,
     val motivoConflicto: String? = null,
+    val versionServidor: Long? = null,
+    val revisionServidor: String? = null,
 ) {
     companion object {
         fun crear(

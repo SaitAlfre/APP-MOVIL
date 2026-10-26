@@ -26,12 +26,14 @@ use App\Domain\Liquidaciones\EstadoLiquidacion;
 use App\Domain\Movil\CambioMovilRechazadoException;
 use App\Domain\Proveedores\EstadoProveedor;
 use App\Domain\Usuarios\Rol;
+use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
@@ -49,7 +51,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AplicarCambioMovilUseCase
 {
-    public const ENTIDADES = ['zona', 'vehiculo', 'usuario', 'proveedor', 'jornada', 'comunicado', 'calidad', 'reclamo', 'liquidacion'];
+    public const ENTIDADES = ['zona', 'vehiculo', 'usuario', 'proveedor', 'jornada', 'comunicado', 'calidad', 'reclamo', 'liquidacion', 'traslado'];
 
     /** @param  array<string, mixed>  $datos */
     public function ejecutar(Usuario $autor, string $entidad, array $datos): ?int
@@ -65,6 +67,7 @@ class AplicarCambioMovilUseCase
             'comunicado' => $this->comunicado($autor, $datos),
             'calidad' => $this->calidad($autor, $datos),
             'reclamo' => $this->reclamo($autor, $datos),
+            'traslado' => $this->traslado($autor, $datos),
             'liquidacion' => $this->liquidacion($datos),
         });
     }
@@ -74,7 +77,7 @@ class AplicarCambioMovilUseCase
         $permitidos = match ($entidad) {
             'jornada' => ['admin', 'acopiador'],
             'calidad' => ['admin', 'calidad'],
-            'reclamo' => ['admin', 'proveedor'],
+            'reclamo', 'traslado' => ['admin', 'proveedor'],
             default => ['admin'],
         };
         if (collect($permitidos)->every(fn (string $rol) => ! $autor->tieneRol($rol))) {
@@ -294,6 +297,53 @@ class AplicarCambioMovilUseCase
             'litros_originales' => $entrega->litros, 'litros_solicitados' => $datos['litros'] ?? $entrega->litros,
             'motivo' => mb_strimwidth(trim($datos['motivo']) ?: 'Reclamo desde la app', 0, 255, '…'), 'estado' => $estado,
         ])->id;
+    }
+
+    /** @param array<string, mixed> $datos */
+    private function traslado(Usuario $autor, array $datos): int
+    {
+        $proveedor = $this->porServidorId(Proveedor::class, $datos, 'proveedorId')
+            ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'])->first()
+            ?? throw CambioMovilRechazadoException::esperando('El proveedor todavía no está registrado en el panel.');
+        if (! $autor->tieneRol('admin') && $proveedor->usuario_id !== $autor->id) {
+            throw CambioMovilRechazadoException::sinPermiso();
+        }
+        $destino = isset($datos['zonaDestinoId']) ? Zona::query()->find($datos['zonaDestinoId']) : null;
+        $destino ??= Zona::query()->where('nombre', $datos['zonaDestinoNombre'])->first();
+        if ($destino === null || ! $destino->activo) {
+            throw CambioMovilRechazadoException::esperando('La zona de destino no existe o no está activa en el panel.');
+        }
+        $estado = strtoupper($datos['estado']);
+        $resolver = in_array($estado, ['APROBADA', 'RECHAZADA'], true);
+        if ($resolver && ! $autor->tieneRol('admin')) {
+            throw CambioMovilRechazadoException::sinPermiso();
+        }
+        $solicitud = SolicitudTraslado::query()->where('uuid_movil', $datos['uuid'])->lockForUpdate()->first();
+        if ($solicitud !== null && $solicitud->proveedor_id !== $proveedor->id) {
+            throw CambioMovilRechazadoException::sinPermiso();
+        }
+        $solicitud ??= SolicitudTraslado::query()->create([
+            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id,
+            'zona_destino_id' => $destino->id, 'motivo' => $datos['motivo'], 'estado' => 'PENDIENTE',
+        ]);
+        if ($resolver && $solicitud->estado === 'PENDIENTE') {
+            if ($estado === 'APROBADA') {
+                $anterior = $proveedor->zona_id;
+                app(ActualizarProveedorUseCase::class)->ejecutar($proveedor->id, new DatosProveedor(
+                    codigo: $proveedor->codigo, nombres: $proveedor->nombres, dni: $proveedor->dni,
+                    telefono: $proveedor->telefono, direccion: $proveedor->direccion, zonaId: $solicitud->zona_destino_id,
+                    tachos: $proveedor->tachos, capacidadTachoL: (float) $proveedor->capacidad_tacho_l,
+                ));
+                Auditoria::query()->create([
+                    'entidad' => 'proveedor', 'entidad_id' => $proveedor->id, 'usuario_id' => $autor->id,
+                    'accion' => 'autorizar', 'ocurrido_en' => now(), 'motivo' => $solicitud->motivo,
+                    'valor_antes' => "zona={$anterior}", 'valor_despues' => "zona={$solicitud->zona_destino_id}",
+                ]);
+            }
+            $solicitud->update(['estado' => $estado, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
+        }
+
+        return $solicitud->id;
     }
 
     /** Liquidación semanal aprobada (y luego pagada) desde la app: el panel recalcula los litros con sus entregas. */

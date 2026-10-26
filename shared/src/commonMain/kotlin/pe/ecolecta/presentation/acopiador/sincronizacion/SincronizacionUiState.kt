@@ -8,6 +8,7 @@ data class EntregaPendiente(val entrega: Entrega, val nombreProveedor: String)
 
 data class SincronizacionUiState(
     val cargando: Boolean = true,
+    val sincronizacionConfirmada: Boolean = false,
     val resumen: ResumenColaSync = ResumenColaSync(0, 0, 0, 0),
     val pendientes: List<EntregaPendiente> = emptyList(),
     val mensaje: String? = null,
@@ -18,5 +19,5 @@ data class SincronizacionUiState(
     val avisoCambios: String? = null,
 ) {
     val todoSincronizado: Boolean
-        get() = !cargando && cuentaEnlazada && resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0
+        get() = sincronizacionConfirmada && avisoCambios == null && !cargando && cuentaEnlazada && resumen.pendientes == 0 && resumen.errores == 0 && resumen.conflictos == 0
 }

@@ -238,15 +238,14 @@ val domainModule = module {
     }
     // single: guarda el último motivo de enlace fallido por usuario y lanza el enlace en el ámbito de la app.
     // single: su Mutex evita dos descargas del panel a la vez (ciclo periódico e inicio de sesión).
+    single { pe.ecolecta.domain.usecase.sync.CoordinadorSync(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase(get(), get(), get()) }
     // single: su Mutex evita enviar el mismo cambio dos veces a la vez (ciclo periódico e inicio de sesión).
     single { pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase(get(), get()) }
     single {
-        val sincronizar = get<pe.ecolecta.domain.usecase.sync.SincronizarRegistrosAcopioUseCase>()
-        val traerDatos = get<pe.ecolecta.domain.usecase.sync.SincronizarDatosServidorUseCase>()
-        val enviarCambios = get<pe.ecolecta.domain.usecase.sync.EnviarCambiosServidorUseCase>()
+        val coordinador = get<pe.ecolecta.domain.usecase.sync.CoordinadorSync>()
         pe.ecolecta.domain.usecase.sync.VincularServidorUseCase(
-            get(), { sincronizar(); enviarCambios(); traerDatos() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
+            get(), { coordinador.ejecutar() }, kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default),
         )
     }
     factory { pe.ecolecta.domain.usecase.acopio.MarcarSinRecojoUseCase(get(), get(), get(), get(), get(), get()) }
@@ -449,6 +448,7 @@ val presentationModule = module {
             vincularServidor = get(),
             cambios = get(),
             enviarCambios = get(),
+            coordinador = get(),
         )
     }
 
@@ -483,10 +483,10 @@ fun moduloServidorWeb(urlBase: String, nombreDispositivo: String, io: kotlinx.co
     }
 }
 
-fun iniciarKoin(configuracionAdicional: KoinAppDeclaration? = null) {
+fun iniciarKoin(datosDemostracion: Boolean = false, configuracionAdicional: KoinAppDeclaration? = null) {
     val koinApp = startKoin {
         configuracionAdicional?.invoke(this)
         modules(dataModule, domainModule, presentationModule)
     }
-    koinApp.koin.get<DatabaseSeeder>().sembrarSiEsNecesario()
+    if (datosDemostracion) koinApp.koin.get<DatabaseSeeder>().sembrarSiEsNecesario()
 }

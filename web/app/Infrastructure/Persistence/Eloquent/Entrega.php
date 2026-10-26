@@ -30,6 +30,14 @@ class Entrega extends Model
         static::created(fn (Entrega $entrega) => app(CalificarEntregasConAnalisis::class)->porEntrega($entrega));
     }
 
+    public function revisionMovil(): string
+    {
+        return hash('sha256', json_encode([
+            (int) $this->id, (float) $this->litros, (int) $this->tachos,
+            (bool) $this->anulada, $this->observaciones,
+        ], JSON_THROW_ON_ERROR));
+    }
+
     protected function casts(): array
     {
         return [

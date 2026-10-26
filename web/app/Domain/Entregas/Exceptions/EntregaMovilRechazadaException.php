@@ -36,4 +36,9 @@ final class EntregaMovilRechazadaException extends DomainException
     {
         return new self('El servidor ya tiene una versión más reciente de esta entrega.', 'version_obsoleta', 409);
     }
+
+    public static function conflicto(): self
+    {
+        return new self('La entrega cambió en el panel. Descarga los cambios y revisa ambas versiones.', 'conflicto', 409);
+    }
 }

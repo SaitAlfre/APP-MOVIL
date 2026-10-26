@@ -56,7 +56,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         EncabezadoSeccion(
             "Sincronización",
-            subtitulo = "Revisa y envía tus datos pendientes",
+            subtitulo = "Envía tus cambios y recibe las novedades del panel",
             accion = { PildoraPendientes(pendientesSync) },
         )
 
@@ -70,7 +70,7 @@ fun SincronizacionScreen(pendientesSync: Int = 0, viewModel: SincronizacionViewM
             Tarjeta {
                 Text("Cola de sincronización", style = MaterialTheme.typography.titleMedium, color = Colores.textPrimary)
                 Text(
-                    "La sincronización se ejecuta automáticamente al tener conexión. «Sincronizar ahora» envía todo lo " +
+                    "La sincronización se ejecuta automáticamente al tener conexión. «Sincronizar ahora» envía y descarga los cambios. Envía todo lo " +
                         "guardado en este celular, cada entrega con la cuenta de quien la registró o modificó; los contadores son solo tuyos.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Colores.textSecundario,

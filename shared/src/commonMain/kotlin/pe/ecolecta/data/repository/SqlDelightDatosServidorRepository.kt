@@ -1,5 +1,9 @@
 package pe.ecolecta.data.repository
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import pe.ecolecta.domain.model.PagoProveedor
+import pe.ecolecta.domain.model.SolicitudProveedor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import pe.ecolecta.data.local.EntidadCambio
@@ -48,6 +52,28 @@ class SqlDelightDatosServidorRepository(
             db.controlCalidadQueries.borrarResumenesAntiguos()
             datos.analisis.forEach { analisis(it, proveedores, usuarios) }
             comunicados(datos.comunicados)
+            datos.pagos?.forEach { pago ->
+                val proveedor = proveedores[pago.proveedorId] ?: local(PROVEEDOR, pago.proveedorId) ?: return@forEach
+                val id = "web-${pago.id}"
+                if (!db.tieneCambioPendiente(EntidadCambio.LIQUIDACION, id)) {
+                    val valor = PagoProveedor(id, proveedor, pago.desde, pago.hasta, pago.litros, pago.precio,
+                        pago.bruto, pago.descuento, pago.total, pago.estado, pago.fechaPago)
+                    db.portalProveedorQueries.recibir(id, proveedor, "PAGO", Json.encodeToString(valor), ahora)
+                }
+            }
+            datos.solicitudes?.forEach { solicitud ->
+                val proveedor = proveedores[solicitud.proveedorId] ?: local(PROVEEDOR, solicitud.proveedorId) ?: return@forEach
+                if (!db.tieneCambioPendiente(EntidadCambio.SOLICITUD, solicitud.id)) {
+                    val anterior = db.portalProveedorQueries.porId(solicitud.id).executeAsOneOrNull()?.let {
+                        runCatching { Json.decodeFromString<SolicitudProveedor>(it.contenido) }.getOrNull()
+                    }
+                    val referencia = if (solicitud.tipo == "TRASLADO") solicitud.zonaDestinoId?.let { zonas[it] ?: local(ZONA, it) } else solicitud.referenciaId
+                    val valor = SolicitudProveedor(solicitud.id, proveedor, solicitud.tipo, referencia,
+                        solicitud.litros, solicitud.motivo, anterior?.descripcion ?: solicitud.descripcion,
+                        evidencia = anterior?.evidencia, creadaEn = solicitud.creadaEn, estado = solicitud.estado)
+                    db.portalProveedorQueries.recibir(solicitud.id, proveedor, "SOLICITUD", Json.encodeToString(valor), solicitud.creadaEn)
+                }
+            }
             if (datos.completo) retirarAusentes(zonas.values.toSet(), vehiculos.values.toSet(), usuarios.values.toSet(), proveedores.values.toSet(), ahora)
         }
     }
@@ -227,6 +253,19 @@ class SqlDelightDatosServidorRepository(
         val zonaId = zonas[e.zonaId] ?: return
         val vehiculoId = vehiculos[e.vehiculoId] ?: return
         val anulada = if (e.anulada) 1L else 0L
+        val actual = db.entregaQueries.selectPorId(id).executeAsOneOrNull()
+        val base = db.versionEntregaQueries.obtener(id).executeAsOneOrNull()
+        val revision = db.versionEntregaQueries.revision(id).executeAsOneOrNull()?.revision
+        val cambioRemoto = if (e.revision != null && revision != null) e.revision != revision
+            else base != null && e.actualizadoEn > 0 && base != e.actualizadoEn
+        if (actual != null && actual.sync_state in setOf("PENDING", "ERROR") && cambioRemoto &&
+            (actual.litros != e.litros || actual.tachos != e.tachos.toLong() || actual.anulada != anulada || actual.observaciones != e.observaciones)) {
+            db.entregaQueries.marcarConflicto(e.litros, e.tachos.toDouble(),
+                "La entrega cambió en el panel y en este teléfono. Revisa ambas versiones antes de enviarla.", actual.updated_at, id)
+            db.versionEntregaQueries.guardar(id, e.actualizadoEn)
+            db.versionEntregaQueries.guardarRevision(e.revision, id)
+            return
+        }
         db.entregaQueries.insertarDesdeServidor(
             id = id, jornada_id = jornadaId, proveedor_id = proveedorId, usuario_id = usuarioLocal(e.usuarioId, usuarios),
             zona_id = zonaId, vehiculo_id = vehiculoId, litros = e.litros, tachos = e.tachos.toLong(),
@@ -236,6 +275,10 @@ class SqlDelightDatosServidorRepository(
         db.entregaQueries.actualizarDesdeServidor(
             litros = e.litros, tachos = e.tachos.toLong(), observaciones = e.observaciones, anulada = anulada, id = id,
         )
+        if (db.entregaQueries.selectPorId(id).executeAsOneOrNull()?.sync_state == "SYNCED" && e.actualizadoEn > 0) {
+            db.versionEntregaQueries.guardar(id, e.actualizadoEn)
+            db.versionEntregaQueries.guardarRevision(e.revision, id)
+        }
     }
 
     /** Análisis del panel o de otro celular: se guarda completo con su id común; si ya está aquí, no se toca. */

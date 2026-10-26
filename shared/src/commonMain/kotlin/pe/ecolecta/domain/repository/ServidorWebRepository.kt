@@ -28,6 +28,8 @@ data class EntregaParaServidor(
     val motivo: String?,
     /** Reloj lógico (updated_at local): el servidor no aplica una versión más vieja que la guardada. */
     val actualizadoEn: Long,
+    val versionServidor: Long? = null,
+    val revisionServidor: String? = null,
 )
 
 /**

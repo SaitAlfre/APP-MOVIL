@@ -45,7 +45,7 @@ class EcolectaApp : Application() {
     }
 
     private fun prepararDatos() {
-        iniciarKoin {
+        iniciarKoin(datosDemostracion = BuildConfig.LOCAL_PREVIEW) {
             androidContext(this@EcolectaApp)
             modules(
                 module {

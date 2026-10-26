@@ -40,3 +40,6 @@ SELECT COUNT(*) FROM cambio_pendiente WHERE estado = :estado;
 
 errores:
 SELECT * FROM cambio_pendiente WHERE estado = 'ERROR' ORDER BY marcado_en DESC;
+
+reintentarErrores:
+UPDATE cambio_pendiente SET estado = 'PENDING' WHERE usuario_id = ? AND estado = 'ERROR';
