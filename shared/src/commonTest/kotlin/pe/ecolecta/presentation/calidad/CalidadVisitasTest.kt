@@ -235,6 +235,19 @@ class CalidadVisitasTest {
         assertEquals(1, repo.lista.value.size)
     }
 
+    @Test fun ingresoDeDensidadEnQuevenneSeNormalizaAprobado() = runTest(dispatcher) {
+        val (vm, repo) = crear(); advanceUntilIdle()
+        vm.nuevo(); vm.zona("a"); vm.proveedor("p-a")
+        llenarValoresAprobados(vm)
+        vm.campo("densidad", "30.0")
+        vm.campo("congelacion", "0.530")
+        vm.guardar(); advanceUntilIdle()
+        val guardado = repo.lista.value.single()
+        assertEquals(EstadoControlCalidad.APROBADO, guardado.estado)
+        assertEquals(1.030, guardado.densidad)
+        assertEquals(-0.530, guardado.puntoCongelacion)
+    }
+
     @Test fun filasAntiguasSinMetadataSiguenSiendoLegibles() {
         val v = Json.decodeFromString<DatosVisitaCalidad>("{}")
         assertNull(v.confirmadaEn)

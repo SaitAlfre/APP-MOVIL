@@ -103,8 +103,8 @@ class AdminFigmaModulesTest extends TestCase
         ]);
 
         $this->post('/admin/liquidaciones', [
-            'proveedor_id' => $entrega->proveedor_id, 'periodo_inicio' => today()->toDateString(),
-            'periodo_fin' => today()->toDateString(), 'precio_litro' => 2,
+            'proveedor_id' => $entrega->proveedor_id, 'periodo_inicio' => today('America/Lima')->toDateString(),
+            'periodo_fin' => today('America/Lima')->toDateString(), 'precio_litro' => 2,
         ])->assertRedirect('/admin/liquidaciones');
 
         $this->assertDatabaseHas('liquidaciones', ['monto_total' => 170, 'descuento_sanciones' => 30]);

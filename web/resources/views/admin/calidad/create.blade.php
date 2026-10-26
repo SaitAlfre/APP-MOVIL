@@ -139,6 +139,19 @@
                 return Number.isFinite(n) ? n : NaN;
             };
 
+            const normalizar = (clave, valor) => {
+                if (valor === null || Number.isNaN(valor)) return valor;
+                if (clave === 'densidad') {
+                    if (valor >= 20.0 && valor <= 45.0) return Number((1.0 + (valor / 1000.0)).toFixed(4));
+                    if (valor >= 1000.0 && valor <= 1100.0) return Number((valor / 1000.0).toFixed(4));
+                }
+                if (clave === 'congelacion') {
+                    if (valor >= 0.3 && valor <= 0.8) return -valor;
+                    if (valor >= 300.0 && valor <= 800.0) return Number((-valor / 1000.0).toFixed(4));
+                }
+                return valor;
+            };
+
             function evaluar() {
                 const enHortvet = unidad.value === '°H';
                 const alertas = [];
@@ -147,7 +160,7 @@
                 let agua = null;
                 for (const [clave, regla] of Object.entries(reglas)) {
                     const caja = document.querySelector(`[data-parametro="${clave}"]`);
-                    const valor = numero(caja.querySelector('input').value);
+                    let valor = numero(caja.querySelector('input').value);
                     const marca = caja.querySelector('[data-marca]');
                     if (clave === 'congelacion') {
                         caja.querySelector('[data-referencia]').textContent = enHortvet ? 'Pendiente de configurar en °H' : regla.referencia;
@@ -156,6 +169,7 @@
                     caja.classList.remove('border-eh-red', 'border-eh-success');
                     marca.textContent = '';
                     if (valor === null) continue;
+                    valor = normalizar(clave, valor);
                     if (Number.isNaN(valor) || (clave !== 'congelacion' && valor < 0)) {
                         invalidos++; caja.classList.add('border-eh-red'); marca.textContent = 'Formato inválido'; marca.className = 'text-[11px] font-semibold text-eh-red';
                         continue;

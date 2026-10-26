@@ -201,7 +201,7 @@ class PortalProveedorViewModel(
         }
         val cantidad = validarReclamo(litros, motivo, descripcion)
         require(evidencia == null || evidencia.length <= 1_000_000) { "La fotografía es demasiado grande." }
-        require(_state.value.solicitudes.none { it.tipo == "RECLAMO" && it.referenciaId == entregaId && it.litros == cantidad && it.motivo == motivo && it.descripcion == descripcion.trim() && it.estado == "PENDIENTE_ENVIO" }) { "Este reclamo ya está guardado." }
+        require(_state.value.solicitudes.none { it.tipo == "RECLAMO" && it.referenciaId == entregaId && it.litros == cantidad && it.motivo == motivo && it.descripcion == descripcion.trim() && pe.ecolecta.domain.model.EstadoSolicitud.estaPendiente(it.estado) }) { "Este reclamo ya está pendiente de revisión." }
         portal.guardar(SolicitudProveedor(Uuid.random().toString(), proveedor.id, "RECLAMO", entregaId, cantidad, motivo, descripcion.trim(), evidencia, reloj.ahora().toEpochMilliseconds()))
     }
 
@@ -210,7 +210,7 @@ class PortalProveedorViewModel(
         require(proveedor.estado == EstadoProveedor.ACTIVO) { "Tu cuenta debe estar activa para solicitar un traslado." }
         require(zonaId != proveedor.zonaId && _state.value.zonas.any { it.id == zonaId && it.activo }) { "Selecciona una zona activa diferente a la actual." }
         require(motivo.trim().length in 10..2000) { "Describe el motivo con entre 10 y 2000 caracteres." }
-        require(_state.value.solicitudes.none { it.tipo == "TRASLADO" && it.estado == "PENDIENTE_ENVIO" }) { "Ya tienes una solicitud de traslado pendiente." }
+        require(_state.value.solicitudes.none { it.tipo == "TRASLADO" && pe.ecolecta.domain.model.EstadoSolicitud.estaPendiente(it.estado) }) { "Ya tienes una solicitud de traslado pendiente." }
         portal.guardar(SolicitudProveedor(Uuid.random().toString(), proveedor.id, "TRASLADO", zonaId, null, "Traslado de zona", motivo.trim(), creadaEn = reloj.ahora().toEpochMilliseconds()))
     }
 
@@ -228,7 +228,7 @@ class PortalProveedorViewModel(
         viewModelScope.launch {
             try {
                 accion()
-                _state.update { it.copy(confirmacion = "Solicitud guardada en este dispositivo. Está pendiente de envío al administrador; puedes compartir su resumen desde Mis solicitudes.") }
+                _state.update { it.copy(confirmacion = "Solicitud guardada en este celular. Se enviará automáticamente cuando haya conexión y tu cuenta esté enlazada. En Mis solicitudes verás su estado y la respuesta de administración.") }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { _state.update { it.copy(error = e.message ?: "No se pudo guardar. Inténtalo nuevamente.") } }
             finally { _state.update { it.copy(guardando = false) } }

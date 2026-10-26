@@ -151,6 +151,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
 
         Route::middleware('permiso:sanciones,ver')->group(function () {
             Route::get('sanciones', [SancionController::class, 'index'])->name('sanciones.index');
+            Route::get('sanciones/reclamos/{reclamo}/evidencia', [SancionController::class, 'evidencia'])->name('sanciones.reclamos.evidencia');
         });
         Route::middleware('permiso:sanciones,gestionar')->group(function () {
             Route::patch('sanciones/{sancion}', [SancionController::class, 'resolver'])->name('sanciones.resolver');

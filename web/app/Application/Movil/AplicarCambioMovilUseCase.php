@@ -319,29 +319,62 @@ class AplicarCambioMovilUseCase
     /** Reclamo de una entrega hecho por el proveedor en el portal; el admin lo resuelve desde la app o la web. */
     private function reclamo(Usuario $autor, array $datos): int
     {
-        $reclamo = ReclamoProveedor::query()->where('uuid_movil', $datos['uuid'])->first();
+        $reclamo = preg_match('/^web-reclamo-(\d+)$/', $datos['uuid'], $m) === 1
+            ? ReclamoProveedor::query()->whereKey((int) $m[1])->lockForUpdate()->first()
+            : ReclamoProveedor::query()->where('uuid_movil', $datos['uuid'])->lockForUpdate()->first();
         $estado = match (strtoupper($datos['estado'] ?? '')) {
             'APROBADA', 'ATENDIDA' => 'resuelto', 'RECHAZADA' => 'rechazado', default => 'pendiente',
         };
         if ($reclamo !== null) {
-            if ($reclamo->estado === 'pendiente' && $estado !== 'pendiente' && $autor->tieneRol('admin')) {
-                $reclamo->update(['estado' => $estado, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
+            $proveedor = Proveedor::query()->findOrFail($reclamo->proveedor_id);
+            if (! $autor->tieneRol('admin') && $proveedor->usuario_id !== $autor->id) {
+                throw CambioMovilRechazadoException::sinPermiso();
+            }
+            if ($estado !== 'pendiente') {
+                if (! $autor->tieneRol('admin')) {
+                    throw CambioMovilRechazadoException::sinPermiso();
+                }
+                app(ResolverReclamoProveedorUseCase::class)->ejecutar(
+                    $reclamo->id, $autor, $estado, $datos['respuesta'] ?? '',
+                    isset($datos['entregaUuid']) ? $this->entregaDe($datos['entregaUuid'])?->id : null,
+                );
             }
 
             return $reclamo->id;
         }
 
-        $entrega = $this->entregaDe((string) ($datos['entregaUuid'] ?? ''))
-            ?? throw CambioMovilRechazadoException::esperando('El reclamo se enviará cuando el panel tenga la entrega reclamada.');
-        $proveedor = Proveedor::query()->findOrFail($entrega->proveedor_id);
+        if ($estado !== 'pendiente') {
+            throw new CambioMovilRechazadoException('Primero envía el reclamo pendiente antes de resolverlo.', 'esperando', 409, false);
+        }
+        $entrega = $this->entregaDe((string) ($datos['entregaUuid'] ?? ''));
+        if (! empty($datos['entregaUuid']) && $entrega === null) {
+            throw CambioMovilRechazadoException::esperando('El reclamo se enviará cuando el panel tenga la entrega reclamada.');
+        }
+        $proveedor = $entrega?->proveedor ?? ($this->porServidorId(Proveedor::class, $datos, 'proveedorId')
+            ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'] ?? '')->first());
+        if ($proveedor === null) {
+            throw CambioMovilRechazadoException::esperando('El proveedor del reclamo aún no está registrado en el panel.');
+        }
         if (! $autor->tieneRol('admin') && $proveedor->usuario_id !== $autor->id) {
             throw CambioMovilRechazadoException::sinPermiso();
         }
 
+        $evidencia = $datos['evidencia'] ?? null;
+        if ($evidencia !== null) {
+            $contenido = preg_match('/^data:image\/(jpeg|png);base64,([A-Za-z0-9+\/=]+)$/', $evidencia, $imagen) === 1
+                ? base64_decode($imagen[2], true) : false;
+            $info = $contenido !== false ? @getimagesizefromstring($contenido) : false;
+            if ($contenido === false || strlen($contenido) > 750000 || $info === false
+                || ! in_array($info['mime'], ['image/jpeg', 'image/png'], true) || $info[0] > 1600 || $info[1] > 1600) {
+                throw new CambioMovilRechazadoException('La evidencia debe ser una imagen JPG o PNG de hasta 750 KB y 1600 píxeles.');
+            }
+        }
+
         return ReclamoProveedor::query()->create([
-            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id, 'entrega_id' => $entrega->id,
-            'litros_originales' => $entrega->litros, 'litros_solicitados' => $datos['litros'] ?? $entrega->litros,
-            'motivo' => mb_strimwidth(trim($datos['motivo']) ?: 'Reclamo desde la app', 0, 255, '…'), 'estado' => $estado,
+            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id, 'entrega_id' => $entrega?->id,
+            'litros_originales' => $entrega?->litros ?? 0, 'litros_solicitados' => $datos['litros'] ?? $entrega?->litros ?? 0,
+            'motivo' => mb_strimwidth(trim($datos['motivo'] ?? '') ?: 'Reclamo desde la app', 0, 255, '…'),
+            'descripcion' => $datos['descripcion'] ?? null, 'evidencia' => $evidencia, 'estado' => 'pendiente',
         ])->id;
     }
 
@@ -368,10 +401,19 @@ class AplicarCambioMovilUseCase
         if ($solicitud !== null && $solicitud->proveedor_id !== $proveedor->id) {
             throw CambioMovilRechazadoException::sinPermiso();
         }
+        if ($solicitud === null && $destino->id === $proveedor->zona_id) {
+            throw new CambioMovilRechazadoException('Selecciona una zona diferente a la zona actual del proveedor.');
+        }
+        if ($solicitud === null && SolicitudTraslado::query()->where('proveedor_id', $proveedor->id)->where('estado', 'PENDIENTE')->exists()) {
+            throw new CambioMovilRechazadoException('El proveedor ya tiene un traslado pendiente de revisión.', 'traslado_pendiente', 409);
+        }
         $solicitud ??= SolicitudTraslado::query()->create([
             'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id,
             'zona_destino_id' => $destino->id, 'motivo' => $datos['motivo'], 'estado' => 'PENDIENTE',
         ]);
+        if ($resolver && $solicitud->estado !== 'PENDIENTE' && $solicitud->estado !== $estado) {
+            throw new CambioMovilRechazadoException('El traslado ya tiene una decisión distinta. Sincroniza para ver el resultado.', 'solicitud_resuelta', 409);
+        }
         if ($resolver && $solicitud->estado === 'PENDIENTE') {
             if ($estado === 'APROBADA') {
                 $anterior = $proveedor->zona_id;
@@ -386,7 +428,7 @@ class AplicarCambioMovilUseCase
                     'valor_antes' => "zona={$anterior}", 'valor_despues' => "zona={$solicitud->zona_destino_id}",
                 ]);
             }
-            $solicitud->update(['estado' => $estado, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
+            $solicitud->update(['estado' => $estado, 'respuesta' => trim($datos['respuesta'] ?? '') ?: ($estado === 'APROBADA' ? 'Traslado autorizado por administración.' : 'Traslado rechazado por administración.'), 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
         }
 
         return $solicitud->id;
@@ -398,7 +440,11 @@ class AplicarCambioMovilUseCase
         $proveedor = $this->porServidorId(Proveedor::class, $datos, 'proveedorId')
             ?? Proveedor::query()->where('codigo', $datos['proveedorCodigo'])->first()
             ?? throw CambioMovilRechazadoException::noExiste('El proveedor', $datos['proveedorCodigo']);
-        $liquidacion = Liquidacion::query()->where('proveedor_id', $proveedor->id)->whereDate('periodo_inicio', $datos['desde'])->first();
+        $liquidacion = Liquidacion::query()->where('proveedor_id', $proveedor->id)
+            ->whereDate('periodo_inicio', $datos['desde'])->whereDate('periodo_fin', $datos['hasta'])->lockForUpdate()->first();
+        if ($liquidacion !== null && abs((float) $liquidacion->precio_litro - (float) $datos['precio']) > 0.0005) {
+            throw new CambioMovilRechazadoException('El periodo ya está liquidado con otro precio. Sincroniza y revisa el importe oficial antes de registrar un pago.', 'liquidacion_distinta', 409);
+        }
         $id = $liquidacion?->id ?? app(GenerarLiquidacionUseCase::class)->ejecutar(
             $proveedor->id, new DateTimeImmutable($datos['desde']), new DateTimeImmutable($datos['hasta']), (float) $datos['precio'],
         )->id;

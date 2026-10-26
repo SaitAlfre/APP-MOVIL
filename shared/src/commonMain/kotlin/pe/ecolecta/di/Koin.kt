@@ -220,13 +220,13 @@ val domainModule = module {
 
     factory { ListarAuditoriaUseCase(get()) }
 
-    factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get()) }
+    factory { ObtenerResumenAdminUseCase(get(), get(), get(), get(), get(), getOrNull()) }
     factory { pe.ecolecta.domain.usecase.admin.ObservarAlertasAdminUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.OcultarAlertaUseCase(get(), get()) }
-    factory { pe.ecolecta.domain.usecase.admin.ResolverSolicitudUseCase(get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.ResolverSolicitudUseCase(get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.ObservarLiquidacionesUseCase(get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.AprobarLiquidacionUseCase(get(), get(), get(), get(), get()) }
-    factory { pe.ecolecta.domain.usecase.admin.MarcarLiquidacionPagadaUseCase(get(), get(), get(), get()) }
+    factory { pe.ecolecta.domain.usecase.admin.MarcarLiquidacionPagadaUseCase(get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.admin.PublicarComunicadoUseCase(get(), get()) }
     factory { ObtenerColaSyncUseCase(get()) }
 

@@ -4,7 +4,9 @@ namespace App\Application\Liquidaciones;
 
 use App\Domain\Liquidaciones\Liquidacion;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Liquidacion as LiquidacionEloquent;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class MarcarLiquidacionPagadaUseCase
@@ -15,12 +17,15 @@ final class MarcarLiquidacionPagadaUseCase
 
     public function ejecutar(int $liquidacionId): Liquidacion
     {
-        $liquidacion = $this->liquidaciones->buscarPorId($liquidacionId);
+        return DB::transaction(function () use ($liquidacionId): Liquidacion {
+            LiquidacionEloquent::query()->whereKey($liquidacionId)->lockForUpdate()->first();
+            $liquidacion = $this->liquidaciones->buscarPorId($liquidacionId);
 
-        if ($liquidacion === null) {
-            throw new RuntimeException('La liquidación no existe.');
-        }
+            if ($liquidacion === null) {
+                throw new RuntimeException('La liquidación no existe.');
+            }
 
-        return $this->liquidaciones->guardar($liquidacion->marcarPagada(new DateTimeImmutable));
+            return $this->liquidaciones->guardar($liquidacion->marcarPagada(new DateTimeImmutable));
+        });
     }
 }

@@ -43,9 +43,10 @@ val ProveedorTinta = Color(0xFF142820)
 val ProveedorSalvia = Color(0xFF6C8C7B)
 private val ProveedorBorde = Color(0x1A17231E)
 
-fun decimalProveedor(valor: Double): String {
-    val cents = (valor * 100).roundToLong()
-    return "${cents / 100}.${kotlin.math.abs(cents % 100).toString().padStart(2, '0')}"
+fun decimalProveedor(valor: Double, decimales: Int = 2): String {
+    val factor = if (decimales == 3) 1000L else 100L
+    val unidades = (valor * factor).roundToLong()
+    return "${unidades / factor}.${kotlin.math.abs(unidades % factor).toString().padStart(if (decimales == 3) 3 else 2, '0')}"
 }
 fun fechaProveedor(epoch: Long): String {
     val d = Instant.fromEpochMilliseconds(epoch).toLocalDateTime(TimeZone.of("America/Lima"))

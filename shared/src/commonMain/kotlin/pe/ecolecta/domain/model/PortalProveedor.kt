@@ -31,6 +31,11 @@ data class SolicitudProveedor(
     val evidencia: String? = null,
     val creadaEn: Long,
     val estado: String = "PENDIENTE_ENVIO",
+    val respuesta: String? = null,
+    val resueltaEn: Long? = null,
+    val evidenciaDisponible: Boolean = false,
+    val decisionPendiente: String? = null,
+    val respuestaPendiente: String? = null,
 )
 
 /** Solo contiene liquidaciones recibidas de una fuente autorizada, nunca estimaciones de pago. */
@@ -47,6 +52,7 @@ data class PagoProveedor(
     val total: Double,
     val estado: String,
     val fechaPago: String? = null,
+    val estadoPendiente: String? = null,
 ) {
     fun comprobante(nombre: String, codigo: String): String = """
         ECOLACTEA DIGITAL — COMPROBANTE DE LIQUIDACIÓN

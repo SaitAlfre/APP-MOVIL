@@ -166,7 +166,7 @@ fun AdminReportesScreen(alVolver: () -> Unit, viewModel: AdminReportesViewModel 
             valor?.let { AdminTexto("Total a liquidar: ${soles(semana.litros * it)}", 15, AdminColor.verde, FontWeight.Bold) }
             AdminTexto("Se genera una liquidación por proveedor con sus litros de la semana. Cada proveedor la verá en «Mis pagos».", 12, AdminColor.gris)
             AdminTexto(
-                "Al aprobarla, las entregas de esta semana quedan bloqueadas: ya no se podrán corregir ni anular, para que el pago no quede desactualizado.",
+                "La edición directa queda bloqueada. Los ajustes se gestionan mediante reclamos y recalculan la liquidación pendiente; después del pago ya no se permiten cambios.",
                 12, AdminColor.ambarTexto, FontWeight.Medium,
             )
         }

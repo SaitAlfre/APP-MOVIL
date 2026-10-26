@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Sancion extends Model
 {
@@ -24,5 +25,10 @@ class Sancion extends Model
     public function controlCalidad(): BelongsTo
     {
         return $this->belongsTo(ControlCalidad::class);
+    }
+
+    public function entrega(): HasOneThrough
+    {
+        return $this->hasOneThrough(Entrega::class, ControlCalidad::class, 'id', 'id', 'control_calidad_id', 'entrega_id');
     }
 }

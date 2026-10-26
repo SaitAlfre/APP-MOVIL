@@ -16,6 +16,7 @@ import pe.ecolecta.domain.repository.ComunicadoRepository
 import pe.ecolecta.domain.repository.GestionPortalRepository
 import pe.ecolecta.data.local.EntidadCambio
 import pe.ecolecta.data.local.marcarCambio
+import pe.ecolecta.data.local.tieneCambioPendiente
 
 class SqlDelightGestionPortalRepository(
     private val db: EcolectaDatabase,
@@ -32,9 +33,10 @@ class SqlDelightGestionPortalRepository(
             .map { filas -> filas.mapNotNull { runCatching { json.decodeFromString<PagoProveedor>(it.contenido) }.getOrNull() } }
 
     override suspend fun actualizarSolicitud(solicitud: SolicitudProveedor) = withContext(dispatcher) {
-        db.portalProveedorQueries.actualizarContenido(json.encodeToString(solicitud), solicitud.id)
-        db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
-        Unit
+        db.transaction {
+            db.portalProveedorQueries.actualizarContenido(json.encodeToString(solicitud), solicitud.id)
+            db.marcarCambio(EntidadCambio.SOLICITUD, solicitud.id)
+        }
     }
 
     override suspend fun guardarPagos(pagos: List<PagoProveedor>, en: Long) = persistirPagos(pagos, en, enviar = true)
@@ -44,6 +46,7 @@ class SqlDelightGestionPortalRepository(
     private suspend fun persistirPagos(pagos: List<PagoProveedor>, en: Long, enviar: Boolean) = withContext(dispatcher) {
         db.transaction {
             pagos.forEach { pago ->
+                if (!enviar && db.tieneCambioPendiente(EntidadCambio.LIQUIDACION, pago.id)) return@forEach
                 val contenido = json.encodeToString(pago)
                 val existe = db.portalProveedorQueries.porProveedor(pago.proveedorId).executeAsList().any { it.id == pago.id }
                 if (existe) {
