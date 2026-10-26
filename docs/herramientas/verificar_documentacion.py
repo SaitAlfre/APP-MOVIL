@@ -39,6 +39,25 @@ def publication_files():
 def artifact_matches(folder,name,expected):
     path=(folder/name).resolve()
     return path.parent==folder.resolve() and path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==expected
+def historical_source_errors(report, changes):
+    """Coteja el código ejecutado contra el commit que publicó el recibo histórico."""
+    relative = report.relative_to(ROOT).as_posix()
+    history = subprocess.run(
+        ["git", "log", "--follow", "--diff-filter=A", "--format=%H", "--", relative],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    revisions = history.stdout.splitlines()
+    if history.returncode or len(revisions) != 1 or not re.fullmatch(r"[a-f0-9]{40}", revisions[0]):
+        return [relative + ": no se pudo identificar la revisión que publicó la evidencia"]
+    errors = []
+    for name, expected in changes.items():
+        source = subprocess.run(
+            ["git", "show", revisions[0] + ":" + name], cwd=ROOT, capture_output=True,
+        )
+        if source.returncode or hashlib.sha256(source.stdout).hexdigest() != expected:
+            errors.append(name + ": el archivo histórico no coincide con la versión ejecutada")
+    return errors
+
 def anchors(text):
     found=set(re.findall(r'<a\s+id=["\']([^"\']+)',text));counts={};fence=None
     for line in text.splitlines():
@@ -112,12 +131,12 @@ def http_url_error(url):
 def verify(sources=None):
     errors=[];warnings=[];local_links=0;commit_hashes=set();historical_hashes=set()
     paths=sorted(ROOT.glob("*.md"))+sorted(DOCS.rglob("*.md"))+[ROOT/".github/PULL_REQUEST_TEMPLATE.md"]
-    cache={p:anchors(p.read_text()) for p in paths if p.exists()}
+    cache={p:anchors(p.read_text(encoding="utf-8")) for p in paths if p.exists()}
     for r in REQUIRED:
         if not (ROOT/r).is_file():errors.append("Falta archivo "+r)
     for p in paths:
         if not p.exists():continue
-        rel=str(p.relative_to(ROOT));text=p.read_text()
+        rel=p.relative_to(ROOT).as_posix();text=p.read_text(encoding="utf-8")
         for m in re.finditer(r"!?\[[^\]\n]*\]\(([^)\n]+)\)",text):
             url=m[1].strip().split(' "')[0].strip("<>")
             problem=http_url_error(url)
@@ -130,7 +149,7 @@ def verify(sources=None):
                 continue
             path,_,frag=url.partition("#");path=unquote(path);frag=unquote(frag);dest=(p.parent/path).resolve() if path else p;local_links+=1
             if not dest.exists():errors.append(f"{rel}: destino ausente {url}")
-            elif frag and dest.suffix==".md" and frag not in cache.get(dest,anchors(dest.read_text())):errors.append(f"{rel}: ancla ausente {url}")
+            elif frag and dest.suffix==".md" and frag not in cache.get(dest,anchors(dest.read_text(encoding="utf-8"))):errors.append(f"{rel}: ancla ausente {url}")
         if re.search(r"(?m)^\s*python 3(?:\s|$)",text) or "`python 3 " in text:
             (warnings if rel in FROZEN else errors).append(rel+": comando python3 fragmentado")
         expected=None;fence=False
@@ -255,8 +274,7 @@ def verify(sources=None):
         for name,suite in data["final_suites"].items():
             if suite["total"]!=suite["passed"]+suite["failed"]+suite["skipped"]:errors.append(name+": conteo de resultados inconsistente")
             if "tests" in suite and len(suite["tests"])!=suite["total"]:errors.append(name+": detalle de tests incompleto")
-        for name,sha in data.get("working_tree_changes",data["working_tree_test_changes"]).items():
-            if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=sha:errors.append(name+": el archivo de prueba ya no coincide con la versión ejecutada")
+        errors.extend(historical_source_errors(report, data.get("working_tree_changes", data.get("working_tree_test_changes", {}))))
         for name,sha in data.get("additional_evidence_sha256",{}).items():
             p=DOCS/"pruebas/evidencias"/name
             if not p.exists() or hashlib.sha256(p.read_bytes()).hexdigest()!=sha:errors.append(name+": evidencia adicional alterada/ausente")
