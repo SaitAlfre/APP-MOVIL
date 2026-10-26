@@ -147,7 +147,7 @@
                 }
                 if (clave === 'congelacion') {
                     if (valor >= 0.3 && valor <= 0.8) return -valor;
-                    if (valor >= 300.0 && valor <= 800.0) return Number((-valor / 1000.0).toFixed(4));
+                    if (Math.abs(valor) >= 300.0 && Math.abs(valor) <= 800.0) return Number((-Math.abs(valor) / 1000.0).toFixed(4));
                 }
                 return valor;
             };

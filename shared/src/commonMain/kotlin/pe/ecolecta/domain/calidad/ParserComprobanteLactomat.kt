@@ -4,8 +4,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import pe.ecolecta.domain.model.LecturaCalidad
-import kotlin.math.abs
-import kotlin.math.round
 
 /** Convierte el texto OCR de comprobantes LACTOMAT en valores editables; nunca guarda sin revisión. */
 object ParserComprobanteLactomat {
@@ -51,22 +49,8 @@ object ParserComprobanteLactomat {
     }
 
     fun parsear(texto: String): LecturaCalidad {
-        val densRaw = valorDe(texto, nombresPorClave.getValue("densidad"))
-        val densNorm = densRaw?.let { d ->
-            when {
-                d in 20.0..45.0 -> round((1.0 + d / 1000.0) * 10000.0) / 10000.0
-                d in 1000.0..1100.0 -> round((d / 1000.0) * 10000.0) / 10000.0
-                else -> d
-            }
-        }
-        val congRaw = valorDe(texto, nombresPorClave.getValue("congelacion"))
-        val congNorm = congRaw?.let { c ->
-            when {
-                c in 0.3..0.8 -> -c
-                abs(c) in 300.0..800.0 -> -abs(c) / 1000.0
-                else -> c
-            }
-        }
+        val densNorm = normalizarValorCalidad("densidad", valorDe(texto, nombresPorClave.getValue("densidad")))
+        val congNorm = normalizarValorCalidad("congelacion", valorDe(texto, nombresPorClave.getValue("congelacion")))
         return LecturaCalidad(
             serialAnalizador = tokenDespues(texto, "S/N", "SN", "Serial", "Serie", "No.", "No", "N°"),
             modoAnalizador = tokenDespues(texto, "Mode", "Modo", "Cal", "Calibracion"),

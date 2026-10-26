@@ -133,8 +133,8 @@ fun AdminDashboardScreen(
                 AdminCard(Modifier.padding(bottom = 12.dp), radio = 14, padding = 14) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            AdminTexto("Operación de planta · Balance", 13, AdminColor.texto, FontWeight.Bold)
-                            AdminTexto("${cifra(resumen.litrosHabilitadosPlanta)} L aptos", 13, AdminColor.verde, FontWeight.ExtraBold)
+                            AdminTexto("Análisis de calidad · Hoy", 13, AdminColor.texto, FontWeight.Bold)
+                            AdminTexto("${cifra(resumen.litrosHoy)} L acopiados", 13, AdminColor.verde, FontWeight.ExtraBold)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(AdminColor.crema).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -151,10 +151,7 @@ fun AdminDashboardScreen(
                             }
                         }
                         AdminTexto(
-                            if (resumen.calidadRechazadaHoy > 0)
-                                "Se excluyen ${cifra(resumen.litrosHoy - resumen.litrosHabilitadosPlanta)} L rechazados por calidad para el procesamiento en planta."
-                            else
-                                "La leche acopiada hoy cumple con los parámetros sanitarios para ingresar a planta.",
+                            "El saldo disponible para producción se consulta en la web e incluye calidad, recepción, mermas y lotes asignados.",
                             11, AdminColor.gris,
                         )
                     }

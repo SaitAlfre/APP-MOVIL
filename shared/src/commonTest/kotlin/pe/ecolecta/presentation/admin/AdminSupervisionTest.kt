@@ -2,6 +2,13 @@ package pe.ecolecta.presentation.admin
 
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
+import pe.ecolecta.domain.repository.ControlCalidadRepository
+import pe.ecolecta.domain.usecase.dashboard.ObtenerResumenAdminUseCase
 import pe.ecolecta.domain.fake.*
 import pe.ecolecta.domain.model.*
 import pe.ecolecta.domain.usecase.proveedor.*
@@ -35,6 +42,38 @@ class AdminSupervisionTest {
         val antiguo = c.copy(visita = DatosVisitaCalidad())
         assertEquals("z2", datos.zonaId(antiguo))
         assertEquals("Nombre actual", datos.nombre(antiguo))
+    }
+
+    @Test fun resumenCuentaSoloAnalisisRealesDelDiaSinIncluirMedianocheSiguiente() = runTest {
+        val reloj = FakeReloj()
+        val zona = TimeZone.currentSystemDefault()
+        val desde = reloj.hoy().atStartOfDayIn(zona).toEpochMilliseconds()
+        val hasta = reloj.hoy().plus(DatePeriod(days = 1)).atStartOfDayIn(zona).toEpochMilliseconds()
+        val base = control().copy(registradoEn = desde)
+        val controles = listOf(
+            base.copy(id = "aprobado", estado = EstadoControlCalidad.APROBADO),
+            base.copy(id = "observado", estado = EstadoControlCalidad.OBSERVADO),
+            base.copy(id = "repetir", estado = EstadoControlCalidad.REPETIR),
+            base.copy(id = "rechazado", registradoEn = hasta - 1),
+            base.copy(id = "manana", registradoEn = hasta),
+            base.copy(id = "ayer", registradoEn = desde - 1),
+            base.copy(id = "ejemplo", visita = base.visita.copy(ejemplo = true)),
+        )
+        val calidad = object : ControlCalidadRepository {
+            override fun observarTodos() = flowOf(controles)
+            override fun observarPorUsuario(usuarioId: String) = flowOf(controles.filter { it.usuarioId == usuarioId })
+            override suspend fun obtenerPorId(id: String) = controles.find { it.id == id }
+            override suspend fun existeCodigoMuestra(codigo: String) = controles.any { it.codigoMuestra == codigo }
+            override suspend fun insertar(control: ControlCalidad) = Unit
+            override suspend fun obtenerZonaAsignada(usuarioId: String): String? = null
+        }
+        val resumen = ObtenerResumenAdminUseCase(
+            FakeEntregaRepository(), FakeProveedorRepository(), FakeUsuarioRepository(), FakeJornadaRepository(), reloj, calidad,
+        )()
+        assertEquals(1, resumen.calidadAprobadaHoy)
+        assertEquals(2, resumen.calidadObservadaHoy)
+        assertEquals(1, resumen.calidadRechazadaHoy)
+        assertEquals(0.0, resumen.litrosHoy)
     }
 
     @Test fun crearYEditarResponsableConservaCuentaVinculada() = runTest {

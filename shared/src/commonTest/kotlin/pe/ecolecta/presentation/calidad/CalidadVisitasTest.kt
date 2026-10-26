@@ -248,6 +248,19 @@ class CalidadVisitasTest {
         assertEquals(-0.530, guardado.puntoCongelacion)
     }
 
+    @Test fun congelacionEnMilesimasSeGuardaComoEnLaWeb() = runTest(dispatcher) {
+        for (valor in listOf("530", "-530")) {
+            val (vm, repo) = crear(); advanceUntilIdle()
+            vm.nuevo(); vm.zona("a"); vm.proveedor("p-a")
+            llenarValoresAprobados(vm)
+            vm.campo("congelacion", valor)
+            vm.guardar(); advanceUntilIdle()
+            val guardado = repo.lista.value.single()
+            assertEquals(EstadoControlCalidad.APROBADO, guardado.estado)
+            assertEquals(-0.530, guardado.puntoCongelacion)
+        }
+    }
+
     @Test fun filasAntiguasSinMetadataSiguenSiendoLegibles() {
         val v = Json.decodeFromString<DatosVisitaCalidad>("{}")
         assertNull(v.confirmadaEn)

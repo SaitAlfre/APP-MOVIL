@@ -60,15 +60,16 @@ class CalificarEntregasConAnalisis
         }
         $resultado = is_object($control->resultado) ? $control->resultado->value : (string) $control->resultado;
         if (in_array($resultado, ['observado', 'rechazado'], true)) {
-            Sancion::firstOrCreate(
-                ['control_calidad_id' => $control->id],
-                [
-                    'proveedor_id' => $control->entrega->proveedor_id,
-                    'severidad' => $resultado === 'rechazado' ? 'alta' : 'media',
-                    'descuento' => $resultado === 'rechazado' ? 30.50 : 15.00,
-                    'motivo' => $control->observaciones ?: 'Resultado de calidad '.$resultado,
-                ],
-            );
+            $valores = [
+                'proveedor_id' => $control->entrega->proveedor_id,
+                'severidad' => $resultado === 'rechazado' ? 'alta' : 'media',
+                'descuento' => $resultado === 'rechazado' ? 30.50 : 15.00,
+                'motivo' => $control->observaciones ?: 'Resultado de calidad '.$resultado,
+            ];
+            $sancion = Sancion::firstOrCreate(['control_calidad_id' => $control->id], $valores);
+            if (! $sancion->wasRecentlyCreated && $sancion->estado === 'pendiente') {
+                $sancion->update($valores);
+            }
         } elseif ($resultado === 'aprobado') {
             Sancion::query()
                 ->where('control_calidad_id', $control->id)

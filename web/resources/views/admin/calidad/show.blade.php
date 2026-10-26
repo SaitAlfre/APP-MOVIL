@@ -100,7 +100,7 @@
                         </p>
                         @foreach ($control->sanciones as $sancion)
                             <p class="text-[11px] text-eh-red mt-1">
-                                Sanción: {{ $sancion->codigo }} ({{ ucfirst($sancion->severidad->value ?? $sancion->severidad) }}) · S/ {{ number_format((float) $sancion->descuento, 2) }} · {{ ucfirst($sancion->estado->value ?? $sancion->estado) }}
+                                Sanción: #{{ $sancion->id }} ({{ ucfirst($sancion->severidad->value ?? $sancion->severidad) }}) · S/ {{ number_format((float) $sancion->descuento, 2) }} · {{ ucfirst($sancion->estado->value ?? $sancion->estado) }}
                             </p>
                         @endforeach
                     </div>

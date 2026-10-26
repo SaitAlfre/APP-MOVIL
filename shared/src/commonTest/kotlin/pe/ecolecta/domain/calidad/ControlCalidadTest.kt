@@ -158,6 +158,15 @@ class ControlCalidadTest {
     }
 
     @Test
+    fun `congelacion manual y OCR coinciden en grados y milesimas`() {
+        for (valor in listOf(0.53, -0.53, 530.0, -530.0)) {
+            assertEquals(-0.53, normalizarValorCalidad("congelacion", valor))
+            assertEquals(-0.53, ParserComprobanteLactomat.parsear("Freezing: $valor").puntoCongelacion)
+        }
+        assertEquals(-900.0, normalizarValorCalidad("congelacion", -900.0))
+    }
+
+    @Test
     fun `parsea densidad en kg por metro cubico`() {
         val texto = "Densidad: 1030 kg/m3"
         val lectura = ParserComprobanteLactomat.parsear(texto)

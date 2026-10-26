@@ -26,7 +26,6 @@ data class ResumenAdmin(
     val calidadAprobadaHoy: Int = 0,
     val calidadObservadaHoy: Int = 0,
     val calidadRechazadaHoy: Int = 0,
-    val litrosHabilitadosPlanta: Double = litrosHoy,
 )
 
 /** Indicadores del dashboard administrativo y operación de planta. */
@@ -47,20 +46,12 @@ class ObtenerResumenAdminUseCase(
         val litros = entregaRepository.sumaLitrosEntreFechas(desde, hasta)
 
         val controlesHoy = calidadRepository?.observarTodos()?.firstOrNull()?.filter {
-            it.registradoEn in desde..hasta
+            it.registradoEn >= desde && it.registradoEn < hasta && !it.visita.ejemplo
         }.orEmpty()
 
         val aprobados = controlesHoy.count { it.estado == EstadoControlCalidad.APROBADO }
         val observados = controlesHoy.count { it.estado == EstadoControlCalidad.OBSERVADO || it.estado == EstadoControlCalidad.REPETIR }
         val rechazados = controlesHoy.count { it.estado == EstadoControlCalidad.RECHAZADO }
-
-        val proveedoresRechazados = controlesHoy.filter { it.estado == EstadoControlCalidad.RECHAZADO }
-            .map { it.proveedorId }.toSet()
-        val entregasHoy = entregaRepository.filtrar().filter {
-            it.registradoEn in desde..hasta && !it.anulada
-        }
-        val litrosRechazados = entregasHoy.filter { it.proveedorId in proveedoresRechazados }.sumOf { it.litros }
-        val habilitados = maxOf(0.0, litros - litrosRechazados)
 
         return ResumenAdmin(
             litrosHoy = litros,
@@ -74,7 +65,6 @@ class ObtenerResumenAdminUseCase(
             calidadAprobadaHoy = aprobados,
             calidadObservadaHoy = observados,
             calidadRechazadaHoy = rechazados,
-            litrosHabilitadosPlanta = habilitados,
         )
     }
 }

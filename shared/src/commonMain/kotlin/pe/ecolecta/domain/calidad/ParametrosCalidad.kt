@@ -2,6 +2,7 @@ package pe.ecolecta.domain.calidad
 
 import pe.ecolecta.domain.model.ControlCalidad
 import pe.ecolecta.domain.model.LecturaCalidad
+import kotlin.math.abs
 import kotlin.math.round
 
 data class ParametroCalidad(
@@ -43,6 +44,7 @@ fun normalizarValorCalidad(clave: String, valor: Double?): Double? {
         clave == "densidad" && valor in 20.0..45.0 -> round((1.0 + valor / 1000.0) * 10000.0) / 10000.0
         clave == "densidad" && valor in 1000.0..1100.0 -> round((valor / 1000.0) * 10000.0) / 10000.0
         clave == "congelacion" && valor in 0.3..0.8 -> -valor
+        clave == "congelacion" && abs(valor) in 300.0..800.0 -> -round(abs(valor) / 1000.0 * 10000.0) / 10000.0
         else -> valor
     }
 }
