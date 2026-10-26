@@ -115,6 +115,7 @@ class SqlDelightCuentasRepository(
     override suspend fun guardarAsignaciones(usuarioId: String, zonaId: String?, proveedorId: String?) = withContext(dispatcher) {
         db.transaction {
             if (zonaId == null) db.usuarioZonaQueries.quitar(usuarioId) else db.usuarioZonaQueries.asignar(usuarioId, zonaId)
+            db.marcarCambio(EntidadCambio.USUARIO, usuarioId)
             val anterior = db.proveedorQueries.selectPorUsuarioId(usuarioId).executeAsList().map { it.id }
             db.proveedorQueries.desvincularUsuario(usuarioId)
             if (proveedorId != null) db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = proveedorId)

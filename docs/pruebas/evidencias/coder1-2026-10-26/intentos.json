@@ -1,0 +1,165 @@
+[
+  {
+    "intento": "continuacion-php-completa",
+    "nota": "Falló un fixture que restaba una hora y cruzó medianoche. Las aserciones se conservaron; fecha del fixture corregida.",
+    "recibo_original_sha256": "0a8769b414471964920c3b2c89a91ae27cacce35304626121ddab5a7df24328f",
+    "returncode": 1,
+    "salida": "intento-continuacion-php-completa.txt",
+    "sha256": "8e54623c8616f8d932155f7cc41cad636e0938b093a74d1cc890a2e6c42760e6",
+    "advertencia": "Los conteos vacíos del parser ante returncode no cero NO significan cero fallos."
+  },
+  {
+    "intento": "continuacion-formularios",
+    "nota": "Filtro Gradle regex no admitido: no ejecutó tests; no cuenta como fallo de producto ni éxito.",
+    "recibo_original_sha256": "2dbcbe742f3b9d7de2eafc5910ae6c16afe610d4798bdd593d6a8caf068d7448",
+    "returncode": 1,
+    "salida": "intento-continuacion-formularios.txt",
+    "sha256": "1c4c8a1c076f60f86bfabb348aeed5581f0d235737692503a4f08b1b6dd14405",
+    "advertencia": "Los conteos vacíos del parser ante returncode no cero NO significan cero fallos."
+  },
+  {
+    "intento": "continuacion-kotlin-completa",
+    "nota": "Fallo de compilación de test nuevo: DNI nullable. Se corrigió el fixture, luego suite313 aprobada.",
+    "recibo_original_sha256": "223351824daf2233f9ba6fd182c416f3e785299681dfd69da9ed0b4f8f800531",
+    "returncode": 1,
+    "salida": "intento-continuacion-kotlin-completa.txt",
+    "sha256": "104067858995b09ee3fc92404ffcd127761b552ba354e5eead32af5dc3c3c97a",
+    "advertencia": "Los conteos vacíos del parser ante returncode no cero NO significan cero fallos."
+  },
+  {
+    "intento": "ui-01",
+    "resultado": {
+      "exito": false,
+      "checks": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-01-perfil-y-usuarios",
+          "estado": "Failed"
+        }
+      ],
+      "prefijoFicticio": "",
+      "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+      "fallo": "IllegalStateException en InterfazCoder1.kt:25: Required value was null.",
+      "counts": {
+        "Passed": 1,
+        "Failed": 1
+      },
+      "APK_sha256": "5ab6d857d0ee94c972ff515e1c92a4222a36dc4a6dc22720896f52be116a48a0"
+    },
+    "recibo_original_sha256": "4112dbc04452b9a1e33d24688f2238eb1b18a35c369b9fcd60176795d9275736",
+    "nota": "Fallo de recorrido/espera/caché del controlador gráfico; resuelto y repetido con 10/10 en ui-05. No se cuenta como éxito."
+  },
+  {
+    "intento": "ui-02",
+    "resultado": {
+      "exito": false,
+      "checks": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-01-perfil-y-usuarios",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-02-zona-formulario-y-error",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-03-vehiculo-formulario-y-error",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-04-ficha-proveedor",
+          "estado": "Failed"
+        }
+      ],
+      "prefijoFicticio": "",
+      "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+      "fallo": "IllegalStateException en InterfazCoder1.kt:44: La condición de interfaz no se alcanzó; ver árbol QA",
+      "counts": {
+        "Passed": 4,
+        "Failed": 1
+      },
+      "APK_sha256": "5ab6d857d0ee94c972ff515e1c92a4222a36dc4a6dc22720896f52be116a48a0"
+    },
+    "recibo_original_sha256": "07926060d67abe820526b9d6a0c45dcba109291da9ea56e9e4e410a39fe7178c",
+    "nota": "Fallo de recorrido/espera/caché del controlador gráfico; resuelto y repetido con 10/10 en ui-05. No se cuenta como éxito."
+  },
+  {
+    "intento": "ui-03",
+    "resultado": {
+      "exito": false,
+      "checks": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-01-perfil-y-usuarios",
+          "estado": "Failed"
+        }
+      ],
+      "prefijoFicticio": "",
+      "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+      "fallo": "IllegalStateException en InterfazCoder1.kt:64: No se encontró control pulsable: Crear cuenta",
+      "counts": {
+        "Passed": 1,
+        "Failed": 1
+      },
+      "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8"
+    },
+    "recibo_original_sha256": "2dd475285e6f11b8c1c448b34785073aa0875f6041831f8c957ad4a034b31724",
+    "nota": "Fallo de recorrido/espera/caché del controlador gráfico; resuelto y repetido con 10/10 en ui-05. No se cuenta como éxito."
+  },
+  {
+    "intento": "ui-04",
+    "resultado": {
+      "exito": false,
+      "checks": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-01-perfil-y-usuarios",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-02-zona-formulario-y-error",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-03-vehiculo-formulario-y-error",
+          "estado": "Failed"
+        }
+      ],
+      "prefijoFicticio": "",
+      "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+      "fallo": "IllegalStateException en InterfazCoder1.kt:66: No se encontró control pulsable: Vehículos",
+      "counts": {
+        "Passed": 3,
+        "Failed": 1
+      },
+      "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8"
+    },
+    "recibo_original_sha256": "7884c3f2bdc4d58d7df2ba1e6a28b650267c66dad014b2cdb1d7a5df06360c01",
+    "nota": "Fallo de recorrido/espera/caché del controlador gráfico; resuelto y repetido con 10/10 en ui-05. No se cuenta como éxito."
+  },
+  {
+    "intento": "asignacion-uno",
+    "estado": "No se ejecutó el caso",
+    "nota": "ADB dividió argumento de zona con espacios; am devolvió Invalid userId -2. Se corrigió escape con shlex y se repitió satisfactoriamente. No se atribuye fallo a la app.",
+    "salida_original_sha256": "fdfa04a270e75b3a3f71143d831ff077b9100147c39f364a094246d338915913"
+  },
+  {
+    "intento": "asignacion-dos",
+    "estado": "No se ejecutó el caso",
+    "nota": "ADB dividió argumento de zona con espacios; am devolvió Invalid userId -2. Se corrigió escape con shlex y se repitió satisfactoriamente. No se atribuye fallo a la app.",
+    "salida_original_sha256": "fdfa04a270e75b3a3f71143d831ff077b9100147c39f364a094246d338915913"
+  }
+]

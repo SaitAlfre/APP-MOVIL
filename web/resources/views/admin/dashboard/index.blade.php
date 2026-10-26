@@ -78,14 +78,14 @@
                 'url' => route('admin.recepcion.index'),
                 'permiso' => 'recepcion',
             ] : null,
-            $alertas['lotes_en_proceso'] > 0 ? [
+            $usuario->puede('produccion') && $alertas['lotes_en_proceso'] > 0 ? [
                 'tipo' => 'info',
                 'texto' => $alertas['lotes_en_proceso'].' '.($alertas['lotes_en_proceso'] === 1 ? 'lote' : 'lotes').' de producción en proceso sin finalizar.',
                 'accion' => 'Ver producción',
                 'url' => route('admin.produccion.historial.index'),
                 'permiso' => 'produccion',
             ] : null,
-            $alertas['liquidaciones_pendientes'] > 0 ? [
+            $usuario->puede('liquidaciones') && $alertas['liquidaciones_pendientes'] > 0 ? [
                 'tipo' => 'info',
                 'texto' => $alertas['liquidaciones_pendientes'].' '.($alertas['liquidaciones_pendientes'] === 1 ? 'liquidación pendiente' : 'liquidaciones pendientes').' de pago.',
                 'accion' => 'Ver liquidaciones',
@@ -146,7 +146,9 @@
         </form>
         <p class="mt-4 border-t border-eh-border pt-4 text-[11px] leading-relaxed text-eh-text-muted">
             La zona filtra litros recolectados, recibidos, merma, calidad pendiente y los gráficos por zona y acopiador.
+            @if ($usuario->puede('produccion') && $usuario->puede('liquidaciones'))
             Leche habilitada, disponible, producción y liquidaciones son globales: una vez recepcionada, la leche se acumula en una sola pila sin importar la zona de origen.
+            @endif
         </p>
     </x-ui.card>
 
@@ -160,19 +162,25 @@
             hint="Proveedores distintos con al menos una entrega en el periodo filtrado." />
         <x-ui.kpi label="Controles pendientes" :value="$indicadores['pendiente_calidad_entregas']" icon="beaker" color="yellow"
             hint="Entregas del periodo que todavía no tienen control de calidad." />
+        @if ($usuario->puede('liquidaciones'))
         <x-ui.kpi label="Liquidaciones pendientes" :value="$indicadores['liquidaciones_pendientes']" icon="banknotes" color="red"
             hint="Liquidaciones generadas que aún no se marcan como pagadas." />
+        @endif
     </section>
 
     <section class="stagger mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <x-ui.kpi label="Entregas registradas" :value="$panel['entregas_registradas']" icon="clipboardList" color="green"
             hint="Entregas no anuladas registradas en el periodo filtrado." />
+        @if ($usuario->puede('acopiadores'))
         <x-ui.kpi label="Jornadas abiertas" :value="count($panel['jornadas_abiertas'])" icon="play" color="blue"
             hint="Jornadas de acopio que siguen sin cerrarse." />
+        @endif
         <x-ui.kpi label="Alertas de calidad" :value="$panel['calidad_alertas']" icon="exclamation" color="yellow"
             hint="Controles observados o rechazados dentro del periodo." />
+        @if ($usuario->puede('produccion'))
         <x-ui.kpi label="Lotes abiertos" :value="$panel['lotes_abiertos']" icon="factory" color="green"
             hint="Lotes de producción en borrador o en proceso." />
+        @endif
     </section>
 
     {{-- Tendencia y calidad --}}
@@ -242,6 +250,7 @@
 
     {{-- Colas de trabajo --}}
     <section class="mb-3 grid gap-3 lg:grid-cols-2">
+        @if ($usuario->puede('acopiadores'))
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
                 <div>
@@ -270,6 +279,7 @@
                 <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">No hay jornadas abiertas ahora mismo.</p>
             @endforelse
         </x-ui.card>
+        @endif
 
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
@@ -302,7 +312,7 @@
                 <div class="border-t border-eh-border p-5 md:px-6">
                     <p class="flex items-center justify-center gap-2 rounded-2xl bg-eh-success-soft px-4 py-6 text-center text-xs font-semibold text-eh-success">
                         <x-icon name="check" class="h-4 w-4 shrink-0" />
-                        Sin pendientes: recepción, calidad, producción y liquidaciones están al día.
+                        {{ $usuario->puede('produccion') && $usuario->puede('liquidaciones') ? 'Sin pendientes: recepción, calidad, producción y liquidaciones están al día.' : 'Sin alertas pendientes en los módulos autorizados.' }}
                     </p>
                 </div>
             @endforelse

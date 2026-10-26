@@ -162,10 +162,10 @@ class AltaProveedorTest {
     }
 
     @Test
-    fun `documento y codigo mal formados o zona inactiva se rechazan`() = runTest {
+    fun `documento fuera del limite o zona inactiva se rechazan`() = runTest {
         assertEquals(
-            "El documento de la ficha debe ser un DNI de 8 dígitos o un RUC de 11.",
-            guardar(datos(fichaNueva = ficha(documento = "123")), "admin").exceptionOrNull()?.message,
+            "El documento admite hasta 20 caracteres.",
+            guardar(datos(fichaNueva = ficha(documento = "D".repeat(21))), "admin").exceptionOrNull()?.message,
         )
         assertEquals("La zona CERRADA está inactiva.", guardar(datos(fichaNueva = ficha(zona = "vieja")), "admin").exceptionOrNull()?.message)
         assertTrue(proveedores.observarTodos().first().isEmpty())
@@ -203,4 +203,27 @@ class AltaProveedorTest {
         assertEquals("PRV-007", siguienteCodigo(listOf("PRV-001", "PRV-006", "PRV-FAON-01")))
         assertEquals("PRV-001", siguienteCodigo(emptyList()))
     }
+    @Test fun `alta conjunta conserva limites web y separa documento productivo de dni personal`() = runTest {
+        val nueva = ficha().copy(codigo = "c.".repeat(25), nombre = "N".repeat(150), documento = "D".repeat(20),
+            telefono = "T".repeat(30), direccion = "A".repeat(255), tachos = 1000, capacidadTachoL = 200.01)
+        val id = guardar(datos(fichaNueva = nueva), "admin").getOrThrow()
+        val creada = proveedores.obtenerPorUsuarioId(id)!!
+        assertEquals(nueva.codigo, creada.codigo); assertEquals(nueva.nombre, creada.nombres)
+        assertEquals(nueva.documento, creada.dni); assertEquals(30, creada.telefono?.length)
+        assertEquals(255, creada.direccion?.length); assertEquals(1000, creada.tachos)
+        assertEquals(200.01, creada.capacidadTachoL); assertEquals("45678901", usuarios.obtenerPorId(id)?.dni)
+    }
+
+    @Test fun `alta conjunta rechaza excesos sin cuentas parciales`() = runTest {
+        val base = ficha()
+        for (invalida in listOf(base.copy(codigo = "C".repeat(51)), base.copy(nombre = "N".repeat(151)),
+            base.copy(documento = "D".repeat(21)), base.copy(telefono = "T".repeat(31)),
+            base.copy(direccion = "A".repeat(256)), base.copy(tachos = 1001), base.copy(capacidadTachoL = 0.009),
+            base.copy(capacidadTachoL = Double.NaN), base.copy(capacidadTachoL = Double.POSITIVE_INFINITY))) {
+            assertTrue(guardar(datos(fichaNueva = invalida), "admin").isFailure)
+            assertNull(usuarios.obtenerPorUsername("prv_santa"))
+        }
+        assertTrue(proveedores.observarTodos().first().isEmpty()); assertTrue(auditoria.insertados.isEmpty())
+    }
+
 }

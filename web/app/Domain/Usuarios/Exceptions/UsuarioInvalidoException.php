@@ -48,6 +48,6 @@ final class UsuarioInvalidoException extends DomainException
 
     public static function pinInvalido(): self
     {
-        return new self('El PIN debe tener entre 4 y 8 dígitos numéricos.');
+        return new self('El PIN debe tener exactamente 4 dígitos numéricos.');
     }
 }

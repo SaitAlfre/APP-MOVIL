@@ -1,0 +1,47 @@
+dos-dispositivos-uno
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"qa_c1_ed120b_2","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA SEGUNDO qa_c1_ed120b","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+dos-dispositivos-dos
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"qa_c1_ed120b_2","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA SEGUNDO qa_c1_ed120b","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+asignacion-uno-02
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"libre","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA WEB C1 20261026","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+asignacion-dos-02
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"libre","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA WEB C1 20261026","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+restauracion-uno
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"qa_c1_ed120b_2","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA SEGUNDO qa_c1_ed120b","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+restauracion-dos
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-cliente-independiente Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-cliente-independiente","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-cliente-independiente.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales","catalogosComparados":{"codigo":"QA-ED120B","responsable":"Responsable ficticio UI26","telefono":"+51 900 000 026","cuentaVinculada":"qa_c1_ed120b_2","cuentaCalidad":"qa_c1_ed120b_1","nombreCalidad":"Cuenta ficticia qa_c1_ed120b 1 WEB26","zonaCalidad":"QA SEGUNDO qa_c1_ed120b","proveedorServidorId":13}}
+INSTRUMENTATION_CODE: -1
+
+
+PREPARACION
+Fixture aislado: Calidad reasignada a QA WEB C1 20261026 y ficha13 libre; estado anterior guardado para restaurar.
+
+RESTAURACION
+Fixture restaurado: zona original de Calidad y vínculo de ficha13 con cuenta22. Cuentas, PIN, nombres e historial conservados.

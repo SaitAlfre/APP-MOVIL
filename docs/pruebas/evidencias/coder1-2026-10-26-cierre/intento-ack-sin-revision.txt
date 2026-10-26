@@ -1,0 +1,14 @@
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-web-a-android Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-05-alta-cuenta Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-06-edicion-cuenta-y-pin Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-07-estados-cuenta Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-08-estados-zona-libre Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-09-estados-vehiculo-libre Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":false,"checks":[{"id":"INT-C1-web-a-android","estado":"Passed"},{"id":"UI-C1-05-alta-cuenta","estado":"Passed"},{"id":"UI-C1-06-edicion-cuenta-y-pin","estado":"Passed"},{"id":"UI-C1-07-estados-cuenta","estado":"Passed"},{"id":"UI-C1-08-estados-zona-libre","estado":"Passed"},{"id":"UI-C1-09-estados-vehiculo-libre","estado":"Passed"},{"id":"INT-C1-cierre-ui-web-pin-y-reintento","estado":"Failed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-creada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-editada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-desactivada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-reactivada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-zona-desactivada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-zona-reactivada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-vehiculo-desactivado.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-vehiculo-reactivado.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-fallo.png"],"prefijoFicticio":"","ui":"Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio","fallo":"IllegalStateException en InterfazCoder1.kt:312: Check failed."}
+INSTRUMENTATION_CODE: 0

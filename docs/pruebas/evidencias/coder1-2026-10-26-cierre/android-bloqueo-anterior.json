@@ -1,0 +1,56 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "UI-C1-cuenta-bloqueada",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-restaurar-admin",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-bloqueada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-admin-final.png"
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "timestamp": "2026-10-26T10:36:46.688302+00:00",
+  "mode": "bloqueo",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "7b32bd5daecdaa3a4287becea70e42a87f65953aaadbb688f2fa407261f2cc4a",
+  "test_apk_sha256": "03cbb583fc72c0034b792741f4e7688ace29fa66608c6f047a5c4198b26f3d93",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "bloqueo",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ],
+  "capturas_exportadas": [
+    {
+      "archivo": "coder1-ui-cuenta-bloqueada.png",
+      "sha256": "563874d95a7021ff432554737c62cd8f1dc787dedc9c374ca5889fb7c501a270"
+    },
+    {
+      "archivo": "coder1-ui-admin-final.png",
+      "sha256": "0388c3917596b4894ff64b34fb69a0bdd872c4cbb7eff0075ec0592ea66d993c"
+    }
+  ],
+  "alcance": "Ejecutado antes del ACK final; APK/runner identificados por SHA. Auth/bloqueo no cambió después; no se atribuye este resultado al nuevo SHA."
+}

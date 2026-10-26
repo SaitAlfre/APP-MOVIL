@@ -38,8 +38,9 @@ class CoordinadorPanelWebTest {
             allowOverride(true)
             modules(dataModule, domainModule, module {
                 single<SqlDriver> { driver }
+                single<pe.ecolecta.domain.security.ProtectorSecretos> { ProtectorSecretosPrueba }
                 single<RegistroAcopioRemotoRepository> { RegistroAcopioRemotoRepositoryPendiente() }
-                single<ServidorWebRepository> { Canal(ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO)) }
+                single<ServidorWebRepository> { Canal(ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO, protector = ProtectorSecretosPrueba)) }
             })
         }
         try {

@@ -26,6 +26,7 @@ class Usuario extends Authenticatable
         'pin_hash',
         'activo',
         'roles',
+        'zona_id',
         'intentos_fallidos',
         'bloqueado_hasta',
         'bloqueado_manualmente',
@@ -44,6 +45,7 @@ class Usuario extends Authenticatable
         return [
             'activo' => 'boolean',
             'roles' => 'array',
+            'zona_id' => 'integer',
             'bloqueado_hasta' => 'datetime',
             'bloqueado_manualmente' => 'boolean',
             'bloqueado_manual_en' => 'datetime',
@@ -63,7 +65,7 @@ class Usuario extends Authenticatable
 
     public function tieneRol(string $rol): bool
     {
-        return in_array($rol, $this->roles ?? [], true);
+        return Rol::tryFrom($rol) !== null && in_array($rol, $this->roles ?? [], true);
     }
 
     /** Bloqueado automático (intentos fallidos) o manual (con motivo): cualquiera de los dos impide el acceso. */
@@ -92,6 +94,8 @@ class Usuario extends Authenticatable
     {
         $rolesPermitidos = config("permisos.{$modulo}.{$accion}", []);
 
-        return collect($this->roles ?? [])->intersect($rolesPermitidos)->isNotEmpty();
+        $oficiales = array_map(fn (Rol $rol) => $rol->value, Rol::cases());
+
+        return collect($this->roles ?? [])->intersect($oficiales)->intersect($rolesPermitidos)->isNotEmpty();
     }
 }

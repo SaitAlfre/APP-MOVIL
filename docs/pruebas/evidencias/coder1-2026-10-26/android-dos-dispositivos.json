@@ -1,0 +1,735 @@
+{
+  "entorno": "Dos AVD independientes: SQLite, userdata y proceso separados; mismo Laravel ficticio. No dos teléfonos físicos.",
+  "fases": [
+    {
+      "fase": "Inicial",
+      "coinciden": true,
+      "resultados": [
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "qa_c1_ed120b_2",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA SEGUNDO qa_c1_ed120b",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/dos-dispositivos-uno/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/dos-dispositivos-uno/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5554",
+            "avd": "Galaxy_S25_Android_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "0d5f0601a6463e962cc978901bcab85b3ba354c61d8ecf5cb59c1e5c8ba06aed"
+        },
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "qa_c1_ed120b_2",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA SEGUNDO qa_c1_ed120b",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/dos-dispositivos-dos/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/dos-dispositivos-dos/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5556",
+            "avd": "Coder1_Segundo_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "901b593569ca1588be35e65fe68f8a8ad59ba83d9507507222357057ec13a6d2"
+        }
+      ]
+    },
+    {
+      "fase": "Reasignada y libre",
+      "coinciden": true,
+      "resultados": [
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "libre",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA WEB C1 20261026",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "-e",
+                "zonaEsperada",
+                "QA WEB C1 20261026",
+                "-e",
+                "vinculoEsperado",
+                "libre",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/asignacion-uno-02/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/asignacion-uno-02/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5554",
+            "avd": "Galaxy_S25_Android_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "61c10e06d1c7e757b8f518398868e0aca8230655d0372698a5517d4156ed6605"
+        },
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "libre",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA WEB C1 20261026",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "-e",
+                "zonaEsperada",
+                "QA WEB C1 20261026",
+                "-e",
+                "vinculoEsperado",
+                "libre",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/asignacion-dos-02/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/asignacion-dos-02/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5556",
+            "avd": "Coder1_Segundo_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "84ad267727bc6700cdee489a4697784251274f4fa3c8588f4d98c4566aeb2fce"
+        }
+      ]
+    },
+    {
+      "fase": "Restaurada",
+      "coinciden": true,
+      "resultados": [
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [
+            {
+              "archivo": "android-avd-uno.png",
+              "sha256": "67cb48ccfe2523016d2d94851000d5af869f98919d06d11f6bd4ffae05dddcea"
+            }
+          ],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "qa_c1_ed120b_2",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA SEGUNDO qa_c1_ed120b",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/restauracion-uno/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5554",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/restauracion-uno/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5554",
+            "avd": "Galaxy_S25_Android_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "576ad7102de4fc0ab48f04fa86e3c6ab82316dba85ae04b8afa2241dbc68be61"
+        },
+        {
+          "exito": true,
+          "checks": [
+            {
+              "id": "INT-C1-cliente-independiente",
+              "estado": "Passed"
+            }
+          ],
+          "capturas": [
+            {
+              "archivo": "android-avd-dos.png",
+              "sha256": "a32feefbb8691ade36850e8a68b58ac184816d6293730e323157961176fe06d9"
+            }
+          ],
+          "prefijoFicticio": "",
+          "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+          "catalogosComparados": {
+            "codigo": "QA-ED120B",
+            "responsable": "Responsable ficticio UI26",
+            "telefono": "+51 900 000 026",
+            "cuentaVinculada": "qa_c1_ed120b_2",
+            "cuentaCalidad": "qa_c1_ed120b_1",
+            "nombreCalidad": "Cuenta ficticia qa_c1_ed120b 1 WEB26",
+            "zonaCalidad": "QA SEGUNDO qa_c1_ed120b",
+            "proveedorServidorId": 13
+          },
+          "commands": [
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "emu",
+                "avd",
+                "name"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "install",
+                "-r",
+                "-t",
+                "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "shell",
+                "am",
+                "instrument",
+                "-w",
+                "-r",
+                "-e",
+                "entorno",
+                "coder1-ficticio",
+                "-e",
+                "modo",
+                "segundo",
+                "-e",
+                "pinPrueba",
+                "<PIN_FICTICIO>",
+                "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-cliente-independiente.png",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/restauracion-dos/coder1-cliente-independiente.png"
+              ],
+              "returncode": 0
+            },
+            {
+              "command": [
+                "$ANDROID_HOME/platform-tools/adb",
+                "-s",
+                "emulator-5556",
+                "pull",
+                "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+                "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/restauracion-dos/arbol.txt"
+              ],
+              "returncode": 0
+            }
+          ],
+          "dispositivo": {
+            "serial": "emulator-5556",
+            "avd": "Coder1_Segundo_16"
+          },
+          "counts": {
+            "Passed": 1,
+            "Failed": 0
+          },
+          "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+          "recibo_original_sha256": "3e59d28819f66d84eb17b4417d579d6c9656655facd4e3d0557a515d131ee8b2"
+        }
+      ]
+    }
+  ],
+  "nota_conteos": "Tres fases del mismo caso en dos dispositivos (6 ejecuciones aprobadas); no seis tests funcionales distintos. Cada fase descarga/aplica dos veces y exige ficha única.",
+  "preparacion": "Cambios reversibles del fixture mediante casos de uso Laravel en Artisan, con guardas de ruta DB/username/código y estado anterior. No se simula interacción web.",
+  "limpieza": {
+    "avd_temporal": "Coder1_Segundo_16",
+    "serial_temporal": "emulator-5556",
+    "cierre_temporal_exit": 0,
+    "avd_original_conservado": true,
+    "datos_originales_borrados": false,
+    "nota": "Solo se detuvo el AVD nuevo bajo /tmp; se conservó el emulador original."
+  },
+  "salida": "android-dos-dispositivos.txt",
+  "salida_sha256": "9076dd19d606fa8e1e11a17c552c6d59335ca3b0e56a8b1b6da5313755d03206"
+}

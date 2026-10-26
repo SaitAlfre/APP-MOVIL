@@ -40,12 +40,7 @@ class EscenarioPeruDemoSeeder extends Seeder
 
     private function cargar(M\Usuario $admin): void
     {
-        $personal = ['recepcion' => 'María Elena Quispe Mamani', 'calidad' => 'Rosa Luz Apaza Huanca',
-            'produccion' => 'José Antonio Condori Choque', 'liquidaciones' => 'Carmen Rosa Flores Ccama',
-            'consulta' => 'Luis Alberto Huamán Paredes', 'asistente' => 'Ana Lucía Ramos Chura', 'despacho' => 'Pedro Julián Yucra Vilca'];
-        foreach ($personal as $rol => $nombre) {
-            $this->usuario('demo_'.$rol, $nombre, 99001000 + array_search($rol, array_keys($personal)), $rol);
-        }
+        $this->usuario('demo_calidad', 'Rosa Luz Apaza Huanca', 99001001, 'calidad');
         $zonas = ['COLLANA I-YASIN-HUAN', 'FAON-MARKAPAJO', 'MORO VIEJO-PANCHA', 'PLANTA-COLLANA II'];
         $acopiadores = ['Juan Carlos Mamani Quispe', 'Víctor Hugo Apaza Condori', 'Julio César Huanca Flores', 'Miguel Ángel Choque Vilca'];
         $nombres = ['Juana Rosa Quispe Apaza', 'Roberto Mamani Huanca', 'Elena Condori Flores', 'Pedro Luis Choque Ccama', 'María Isabel Chura Yucra', 'Andrés Huamán Paredes', 'Lucía Ramos Mamani', 'Francisco Apaza Vilca', 'Teresa Huanca Condori', 'José Santos Ccama Quispe', 'Rosa Alicia Yucra Flores', 'Edwin Choque Chura'];

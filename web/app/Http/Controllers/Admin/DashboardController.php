@@ -38,6 +38,21 @@ class DashboardController extends Controller
 
         $dashboard = $obtenerDashboard->ejecutar($desde, $hasta, $zonaId, $agrupacion);
 
+        // Autorización C1: no enviar datos de módulos retirados del perfil, ni siquiera como KPI.
+        if (! $request->user('operador')->puede('produccion')) {
+            foreach (['disponible_litros', 'consumido_produccion_litros', 'lotes_en_proceso', 'lotes_finalizados'] as $clave) {
+                unset($dashboard['indicadores'][$clave]);
+            }
+            unset($dashboard['alertas']['lotes_en_proceso'], $dashboard['panel']['lotes_abiertos']);
+        }
+        if (! $request->user('operador')->puede('liquidaciones')) {
+            unset($dashboard['indicadores']['liquidaciones_pendientes'], $dashboard['alertas']['liquidaciones_pendientes']);
+        }
+
+        if (! $request->user('operador')->puede('acopiadores')) {
+            $dashboard['panel']['jornadas_abiertas'] = [];
+        }
+
         $panel = $dashboard['panel'];
 
         // Las jornadas abiertas y las entregas sin evaluar llegan como entidades de dominio:

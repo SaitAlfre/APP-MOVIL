@@ -21,9 +21,9 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 @if ($esNuevo)
-                    <x-ui.field name="username" label="Usuario de acceso" required maxlength="50" placeholder="ej. calidad_faon" autocomplete="off" />
-                    <x-ui.field name="pin" label="PIN inicial" type="password" required inputmode="numeric" minlength="4" maxlength="8" pattern="\d{4,8}"
-                        hint="Entre 4 y 8 dígitos numéricos." placeholder="••••" autocomplete="new-password" />
+                    <x-ui.field name="username" label="Usuario de acceso" required minlength="3" maxlength="30" pattern="[a-z0-9._]{3,30}" hint="De 3 a 30 caracteres: minúsculas, números, punto o guion bajo." placeholder="ej. calidad_faon" autocomplete="off" />
+                    <x-ui.field name="pin" label="PIN inicial" type="password" required inputmode="numeric" minlength="4" maxlength="4" pattern="\d{4}"
+                        hint="Exactamente 4 dígitos numéricos." placeholder="••••" autocomplete="new-password" />
                 @else
                     <div class="flex flex-col gap-1">
                         <span class="text-sm font-medium text-eh-text">Usuario de acceso</span>
@@ -36,7 +36,11 @@
                 @endif
 
                 <x-ui.field name="nombres" label="Nombre completo" required maxlength="150" :value="$usuario?->nombres" class="sm:col-span-2" placeholder="Juan Pérez Quispe" />
-                <x-ui.field name="dni" label="DNI" required maxlength="20" :value="$usuario?->dni" placeholder="12345678" />
+                <x-ui.field name="dni" label="DNI" required :maxlength="$esNuevo ? 8 : 20" :pattern="$esNuevo ? '[0-9]{8}' : null" :value="$usuario?->dni" placeholder="12345678" />
+                <x-ui.select name="zona_id" label="Zona de trabajo" :selected="$usuario?->zonaId"
+                    :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()"
+                    placeholder="Sin asignación"
+                    hint="Obligatoria para nuevas cuentas de Calidad y opcional para Acopiador. Es la zona de trabajo, no una ruta." />
             </div>
 
             <fieldset>
@@ -49,16 +53,13 @@
                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     @foreach ($roles as $rol)
                         <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-eh-border p-2.5 transition-colors hover:bg-eh-surface-alt">
-                            <input type="checkbox" name="roles[]" value="{{ $rol->value }}" @checked($rolesMarcados->contains($rol->value))
+                            <input type="{{ $esNuevo || $rolesMarcados->count() <= 1 ? 'radio' : 'checkbox' }}" name="roles[]" value="{{ $rol->value }}" @checked($rolesMarcados->contains($rol->value))
                                 class="rounded border-eh-border text-eh-primary focus:ring-eh-primary">
                             <span class="text-sm text-eh-text">{{ $rol->etiqueta() }}</span>
-                            @unless ($rol->accesoWeb())
-                                <span class="ml-auto text-[11px] text-eh-text-muted">solo app móvil</span>
-                            @endunless
                         </label>
                     @endforeach
                 </div>
-                <p class="mt-2 text-xs text-eh-text-muted">Puedes asignar más de un rol. Los permisos se validan siempre en el servidor.</p>
+                <p class="mt-2 text-xs text-eh-text-muted">Cada cuenta nueva recibe un solo rol. Las combinaciones heredadas se conservan hasta su revisión manual; para cambiarlas, selecciona un único rol.</p>
             </fieldset>
 
             <div class="flex justify-end gap-2 border-t border-eh-border pt-4">

@@ -212,8 +212,8 @@ private fun SeccionFichaProveedor(s: UsuarioFormUiState, viewModel: UsuarioFormV
                 )
                 AdminCampo(s.fichaNombre, viewModel::fichaNombre, "Proveedor o finca", marcador = "Ej: Finca Santa Rosa")
                 AdminCampo(
-                    s.fichaDocumento, viewModel::fichaDocumento, "Documento de la ficha", marcador = "DNI (8) o RUC (11)",
-                    teclado = KeyboardType.Number, ayuda = "Puede ser el DNI del titular o el RUC de la finca; no puede repetirse en otra ficha.",
+                    s.fichaDocumento, viewModel::fichaDocumento, "Documento de la ficha", marcador = "Documento de hasta 20 caracteres",
+                    ayuda = "Identifica la ficha productiva; no puede repetirse. El DNI personal de la cuenta se registra aparte.",
                 )
                 AdminCampo(s.fichaCodigo, viewModel::fichaCodigo, "Código", marcador = "Ej: PRV-007", ayuda = "Sugerido; debe ser único. Identifica sus entregas y su QR.")
                 AdminTexto("Zona de acopio", 12, peso = FontWeight.SemiBold)

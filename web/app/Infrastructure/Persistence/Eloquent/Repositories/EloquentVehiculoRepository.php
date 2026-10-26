@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
 use App\Domain\Vehiculos\Vehiculo as VehiculoDominio;
 use App\Domain\Vehiculos\VehiculoRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo as VehiculoEloquent;
 
 final class EloquentVehiculoRepository implements VehiculoRepositoryInterface
@@ -55,6 +56,11 @@ final class EloquentVehiculoRepository implements VehiculoRepositoryInterface
         $registro->save();
 
         return $this->aDominio($registro->refresh());
+    }
+
+    public function tieneJornadasAbiertas(int $id): bool
+    {
+        return Jornada::query()->where('vehiculo_id', $id)->whereNull('cerrada_en')->exists();
     }
 
     private function aDominio(VehiculoEloquent $vehiculo): VehiculoDominio

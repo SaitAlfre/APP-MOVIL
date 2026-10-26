@@ -12,6 +12,11 @@ data class CuentaServidor(
     val dni: String? = null,
     val roles: List<String> = emptyList(),
     val activo: Boolean = true,
+    val zonaId: Long? = null,
+    /** false = servidor antiguo o dato no autorizado: no borrar una asignación local. */
+    val asignacionZonaIncluida: Boolean = false,
+    val revision: String? = null,
+    val bloqueado: Boolean = false,
 )
 
 /** Token recién emitido por el panel; aún no está guardado en el celular. [cuenta] es null con un panel anterior que no la envía. */
@@ -23,9 +28,9 @@ data class SesionServidor(
     val refreshExpiraEn: Long? = null,
 )
 
-@Serializable data class ZonaServidor(val id: Long, val nombre: String, val activo: Boolean = true)
+@Serializable data class ZonaServidor(val id: Long, val nombre: String, val activo: Boolean = true, val revision: String? = null)
 
-@Serializable data class VehiculoServidor(val id: Long, val nombre: String, val placa: String, val activo: Boolean = true)
+@Serializable data class VehiculoServidor(val id: Long, val nombre: String, val placa: String, val activo: Boolean = true, val revision: String? = null)
 
 @Serializable
 data class ProveedorServidor(
@@ -40,6 +45,9 @@ data class ProveedorServidor(
     val capacidadTachoL: Double = 40.0,
     val estado: String = "ACTIVO",
     val usuarioId: Long? = null,
+    val revision: String? = null,
+    val dueno: String? = null,
+    val responsableIncluido: Boolean = false,
 )
 
 @Serializable
@@ -157,4 +165,7 @@ interface DatosServidorLocalRepository {
      * entrar, ya validado por el servidor, para que la próxima vez pueda entrar sin conexión. Devuelve el id local.
      */
     suspend fun guardarCuenta(cuenta: CuentaServidor, pinHash: String, pinSalt: String, ahora: Long): String
+
+    /** Revocación confirmada por el servidor; conserva las filas y la cola para otra autenticación. */
+    suspend fun requerirVerificacion(usuarioId: String) = Unit
 }

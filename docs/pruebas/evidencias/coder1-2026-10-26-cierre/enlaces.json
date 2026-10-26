@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "scope": "Estructura y evidencia referenciada; no sustituye revisión humana o validación del beneficiario",
+  "counts": {
+    "markdown": 110,
+    "local_links": 1949,
+    "stories": 41,
+    "criteria": 86,
+    "scenarios": 82,
+    "tasks": 91,
+    "RF": 61,
+    "RNF": 17,
+    "commits": 22,
+    "linked_commits": 22,
+    "matrix_rows": 36,
+    "EP": 15
+  },
+  "errors": [],
+  "warnings": [
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+    "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6",
+    "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt: evidencia histórica verificada en git:c9ace988ca444be42df228b1bd1b2bd78b6ad39d; no acredita la versión actual",
+    "web/tests/Feature/AdminNavegacionYPermisosTest.php: evidencia histórica verificada en git:8674b53756ec9c765dc6de763ea7af32efe956ad; no acredita la versión actual",
+    "web/tests/Feature/AdminZonasRutasVehiculosTest.php: evidencia histórica verificada en git:8674b53756ec9c765dc6de763ea7af32efe956ad; no acredita la versión actual",
+    "EXE-20261023T040434Z-android-ui-7c3474: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T040739Z-android-ui-1a416a: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+    "EXE-20261023T041246Z-android-ui-212406: 4 controles no alcanzados por el arnés; sin nombres en el recibo inicial"
+  ],
+  "sources": []
+}

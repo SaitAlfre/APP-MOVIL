@@ -1,0 +1,7 @@
+-- Base de revisión solo de catálogos Coder 1; el protocolo de entregas permanece independiente.
+CREATE TABLE version_catalogo_servidor (
+    entidad TEXT NOT NULL,
+    local_id TEXT NOT NULL,
+    revision TEXT NOT NULL,
+    PRIMARY KEY (entidad, local_id)
+);

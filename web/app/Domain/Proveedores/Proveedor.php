@@ -19,6 +19,7 @@ final class Proveedor
         public readonly EstadoProveedor $estado,
         public readonly ?int $creadoPorUsuarioId,
         public readonly ?int $usuarioId,
+        public readonly ?string $dueno = null,
     ) {}
 
     public static function crear(
@@ -64,6 +65,7 @@ final class Proveedor
         EstadoProveedor $estado,
         ?int $creadoPorUsuarioId,
         ?int $usuarioId,
+        ?string $dueno = null,
     ): self {
         return new self(
             id: $id,
@@ -78,6 +80,7 @@ final class Proveedor
             estado: $estado,
             creadoPorUsuarioId: $creadoPorUsuarioId,
             usuarioId: $usuarioId,
+            dueno: $dueno,
         );
     }
 
@@ -106,6 +109,7 @@ final class Proveedor
             estado: $this->estado,
             creadoPorUsuarioId: $this->creadoPorUsuarioId,
             usuarioId: $this->usuarioId,
+            dueno: $this->dueno,
         );
     }
 
@@ -124,6 +128,7 @@ final class Proveedor
             estado: $estado,
             creadoPorUsuarioId: $this->creadoPorUsuarioId,
             usuarioId: $this->usuarioId,
+            dueno: $this->dueno,
         );
     }
 
@@ -142,6 +147,7 @@ final class Proveedor
             estado: $this->estado,
             creadoPorUsuarioId: $this->creadoPorUsuarioId,
             usuarioId: $usuarioId,
+            dueno: $this->dueno,
         );
     }
 
@@ -160,7 +166,15 @@ final class Proveedor
             estado: $this->estado,
             creadoPorUsuarioId: $this->creadoPorUsuarioId,
             usuarioId: null,
+            dueno: $this->dueno,
         );
+    }
+
+    public function conResponsable(?string $dueno): self
+    {
+        return new self($this->id, $this->codigo, $this->nombres, $this->dni, $this->telefono, $this->direccion,
+            $this->zonaId, $this->tachos, $this->capacidadTachoL, $this->estado, $this->creadoPorUsuarioId,
+            $this->usuarioId, self::limpiar($dueno));
     }
 
     public function capacidadTotalL(): float
@@ -182,11 +196,11 @@ final class Proveedor
             throw ProveedorInvalidoException::dniVacio();
         }
 
-        if ($tachos <= 0) {
+        if ($tachos < 1 || $tachos > 1000) {
             throw ProveedorInvalidoException::tachosInvalidos();
         }
 
-        if ($capacidadTachoL <= 0.0) {
+        if (! is_finite($capacidadTachoL) || $capacidadTachoL < 0.01) {
             throw ProveedorInvalidoException::capacidadInvalida();
         }
     }

@@ -1,0 +1,51 @@
+{
+  "fecha": "2026-10-26T10:51:31.956344+00:00",
+  "entorno": "127.0.0.1:8871; SQLite desechable /tmp; solo fixtures ficticios",
+  "comprobaciones": [
+    {
+      "id": "WEB-C1-formulario",
+      "resultado": "Passed",
+      "detalle": "Cuatro radios, un rol nuevo, DNI8, username3–30 y ayuda de zona Calidad; formulario sin rellenar credenciales nuevas.",
+      "captura": "web-cuenta-cuatro-roles.png",
+      "sha256": "ab2b7f96fade3ca8af379b80ba5517f5fe50009aa5ff931b8b50a5b6f837940b"
+    },
+    {
+      "id": "WEB-C1-Calidad-dashboard",
+      "resultado": "Passed",
+      "detalle": "Sin menú producción/liquidaciones/cuentas, KPI privados ni detalle de jornadas restringidas.",
+      "captura": "web-calidad-dashboard.png",
+      "sha256": "2785ce963002663dd986e6392abd3a4cf762c501a01728b9559afb8e15e97032"
+    },
+    {
+      "id": "WEB-C1-Calidad-produccion",
+      "resultado": "Passed",
+      "detalle": "Navegación directa a /admin/produccion rechazada 403.",
+      "captura": "web-calidad-produccion-403.png",
+      "sha256": "b44c55608ef51ba7fbf79f6c056155f090a776f8f950e0ace410ede4adc64f4f"
+    },
+    {
+      "id": "WEB-C1-Calidad-liquidaciones",
+      "resultado": "Passed",
+      "detalle": "Navegación directa a /admin/liquidaciones rechazada 403.",
+      "captura": "web-calidad-liquidaciones-403.png",
+      "sha256": "b44c55608ef51ba7fbf79f6c056155f090a776f8f950e0ace410ede4adc64f4f"
+    },
+    {
+      "id": "WEB-C1-bloqueo",
+      "resultado": "Passed",
+      "detalle": "Modal y motivo ficticio confirmados, fila Bloqueado y prueba Android rechaza acceso.",
+      "captura": "web-cuenta-bloqueada.png",
+      "sha256": "37919ce0b56fcce854b9bc247537a87593a4b7453ef176eaeda40a48f77283c4"
+    },
+    {
+      "id": "WEB-C1-desbloqueo-GUI",
+      "resultado": "Pendiente",
+      "detalle": "El controlador no expuso el diálogo JS; no se acreditó confirmación GUI. Fixture restaurado mediante caso de uso normal, ruta SQLite temporal comprobada."
+    },
+    {
+      "id": "WEB-C1-credenciales-GUI",
+      "resultado": "Pendiente",
+      "detalle": "Alta/restablecimiento manual web con nueva credencial corresponde a un integrante. PHP/API e instrumentación Android prueban el contrato; no sustituyen ese paso manual."
+    }
+  ]
+}

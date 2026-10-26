@@ -43,7 +43,14 @@ class SqlDelightDatosServidorRepository(
         db.transaction {
             val zonas = datos.zonas.associate { it.id to zona(it) }
             val vehiculos = datos.vehiculos.associate { it.id to vehiculo(it) }
-            val usuarios = datos.usuarios.mapNotNull { c -> cuenta(c, ahora)?.let { c.id to it } }.toMap()
+            val usuarios = datos.usuarios.mapNotNull { c -> cuenta(c, ahora)?.let { id ->
+                if (c.asignacionZonaIncluida && !db.tieneCambioPendiente(EntidadCambio.USUARIO, id)) {
+                    val zonaId = c.zonaId?.let { zonas[it] ?: local(ZONA, it) }
+                    if (c.zonaId == null) db.usuarioZonaQueries.quitar(id)
+                    else if (zonaId != null) db.usuarioZonaQueries.asignar(id, zonaId)
+                }
+                c.id to id
+            } }.toMap()
             val proveedores = datos.proveedores.mapNotNull { p ->
                 proveedor(p, zonas, usuarios, ahora)?.let { p.id to it }
             }.toMap()
@@ -80,19 +87,41 @@ class SqlDelightDatosServidorRepository(
 
     override suspend fun guardarCuenta(cuenta: CuentaServidor, pinHash: String, pinSalt: String, ahora: Long): String =
         withContext(dispatcher) {
+            val existente = local(USUARIO, cuenta.id)?.let { db.usuarioQueries.selectPorId(it).executeAsOneOrNull() }
+                ?: db.usuarioQueries.selectPorUsername(cuenta.username).executeAsOneOrNull()
+            val pendiente = existente?.let { db.cambioPendienteQueries.porClave(USUARIO, it.id).executeAsOneOrNull() }
+            val rolesServidor = cuenta.roles.mapNotNull { Rol.desde(it.uppercase()) }.map { it.name }.toSet()
+            if (existente != null && pendiente != null && (pendiente.pin != null || !cuenta.activo || cuenta.bloqueado || existente.activo != 1L ||
+                db.usuarioRolQueries.selectPorUsuario(existente.id).executeAsList().toSet() != rolesServidor)
+            ) {
+                requerirVerificacion(existente.id)
+                error("Hay cambios de acceso pendientes que difieren del panel. Se conservan en este teléfono; un administrador debe revisarlos antes de reautenticar.")
+            }
             db.transactionWithResult {
-                val id = cuenta(cuenta, ahora, forzar = true)!!
+                val id = cuenta(cuenta, ahora, forzar = pendiente == null)!!
                 db.usuarioQueries.actualizarPin(pin_hash = pinHash, pin_salt = pinSalt, updated_at = ahora, id = id)
                 db.usuarioQueries.resetIntentos(updated_at = ahora, id = id)
+                db.usuarioQueries.confirmarVerificacion(id)
                 id
             }
         }
+
+    override suspend fun requerirVerificacion(usuarioId: String) = withContext(dispatcher) {
+        db.transaction {
+            db.usuarioQueries.requerirVerificacion(usuarioId)
+            db.sesionQueries.limpiarDeUsuario(usuarioId)
+        }
+    }
 
     private fun local(entidad: String, servidorId: Long): String? =
         db.servidorMapaQueries.localId(entidad, servidorId).executeAsOneOrNull()
 
     private fun mapear(entidad: String, servidorId: Long, localId: String) {
         if (local(entidad, servidorId) != localId) db.servidorMapaQueries.guardar(entidad, servidorId, localId)
+    }
+
+    private fun revision(entidad: String, id: String, valor: String?) {
+        if (valor != null && !db.tieneCambioPendiente(entidad, id)) db.versionCatalogoQueries.guardar(entidad, id, valor)
     }
 
     private fun zona(z: ZonaServidor): String {
@@ -107,6 +136,7 @@ class SqlDelightDatosServidorRepository(
                 db.zonaQueries.actualizar(nombre = z.nombre, activo = activo, id = id)
         }
         mapear(ZONA, z.id, id)
+        revision(ZONA, id, z.revision)
         return id
     }
 
@@ -123,6 +153,7 @@ class SqlDelightDatosServidorRepository(
                 db.vehiculoQueries.actualizar(nombre = v.nombre, placa = placa, activo = activo, id = id)
         }
         mapear(VEHICULO, v.id, id)
+        revision(VEHICULO, id, v.revision)
         return id
     }
 
@@ -135,7 +166,7 @@ class SqlDelightDatosServidorRepository(
         val roles = c.roles.mapNotNull { Rol.desde(it.uppercase()) }.distinct()
         val existente = local(USUARIO, c.id)?.let { db.usuarioQueries.selectPorId(it).executeAsOneOrNull() }
             ?: db.usuarioQueries.selectPorUsername(c.username).executeAsOneOrNull()
-        val activo = if (c.activo && roles.isNotEmpty()) 1L else 0L
+        val activo = if (c.activo && !c.bloqueado && roles.isNotEmpty()) 1L else 0L
         val id: String
         if (existente == null) {
             if (roles.isEmpty() && !forzar) return null
@@ -146,6 +177,11 @@ class SqlDelightDatosServidorRepository(
             )
         } else if (!forzar && db.tieneCambioPendiente(EntidadCambio.USUARIO, existente.id)) {
             // Cambio hecho en el celular aún sin enviar: se respeta hasta que llegue al panel.
+            val actuales = db.usuarioRolQueries.selectPorUsuario(existente.id).executeAsList().toSet()
+            if (activo == 0L || actuales != roles.map { it.name }.toSet()) {
+                db.usuarioQueries.requerirVerificacion(existente.id)
+                db.sesionQueries.limpiarDeUsuario(existente.id)
+            }
             mapear(USUARIO, c.id, existente.id)
             return existente.id
         } else {
@@ -166,6 +202,7 @@ class SqlDelightDatosServidorRepository(
             }
         }
         mapear(USUARIO, c.id, id)
+        revision(USUARIO, id, c.revision)
         return id
     }
 
@@ -204,11 +241,20 @@ class SqlDelightDatosServidorRepository(
                 db.proveedorQueries.cambiarCodigo(codigo = p.codigo, id = id)
             }
         }
-        if (usuarioId != null && existente?.usuario_id != usuarioId) {
-            db.proveedorQueries.desvincularUsuario(usuarioId)
-            db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = id)
+        if (p.responsableIncluido && existente?.dueno != p.dueno) db.proveedorQueries.actualizarResponsable(p.dueno, id)
+        if (p.usuarioId == null && existente?.usuario_id != null) {
+            // null explícito confirma la desvinculación de esta ficha, no la de otras cuentas.
+            db.proveedorQueries.vincularUsuario(usuario_id = null, id = id)
+        } else if (usuarioId != null && existente?.usuario_id != usuarioId) {
+            val vinculada = db.proveedorQueries.selectPorUsuarioId(usuarioId).executeAsOneOrNull()
+            // Una descarga no roba la cuenta a una ficha cuya asignación aún está pendiente de envío.
+            if (vinculada == null || vinculada.id == id || !db.tieneCambioPendiente(EntidadCambio.PROVEEDOR, vinculada.id)) {
+                db.proveedorQueries.desvincularUsuario(usuarioId)
+                db.proveedorQueries.vincularUsuario(usuario_id = usuarioId, id = id)
+            }
         }
         mapear(PROVEEDOR, p.id, id)
+        revision(PROVEEDOR, id, p.revision)
         return id
     }
 

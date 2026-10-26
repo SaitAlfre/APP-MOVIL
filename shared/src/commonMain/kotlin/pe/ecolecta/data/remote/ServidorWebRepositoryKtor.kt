@@ -50,7 +50,7 @@ import pe.ecolecta.domain.repository.UsuarioRepository
 )
 @Serializable private data class SolicitudRefresh(@SerialName("refresh_token") val refreshToken: String)
 @Serializable private data class RespuestaError(val message: String? = null, val codigo: String? = null, val definitivo: Boolean = true)
-@Serializable private data class RespuestaCambio(val id: Long? = null)
+@Serializable private data class RespuestaCambio(val id: Long? = null, val revision: String? = null)
 @Serializable private data class LiquidacionServidor(
     val id: Long,
     val desde: String,
@@ -78,6 +78,7 @@ class ServidorWebRepositoryKtor(
     private val reloj: Reloj,
     private val io: CoroutineDispatcher,
     private val nombreDispositivo: String = "App Ecolecta",
+    private val protector: pe.ecolecta.domain.security.ProtectorSecretos = pe.ecolecta.domain.security.ProtectorSecretos.NoDisponible,
 ) : ServidorWebRepository {
     override val direccion: String = urlBase.trimEnd('/')
     private val api = "$direccion/api/movil"
@@ -85,8 +86,17 @@ class ServidorWebRepositoryKtor(
 
     override val configurado: Boolean = true
 
-    override suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit> =
-        autenticar(username, pin).map { guardarSesion(usuarioId, it) }
+    override suspend fun vincular(usuarioId: String, username: String, pin: String): Result<Unit> {
+        val sesion = autenticar(username, pin).getOrElse { return Result.failure(it) }
+        return try {
+            guardarSesion(usuarioId, sesion)
+            Result.success(Unit)
+        } catch (cancelacion: CancellationException) {
+            throw cancelacion
+        } catch (error: Exception) {
+            Result.failure(error)
+        }
+    }
 
     override suspend fun autenticar(username: String, pin: String): Result<SesionServidor> = llamar {
         val respuesta = http.post("$api/sesion") {
@@ -105,12 +115,16 @@ class ServidorWebRepositoryKtor(
     private suspend fun persistirSesion(usuarioId: String, sesion: SesionServidor) {
         withContext(io) {
             db.tokenServidorQueries.guardarConRefresh(
-                usuarioId, sesion.token, sesion.expiraEn, reloj.ahora().toEpochMilliseconds(), sesion.refreshToken, sesion.refreshExpiraEn,
+                usuarioId, protector.proteger(sesion.token, "access:$usuarioId"), sesion.expiraEn, reloj.ahora().toEpochMilliseconds(),
+                sesion.refreshToken?.let { protector.proteger(it, "refresh:$usuarioId") }, sesion.refreshExpiraEn,
             )
         }
     }
 
-    override suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> = llamar {
+    override suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> =
+        enviarCatalogo(usuarioId, entidad, cuerpo).map { it.servidorId }
+
+    override suspend fun enviarCatalogo(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<pe.ecolecta.domain.repository.ConfirmacionCatalogo> = llamar {
         val respuesta = peticionAutenticada(usuarioId) { token ->
             http.put("$api/cambios/$entidad") {
                 bearerAuth(token)
@@ -118,7 +132,8 @@ class ServidorWebRepositoryKtor(
                 setBody(cuerpo)
             }
         }
-        respuesta.body<RespuestaCambio>().id
+        val ack = respuesta.body<RespuestaCambio>()
+        pe.ecolecta.domain.repository.ConfirmacionCatalogo(ack.id, ack.revision)
     }
 
     override suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> = llamar {
@@ -159,10 +174,10 @@ class ServidorWebRepositoryKtor(
             val fila = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull() } ?: return
             llamar {
                 http.delete("$api/sesion") {
-                    bearerAuth(fila.token)
+                    bearerAuth(protector.abrir(fila.token, "access:$usuarioId"))
                     if (fila.refresh_token != null) {
                         contentType(ContentType.Application.Json)
-                        setBody(SolicitudRefresh(fila.refresh_token))
+                        setBody(SolicitudRefresh(protector.abrir(fila.refresh_token, "refresh:$usuarioId")))
                     }
                 }
             }
@@ -178,7 +193,7 @@ class ServidorWebRepositoryKtor(
         if (fila.expira_en <= reloj.ahora().toEpochMilliseconds()) {
             return renovarToken(usuarioId)
         }
-        return fila.token
+        return protector.abrir(fila.token, "access:$usuarioId")
     }
 
     /** Serializa rotaciones para que dos envíos del mismo celular no reutilicen el refresh token. */
@@ -200,7 +215,7 @@ class ServidorWebRepositoryKtor(
         }
         val respuesta = http.post("$api/sesion/refresh") {
             contentType(ContentType.Application.Json)
-            setBody(SolicitudRefresh(fila.refresh_token))
+            setBody(SolicitudRefresh(protector.abrir(fila.refresh_token, "refresh:$usuarioId")))
         }
         verificar(usuarioId, respuesta)
         val sesion = respuesta.body<RespuestaSesion>()
@@ -212,7 +227,13 @@ class ServidorWebRepositoryKtor(
     private suspend fun verificar(usuarioId: String, respuesta: HttpResponse) {
         if (respuesta.status.isSuccess()) return
         if (respuesta.status == HttpStatusCode.Unauthorized) {
-            withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
+            withContext(io) {
+                db.transaction {
+                    db.tokenServidorQueries.borrar(usuarioId)
+                    db.usuarioQueries.requerirVerificacion(usuarioId)
+                    db.sesionQueries.limpiarDeUsuario(usuarioId)
+                }
+            }
             throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres, revocada = true)
         }
         throw rechazo(respuesta)
@@ -241,6 +262,8 @@ class ServidorWebRepositoryKtor(
     } catch (e: RechazoServidorException) {
         Result.failure(e)
     } catch (e: SinSesionServidorException) {
+        Result.failure(e)
+    } catch (e: pe.ecolecta.domain.security.SecretoLocalNoDisponibleException) {
         Result.failure(e)
     } catch (e: kotlinx.serialization.SerializationException) {
         Result.failure(RechazoServidorException("El panel respondió con datos incompatibles. Actualiza el panel web o la app; los cambios locales se conservan.", "contrato_incompatible", false))

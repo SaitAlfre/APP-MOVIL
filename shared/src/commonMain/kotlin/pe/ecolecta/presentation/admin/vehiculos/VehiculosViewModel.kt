@@ -77,7 +77,7 @@ class VehiculoFormViewModel(
     }
 
     fun nombre(v: String) = _uiState.update { it.copy(nombre = v, error = null) }
-    fun placa(v: String) = _uiState.update { it.copy(placa = v.uppercase().take(10), error = null) }
+    fun placa(v: String) = _uiState.update { it.copy(placa = v.uppercase(), error = null) }
     fun activo(v: Boolean) = _uiState.update { it.copy(activo = v, error = null) }
 
     fun guardar() {

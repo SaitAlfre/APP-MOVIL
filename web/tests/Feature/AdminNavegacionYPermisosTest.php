@@ -40,72 +40,47 @@ class AdminNavegacionYPermisosTest extends TestCase
         $respuesta->assertDontSee(route('admin.design-system.index'), false);
     }
 
-    public function test_el_rol_produccion_ve_planta_pero_no_administracion(): void
+    public function test_produccion_retirado_no_accede_a_planta(): void
     {
-        $this->como(['produccion']);
-
-        $respuesta = $this->get('/admin/dashboard');
-
-        $respuesta->assertOk();
-        $respuesta->assertSee('Producción', false);
-        $respuesta->assertSee('Inventario');
-        $respuesta->assertDontSee('Usuarios y roles');
-        $respuesta->assertDontSee('Zonas, rutas y vehículos', false);
-        $respuesta->assertDontSee('Auditoría', false);
+        $cuenta = $this->como(['produccion']);
+        foreach (['/admin/dashboard', '/admin/produccion', '/admin/inventario'] as $url) {
+            $this->get($url)->assertForbidden();
+        }
+        $this->assertSame(['produccion'], $cuenta->fresh()->roles);
     }
 
-    public function test_el_rol_liquidaciones_ve_finanzas_pero_no_inventario(): void
+    public function test_liquidaciones_retirado_no_accede_a_finanzas(): void
     {
         $this->como(['liquidaciones']);
-
-        $respuesta = $this->get('/admin/dashboard');
-
-        $respuesta->assertOk();
-        $respuesta->assertSee('Liquidaciones y pagos');
-        $respuesta->assertDontSee('Inventario');
-        $respuesta->assertDontSee('Importaciones');
+        $this->get('/admin/liquidaciones')->assertForbidden();
+        $this->get('/admin/inventario')->assertForbidden();
     }
 
-    public function test_el_rol_consulta_ve_casi_todo_el_menu_pero_no_gestiona(): void
+    public function test_consulta_retirado_no_puede_consultar_ni_modificar_catalogos(): void
     {
         $this->como(['consulta']);
-
-        $respuesta = $this->get('/admin/proveedores');
-
-        $respuesta->assertOk();
-        $respuesta->assertSee('Proveedores');
-        $respuesta->assertSee('Auditoría', false);
-        $respuesta->assertDontSee('Usuarios y roles');
-
-        // El servidor bloquea la gestión aunque el botón no se muestre.
+        $this->get('/admin/proveedores')->assertForbidden();
         $this->get('/admin/proveedores/nuevo')->assertForbidden();
         $this->post('/admin/proveedores', [])->assertForbidden();
     }
 
-    public function test_cada_rol_solo_puede_gestionar_su_propio_modulo(): void
+    public function test_calidad_y_acopiador_acceden_solo_a_sus_pantallas(): void
     {
-        $intentos = [
-            // rol => [ruta permitida de gestión, ruta prohibida de gestión]
-            'recepcion' => ['/admin/entregas', '/admin/calidad/nuevo'],
-            'calidad' => ['/admin/calidad/nuevo', '/admin/produccion/productos/nuevo'],
-            'produccion' => ['/admin/produccion/productos/nuevo', '/admin/liquidaciones/nueva'],
-            'liquidaciones' => ['/admin/liquidaciones/nueva', '/admin/produccion/productos/nuevo'],
-        ];
-
-        foreach ($intentos as $rol => [$permitida, $prohibida]) {
+        foreach (['calidad' => '/admin/calidad/nuevo', 'acopiador' => '/admin/mapa-rutas'] as $rol => $permitida) {
             $this->como([$rol]);
-
             $this->get($permitida)->assertOk();
-            $this->get($prohibida)->assertForbidden();
+            $this->get('/admin/usuarios')->assertForbidden();
+            $this->get('/admin/produccion/productos/nuevo')->assertForbidden();
+            $this->get('/admin/liquidaciones/nueva')->assertForbidden();
         }
     }
 
-    public function test_un_usuario_con_dos_roles_suma_los_permisos_de_ambos(): void
+    public function test_dos_roles_oficiales_internos_suman_solo_sus_permisos(): void
     {
-        $this->como(['calidad', 'liquidaciones']);
-
+        $this->como(['calidad', 'acopiador']);
         $this->get('/admin/calidad/nuevo')->assertOk();
-        $this->get('/admin/liquidaciones/nueva')->assertOk();
+        $this->get('/admin/mapa-rutas')->assertOk();
+        $this->get('/admin/liquidaciones/nueva')->assertForbidden();
         $this->get('/admin/usuarios')->assertForbidden();
     }
 

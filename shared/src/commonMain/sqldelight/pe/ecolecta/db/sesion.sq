@@ -15,5 +15,18 @@ INSERT OR REPLACE INTO sesion_activa(id, usuario_id, rol_activo) VALUES (0, :usu
 obtener:
 SELECT * FROM sesion_activa WHERE id = 0;
 
+-- La sesión debe reaccionar también a cambios de estado y de permisos de la cuenta.
+obtenerContexto:
+SELECT s.usuario_id, s.rol_activo, u.id AS cuenta_id, u.activo, u.bloqueado_hasta, u.requiere_verificacion,
+       EXISTS(SELECT 1 FROM usuario_rol r WHERE r.usuario_id = s.usuario_id AND r.rol = s.rol_activo) AS tiene_rol
+FROM sesion_activa s LEFT JOIN usuario u ON u.id = s.usuario_id
+WHERE s.id = 0;
+
+limpiarSiCoincide:
+DELETE FROM sesion_activa WHERE id = 0 AND usuario_id = :usuario_id AND rol_activo = :rol_activo;
+
+limpiarDeUsuario:
+DELETE FROM sesion_activa WHERE id = 0 AND usuario_id = :usuario_id;
+
 limpiar:
 DELETE FROM sesion_activa;

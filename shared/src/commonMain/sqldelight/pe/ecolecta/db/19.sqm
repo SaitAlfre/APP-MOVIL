@@ -1,0 +1,12 @@
+-- Conservación sin homologación automática. No borra cuentas, relaciones ni roles originales.
+CREATE TABLE IF NOT EXISTS usuario_rol_pendiente (
+    usuario_id TEXT NOT NULL,
+    rol_original TEXT NOT NULL,
+    PRIMARY KEY (usuario_id, rol_original)
+);
+INSERT OR IGNORE INTO usuario_rol_pendiente(usuario_id, rol_original)
+SELECT usuario_id, rol FROM usuario_rol
+WHERE rol NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
+-- Retiro aprobado por el equipo: la asociación se conserva arriba y deja de autorizar operaciones.
+DELETE FROM usuario_rol WHERE rol NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');
+DELETE FROM sesion_activa WHERE rol_activo NOT IN ('ADMIN', 'ACOPIADOR', 'CALIDAD', 'PROVEEDOR');

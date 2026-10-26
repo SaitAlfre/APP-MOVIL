@@ -1,5 +1,7 @@
 -- Token de sesión con el panel web, uno por usuario local de este celular. Lo emite el servidor tras
 -- validar usuario y PIN; no es una credencial administrativa y el servidor puede revocarlo.
+-- token y refresh_token contienen texto cifrado por el adaptador Android; el repositorio los abre
+-- al utilizarlos. Este esquema no cifra por sí mismo toda la base de datos ni los respaldos antiguos.
 CREATE TABLE token_servidor (
     usuario_id TEXT NOT NULL PRIMARY KEY,
     token TEXT NOT NULL,
@@ -21,3 +23,6 @@ SELECT * FROM token_servidor WHERE usuario_id = ?;
 
 borrar:
 DELETE FROM token_servidor WHERE usuario_id = ?;
+
+selectTodos:
+SELECT * FROM token_servidor;

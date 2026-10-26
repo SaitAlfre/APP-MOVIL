@@ -1,0 +1,110 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "INT-C1-web-a-android",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-05-alta-cuenta",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-06-edicion-cuenta-y-pin",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-07-estados-cuenta",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-08-estados-zona-libre",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-09-estados-vehiculo-libre",
+      "estado": "Passed"
+    },
+    {
+      "id": "INT-C1-cierre-ui-web-pin-y-reintento",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-creada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-editada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-desactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-reactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-desactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-reactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-desactivado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-reactivado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cierre-confirmado.png"
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "timestamp": "2026-10-26T10:59:59.385113+00:00",
+  "mode": "cierre",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "d4c4a8c52553e9979194ddb71ef308d883b04f0d864336ba725e250779ac7718",
+  "test_apk_sha256": "169a56dd06d9fc81cb7d50e5adbda5c1d622112260fefe14e9a404d9dfa0b7f9",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "cierre",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ],
+  "capturas_exportadas": [
+    {
+      "archivo": "coder1-ui-cuenta-creada.png",
+      "sha256": "9c82934c87b4a1e76416f71f503d021a912bf35ef5e3ac76fecdf3eadf6f2420"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-editada.png",
+      "sha256": "e9f848da5c60d1c9379c6c8bec099e8e4e3b32234d34e5345e19015e817f37bc"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-desactivada.png",
+      "sha256": "8488b71c061fd60eff315e15eb4f097fecbe5628721926c0aca1d3ccc92bc913"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-reactivada.png",
+      "sha256": "d3d9ba1921e902b9ae3b60ef940430cf05a69c0d5d251fec755f36a8c904fabe"
+    },
+    {
+      "archivo": "coder1-ui-zona-desactivada.png",
+      "sha256": "b34da84adf6960f4bfced3e3bc8336b46f4352cb5bfc2384d4387c5677af55c3"
+    },
+    {
+      "archivo": "coder1-ui-zona-reactivada.png",
+      "sha256": "26705bc6e277e480e11e9c9b93fc3d713d42dff7639a313e545c59e45cbeca35"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-desactivado.png",
+      "sha256": "57509748bdf2c3b9da3353f6f57b2ffe978db4e30958ef5113aa9256ef6d1ed2"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-reactivado.png",
+      "sha256": "6ac30b6ec6378014632b520a19715919562d2134d2e0b7227b7960ed2778faa7"
+    },
+    {
+      "archivo": "coder1-ui-cierre-confirmado.png",
+      "sha256": "ec6f31e50130c6f7ec19834728dd871cb5769847bbb0864aef3e0c218979d76a"
+    }
+  ]
+}

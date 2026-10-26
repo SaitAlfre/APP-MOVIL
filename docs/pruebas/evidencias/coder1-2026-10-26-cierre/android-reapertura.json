@@ -1,0 +1,46 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "NAT-C1-07-sesion-persistida",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-reapertura.png"
+  ],
+  "prefijoFicticio": "",
+  "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+  "timestamp": "2026-10-26T11:01:03.509426+00:00",
+  "mode": "reabrir",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "d4c4a8c52553e9979194ddb71ef308d883b04f0d864336ba725e250779ac7718",
+  "test_apk_sha256": "169a56dd06d9fc81cb7d50e5adbda5c1d622112260fefe14e9a404d9dfa0b7f9",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "reabrir",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ],
+  "capturas_exportadas": [
+    {
+      "archivo": "coder1-reapertura.png",
+      "sha256": "c30da7f09973226313a3c11984f6912d96bb1be7ae38dfd094037aaa80ea92b8"
+    }
+  ]
+}

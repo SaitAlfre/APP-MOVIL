@@ -111,17 +111,20 @@ fun LoginScreen(
                         )
                         CampoTexto(
                             valor = estado.pin,
-                            onValorCambia = { if (it.length <= 4 && it.all(Char::isDigit)) viewModel.onEvent(LoginUiEvent.PinCambia(it)) },
-                            etiqueta = "PIN (4 dígitos)",
+                            onValorCambia = { if (it.length <= 8 && it.all { c -> c in '0'..'9' }) viewModel.onEvent(LoginUiEvent.PinCambia(it)) },
+                            etiqueta = "PIN",
                             iconoInicial = Icons.Filled.Lock,
                             error = estado.error,
                             esPin = true,
                         )
 
+                        if (estado.pin.length > 4) {
+                            Text("Acceso con PIN anterior. Los PIN nuevos tienen 4 dígitos.", style = MaterialTheme.typography.bodySmall, color = Colores.textSecundario)
+                        }
                         BotonPrimario(
                             texto = "Ingresar",
                             onClick = { viewModel.onEvent(LoginUiEvent.Ingresar) },
-                            habilitado = estado.username.isNotBlank() && estado.pin.length == 4,
+                            habilitado = estado.username.isNotBlank() && estado.pin.length in 4..8,
                             cargando = estado.cargando,
                             icono = Icons.AutoMirrored.Filled.ArrowForward,
                         )

@@ -1,0 +1,246 @@
+{
+  "alcance": "Delta de esta continuación, sin reemplazar los inventarios de cortes anteriores. Incluye archivos nuevos. Las evidencias de esta carpeta se registran en cierre.json para evitar autorreferencia.",
+  "head_sin_cambios": "056bcb9cd0de60f081b533a496cde013d8c76127",
+  "archivos": [
+    {
+      "archivo": "androidApp/src/androidTest/kotlin/pe/ecolecta/qa/InterfazCoder1.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "d9283fa7db7a3eee94badd92df3dac6e5622044426b46160877e59118f9fb8f2",
+      "sha256_actual": "ea67f1d9cdfb77649bc7b3bf8e303d1feeab42b607ce0199a5791dfe37ce0e40"
+    },
+    {
+      "archivo": "androidApp/src/androidTest/kotlin/pe/ecolecta/qa/VerificacionCoder1Instrumentada.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "149f64a90b8a81e829a63471e0b88087a2c4c95f44ae3d8e4756021c368853bd",
+      "sha256_actual": "b7e8df39822cc5b6924a7ab041064bbdf67d2133f2240dcfa85cbabeec53b838"
+    },
+    {
+      "archivo": "docs/tecnica/coder1-implementacion.md",
+      "categoria": "documentación existente",
+      "sha256_anterior_a_continuacion": "7cc766249cb3456f6dd9d377bb2fe2bc725842987855d94b2f8d6caedbe2ba32",
+      "sha256_actual": "aa3e756fa804b6a8015e0b9a94a968bb514652a48f619d7dc710ca7003757dbd"
+    },
+    {
+      "archivo": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CatalogosDescargaCoder1Test.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "d171d16b7ccefc6dc1fef3b70a6b9210bf091c4a8cdff96ff74b85d806d09b8d",
+      "sha256_actual": "5f8d2ff5747bc3cd8667718280643c065e4109d6a4f596171c2d26119e108492"
+    },
+    {
+      "archivo": "shared/src/commonTest/kotlin/pe/ecolecta/domain/usecase/CompatibilidadFormulariosCoder1Test.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "62d7d5da69957036a86e9805d3392283451f990dc7d75f9bf57cfcdc3884550d",
+      "sha256_actual": "c8c5e07e80b7bd73e77a03b08fbb6bb4bbe289ffe45ceb64c4783a84ddf79180"
+    },
+    {
+      "archivo": "web/app/Application/Movil/RevisionCatalogo.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "8305bc346b4b895a80603d077da8cb222f2561a6ad940d13902067a8753ef0c8",
+      "sha256_actual": "7a8261354898479b7ce9439ae2e299544101f4559e170494a8bb9851e31fafad"
+    },
+    {
+      "archivo": "web/tests/Feature/AcuerdosFinalesCoder1Test.php",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": null,
+      "sha256_actual": "1912c7368406d754d9f624c91ff41ced1f106aa65828f155a3be3cc54e0d2282"
+    },
+    {
+      "archivo": "web/tests/Feature/AsignacionZonaCoder1Test.php",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "db525d6b3e87d9a6541c3a1503fb2ab816006e8141d49725c653973c05ac1e04",
+      "sha256_actual": "f9fb080b13680c10f7709ced804b96f75f703bdc656b0423cc5428e22935e3b3"
+    },
+    {
+      "archivo": "docs/tecnica/arquitectura-datos-y-sincronizacion.md",
+      "categoria": "documentación existente",
+      "sha256_anterior_a_continuacion": "6a8ab7403186247964000d19739b8be0f4d49c1d27356dc949640a66588ecf8d",
+      "sha256_actual": "9eb1a6374243ce7dcaec48d78a4ecf324ddf5d58355938bd5b1f233097c0d667"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/data/remote/ServidorWebRepositoryKtor.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "a687b33c59549a523a9bf7900f34de616987321b17fee52877fe5265168abb35",
+      "sha256_actual": "aca6a7dc320cad4ad6df1672a0b9f5156f944a98309ae444d1806e32d7e010d8"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/data/repository/SqlDelightCambiosLocalesRepository.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "652f6eaedcb28cf554e6caf2f4f57ce0b95920bb864f883e411b7d0a0f879df2",
+      "sha256_actual": "8a3972bcc7f1924380ba504089f036bcda3ded517567cce65e3bada72c3557f6"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/ProveedorInvalidoException.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "d4625978df4d46ad1c8e0dc589c02b26b4a3b7934b54989aca231494ab8dc9ae",
+      "sha256_actual": "97ec9f14732daf684e0181e463000e6b0124c781e322e733a4f626e6262720d9"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/model/Proveedor.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "527bbb9fa25b8edfe12e200206a6511ed50b86ec005e27871846584e7be0d605",
+      "sha256_actual": "3720fa0206ad44810209b22122dedfd704ea96b783e00b455dceceb364e24906"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/model/Rol.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "b6b3291beb1e19f9fad00ed1e9d4732e89e940148e402690ec8228c5beee688c",
+      "sha256_actual": "2eac33a5bf6665556a3986d6fe813157e329243e8b8c985a29fe8ed227ef2494"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/repository/CambiosServidor.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "7226b4585d56cedfda98b45b3a0a8676f21b68763ab9389fa6ba0c60e2c446be",
+      "sha256_actual": "7503a906de4626dd158462437023b45da5889018cc2b791d9c70fa9f7c85f4b5"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/repository/ServidorWebRepository.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "15d18f0f415c306711f8ac16d4d3fd30079468ef7fe93bc19a6aac7f47d95583",
+      "sha256_actual": "b8fe684924ebfff81d9c0d077f36247d11e546a07816be9904ad788205dc3fdf"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/sync/EnviarCambiosServidorUseCase.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "278bd6057e8ee5ad0c0310703ecc823734dbcbaa892dc50ef5bc13463e7f8157",
+      "sha256_actual": "46bd80271cdf9b7ce51af4ad28d61f6dae9b4568d4858c305e5d0ef3ab17384d"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/usuario/GestionUsuariosUseCases.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "af14ca50ddd7aac6b25f76af9adf049162b159de67b73a1792335c75cf96bf18",
+      "sha256_actual": "22e88e2daa6aec106866ef8fab841223e24ba31b7bbf89bc9a5a6faebff298c8"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/presentation/admin/proveedores/ProveedorFormViewModel.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "79fdb5da1826a438f0f370f17adfd5c46e1879dd59f5e17252d3827c4065cf01",
+      "sha256_actual": "1b220527f5aa4ed77daf172d10f2052a07e3c55160b2086df2d21c01e71a78bf"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/presentation/admin/usuarios/UsuarioFormScreen.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "cae61647f309ebfc8472593329eb08b854c22b798809331762486be85734168c",
+      "sha256_actual": "1f468c65048765ba153f4e816857155342773039bbced04df9187f3671dfd1a9"
+    },
+    {
+      "archivo": "shared/src/commonMain/kotlin/pe/ecolecta/presentation/admin/usuarios/UsuarioFormViewModel.kt",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "e361986412519910e1b4ab98c4c95e537fbee72f5e7758203eed3f8bc7c14ac3",
+      "sha256_actual": "23fd936c2dde9be35a9046b844244605c8e2de492db5b0d0ace3ce9a9e6d2ca1"
+    },
+    {
+      "archivo": "shared/src/commonTest/kotlin/pe/ecolecta/domain/usecase/AltaProveedorTest.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "1eb89db7500a7e9c2c66efe412095452ff475c158c0b4f35577ece9def787358",
+      "sha256_actual": "54bc41deef8d43281f0d112b86e346f30c4bf613f5b30912d9afe97fe3ad68fb"
+    },
+    {
+      "archivo": "shared/src/commonTest/kotlin/pe/ecolecta/domain/usecase/ReglasCuentaTest.kt",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "6ca00eb887424e2daa7ce06402313eb5a621affe20012b7abeaa437c75eec138",
+      "sha256_actual": "75e1526f9532871eefa8a2c3ae2a1c98046e36550ed1dc2490b00d769531869e"
+    },
+    {
+      "archivo": "web/app/Application/Movil/AplicarCambioMovilUseCase.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "0d5f692e98c122147142487d26531ad0827a0cc5bdef7697e480ee73626a590f",
+      "sha256_actual": "76cf3d9603ea53b2b1d5437885b3c6721d2d53bdb48d2ebf5855e0df9c5ab15b"
+    },
+    {
+      "archivo": "web/app/Application/Movil/ExportarDatosMovilQuery.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "3f60391c57cc4e70779dd9407da41ed5e9a904a2130cb5d445341fc19b869975",
+      "sha256_actual": "453c0d43c9c36ab653933d3bc5aadffd2178de3de310d66451339e4d29ec77cd"
+    },
+    {
+      "archivo": "web/app/Application/Usuarios/ActualizarUsuarioUseCase.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "a14f448131fcf0e36ba601a69610d9450efb0166834b272dc6fa51adee9f8bac",
+      "sha256_actual": "aad6de9db327227ce2508e64ce7282120fcc38212696c663c9f8287bc5463f15"
+    },
+    {
+      "archivo": "web/app/Application/Usuarios/CrearUsuarioUseCase.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "2dcd255594555266d8882e5058066dbe366360e1a6dfcf27c56154284a9b9ab3",
+      "sha256_actual": "5a00356a45b380c746f12258182239a563b83992fc00735344ac97eb2eb2c42a"
+    },
+    {
+      "archivo": "web/app/Application/Usuarios/ValidaDatosUsuario.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "64d58bdc2600d34dca11d1b06cdf8c9f597e574c23637f7132e67ed665b0b750",
+      "sha256_actual": "95088ae03d830bdf3ac44dc387fbeaef0b723eccf89dc3b7fe8cf36e37eb835c"
+    },
+    {
+      "archivo": "web/app/Domain/Proveedores/Exceptions/ProveedorInvalidoException.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "7d85c2b896949eefa1bd6bc0a5b70efeec071e3d04fa7157a6f508db89ef6fe0",
+      "sha256_actual": "ea0f3996de1d46141704868c9c1bc1e11a2389d7244baae5aba33b20d50474cc"
+    },
+    {
+      "archivo": "web/app/Domain/Proveedores/Proveedor.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "5b209e578f851a530c5165ea200ad780baa930ed6c845a381b327afe536e228b",
+      "sha256_actual": "7da850eb4c1e71dce1e6cd7eaf6482286a6a9362e9bfd899c8c2b647f6367496"
+    },
+    {
+      "archivo": "web/app/Http/Controllers/Admin/DashboardController.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "a3500d0f459cef42e37a8fcbb5a031799680e4a2d97b47406cf0991e08020836",
+      "sha256_actual": "40efcf9eeccb13930672121f41330bee35359afb11c03addd3650df1140ceac2"
+    },
+    {
+      "archivo": "web/app/Http/Controllers/Admin/UsuarioController.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "e9ebe054c3123e67e74018a9ded2cfb211705c70574cc748b47eaa8ef9db33ae",
+      "sha256_actual": "27946a97a24f6c9ba1ac042b3bde0e06a4043efeb51041c2921ba4ab8db810de"
+    },
+    {
+      "archivo": "web/app/Http/Controllers/Api/MovilController.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "bd0c4fe4caad1600d70722cf53e016443d1ae74a4f29add162df193a32c473c2",
+      "sha256_actual": "4d00540dedb702aec79154e7e2673c621d12a89906bd449fdff079677964aef6"
+    },
+    {
+      "archivo": "web/app/Http/Requests/Admin/StoreProveedorRequest.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "8484cd22e8cd44ff1d185a0e60c76e9717ed7af8f9d43d4e8f76656488fc8813",
+      "sha256_actual": "56af447814b25a8d7ee5e0f0a36116479c55545b7de0fc28e5ef4a88dbe878a9"
+    },
+    {
+      "archivo": "web/config/permisos.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "020970bcc83ad1846e3ceac83198a103728a4cf4eec35c29f0ce445b58bef31e",
+      "sha256_actual": "00c4698ca3b675f67f0b147f9904f20a4bf35e97835179cb88f47fbb5746ab7b"
+    },
+    {
+      "archivo": "web/resources/views/admin/dashboard/index.blade.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "3e8443866de6ce43c733b3a591cc9414c17fd5ae8d46c89942eb772da6ec30ae",
+      "sha256_actual": "a741e66fe323f577844ddeecfdf13161a4c6246cc87a849aada4e42a244cf0f7"
+    },
+    {
+      "archivo": "web/resources/views/admin/usuarios/form.blade.php",
+      "categoria": "Coder 1 / contrato y autorización",
+      "sha256_anterior_a_continuacion": "8dfeef961adcd505de811682eaa4bb4d57809b006957d89fa9f8fe33db3f1817",
+      "sha256_actual": "40daade5b4bf17bcd98405ef0b67d5a05e9e3ca2007599661f8c45e82e134522"
+    },
+    {
+      "archivo": "web/tests/Feature/AdminLiquidacionDetalleTest.php",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "b7d59203912007ce1b948ff4f5d897c391e1ef092377a935d4dfc36e53d6ec08",
+      "sha256_actual": "fb1cb30e655093f13bff4837c809451a64ada50da67404731a202d6e5d3d69ac"
+    },
+    {
+      "archivo": "web/tests/Feature/AdminUsuariosModuleTest.php",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "7dc3a12b71a1a5fc5ac975a899b2d28905152c78dbd22e6680f730288b168439",
+      "sha256_actual": "cd9fc59b163638be13bad1cb4c8a23ac164551b1932fd302b6435a4db1d33a13"
+    },
+    {
+      "archivo": "web/tests/Feature/CambiosMovilTest.php",
+      "categoria": "test / fixture",
+      "sha256_anterior_a_continuacion": "60034e0605fe98c207fad5501f31f4c500612b73a1d1b12db4c306fe7b9e83c5",
+      "sha256_actual": "6b21622d90fcc6a822741e836e208f4f1290126183fe02ee913b81e14b38ef8c"
+    }
+  ]
+}

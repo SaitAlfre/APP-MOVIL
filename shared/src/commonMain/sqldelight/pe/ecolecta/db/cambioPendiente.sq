@@ -43,3 +43,9 @@ SELECT * FROM cambio_pendiente WHERE estado = 'ERROR' ORDER BY marcado_en DESC;
 
 reintentarErrores:
 UPDATE cambio_pendiente SET estado = 'PENDING' WHERE usuario_id = ? AND estado = 'ERROR';
+
+conPin:
+SELECT * FROM cambio_pendiente WHERE pin IS NOT NULL;
+
+protegerPinSiCoincide:
+UPDATE cambio_pendiente SET pin = :protegido WHERE entidad = :entidad AND local_id = :local_id AND pin = :anterior;

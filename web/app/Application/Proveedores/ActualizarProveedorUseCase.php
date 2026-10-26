@@ -47,6 +47,10 @@ final class ActualizarProveedorUseCase
             capacidadTachoL: $datos->capacidadTachoL,
         );
 
+        if ($datos->responsableIncluido) {
+            $actualizado = $actualizado->conResponsable($datos->dueno);
+        }
+
         return $this->proveedores->guardar($actualizado);
     }
 }

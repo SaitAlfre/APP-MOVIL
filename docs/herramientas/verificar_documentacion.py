@@ -39,6 +39,17 @@ def publication_files():
 def artifact_matches(folder,name,expected):
     path=(folder/name).resolve()
     return path.parent==folder.resolve() and path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==expected
+def source_version(name,expected):
+    """La evidencia histórica conserva su versión; no acredita el código que cambió después."""
+    path=(ROOT/name).resolve()
+    if not path.is_relative_to(ROOT) or not re.fullmatch(r"[0-9a-f]{64}",expected):return None
+    if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==expected:return "working-tree"
+    history=subprocess.run(["git","log","--all","--format=%H","--",name],cwd=ROOT,capture_output=True,text=True)
+    if history.returncode:return None
+    for commit in history.stdout.splitlines():
+        blob=subprocess.run(["git","show",commit+":"+name],cwd=ROOT,capture_output=True)
+        if blob.returncode==0 and hashlib.sha256(blob.stdout).hexdigest()==expected:return "git:"+commit
+    return None
 def anchors(text):
     found=set(re.findall(r'<a\s+id=["\']([^"\']+)',text));counts={};fence=None
     for line in text.splitlines():
@@ -256,7 +267,9 @@ def verify(sources=None):
             if suite["total"]!=suite["passed"]+suite["failed"]+suite["skipped"]:errors.append(name+": conteo de resultados inconsistente")
             if "tests" in suite and len(suite["tests"])!=suite["total"]:errors.append(name+": detalle de tests incompleto")
         for name,sha in data.get("working_tree_changes",data["working_tree_test_changes"]).items():
-            if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=sha:errors.append(name+": el archivo de prueba ya no coincide con la versión ejecutada")
+            version=source_version(name,sha)
+            if version is None:errors.append(name+": versión ejecutada no conservada o hash alterado")
+            elif version!="working-tree":warnings.append(name+": evidencia histórica verificada en "+version+"; no acredita la versión actual")
         for name,sha in data.get("additional_evidence_sha256",{}).items():
             p=DOCS/"pruebas/evidencias"/name
             if not p.exists() or hashlib.sha256(p.read_bytes()).hexdigest()!=sha:errors.append(name+": evidencia adicional alterada/ausente")

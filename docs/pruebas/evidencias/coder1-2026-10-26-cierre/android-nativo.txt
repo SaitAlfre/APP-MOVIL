@@ -1,0 +1,14 @@
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-01-keystore-real Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-02-cuatro-roles Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-03-altas-y-descarga-segundo-dispositivo Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-04-sin-red-y-reintento Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-05-conflicto-conservado Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-06-login-y-navegacion Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"NAT-C1-01-keystore-real","estado":"Passed"},{"id":"NAT-C1-02-cuatro-roles","estado":"Passed"},{"id":"NAT-C1-03-altas-y-descarga-segundo-dispositivo","estado":"Passed"},{"id":"NAT-C1-04-sin-red-y-reintento","estado":"Passed"},{"id":"NAT-C1-05-conflicto-conservado","estado":"Passed"},{"id":"NAT-C1-06-login-y-navegacion","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-login.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-administrador.png"],"prefijoFicticio":"qa_c1_1845d5","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales"}
+INSTRUMENTATION_CODE: -1

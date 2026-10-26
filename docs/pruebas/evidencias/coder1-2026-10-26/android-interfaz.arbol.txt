@@ -1,0 +1,76 @@
+android.widget.FrameLayout|||click=false|edit=false|scroll=false
+android.widget.LinearLayout|||click=false|edit=false|scroll=false
+android.widget.FrameLayout|||click=false|edit=false|scroll=false
+androidx.compose.ui.platform.ComposeView|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View||Volver|click=false|edit=false|scroll=false
+android.widget.TextView|QA-ED120B||click=false|edit=false|scroll=false
+android.widget.TextView|Editar ficha||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.ScrollView|||click=false|edit=false|scroll=true
+android.widget.TextView|IDENTIFICACIÓN||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|Código||click=false|edit=false|scroll=false
+android.widget.EditText|QA-ED120B||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|El código no se cambia: identifica las entregas y el QR.||click=false|edit=false|scroll=false
+android.widget.TextView|Proveedor o finca||click=false|edit=false|scroll=false
+android.widget.EditText|Finca ficticia qa_c1_ed120b||click=true|edit=true|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|Propietario o responsable (opcional)||click=false|edit=false|scroll=false
+android.widget.EditText|Cuenta ficticia qa_c1_ed120b 2||click=true|edit=true|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|DNI o RUC||click=false|edit=false|scroll=false
+android.widget.EditText|92442990||click=true|edit=true|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|Teléfono (opcional)||click=false|edit=false|scroll=false
+android.widget.EditText|+51 900 000 026||click=true|edit=true|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View||Inicio|click=false|edit=false|scroll=false
+android.widget.TextView|Inicio||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View||Jornadas|click=false|edit=false|scroll=false
+android.widget.TextView|Jornadas||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View||Alertas|click=false|edit=false|scroll=false
+android.widget.TextView|2||click=false|edit=false|scroll=false
+android.widget.TextView|Alertas||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View||Reportes|click=false|edit=false|scroll=false
+android.widget.TextView|Reportes||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View||Perfil|click=false|edit=false|scroll=false
+android.widget.TextView|Perfil||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.widget.TextView|Ecolecta||click=false|edit=false|scroll=false
+android.widget.TextView|2 cambios por enviar||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View||Sincronizar ahora. 2 cambios por enviar|click=false|edit=false|scroll=false
+android.view.View|||click=false|edit=false|scroll=false
+android.widget.TextView|2||click=false|edit=false|scroll=false
+android.widget.Button|||click=false|edit=false|scroll=false
+android.view.View|||click=true|edit=false|scroll=false
+android.view.View||Detalles de sincronización|click=false|edit=false|scroll=false
+android.widget.Button|||click=false|edit=false|scroll=false

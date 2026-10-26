@@ -1,0 +1,2 @@
+-- Coder 1: revocación conocida. No borra cuentas, PIN, relaciones ni cambios pendientes.
+ALTER TABLE usuario ADD COLUMN requiere_verificacion INTEGER NOT NULL DEFAULT 0;

@@ -1,5 +1,7 @@
 package pe.ecolecta.domain.usecase.usuario
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pe.ecolecta.domain.DeviceIdProvider
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.model.AccionAuditoria
@@ -18,10 +20,8 @@ import pe.ecolecta.domain.repository.ZonaRepository
 import pe.ecolecta.domain.security.PinHasher
 
 private val FORMATO_USUARIO = Regex("^[a-z0-9._]{3,30}$")
-private val FORMATO_DNI = Regex("^\\d{8}$")
+private val FORMATO_DNI = Regex("^[0-9]{8}$")
 private val FORMATO_PIN = Regex("^\\d{4}$")
-private val FORMATO_DOCUMENTO = Regex("^(\\d{8}|\\d{11})$")
-private val FORMATO_CODIGO = Regex("^[A-Z0-9-]{3,20}$")
 
 /** Lo que el formulario de Usuarios y roles envía; [id] nulo significa cuenta nueva. */
 data class DatosCuenta(
@@ -98,14 +98,15 @@ class ReglasCuenta(
         proveedorId: String?,
         rolesAnteriores: Set<Rol> = emptySet(),
         creaFichaNueva: Boolean = false,
+        conservaZonaHeredada: Boolean = false,
     ) {
         require(roles.isNotEmpty()) { "Selecciona un rol." }
         require(roles.size == 1 || roles == rolesAnteriores) {
             "Cada cuenta tiene un solo rol. Si una persona necesita otro perfil, créale una cuenta aparte."
         }
-        require(Rol.PROVEEDOR !in roles || roles.size == 1) { "Una cuenta de proveedor no puede tener roles del personal." }
-        if (Rol.CALIDAD in roles) require(zonaId != null) { "Asigna la zona del técnico de calidad." }
-        if (zonaId != null) {
+        require(Rol.PROVEEDOR !in roles || roles.size == 1 || roles == rolesAnteriores) { "Una cuenta de proveedor no puede tener roles del personal." }
+        if (Rol.CALIDAD in roles && !conservaZonaHeredada) require(zonaId != null) { "Asigna la zona del técnico de calidad." }
+        if (zonaId != null && !conservaZonaHeredada) {
             val zona = zonas.obtenerPorId(zonaId) ?: throw IllegalArgumentException("La zona seleccionada ya no existe.")
             require(zona.activo) { "La zona ${zona.nombre} está inactiva." }
         }
@@ -135,15 +136,20 @@ class GuardarCuentaUseCase(
         val username = datos.username.trim().lowercase()
         val nombres = datos.nombres.trim().replace(Regex("\\s+"), " ")
         val dni = datos.dni.trim()
-        require(nombres.length >= 3) { "Escribe los nombres y apellidos completos." }
-        require(FORMATO_DNI.matches(dni)) { "El DNI debe tener 8 dígitos." }
-        require(!usuarios.existeDni(dni, datos.id.orEmpty())) { "Ya existe una cuenta con el DNI $dni." }
+        val anterior = datos.id?.let { usuarios.obtenerPorId(it) ?: throw IllegalArgumentException("La cuenta ya no existe.") }
+        require(nombres.length in 3..150) { "Los nombres y apellidos deben tener entre 3 y 150 caracteres." }
+        // No impedir otra corrección por el formato o duplicidad de un documento legado sin cambio.
+        if (dni != anterior?.dni) {
+            require(FORMATO_DNI.matches(dni)) { "El DNI debe tener 8 dígitos." }
+            require(!usuarios.existeDni(dni, datos.id.orEmpty())) { "Ya existe una cuenta con el DNI $dni." }
+        }
 
-        val zonaId = datos.zonaId.takeIf { datos.roles.any { it.requiereZona } }
+        val zonaId = datos.zonaId.takeIf { datos.roles.any { it.requiereZona } || anterior?.roles?.toSet() == datos.roles }
         val proveedorId = datos.proveedorId.takeIf { Rol.PROVEEDOR in datos.roles }
         val fichaNueva = datos.fichaNueva.takeIf { Rol.PROVEEDOR in datos.roles }
-        val anterior = datos.id?.let { usuarios.obtenerPorId(it) ?: throw IllegalArgumentException("La cuenta ya no existe.") }
-        reglas.validarAsignaciones(datos.id, datos.roles, zonaId, proveedorId, anterior?.roles?.toSet().orEmpty(), fichaNueva != null)
+        val zonaAnterior = anterior?.let { cuentas.zonaAsignada(it.id) }
+        val conservaZonaHeredada = anterior != null && anterior.roles.toSet() == datos.roles && zonaAnterior == zonaId
+        reglas.validarAsignaciones(datos.id, datos.roles, zonaId, proveedorId, anterior?.roles?.toSet().orEmpty(), fichaNueva != null, conservaZonaHeredada)
         val ahora = reloj.ahora().toEpochMilliseconds()
 
         if (anterior == null) return@runCatching crearCuenta(datos, username, nombres, dni, zonaId, proveedorId, fichaNueva, adminId, ahora)
@@ -153,7 +159,7 @@ class GuardarCuentaUseCase(
             val nuevoPin = datos.pin?.takeIf { it.isNotEmpty() }?.let { pin ->
                 require(FORMATO_PIN.matches(pin)) { "El PIN debe tener exactamente 4 dígitos." }
                 require(pin == datos.confirmacionPin) { "La confirmación del PIN no coincide." }
-                pinHasher.crearHash(pin)
+                withContext(Dispatchers.Default) { pinHasher.crearHash(pin) }
             }
             val rolesAnteriores = anterior.roles.toSet()
             usuarios.actualizarCompleto(
@@ -204,7 +210,7 @@ class GuardarCuentaUseCase(
         val pin = datos.pin.orEmpty()
         require(FORMATO_PIN.matches(pin)) { "El PIN debe tener exactamente 4 dígitos." }
         require(pin == datos.confirmacionPin) { "La confirmación del PIN no coincide." }
-        val hash = pinHasher.crearHash(pin)
+        val hash = withContext(Dispatchers.Default) { pinHasher.crearHash(pin) }
         val usuario = Usuario.crear(
             id = nuevoId(), username = username, nombres = nombres, dni = dni, pinHash = hash.hash, pinSalt = hash.salt,
             activo = datos.activo, roles = datos.roles.toList(), updatedAt = ahora,
@@ -236,19 +242,12 @@ class GuardarCuentaUseCase(
 
     /** Ficha de un proveedor nuevo: código y documento únicos, zona activa y capacidad válida. */
     private suspend fun crearFicha(f: FichaNueva, titular: Usuario, ahora: Long): Proveedor {
-        val codigo = f.codigo.trim().uppercase()
+        val codigo = f.codigo.trim()
         val documento = f.documento.trim()
         val nombre = f.nombre.trim().replace(Regex("\\s+"), " ")
-        require(FORMATO_CODIGO.matches(codigo)) { "El código debe tener de 3 a 20 caracteres: letras, números o guion." }
-        require(nombre.length >= 3) { "Escribe el nombre del proveedor o finca." }
-        require(FORMATO_DOCUMENTO.matches(documento)) { "El documento de la ficha debe ser un DNI de 8 dígitos o un RUC de 11." }
         require(!proveedores.existeCodigo(codigo, "")) { "Ya existe una ficha con el código $codigo." }
         require(!proveedores.existeDni(documento, "")) {
             "Ya existe una ficha con el documento $documento. Si es el mismo proveedor, usa «Ya existe su ficha»."
-        }
-        require(f.tachos in 1..99) { "La cantidad de tachos debe estar entre 1 y 99." }
-        require(f.capacidadTachoL.isFinite() && f.capacidadTachoL > 0 && f.capacidadTachoL <= 200) {
-            "La capacidad por tacho debe ser mayor a 0 y hasta 200 L."
         }
         reglas.validarZonaActiva(f.zonaId)
         return Proveedor.crear(

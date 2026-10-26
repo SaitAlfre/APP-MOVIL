@@ -1,0 +1,125 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "UI-C1-cuenta-bloqueada",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-restaurar-admin",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    {
+      "archivo": "coder1-ui-cuenta-bloqueada.png",
+      "sha256": "667e1942496801fab8ee61e2a8325caa2c9e96d0be49dc7c81d60b837a7941dc"
+    },
+    {
+      "archivo": "coder1-ui-admin-final.png",
+      "sha256": "345b6940f622b6e55204a69a11595a4a7469a54a9ae56dd4fb8c2e0ae02e0697"
+    }
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "commands": [
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "emu",
+        "avd",
+        "name"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "-t",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "entorno",
+        "coder1-ficticio",
+        "-e",
+        "modo",
+        "bloqueo",
+        "-e",
+        "pinPrueba",
+        "<PIN_FICTICIO>",
+        "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-bloqueada.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/bloqueo-02/coder1-ui-cuenta-bloqueada.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-admin-final.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/bloqueo-02/coder1-ui-admin-final.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/bloqueo-02/arbol.txt"
+      ],
+      "returncode": 0
+    }
+  ],
+  "counts": {
+    "Passed": 2,
+    "Failed": 0
+  },
+  "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+  "recibo_original_sha256": "2b57fb8db8b73b142f3d36e33100e3f6524563878c2a90c67f35eb4e44c83c34",
+  "salida": "android-bloqueo.txt",
+  "salida_sha256": "e5ac92b281b43a53812c962bd6ae0398da65e3dd17b7fa80eeee9dbe6913f295"
+}

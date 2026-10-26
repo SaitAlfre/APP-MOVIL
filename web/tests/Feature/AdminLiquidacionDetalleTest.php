@@ -140,13 +140,13 @@ class AdminLiquidacionDetalleTest extends TestCase
         $this->get('/admin/liquidaciones/nueva')->assertOk()->assertSee('Generar liquidación');
     }
 
-    public function test_un_rol_de_consulta_ve_la_ficha_pero_no_puede_marcarla_pagada(): void
+    public function test_calidad_no_consulta_ni_paga_liquidaciones_segun_acuerdo_del_equipo(): void
     {
         $liquidacion = $this->liquidacion();
-        $consulta = Usuario::factory()->create(['roles' => ['consulta']]);
+        $consulta = Usuario::factory()->create(['roles' => ['calidad']]);
         $this->actingAs($consulta, 'operador');
 
-        $this->get("/admin/liquidaciones/{$liquidacion->id}")->assertOk()->assertDontSee('Marcar pagada');
+        $this->get("/admin/liquidaciones/{$liquidacion->id}")->assertForbidden();
         $this->patch("/admin/liquidaciones/{$liquidacion->id}/pagar")->assertForbidden();
     }
 }

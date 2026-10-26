@@ -41,7 +41,7 @@ class CambiosPanelWebTest {
     }
     private val db = EcolectaDatabase(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY).also { EcolectaDatabase.Schema.create(it) })
         .also { DatabaseSeeder(it, reloj, Pbkdf2PinHasher()).sembrarSiEsNecesario() }
-    private val cola = SqlDelightCambiosLocalesRepository(db, Dispatchers.IO)
+    private val cola = SqlDelightCambiosLocalesRepository(db, Dispatchers.IO, ProtectorSecretosPrueba)
     private val admin = db.usuarioQueries.selectPorUsername("admin").executeAsOne()
 
     /** Panel falso: guarda lo recibido y responde un id nuevo, o el error indicado. */

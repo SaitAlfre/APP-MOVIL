@@ -15,4 +15,6 @@ sealed class PinInvalidoException(mensaje: String) : Exception(mensaje) {
     data object Incorrecto : PinInvalidoException("Usuario o PIN incorrecto.")
     data class Bloqueado(val bloqueadoHastaEpochMs: Long) : PinInvalidoException("Cuenta bloqueada temporalmente por intentos fallidos.")
     data object Inactivo : PinInvalidoException("El usuario está inactivo.")
+    data object SinPerfilMovil : PinInvalidoException("Esta cuenta no tiene un perfil móvil compatible. Sus roles se conservan; consulta al administrador.")
+    data object RequiereConexion : PinInvalidoException("El servidor retiró el acceso anterior. Inicia sesión con conexión para validar tu cuenta; tus datos pendientes se conservan.")
 }

@@ -103,4 +103,23 @@ class ReglasCuentaTest {
         }
         reglas.validarAsignaciones("u1", setOf(Rol.ADMIN), null, null, rolesAnteriores = setOf(Rol.ADMIN, Rol.ACOPIADOR))
     }
+    @Test
+    fun `cuenta de calidad legada sin zona conserva datos hasta revision manual`() = runTest {
+        reglas.validarAsignaciones("qc", setOf(Rol.CALIDAD), null, null, rolesAnteriores = setOf(Rol.CALIDAD), conservaZonaHeredada = true)
+        assertFailsWith<IllegalArgumentException> {
+            reglas.validarAsignaciones("qc", setOf(Rol.CALIDAD), null, null, rolesAnteriores = setOf(Rol.ACOPIADOR))
+        }
+    }
+
+    @Test
+    fun `combinacion legada proveedor personal se conserva sin conceder otro rol`() = runTest {
+        proveedores.insertar(Proveedor("f", "QA-1", "Ficha ficticia", "12345678", null, null, "z1", 1, 40.0,
+            pe.ecolecta.domain.model.EstadoProveedor.ACTIVO, 0, SyncState.SYNCED, usuarioId = "u"))
+        val anteriores = setOf(Rol.PROVEEDOR, Rol.CALIDAD)
+        reglas.validarAsignaciones("u", anteriores, "z1", "f", rolesAnteriores = anteriores)
+        assertFailsWith<IllegalArgumentException> {
+            reglas.validarAsignaciones("u", anteriores + Rol.ADMIN, "z1", "f", rolesAnteriores = anteriores)
+        }
+    }
+
 }

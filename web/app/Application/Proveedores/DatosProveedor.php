@@ -13,5 +13,7 @@ final class DatosProveedor
         public readonly int $zonaId,
         public readonly int $tachos,
         public readonly float $capacidadTachoL,
+        public readonly ?string $dueno = null,
+        public readonly bool $responsableIncluido = false,
     ) {}
 }

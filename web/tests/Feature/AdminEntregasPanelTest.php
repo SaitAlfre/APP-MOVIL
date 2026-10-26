@@ -148,9 +148,9 @@ class AdminEntregasPanelTest extends TestCase
         $this->assertDatabaseCount('entregas', 0);
     }
 
-    public function test_un_rol_de_consulta_ve_el_listado_pero_no_puede_registrar_lotes(): void
+    public function test_calidad_ve_el_listado_pero_no_puede_registrar_lotes(): void
     {
-        $this->actingAs(Usuario::factory()->create(['roles' => ['consulta']]), 'operador');
+        $this->actingAs(Usuario::factory()->create(['roles' => ['calidad']]), 'operador');
 
         $this->get('/admin/entregas')->assertOk()->assertDontSee('Registro por lote');
         $this->post('/admin/entregas/lote', ['jornada_id' => 1, 'entregas' => []])->assertForbidden();

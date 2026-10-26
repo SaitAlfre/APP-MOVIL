@@ -14,6 +14,7 @@ data class Usuario(
     val updatedAt: Long,
     val intentosFallidos: Int = 0,
     val bloqueadoHasta: Long? = null,
+    val requiereVerificacion: Boolean = false,
 ) {
     companion object {
         fun crear(
@@ -32,6 +33,9 @@ data class Usuario(
             if (username.isBlank()) return Result.failure(UsuarioInvalidoException.UsernameVacio)
             if (nombres.isBlank()) return Result.failure(UsuarioInvalidoException.NombresVacios)
             if (dni.isBlank()) return Result.failure(UsuarioInvalidoException.DniVacio)
+            for ((valor, maximo, campo) in listOf(Triple(username, 50, "El usuario"), Triple(nombres, 150, "El nombre"), Triple(dni, 20, "El documento"))) {
+                if (valor.trim().length > maximo) return Result.failure(IllegalArgumentException("$campo admite hasta $maximo caracteres."))
+            }
             if (roles.isEmpty()) return Result.failure(UsuarioInvalidoException.SinRoles)
             return Result.success(
                 Usuario(

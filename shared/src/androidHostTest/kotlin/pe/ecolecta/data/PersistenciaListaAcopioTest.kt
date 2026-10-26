@@ -60,7 +60,7 @@ class PersistenciaListaAcopioTest {
     @AfterTest fun limpiar() { carpeta.deleteRecursively() }
 
     /** Igual que AndroidSqliteDriver: crea o migra según `PRAGMA user_version`. */
-    private fun abrir() = JdbcSqliteDriver(url, schema = EcolectaDatabase.Schema)
+    private fun abrir() = JdbcSqliteDriver(url, schema = pe.ecolecta.data.local.SchemaCuentasSeguras)
 
     @Test
     fun `sin recojo y entregas sobreviven a cerrar y reabrir la app`() = runTest {
@@ -152,6 +152,7 @@ class PersistenciaListaAcopioTest {
         val proveedorId = db.proveedorQueries.selectTodos().executeAsList().first().id
         db.portalProveedorQueries.guardar("liq-1", proveedorId, "PAGO", """{"estado":"PAGADA","total":120.5}""", 1)
         val antes = instantanea(driver)
+        retirarAdicionesCoder1DelFixture(driver)
         assertTrue(antes.getValue("entrega").isNotEmpty(), "la base de prueba debe tener entregas")
         driver.close()
 
@@ -178,6 +179,7 @@ class PersistenciaListaAcopioTest {
         driver.execute(null, "ALTER TABLE token_servidor DROP COLUMN refresh_expira_en", 0)
         driver.execute(null, "DROP TABLE preferencia_sync", 0)
         driver.execute(null, "DROP TABLE version_entrega_servidor", 0)
+        retirarAdicionesCoder1DelFixture(driver)
         driver.execute(null, "PRAGMA user_version = 15", 0)
         EcolectaDatabase(driver).tokenServidorQueries.guardar("u1", "token-anterior", 900, 100)
         driver.close()
@@ -213,6 +215,15 @@ class PersistenciaListaAcopioTest {
         assertEquals(0L, db.preferenciaSyncQueries.obtener("u1").executeAsOne().automatico)
         assertEquals(1234L, db.preferenciaSyncQueries.obtener("u1").executeAsOne().ultima_sync)
         driver.close()
+    }
+
+    /** Fixture sintético anterior: retirar también las adiciones C1 antes de declarar una versión vieja.
+     * La instantánea conserva el valor por defecto esperado tras migrar. No se ejecuta sobre datos de la app.
+     */
+    private fun retirarAdicionesCoder1DelFixture(driver: JdbcSqliteDriver) {
+        driver.execute(null, "ALTER TABLE usuario DROP COLUMN requiere_verificacion", 0)
+        driver.execute(null, "DROP TABLE usuario_rol_pendiente", 0)
+        driver.execute(null, "DROP TABLE version_catalogo_servidor", 0)
     }
 
     private fun proveedor(id: String, codigo: String) = Proveedor(

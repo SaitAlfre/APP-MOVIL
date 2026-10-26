@@ -139,9 +139,13 @@ val dataModule = module {
     single<pe.ecolecta.domain.repository.ComunicadoRepository> { pe.ecolecta.data.repository.SqlDelightComunicadoRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.AlertaDescartadaRepository> { pe.ecolecta.data.repository.SqlDelightAlertaDescartadaRepository(get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.SinRecojoRepository> { pe.ecolecta.data.repository.SqlDelightSinRecojoRepository(get(), Dispatchers.Default) }
-    single { pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository(get(), Dispatchers.Default) }
+    single { pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository(get(), Dispatchers.Default,
+        getOrNull() ?: pe.ecolecta.domain.security.ProtectorSecretos.NoDisponible) }
     single<pe.ecolecta.domain.repository.CambiosLocalesRepository> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
-    single<pe.ecolecta.domain.repository.PinesParaServidor> { get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>() }
+    single<pe.ecolecta.domain.repository.PinesParaServidor> {
+        if (get<pe.ecolecta.domain.repository.ServidorWebRepository>().configurado) get<pe.ecolecta.data.repository.SqlDelightCambiosLocalesRepository>()
+        else pe.ecolecta.domain.repository.PinesParaServidor.Ninguno
+    }
     single<pe.ecolecta.domain.repository.DatosServidorLocalRepository> { pe.ecolecta.data.repository.SqlDelightDatosServidorRepository(get(), get(), Dispatchers.Default) }
     single<pe.ecolecta.domain.repository.RegistroRecibidoRepository> { pe.ecolecta.data.repository.SqlDelightRegistroRecibidoRepository(get(), Dispatchers.Default) }
     // RegistroAcopioRemotoRepository, IdentidadRemotaProvider y ServidorWebRepository se registran por
@@ -156,7 +160,7 @@ val domainModule = module {
     factory { LoginOfflineUseCase(get(), get(), get(), get(), get()) }
     factory { pe.ecolecta.domain.usecase.auth.IniciarSesionUseCase(get(), get(), get(), get(), get(), get()) }
     factory { SeleccionarRolUseCase(get()) }
-    factory { CerrarSesionUseCase(get()) }
+    factory { CerrarSesionUseCase(get(), getOrNull()) }
     factory { ObtenerSesionUseCase(get()) }
 
     factory { CrearUsuarioUseCase(get(), get(), get(), get()) }
@@ -478,7 +482,8 @@ fun moduloServidorWeb(urlBase: String, nombreDispositivo: String, io: kotlinx.co
         if (urlBase.isBlank()) {
             pe.ecolecta.data.remote.ServidorWebNoConfigurado()
         } else {
-            pe.ecolecta.data.remote.ServidorWebRepositoryKtor(urlBase, get(), get(), get(), get(), io, nombreDispositivo)
+            pe.ecolecta.data.remote.ServidorWebRepositoryKtor(urlBase, get(), get(), get(), get(), io, nombreDispositivo,
+                getOrNull() ?: pe.ecolecta.domain.security.ProtectorSecretos.NoDisponible)
         }
     }
 }

@@ -1,0 +1,71 @@
+{
+  "fecha_cliente": "2026-10-26 America/Lima",
+  "entorno": "Preview + Laravel local 127.0.0.1:8871; SQLite ficticio, sin producción",
+  "metodo": "Acciones de navegador mediante CUA; capturas reales, no pruebas de navegador inventadas",
+  "checks": [
+    {
+      "id": "WEB-C1-01",
+      "observacion": "Editar nombre de Calidad; conservar DNI, rol y zona.",
+      "captura": "web-edicion-cuenta.png",
+      "sha256": "0eb6ab8a94b9a9af2d4ded4a44aaf8745f0db69d569c7d8208f9702546654ae5"
+    },
+    {
+      "id": "WEB-C1-02",
+      "observacion": "Crear QA WEB C1 20261026 desde formulario web.",
+      "captura": "web-zona-creada.png",
+      "sha256": "7e0ee54fbafb7e161f588a8d77d5af1065882d0e0c3cf3d667c0efaf5468d4fb"
+    },
+    {
+      "id": "WEB-C1-03",
+      "observacion": "Teléfono web completo y responsable enviado desde Android, con cuenta vinculada conservada.",
+      "captura": "web-proveedor-android.png",
+      "sha256": "d25fe5768b6b32998bea474dda0d9a4183281266a3dadbf97ff0429f63a03aa0"
+    },
+    {
+      "id": "WEB-C1-04",
+      "observacion": "Login real Calidad; menú observado, lectura transversal aún por ratificar.",
+      "captura": "web-calidad-menu.png",
+      "sha256": "6f33dc74eae0863f475815aefc13a828eb972ad7f1290424837342f02ac879ac"
+    },
+    {
+      "id": "WEB-C1-05",
+      "observacion": "Calidad recibe 403 al abrir Usuarios.",
+      "captura": "web-calidad-403.png",
+      "sha256": "d4a866f1f122c230eba84f7b2401f9cd67eb14b400f21d1a2f9246a8ddb47597"
+    },
+    {
+      "id": "WEB-C1-06",
+      "observacion": "Login real Acopiador a mapas asignados.",
+      "captura": "web-acopiador-menu.png",
+      "sha256": "6af7b82bab6cd610969d1acba1dda7de8abe9b65a0e5afd32a683e128088bc1c"
+    },
+    {
+      "id": "WEB-C1-07",
+      "observacion": "Acopiador recibe 403 en Usuarios.",
+      "captura": "web-acopiador-403.png",
+      "sha256": "d4a866f1f122c230eba84f7b2401f9cd67eb14b400f21d1a2f9246a8ddb47597"
+    },
+    {
+      "id": "WEB-C1-08",
+      "observacion": "Login real Proveedor rechazado por panel de personal.",
+      "captura": "web-proveedor-denegado.png",
+      "sha256": "4be760c86e6c2a9c93d49e8100fa7b004da5c6f69e7f312f513da102999c4878"
+    },
+    {
+      "id": "WEB-C1-09",
+      "observacion": "Bloqueo con motivo desde formulario web; Android después rechaza login.",
+      "captura": "web-bloqueo.png",
+      "sha256": "b37178cd234a3207552fc56ee0cc3b6fd3b3cee2826580a8cfce0b603c058546"
+    },
+    {
+      "id": "WEB-C1-10",
+      "observacion": "Cuenta ficticia activa de nuevo. Limpieza mediante DesbloquearUsuarioUseCase en Artisan, NO desbloqueo gráfico: confirmación JS no accesible desde herramienta.",
+      "captura": "web-cuenta-restaurada.png",
+      "sha256": "b34bbedd82c5b92cbb0e4bc9cd533ea1249a58bbace0bea8dfa8e9466879379a"
+    }
+  ],
+  "limites": [
+    "Alta gráfica con nuevo PIN/restablecimiento se deja al integrante que introduce la credencial.",
+    "Confirmación JavaScript del desbloqueo no se pudo completar en el navegador: no se certifica esa pulsación. El caso de uso restauró solo el fixture verificado por ruta DB y username; se observó Activo después."
+  ]
+}

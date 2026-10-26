@@ -1,0 +1,1592 @@
+{
+  "suite": "jvm",
+  "returncode": 0,
+  "command": [
+    "bash",
+    "./gradlew",
+    "--offline",
+    "--no-daemon",
+    "--no-configuration-cache",
+    "-PlocalPreview=true",
+    "-Pecolecta.servidorUrl=http://10.0.2.2:8871",
+    ":shared:testAndroidHostTest",
+    "--rerun-tasks",
+    "--console=plain"
+  ],
+  "tests": [
+    {
+      "class": "pe.ecolecta.data.CredencialesProtegidasCoder1Test",
+      "name": "cifradoAlteradoUOtraCuentaNoAbrenElSecreto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CredencialesProtegidasCoder1Test",
+      "name": "credencialIlegibleNoBorraLaColaNiSeEnviaComoSiFueraNula",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CredencialesProtegidasCoder1Test",
+      "name": "conversionAnteriorEsIdempotenteYConservaErroresYVigencias",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CredencialesProtegidasCoder1Test",
+      "name": "pinSeCifraEnReposoSeAbreSoloParaElEnvioYSeEliminaAlConfirmar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+      "name": "bloquea si los litros superan la capacidad fisica del tacho",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+      "name": "bloquea si el proveedor esta suspendido",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+      "name": "bloquea si el proveedor esta retirado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+      "name": "marca advertencia cuando la desviacion supera 40 porciento del promedio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarEntregaUseCaseTest",
+      "name": "guarda sin advertencia cuando no hay historial previo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "una cuenta nueva tiene un solo rol",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "un acopiador con jornada abierta no se desactiva",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "una cuenta anterior con varios roles no puede cambiar a otra combinacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "una ficha vinculada a otra cuenta no se reutiliza",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "siempre queda un administrador activo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "nadie puede desactivarse a si mismo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "tecnico de calidad necesita una zona activa",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "proveedor no se combina con roles del personal",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglasCuentaTest",
+      "name": "una cuenta anterior con varios roles se conserva si no se cambian",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "recibeLoSincronizadoYNuncaDatosDeOtroProveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "sinConexionMuestraEstadoHonestoYLoUltimoRecibido",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "elCicloDelProveedorTieneLasMismasSeisFechasQueElAcopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "errorDeDiscoNoAnunciaExitoYPermiteReintentar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "trasladoValidaZonaYNoCambiaAsignacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "rechazaEntregaAjenaYEvitaDuplicadosSinModificarLitros",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "unaEntregaLocalPendienteNoSePresentaComoConfirmada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "inicioYMisPagosMuestranLaMismaLiquidacionPublicadaDelPanel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "noMuestraSolicitudesDeOtroProveedorNiGuardaTrasCerrarSesion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "usuarioSinProveedorTerminaCargaConError",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "sinSesionConElPanelNoInventaLiquidacionesYLoDice",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "noMuestraLiquidacionesDeOtroProveedorAunqueEstenEnElCelular",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "sinConexionConservaLasUltimasRecibidasConAvisoHonesto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.PortalProveedorViewModelTest",
+      "name": "rolAjenoNoPuedeCargarNiGuardar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CoordinadorPanelWebTest",
+      "name": "coordinador conserva offline envia una vez y descarga cambios web manualmente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+      "name": "rechaza codigo duplicado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+      "name": "crea proveedor con valores por defecto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+      "name": "rechaza dni duplicado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearProveedorUseCaseTest",
+      "name": "rechaza tachos no positivos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "anular es terminal y deja la entrega pendiente de envio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "la anulacion guarda en auditoria el motivo y los valores anteriores",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "corregir sin cambiar litros ni tachos no genera auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "entrega de jornada cerrada sin liquidacion se corrige y vuelve a quedar pendiente de envio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "la semana usada en la prueba es la del jueves 10 de septiembre",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "liquidacion aprobada bloquea corregir y anular sin tocar la entrega",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "la liquidacion de otra semana no bloquea",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "una liquidacion anulada no bloquea",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "una entrega en conflicto se resuelve antes de corregirla o anularla",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "entrega de jornada abierta en semana en curso se corrige",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReglaEdicionEntregaTest",
+      "name": "liquidacion pagada tambien bloquea y lo indica",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "sin coincidencias explica que filtros estan aplicados",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "zona y sin cuenta se combinan",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "estado y sin cuenta se combinan",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "busqueda y estado se combinan",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "al abrir se ven todos los estados, incluidos suspendidos y retirados",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.ProveedoresFiltrosTest",
+      "name": "una ficha que recibe cuenta deja de contar como sin cuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.EstadoServidorPerfilTest",
+      "name": "el estado del servidor refleja la realidad del celular",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+      "name": "renueva access vencido y persiste el par para otra instancia del cliente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+      "name": "un 401 renueva una vez y un refresh revocado pide login",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+      "name": "sin internet conserva refresh y renueva al recuperar la conexion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.RefreshSesionPanelWebTest",
+      "name": "envios concurrentes del mismo cliente comparten una sola rotacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+      "name": "cerrar sesion y volver a entrar no recupera la jornada cerrada como activa",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+      "name": "al dia siguiente la misma sesion abre una jornada nueva y navega una vez",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.CicloJornadaAcopiadorTest",
+      "name": "tras abrir y cerrar volver a la seleccion no reutiliza el exito anterior",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AnularEntregaUseCaseTest",
+      "name": "rechaza anular sin motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AnularEntregaUseCaseTest",
+      "name": "anula la entrega sin eliminarla e inserta auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "sigue leyendo QR antiguos con id",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "genera y lee el mismo codigo de proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "solo incluye el codigo, con el mismo formato que el panel web",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "tolera espacios alrededor del contenido escaneado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "retorna null si el prefijo esta pero el valor esta vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.ProveedorQrTest",
+      "name": "retorna null si el contenido no tiene el prefijo de Ecolecta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CompatibilidadFormulariosCoder1Test",
+      "name": "zonaYVehiculoRespetanLosLimitesDelPanel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CompatibilidadFormulariosCoder1Test",
+      "name": "camposProveedorNoSeTruncanYValidanElContratoLaravel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CompatibilidadFormulariosCoder1Test",
+      "name": "documentoLegadoNoImpideEditarOtrosDatosEnLaPantalla",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CompatibilidadFormulariosCoder1Test",
+      "name": "editarNoRobaUnCodigoExistente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CompatibilidadFormulariosCoder1Test",
+      "name": "capacidadFinitaYTransportable",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "parsea comprobante Lactomat con coma o punto decimal",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "reconoce etiquetas en ingles que usan otros modelos de analizador",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "lee todos los resultados y la hora anterior a la fecha del ticket de referencia",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "reconstruye las filas cuando el OCR separa etiquetas y valores en columnas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "no confunde el valor de un parametro con un numero de otra columna en la misma linea",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.calidad.ControlCalidadTest",
+      "name": "una etiqueta sin valor no roba el numero del siguiente parametro",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.QrEscaneableTest",
+      "name": "el QR guardado como PNG se puede abrir y escanear y devuelve el codigo del proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "una cuenta sin perfil movil no inicia sesion ni pierde su identidad",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "usuario inexistente falla como pin incorrecto sin filtrar informacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "assertFailsWith documenta el tipo esperado de excepcion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "login exitoso con pin correcto registra auditoria y resetea intentos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "usuario inactivo no puede iniciar sesion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "pin incorrecto incrementa intentos fallidos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.LoginOfflineUseCaseTest",
+      "name": "bloquea la cuenta tras 5 intentos fallidos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+      "name": "rechaza autorizar un traslado ya resuelto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+      "name": "autorizar mueve al proveedor a la zona destino e inserta auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AutorizarTrasladoUseCaseTest",
+      "name": "rechazar exige motivo y no cambia la zona del proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "desde el resumen terminado se reabre la misma jornada dentro del plazo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "el aviso de cerrar sesion explica jornada abierta y pendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "sin jornada del dia reabrir la app va a la seleccion y una nueva seleccion no navega sola",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "una jornada abierta olvidada de otro dia tambien se reanuda",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "sin zonas activas reabrir la app lleva a la seleccion que explica el motivo y permite salir",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "con jornada abierta reabrir la app la reanuda y va al inicio con sus entregas pendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "con la jornada de hoy cerrada reabrir la app muestra el resumen terminado y no la seleccion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "tras reabrir la app con la jornada cerrada un intento de abrir no genera navegacion falsa",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "cerrar sesion con la jornada terminada conserva la entrega pendiente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "las zonas cargan aunque la consulta de zona asignada no responda",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "zona asignada desactivada se avisa y se puede elegir otra activa",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.InicioAcopiadorTest",
+      "name": "la zona asignada se preselecciona pero no pisa una eleccion manual",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "semanaComienzaJuevesYTerminaMiercolesInclusoCambioDeAno",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "laLiquidacionDelPanelWebReemplazaALaLocalDelMismoPeriodoSinTocarLasDemas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "rechazaNumerosNoFinitosNegativosExcesoDecimalesYDatosIncompletos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "inicioUsaLaUltimaLiquidacionPublicadaAunqueSeaDeUnaSemanaYaCerrada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "unaLiquidacionPendienteDelPanelSeMuestraComoPendienteDePagoNuncaComoPagadaNiAprobada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "resumenExcluyeAnuladasYFuturasYRespetaMedianocheLima",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.PortalProveedorTest",
+      "name": "noPresentaImportesDeLiquidacionesNoPublicadasNiInventaPrecios",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "seleccionarUnRolRetiradoDuranteElIngresoDevuelveFalloSinAbrirSesion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "quitarElRolRevocaLaSesionSinCerrarLaAplicacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "unaSesionConCuentaInexistenteSeDescartaSinBorrarDatosDeNegocio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "desactivarUnaCuentaRevocaLaSesionYReactivarlaNoLaResucita",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "iniciarRevalidaLaCuentaAunqueElObjetoRecibidoEsteDesactualizado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "unBloqueoTemporalInvalidaUnaSesionYaAbierta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "restauraUnaCuentaActivaConElRolAsignado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "unRolGuardadoQueNoPerteneceALaCuentaNoDaAcceso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.SesionPersistidaTest",
+      "name": "cerrarSesionConservaLasCuentasYLosRoles",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "jornada cerrada no se retoma",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "jornada abierta de otro usuario no se retoma",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "si hay varias abiertas del mismo usuario se retoma la mas antigua primero",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "sin ninguna jornada no hay nada que retomar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "jornada abierta hoy se retoma",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReanudarJornadaSiExisteUseCaseTest",
+      "name": "jornada abierta de un dia anterior tambien se retoma - cambio de dia",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "pinAnteriorLargoConservaAccesoOfflineSinTransformarlo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "validarElNuevoPinRestauraElAccesoYElAnteriorNoFuncionaOffline",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "unPerfilServidorDesconocidoNoConcedeAccesoNiConvierteRoles",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "unRechazoRemotoNoSeConvierteEnIngresoOfflineAunqueElPinLocalCoincida",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "sinRedPermiteUnPinLocalVigentePeroNoUnaRevocacionConocida",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "unErrorDelServidorNoSeConfundeConFaltaDeInternet",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.AccesoRemotoCoder1Test",
+      "name": "unFalloAlProtegerElTokenSeComunicaComoResultadoSinFingirLoginExitoso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "dentro del plazo reabre la misma jornada conserva entregas y deja auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "autorizacion con pin incorrecto o sin rol admin se rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "si no se puede auditar la reapertura se revierte",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "fuera de plazo reabre con usuario y pin de un administrador local y lo audita",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "sin motivo suficiente no reabre",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "no reabre jornadas de otro dia ni de otro usuario",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "fuera de plazo exige autorizacion de administrador",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ReabrirJornadaUseCaseTest",
+      "name": "no reabre si otro acopiador ocupo la zona",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "un QR generado en otro celular encuentra la misma ficha aunque su id local sea distinto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "devuelve QrInvalido si el contenido no tiene el prefijo esperado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "resuelve el proveedor sin importar su estado para poder mostrarlo y bloquear despues",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "un QR antiguo con id local se sigue resolviendo en el celular que lo genero",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "resuelve el proveedor cuando el QR es valido y existe",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.EscanearQrProveedorUseCaseTest",
+      "name": "devuelve ProveedorNoEncontrado si el id no existe en el repositorio local",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.DatosPanelWebTest",
+      "name": "una entrega que el celular aun no envio no se pisa con la copia del panel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.DatosPanelWebTest",
+      "name": "una cuenta creada en la web entra con su PIN y queda guardada para entrar sin conexion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.DatosPanelWebTest",
+      "name": "lo que se cambia en la web aparece en el celular sin duplicar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.DatosPanelWebTest",
+      "name": "una correccion remota conserva la edicion offline y crea conflicto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.DatosPanelWebTest",
+      "name": "pagos y decisiones del panel se guardan sin volver a entrar en la cola",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+      "name": "sin enlace del acopiador se dice quien debe iniciar sesion y no se ofrece un reintento inutil",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+      "name": "con la cuenta enlazada se puede reintentar y un rechazo explica que corregir",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+      "name": "una correccion de admin la firma su propia cuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.EntregaDetalleEnvioTest",
+      "name": "sin panel configurado lo dice y una entrega ya sincronizada no muestra nada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarSesionUseCaseTest",
+      "name": "sinSesionNoSolicitaRevocacionDeOtraCuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarSesionUseCaseTest",
+      "name": "unErrorDeRedNoConservaElAccesoLocal",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarSesionUseCaseTest",
+      "name": "cierraLaSesionLocalAntesDeSolicitarRevocacionRemota",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CoordinadorSyncTest",
+      "name": "modo manual detecta novedades sin aplicarlas y persiste la preferencia",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CoordinadorSyncTest",
+      "name": "boton y gesto no duplican una operacion en curso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CoordinadorSyncTest",
+      "name": "manual descarga y confirma y una desconexion posterior quita el verde",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "sin ficha nueva ni existente no se crea la cuenta de proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "usuario repetido no crea la ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "codigo de ficha repetido no deja cuenta a medias",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "ficha existente libre se vincula y la zona es la de la ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "dni de la persona repetido se rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "documento y codigo mal formados o zona inactiva se rechazan",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "el codigo sugerido sigue al mayor PRV-NNN",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "ficha existente que ya tiene cuenta no se vuelve a entregar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "documento de ficha repetido se rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "dos proveedores nuevos tienen cada uno solo su ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AltaProveedorTest",
+      "name": "proveedor nuevo crea cuenta y ficha propia vinculadas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.MigracionRolesCoder1Test",
+      "name": "desdeEsquema8ArchivaRolesExactosAntesDelBorradoHistoricoYConservaRelaciones",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.MigracionRolesCoder1Test",
+      "name": "desdeEsquema10TambienProtegeAntesDeEjecutarLaMigracion10",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.MigracionRolesCoder1Test",
+      "name": "instalacionNuevaNoInventaPerfilesPendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+      "name": "si un proveedor del lote no esta activo no se guarda ninguna entrega del lote",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+      "name": "si un item excede la capacidad no se guarda ninguna entrega del lote",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+      "name": "rechaza un lote vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.RegistrarLoteUseCaseTest",
+      "name": "guarda todas las entregas del lote compartiendo el mismo lote_id",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+      "name": "rechaza si la confirmacion del pin no coincide",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+      "name": "crea usuario cuando los datos son validos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+      "name": "rechaza pin con formato invalido",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+      "name": "rechaza sin ningun rol asignado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CrearUsuarioUseCaseTest",
+      "name": "rechaza username duplicado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.ClaveSesionTest",
+      "name": "sin sesion produce la clave reservada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.ClaveSesionTest",
+      "name": "una sesion produce el id del usuario",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.ClaveSesionTest",
+      "name": "logout y login del mismo usuario nunca repiten la clave consecutiva",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.ClaveSesionTest",
+      "name": "cambiar a un usuario distinto sin pasar por logout tambien cambia la clave",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+      "name": "una anulada solo aparece en el filtro de anuladas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+      "name": "etiquetas pedidas para los estados de sincronizacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+      "name": "la auditoria dice quien, sobre que registro y los valores",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.TextosAdminTest",
+      "name": "ningun estado se muestra con su nombre interno en ingles",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+      "name": "rechaza resolver sin motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+      "name": "elegir el valor local deja la entrega pendiente para volver a sincronizar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+      "name": "elegir el valor del servidor marca la entrega como sincronizada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ResolverConflictoUseCaseTest",
+      "name": "rechaza resolver una entrega que no esta en conflicto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ActualizarProveedorUseCaseTest",
+      "name": "cambiar a un documento de otra ficha se rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ActualizarProveedorUseCaseTest",
+      "name": "una ficha con documento repetido de datos antiguos se puede editar sin cambiarlo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+      "name": "rechaza corregir sin motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+      "name": "rechaza litros no positivos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CorregirEntregaUseCaseTest",
+      "name": "corrige litros e inserta auditoria en la misma operacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "registrar litros actualiza la celda de la fecha correcta con su hora",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "al terminar el dia 6 la lista pasa al ciclo siguiente sin saltar ni repetir dias",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "una celda vacia sigue pendiente y sin recojo exige una marca con motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "el filtro de zona solo muestra proveedores activos asignados a la zona de la jornada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "el estado de sincronizacion es independiente del estado del recojo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "el ciclo muestra exactamente las seis fechas vigentes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "varias entregas del mismo dia conservan su detalle y suman correctamente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.CicloYListaAcopioTest",
+      "name": "el dia de acopio se decide con la hora de Peru y no con la del telefono",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.SincronizacionUiStateTest",
+      "name": "cola vacia sin cuenta enlazada no anuncia exito",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.SincronizacionUiStateTest",
+      "name": "solo anuncia completado con enlace y sin operaciones pendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.InicializadorUnicoTest",
+      "name": "llamadas concurrentes desde seguimiento y Perfil inicializan una sola vez y obtienen el mismo valor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.InicializadorUnicoTest",
+      "name": "si ya existe el recurso nunca llama a inicializar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+      "name": "si falla el cierre en el repositorio la jornada sigue abierta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+      "name": "cerrar una jornada abierta la marca cerrada y limpia la jornada en curso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+      "name": "cada cierre efectivo queda auditado una sola vez",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+      "name": "ciclo abrir cerrar e intentar abrir el mismo dia explica el motivo y conserva el cierre",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.CerrarJornadaUseCaseTest",
+      "name": "cerrar dos veces es idempotente y conserva la hora de cierre original",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ObtenerPerfilProveedorUseCaseTest",
+      "name": "devuelve null si el usuario no tiene proveedor vinculado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.ObtenerPerfilProveedorUseCaseTest",
+      "name": "devuelve el proveedor vinculado al usuario",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "la entrega del acopiador se firma con su cuenta y la correccion de admin con la de admin",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "una entrega que quedo en error por falta de enlace pasa a pendiente y se envia al enlazar sin duplicar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "sin ningun destino configurado no se marca nada como sincronizado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "un rechazo del panel queda como error con el motivo del servidor y no se pierde el dato",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "al iniciar sesion la cuenta se enlaza en segundo plano y envia lo pendiente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "una cuenta sin sesion con el panel queda pendiente sin contarse como error del servidor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "sin conexion queda pendiente con el motivo visible y se envia al volver",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "con panel y firestore solo queda sincronizada cuando ambos confirmaron",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "sin recojo no se envia al panel y sin firestore sigue guardado en el celular",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "correccion y anulacion llegan al panel sobre la misma fila con su motivo y sin borrar la auditoria local",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "si el panel la recibe pero firestore no tiene conexion queda pendiente y se reintenta sin duplicar en el panel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "reintentar no duplica aunque la respuesta del primer envio se haya perdido",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SincronizacionPanelWebTest",
+      "name": "una entrega pendiente llega al panel con sus datos reales y solo entonces queda sincronizada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.IntegracionPanelWebTest",
+      "name": "entregas, reintentos, correcciones y anulaciones llegan a la base del panel web",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.di.GrafoKoinTest",
+      "name": "el grafo resuelve la lista de acopio, la sincronizacion y el portal sin el gps",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "permite abrir jornada en una zona distinta aunque otra zona este ocupada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "rechaza abrir jornada en una zona que ya tiene otro acopiador con jornada abierta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "retoma la jornada existente del dia en vez de crear otra",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "al dia siguiente abre una jornada nueva y conserva la del dia anterior",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "crea una jornada nueva y la marca como jornada en curso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "una jornada cerrada del dia no se retoma como abierta ni se reabre",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.AbrirJornadaUseCaseTest",
+      "name": "permite que el mismo acopiador retome su jornada aunque siga abierta en su zona",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.LoginCalidadFaonTest",
+      "name": "calidad_faon con PIN 8642 inicia sesion y carga el panel de Tecnico de calidad",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "desvincularEnServidorLimpiaSoloLaFichaConfirmadaYRepetirNoDuplica",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "unaDescargaNoRobaLaCuentaDeOtraFichaPendiente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "asignacionRemotaExplicitaSeGuardaYUnServidorAnteriorNoLaBorra",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "responsableCompartidoAdmiteNullExplicitoSinQueUnServidorAntiguoLoBorre",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "recibirUnaRevocacionNoPisaElPerfilPendientePeroRetiraElAcceso",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "descargarNoAdelantaLaRevisionBaseDeUnaEdicionPendiente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "renombrarCodigoEnServidorConservaElIdLocalYSusDatos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "unaAsignacionLocalPendienteNoSePierdePorUnNullRemoto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "editarDocumentoLegadoSinCambiarloConservaCuentaYCola",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "asignacionPendienteSeConservaYSeIncluyeEnElEnvio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CatalogosDescargaCoder1Test",
+      "name": "reasignarNoDuplicaElVinculoNiAfectaLaFichaDeOtraCuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+      "name": "preferencia manual y ultima sincronizacion sobreviven al reinicio",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+      "name": "migrar tokens anteriores conserva acceso y persiste refresh al reabrir",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+      "name": "migrar una base existente conserva todas sus filas y agrega las tablas nuevas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+      "name": "la cache del proveedor no duplica al recibir dos veces el mismo documento",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.PersistenciaListaAcopioTest",
+      "name": "sin recojo y entregas sobreviven a cerrar y reabrir la app",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "sinValoresNoSePuedeGuardarPeroFechaYHoraVienenPorDefecto",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "cambiarZonaMuestraSoloSusProveedoresYAbreElFormulario",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "escaneoParcialConservaLosCamposQueNoPudoLeer",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "escaneoSinDatosPreviosSeAplicaDeInmediatoYDejaVaciosLosNoReconocidos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "fotoConSoloElEncabezadoNoSeAplicaComoUnAnalisis",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "cambiarProveedorConDatosCapturadosPideConfirmacion",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "ticketDeReferenciaCompletaElFormularioYSeGuardaSoloAlConfirmar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "filasAntiguasSinMetadataSiguenSiendoLegibles",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "valorFueraDeReferenciaSeGuardaYQuedaObservadoORechazado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "escanearConDatosPreviosPideConfirmacionAntesDeReemplazar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "errorDeGuardadoConservaBorradorYPermiteReintentar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "formatoInvalidoBloqueaElGuardadoPeroFueraDeRangoNo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "dobleToqueNoDuplicaElRegistro",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "puntoDeCongelacionEnHNoSeConfundeConCYQuedaObservado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.calidad.CalidadVisitasTest",
+      "name": "guardaConSalesYQuedaVinculadoAProveedorZonaYTecnico",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "despues del cierre de jornada no se marca ni se deshace sin reabrir",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "varias entregas del dia llegan separadas y el proveedor ve el total diario",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "sin conexion conserva el dato local con estado honesto y al reintentar no duplica",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "deshacer sin recojo antes del cierre lo conserva como deshecho y auditado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "sin recojo se rechaza fuera de las reglas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "sin backend configurado nada se marca como sincronizado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "correcciones y anulaciones quedan auditadas y se reenvian sobre el mismo documento",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "el proveedor recibe la entrega cuando se sincroniza y no antes",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "sin recojo y su anulacion tambien llegan al proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "una correccion hecha mientras se envia no se da por sincronizada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "marcar sin recojo guarda el motivo, lo audita y queda pendiente de sincronizar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "si la respuesta se pierde el reintento sobrescribe el mismo documento",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "un rechazo del servidor queda como error visible y se reintenta",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.acopio.SinRecojoYSincronizacionTest",
+      "name": "el proveedor solo recibe y combina sus propios registros",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+      "name": "crearYEditarResponsableConservaCuentaVinculada",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+      "name": "filtrosSeCombinanYExcluyenEjemplos",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.admin.AdminSupervisionTest",
+      "name": "usaZonaHistoricaAunqueProveedorCambieDeZona",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "editar con una cuenta valida permite enviar el cambio conservado sin autor",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "lo que llega del panel no pisa un cambio del celular aun sin enviar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "una cuenta no envia la cola de otra",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "reclamo y traslado usan las rutas reales y solo salen al confirmar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "un analisis de calidad del celular viaja completo al panel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "un cambio con datos pero sin cuenta autora conserva la fila para reintentar",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "una fila inexistente no se envia ni se cuenta como recibida por el panel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "sin conexion una solicitud se conserva y no se marca recibida",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "una zona creada en el celular llega al panel con la cuenta del admin y no se reenvia",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "el PIN nuevo viaja una sola vez y luego se borra del celular",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "recibir pagos del panel no crea operaciones de escritura",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "un cambio rechazado no se pierde al descargar la copia del panel",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "una descarga completa no desactiva una zona cuyo cambio esta rechazado",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.data.CambiosPanelWebTest",
+      "name": "un rechazo por el dato queda en error y uno sin red queda pendiente",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.NavegacionProveedorTest",
+      "name": "el perfil del proveedor abre mi ciclo y no el mapa gps antiguo",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.presentation.acopiador.ChipSyncAcopiadorTest",
+      "name": "las etiquetas de sincronizacion son comprensibles para el acopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+      "name": "zona con jornada abierta no se desactiva",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+      "name": "zona asignada a personal no se desactiva y dice cuantas cuentas",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+      "name": "zona sin uso se desactiva",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+      "name": "zona con proveedores activos no se desactiva",
+      "state": "Passed"
+    },
+    {
+      "class": "pe.ecolecta.domain.usecase.DesactivacionZonaVehiculoTest",
+      "name": "vehiculo en jornada abierta no se desactiva pero se puede renombrar",
+      "state": "Passed"
+    }
+  ],
+  "counts": {
+    "Passed": 313,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "93af82ca70be10df979ba4cdac120848015f443f9135710b9b7ad668d515e3a8",
+  "recibo_original_sha256": "ed6fa0e1213cc4972ece1446303521d7ee80817c222e3951631a27e5349a582b",
+  "log_original_sha256": "93af82ca70be10df979ba4cdac120848015f443f9135710b9b7ad668d515e3a8",
+  "log": "kotlin.txt"
+}

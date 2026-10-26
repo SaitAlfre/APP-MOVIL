@@ -1,5 +1,7 @@
 package pe.ecolecta.domain.usecase.usuario
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pe.ecolecta.domain.PinInvalidoException
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.repository.PinesParaServidor
@@ -19,7 +21,7 @@ class CambiarPinUsuarioUseCase(
         if (!FORMATO_PIN.matches(nuevoPin)) return Result.failure(PinInvalidoException.FormatoInvalido)
         if (nuevoPin != confirmacionPin) return Result.failure(PinInvalidoException.NoCoincideConfirmacion)
 
-        val parHash = pinHasher.crearHash(nuevoPin)
+        val parHash = withContext(Dispatchers.Default) { pinHasher.crearHash(nuevoPin) }
         return runCatching {
             usuarioRepository.actualizarPin(id, parHash.hash, parHash.salt, reloj.ahora().toEpochMilliseconds())
             pines.recordarPin(id, nuevoPin)

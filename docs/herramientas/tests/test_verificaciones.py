@@ -153,5 +153,31 @@ class VerificacionesTest(unittest.TestCase):
         self.assertEqual(len(tasks),len(set(tasks)))
         self.assertTrue(all(len(v['criteria'])>=2 for v in stories.values()))
 
+    def test_fuente_actual_se_verifica_por_su_hash(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
+            p=Path(d)/'fuente.kt';p.write_bytes(b'actual ficticio')
+            self.assertEqual('working-tree',check.source_version(p.name,qa.digest(p.read_bytes())))
+
+    def test_fuente_historica_exige_blob_git_con_hash_exacto(self):
+        commit='a'*40;anterior=b'version ficticia ejecutada'
+        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
+            (Path(d)/'fuente.kt').write_bytes(b'version nueva')
+            responses=[subprocess.CompletedProcess([],0,commit+'\n',''),subprocess.CompletedProcess([],0,anterior,b'')]
+            with patch.object(check.subprocess,'run',side_effect=responses):
+                self.assertEqual('git:'+commit,check.source_version('fuente.kt',qa.digest(anterior)))
+
+    def test_fuente_historica_alterada_no_se_acepta(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)):
+            (Path(d)/'fuente.kt').write_bytes(b'actual ficticio')
+            responses=[subprocess.CompletedProcess([],0,'a'*40+'\n',''),subprocess.CompletedProcess([],0,b'otro contenido',b'')]
+            with patch.object(check.subprocess,'run',side_effect=responses):
+                self.assertIsNone(check.source_version('fuente.kt',qa.digest(b'version ausente')))
+
+    def test_fuente_fuera_del_repositorio_o_hash_invalido_se_rechaza(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(check,'ROOT',Path(d)), patch.object(check.subprocess,'run') as run:
+            self.assertIsNone(check.source_version('../externo.kt','a'*64))
+            self.assertIsNone(check.source_version('fuente.kt','hash-invalido'))
+            run.assert_not_called()
+
 
 if __name__=='__main__':unittest.main()

@@ -34,11 +34,13 @@ data class UsuarioFormUiState(
     val username: String = "",
     val nombres: String = "",
     val dni: String = "",
+    val dniOriginal: String? = null,
     val roles: Set<Rol> = emptySet(),
     /** Roles guardados al abrir la cuenta; una cuenta anterior puede tener más de uno. */
     val rolesOriginales: Set<Rol> = emptySet(),
     val activo: Boolean = true,
     val zonaId: String? = null,
+    val zonaOriginal: String? = null,
     val proveedorId: String? = null,
     val restablecerPin: Boolean = false,
     val pin: String = "",
@@ -72,7 +74,7 @@ data class UsuarioFormUiState(
     fun nombreZona(id: String?): String = zonas.firstOrNull { it.id == id }?.nombre ?: "zona no disponible"
 
     val necesitaZona get() = roles.any { it.requiereZona }
-    val pideZonaObligatoria get() = Rol.CALIDAD in roles
+    val pideZonaObligatoria get() = Rol.CALIDAD in roles && !(esEdicion && roles == rolesOriginales && zonaOriginal == null && zonaId == null)
     val pidePin get() = !esEdicion || restablecerPin
     /** Cuenta creada antes de la regla de un rol por cuenta: sus roles se conservan mientras ADMIN no elija uno. */
     val esCuentaMultirol get() = rolesOriginales.size > 1
@@ -83,20 +85,23 @@ data class UsuarioFormUiState(
     val fichasDisponibles: List<Proveedor> get() = fichasLibres
         .filter { busquedaFicha.isBlank() || "${it.codigo} ${it.nombres} ${it.dni}".contains(busquedaFicha.trim(), ignoreCase = true) }
 
+    private val errorFichaNueva: String?
+        get() = Proveedor.crear("validacion", fichaCodigo, fichaNombre, fichaDocumento,
+            fichaTelefono, fichaDireccion, fichaZonaId.orEmpty(), fichaTachos.toIntOrNull() ?: 0,
+            fichaCapacidad.replace(',', '.').toDoubleOrNull() ?: Double.NaN, updatedAt = 0).exceptionOrNull()?.message
+
     val faltante: String?
         get() = when {
             nombres.trim().length < 3 -> "Escribe los nombres y apellidos."
-            dni.length != 8 -> "El DNI debe tener 8 dígitos."
+            nombres.trim().length > 150 -> "Los nombres y apellidos admiten hasta 150 caracteres."
+            (!esEdicion || dni != dniOriginal) && !Regex("^[0-9]{8}$").matches(dni) -> "El DNI debe tener 8 dígitos."
             !esEdicion && username.trim().length < 3 -> "Escribe el nombre de usuario."
+            !esEdicion && !Regex("^[a-z0-9._]{3,30}$").matches(username.trim().lowercase()) -> "El usuario debe tener de 3 a 30 caracteres: minúsculas, números, punto o guion bajo."
             roles.isEmpty() -> "Selecciona un rol."
             roles.size > 1 && !conservaRolesOriginales -> "Elige un solo rol para la cuenta."
             pideZonaObligatoria && zonaId == null -> "Asigna la zona del técnico de calidad."
-            creaFichaNueva && fichaNombre.trim().length < 3 -> "Escribe el nombre del proveedor o finca."
-            creaFichaNueva && fichaDocumento.length != 8 && fichaDocumento.length != 11 -> "El documento de la ficha debe ser un DNI de 8 dígitos o un RUC de 11."
-            creaFichaNueva && fichaCodigo.trim().length < 3 -> "Escribe el código de la ficha."
             creaFichaNueva && fichaZonaId == null -> "Elige la zona de acopio de la ficha."
-            creaFichaNueva && (fichaTachos.toIntOrNull() ?: 0) <= 0 -> "La cantidad de tachos debe ser mayor a 0."
-            creaFichaNueva && (fichaCapacidad.replace(',', '.').toDoubleOrNull() ?: 0.0) <= 0.0 -> "La capacidad por tacho debe ser mayor a 0."
+            creaFichaNueva && errorFichaNueva != null -> errorFichaNueva
             vinculaFichaExistente && proveedorId == null -> "Elige la ficha existente que verá esta cuenta."
             pidePin && pin.length != 4 -> "El PIN debe tener 4 dígitos."
             pidePin && pin != confirmacionPin -> "La confirmación del PIN no coincide."
@@ -141,11 +146,11 @@ class UsuarioFormViewModel(
                         cargando = false,
                         username = usuario.username,
                         nombres = usuario.nombres,
-                        dni = usuario.dni,
+                        dni = usuario.dni, dniOriginal = usuario.dni,
                         roles = usuario.roles.toSet(),
                         rolesOriginales = usuario.roles.toSet(),
                         activo = usuario.activo,
-                        zonaId = cuentas.zonaAsignada(id),
+                        zonaId = cuentas.zonaAsignada(id), zonaOriginal = cuentas.zonaAsignada(id),
                         proveedorId = ficha?.id,
                         fichaOriginal = ficha?.id,
                         modoProveedor = ModoProveedor.EXISTENTE,
@@ -177,8 +182,12 @@ class UsuarioFormViewModel(
     }
 
     fun nombres(v: String) = _uiState.update { it.copy(nombres = v, error = null) }
-    fun dni(v: String) { if (v.length <= 8 && v.all(Char::isDigit)) _uiState.update { it.copy(dni = v, error = null) } }
-    fun username(v: String) = _uiState.update { it.copy(username = v.lowercase().filter { c -> c.isLetterOrDigit() || c == '.' || c == '_' }.take(30), error = null) }
+    fun dni(v: String) {
+        if ((_uiState.value.esEdicion && v.length <= 20) || (v.length <= 8 && v.all(Char::isDigit))) {
+            _uiState.update { it.copy(dni = v, error = null) }
+        }
+    }
+    fun username(v: String) = _uiState.update { it.copy(username = v.lowercase(), error = null) }
     fun activo(v: Boolean) = _uiState.update { it.copy(activo = v, error = null) }
     fun zona(zonaId: String?) = _uiState.update { it.copy(zonaId = zonaId, error = null) }
     fun ficha(proveedorId: String) = _uiState.update { it.copy(proveedorId = proveedorId, error = null) }
@@ -187,14 +196,14 @@ class UsuarioFormViewModel(
         // Cambiar de camino nunca arrastra una ficha elegida antes: en «Ya existe su ficha» se elige a mano.
         it.copy(modoProveedor = m, proveedorId = if (m == ModoProveedor.EXISTENTE) it.proveedorId.takeIf { _ -> it.esEdicion } else null, error = null)
     }
-    fun fichaCodigo(v: String) = _uiState.update { it.copy(fichaCodigo = v.uppercase().filter { c -> c.isLetterOrDigit() || c == '-' }.take(20), error = null) }
-    fun fichaNombre(v: String) = _uiState.update { it.copy(fichaNombre = v.take(80), error = null) }
-    fun fichaDocumento(v: String) { if (v.length <= 11 && v.all(Char::isDigit)) _uiState.update { it.copy(fichaDocumento = v, error = null) } }
+    fun fichaCodigo(v: String) = _uiState.update { it.copy(fichaCodigo = v, error = null) }
+    fun fichaNombre(v: String) = _uiState.update { it.copy(fichaNombre = v, error = null) }
+    fun fichaDocumento(v: String) = _uiState.update { it.copy(fichaDocumento = v, error = null) }
     fun fichaZona(v: String) = _uiState.update { it.copy(fichaZonaId = v, error = null) }
-    fun fichaTachos(v: String) { if (v.length <= 2 && v.all(Char::isDigit)) _uiState.update { it.copy(fichaTachos = v, error = null) } }
-    fun fichaCapacidad(v: String) { if (v.length <= 5 && v.all { it.isDigit() || it == '.' || it == ',' }) _uiState.update { it.copy(fichaCapacidad = v, error = null) } }
-    fun fichaTelefono(v: String) { if (v.length <= 12 && v.all { it.isDigit() || it == '+' }) _uiState.update { it.copy(fichaTelefono = v) } }
-    fun fichaDireccion(v: String) = _uiState.update { it.copy(fichaDireccion = v.take(120)) }
+    fun fichaTachos(v: String) { if (v.all(Char::isDigit)) _uiState.update { it.copy(fichaTachos = v, error = null) } }
+    fun fichaCapacidad(v: String) = _uiState.update { it.copy(fichaCapacidad = v, error = null) }
+    fun fichaTelefono(v: String) = _uiState.update { it.copy(fichaTelefono = v, error = null) }
+    fun fichaDireccion(v: String) = _uiState.update { it.copy(fichaDireccion = v, error = null) }
     fun cancelarVinculo() = _uiState.update { it.copy(confirmandoVinculo = false) }
     fun restablecerPin(v: Boolean) = _uiState.update { it.copy(restablecerPin = v, pin = "", confirmacionPin = "") }
     fun pin(v: String) { if (v.length <= 4 && v.all(Char::isDigit)) _uiState.update { it.copy(pin = v, error = null) } }

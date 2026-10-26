@@ -12,6 +12,7 @@ use App\Application\Usuarios\RestablecerCredencialesUsuarioUseCase;
 use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
+use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,9 +36,9 @@ class UsuarioController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(ZonaRepositoryInterface $zonas): View
     {
-        return view('admin.usuarios.form', ['usuario' => null, 'roles' => Rol::cases()]);
+        return view('admin.usuarios.form', ['usuario' => null, 'roles' => Rol::cases(), 'zonas' => $zonas->activas()]);
     }
 
     public function store(Request $request, CrearUsuarioUseCase $crear): RedirectResponse
@@ -53,20 +54,21 @@ class UsuarioController extends Controller
                 roles: $datos['roles'],
                 actorEsAdmin: auth('operador')->user()->tieneRol('admin'),
                 actorId: auth('operador')->id(),
+                zonaId: $datos['zona_id'],
             );
         } catch (UsuarioInvalidoException $e) {
-            return back()->withErrors(['username' => $this->mensajeSeguro($e)])->withInput($request->only('username', 'nombres', 'dni', 'roles'));
+            return back()->withErrors(['username' => $this->mensajeSeguro($e)])->withInput($request->only('username', 'nombres', 'dni', 'roles', 'zona_id'));
         }
 
         return redirect()->route('admin.usuarios.index')->with('estado', 'Usuario creado correctamente.');
     }
 
-    public function edit(int $usuario, UsuarioRepositoryInterface $usuarios): View
+    public function edit(int $usuario, UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas): View
     {
         $entidad = $usuarios->buscarPorId($usuario);
         abort_if($entidad === null, 404);
 
-        return view('admin.usuarios.form', ['usuario' => $entidad, 'roles' => Rol::cases()]);
+        return view('admin.usuarios.form', ['usuario' => $entidad, 'roles' => Rol::cases(), 'zonas' => $zonas->activas()]);
     }
 
     public function update(int $usuario, Request $request, ActualizarUsuarioUseCase $actualizar): RedirectResponse
@@ -81,9 +83,11 @@ class UsuarioController extends Controller
                 roles: $datos['roles'],
                 actorEsAdmin: auth('operador')->user()->tieneRol('admin'),
                 actorId: auth('operador')->id(),
+                zonaId: $datos['zona_id'],
+                actualizarZona: $request->exists('zona_id'),
             );
         } catch (UsuarioInvalidoException $e) {
-            return back()->withErrors(['roles' => $this->mensajeSeguro($e)])->withInput($request->only('nombres', 'dni', 'roles'));
+            return back()->withErrors(['roles' => $this->mensajeSeguro($e)])->withInput($request->only('nombres', 'dni', 'roles', 'zona_id'));
         }
 
         return redirect()->route('admin.usuarios.index')->with('estado', 'Usuario actualizado correctamente.');
@@ -137,7 +141,7 @@ class UsuarioController extends Controller
         return redirect()->route('admin.usuarios.index')->with('estado', 'Credenciales restablecidas. El usuario deberá iniciar sesión de nuevo con el PIN nuevo.');
     }
 
-    /** @return array{username: string, nombres: string, dni: string, roles: list<Rol>, pin: ?string} */
+    /** @return array{username: string, nombres: string, dni: string, roles: list<Rol>, pin: ?string, zona_id: ?int} */
     private function validarDatos(Request $request, bool $exigirPin): array
     {
         $reglas = [
@@ -145,23 +149,25 @@ class UsuarioController extends Controller
             'dni' => ['required', 'string', 'max:20'],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', 'in:'.implode(',', array_map(fn (Rol $r) => $r->value, Rol::cases()))],
+            'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
         ];
 
         if ($exigirPin) {
             $reglas['username'] = ['required', 'string', 'max:50'];
-            $reglas['pin'] = ['required', 'string', 'regex:/^\d{4,8}$/'];
+            $reglas['pin'] = ['required', 'string', 'regex:/\A[0-9]{4}\z/'];
         }
 
         $validados = $request->validate($reglas, [
-            'pin.regex' => 'El PIN debe tener entre 4 y 8 dígitos numéricos.',
+            'pin.regex' => 'El PIN debe tener exactamente 4 dígitos numéricos.',
         ]);
 
         return [
-            'username' => $validados['username'] ?? '',
+            'username' => isset($validados['username']) ? strtolower(trim($validados['username'])) : '',
             'nombres' => $validados['nombres'],
             'dni' => $validados['dni'],
             'roles' => array_map(fn (string $r) => Rol::from($r), $validados['roles']),
             'pin' => $validados['pin'] ?? null,
+            'zona_id' => isset($validados['zona_id']) ? (int) $validados['zona_id'] : null,
         ];
     }
 }

@@ -51,6 +51,7 @@ class EcolectaApp : Application() {
                 module {
                     single { DatabaseDriverFactory(androidContext()) }
                     single<DeviceIdProvider> { DeviceIdProviderAndroid(androidContext()) }
+                    single<pe.ecolecta.domain.security.ProtectorSecretos> { pe.ecolecta.data.security.ProtectorSecretosKeystore() }
                     single { ExportadorQr(androidContext()) }
                     // Firebase: solo Android (ver shared/build.gradle.kts). Nunca en el módulo común
                     // para que iOS siga compilando sin el SDK nativo de Firebase.
@@ -77,5 +78,7 @@ class EcolectaApp : Application() {
                 ),
             )
         }
+        val koin = org.koin.core.context.GlobalContext.get()
+        pe.ecolecta.data.security.ProteccionCredencialesLocales(koin.get(), koin.get()).aplicar()
     }
 }

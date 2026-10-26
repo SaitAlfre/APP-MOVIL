@@ -98,7 +98,7 @@ class IntegracionPanelWebTest {
         jornadas.insertar(Jornada(jornadaId, acopiador.id, zona.id, vehiculo.id, reloj.hoy(), reloj.ahora().toEpochMilliseconds(), null, SyncState.PENDING))
 
         val http = crearHttpClient()
-        val servidor = ServidorWebRepositoryKtor(url, http, db, usuarios, reloj, io, "Prueba de integración")
+        val servidor = ServidorWebRepositoryKtor(url, http, db, usuarios, reloj, io, "Prueba de integración", ProtectorSecretosPrueba)
         val sincronizar = SincronizarRegistrosAcopioUseCase(
             entregas, SqlDelightSinRecojoRepository(db, io), proveedores, usuarios, RegistroAcopioRemotoRepositoryPendiente(),
             servidor, PreparadorEntregaServidorLocal(proveedores, usuarios, jornadas, zonas, vehiculos, auditoria),
@@ -184,7 +184,7 @@ class IntegracionPanelWebTest {
 
         // 5) Servidor inalcanzable: la entrega nueva queda pendiente (no "sincronizada") y el dato se conserva.
         // Mismo token, pero el servidor no responde (puerto cerrado).
-        val caido = ServidorWebRepositoryKtor("http://127.0.0.1:9", http, db, usuarios, reloj, io)
+        val caido = ServidorWebRepositoryKtor("http://127.0.0.1:9", http, db, usuarios, reloj, io, protector = ProtectorSecretosPrueba)
         val otra = RegistrarEntregaUseCase(entregas, proveedores, reloj, dispositivo)(
             jornadaId, proveedor.id, acopiador.id, zona.id, vehiculo.id, 12.0, 1, null,
         ).getOrThrow().entrega

@@ -1,0 +1,6 @@
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-cuenta-bloqueada Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-restaurar-admin Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"UI-C1-cuenta-bloqueada","estado":"Passed"},{"id":"UI-C1-restaurar-admin","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-bloqueada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-admin-final.png"],"prefijoFicticio":"","ui":"Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio"}
+INSTRUMENTATION_CODE: -1

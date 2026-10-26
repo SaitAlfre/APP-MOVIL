@@ -77,6 +77,8 @@ Los siete RF antes huérfanos reciben HU-18…23 (HU-21 cubre dos RF); HU-24 del
 
 ## Homologación pendiente
 
+**Decisión del equipo del 25-10-2026, Coder 1:** los roles asignables vigentes son Acopiador, Calidad, Administrador y Proveedor. La descripción original de RF-USU-02 se conserva para no alterar la fuente empresarial. La implementación local, el archivo seguro de asociaciones retiradas y las pruebas están en [Coder 1](../tecnica/coder1-implementacion.md); no equivalen a aprobación del beneficiario ni a despliegue. La actualización formal del Charter/criterios académicos y la delegación de permisos de las funciones antes atendidas por roles retirados siguen **PENDIENTES DE VALIDACIÓN** con sus responsables. No se debe volver a ofrecer esos roles en formularios ni convertir sus cuentas automáticamente.
+
 Campos de productores, roles, reglas de laboratorio, sanciones, tarifas/vigencias, costos, visibilidad, impresoras y plazos de traslado necesitan decisión real. Los números económicos originales describen su contexto de captura, no configuración actual ratificada.
 
 Comparación manual campo/planta es Fase 1; caudalímetro es Fase 2. [Observaciones técnicas OBS-01/02](../auditoria-documentacion.md#observaciones-tecnicas-abiertas). [RNF](rnf-fuente-y-cobertura.md) · [Trazabilidad](../scrum/trazabilidad.md) · [EP-02/04/12](../academico/evidencias-pendientes.md).

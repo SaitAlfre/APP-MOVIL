@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Usuario;
+use App\Infrastructure\Persistence\Eloquent\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -21,7 +22,7 @@ class AdminUsuariosModuleTest extends TestCase
 
     // --- CRUD y listado ---
 
-    public function test_un_admin_puede_crear_un_usuario_con_varios_roles(): void
+    public function test_un_admin_crea_una_cuenta_con_un_rol_oficial(): void
     {
         $this->comoAdmin();
 
@@ -30,13 +31,13 @@ class AdminUsuariosModuleTest extends TestCase
             'nombres' => 'Rosa Recepción',
             'dni' => '11112222',
             'pin' => '4321',
-            'roles' => ['recepcion', 'calidad'],
+            'roles' => ['acopiador'],
         ]);
 
         $response->assertRedirect(route('admin.usuarios.index'));
         $this->assertDatabaseHas('usuarios', ['username' => 'recepcion1', 'nombres' => 'Rosa Recepción']);
         $creado = Usuario::query()->where('username', 'recepcion1')->firstOrFail();
-        $this->assertSame(['recepcion', 'calidad'], $creado->roles);
+        $this->assertSame(['acopiador'], $creado->roles);
         $this->assertNotSame('4321', $creado->pin_hash);
         $this->assertTrue(Hash::check('4321', $creado->pin_hash));
     }
@@ -47,7 +48,7 @@ class AdminUsuariosModuleTest extends TestCase
         Usuario::factory()->create(['username' => 'existente']);
 
         $response = $this->post(route('admin.usuarios.store'), [
-            'username' => 'existente', 'nombres' => 'Otro', 'dni' => '99998888', 'pin' => '1111', 'roles' => ['consulta'],
+            'username' => 'existente', 'nombres' => 'Otro', 'dni' => '99998888', 'pin' => '1111', 'roles' => ['acopiador'],
         ]);
 
         $response->assertSessionHasErrors('username');
@@ -57,25 +58,25 @@ class AdminUsuariosModuleTest extends TestCase
     public function test_un_admin_puede_editar_datos_y_roles_de_un_usuario(): void
     {
         $this->comoAdmin();
-        $usuario = Usuario::factory()->create(['roles' => ['consulta']]);
+        $usuario = Usuario::factory()->create(['roles' => ['acopiador']]);
 
         $response = $this->put(route('admin.usuarios.update', $usuario->id), [
-            'nombres' => 'Nombre Actualizado', 'dni' => $usuario->dni, 'roles' => ['produccion'],
+            'nombres' => 'Nombre Actualizado', 'dni' => $usuario->dni, 'roles' => ['calidad'], 'zona_id' => Zona::factory()->create()->id,
         ]);
 
         $response->assertRedirect(route('admin.usuarios.index'));
         $this->assertDatabaseHas('usuarios', ['id' => $usuario->id, 'nombres' => 'Nombre Actualizado']);
-        $this->assertSame(['produccion'], $usuario->fresh()->roles);
+        $this->assertSame(['calidad'], $usuario->fresh()->roles);
     }
 
     public function test_el_listado_filtra_por_busqueda_rol_y_estado(): void
     {
         $this->comoAdmin();
         Usuario::factory()->create(['nombres' => 'Juan Calidad', 'roles' => ['calidad'], 'activo' => true]);
-        Usuario::factory()->create(['nombres' => 'Ana Produccion', 'roles' => ['produccion'], 'activo' => false]);
+        Usuario::factory()->create(['nombres' => 'Ana Produccion', 'roles' => ['acopiador'], 'activo' => false]);
 
         $this->get(route('admin.usuarios.index', ['buscar' => 'Juan']))->assertSee('Juan Calidad')->assertDontSee('Ana Produccion');
-        $this->get(route('admin.usuarios.index', ['rol' => 'produccion']))->assertSee('Ana Produccion')->assertDontSee('Juan Calidad');
+        $this->get(route('admin.usuarios.index', ['rol' => 'acopiador']))->assertSee('Ana Produccion')->assertDontSee('Juan Calidad');
         $this->get(route('admin.usuarios.index', ['activo' => '0']))->assertSee('Ana Produccion')->assertDontSee('Juan Calidad');
     }
 
@@ -84,7 +85,7 @@ class AdminUsuariosModuleTest extends TestCase
     public function test_desactivar_un_usuario_le_quita_el_acceso_de_inmediato_aunque_tenga_sesion_abierta(): void
     {
         $this->comoAdmin();
-        $usuario = Usuario::factory()->create(['roles' => ['consulta']]);
+        $usuario = Usuario::factory()->create(['roles' => ['calidad']]);
 
         // El usuario ya tenía una sesión abierta en el navegador.
         $sesionUsuario = $this->actingAs($usuario, 'operador');
@@ -167,7 +168,7 @@ class AdminUsuariosModuleTest extends TestCase
     public function test_restablecer_credenciales_cambia_el_pin_e_invalida_sesiones(): void
     {
         $this->comoAdmin();
-        $usuario = Usuario::factory()->create(['pin_hash' => '1234', 'roles' => ['recepcion']]);
+        $usuario = Usuario::factory()->create(['pin_hash' => '1234', 'roles' => ['calidad']]);
 
         $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678'])->assertSessionHasNoErrors();
 
@@ -179,7 +180,7 @@ class AdminUsuariosModuleTest extends TestCase
     public function test_restablecer_credenciales_rechaza_un_pin_con_formato_invalido(): void
     {
         $this->comoAdmin();
-        $usuario = Usuario::factory()->create(['roles' => ['recepcion']]);
+        $usuario = Usuario::factory()->create(['roles' => ['calidad']]);
 
         $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => 'abc'])->assertSessionHasErrors('pin');
     }
@@ -189,9 +190,9 @@ class AdminUsuariosModuleTest extends TestCase
     public function test_los_cambios_de_roles_bloqueo_y_restablecimiento_quedan_auditados(): void
     {
         $admin = $this->comoAdmin();
-        $usuario = Usuario::factory()->create(['roles' => ['consulta']]);
+        $usuario = Usuario::factory()->create(['roles' => ['acopiador']]);
 
-        $this->put(route('admin.usuarios.update', $usuario->id), ['nombres' => $usuario->nombres, 'dni' => $usuario->dni, 'roles' => ['calidad']]);
+        $this->put(route('admin.usuarios.update', $usuario->id), ['nombres' => $usuario->nombres, 'dni' => $usuario->dni, 'roles' => ['calidad'], 'zona_id' => Zona::factory()->create()->id])->assertSessionHasNoErrors();
         $this->post(route('admin.usuarios.bloquear', $usuario->id), ['motivo' => 'Auditoría de prueba']);
         $this->post(route('admin.usuarios.desbloquear', $usuario->id));
         $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '9999']);
@@ -204,42 +205,30 @@ class AdminUsuariosModuleTest extends TestCase
 
     // --- Matriz de permisos ---
 
-    public function test_un_rol_de_consulta_puede_ver_pero_no_gestionar(): void
+    public function test_acopiador_no_accede_a_catalogos_ni_gestion_de_otros_modulos(): void
     {
-        $usuario = Usuario::factory()->create(['roles' => ['consulta']]);
-        $this->actingAs($usuario, 'operador');
-
-        $this->get(route('admin.proveedores.index'))->assertOk();
-        $this->get(route('admin.recepcion.index'))->assertOk();
-        $this->get(route('admin.calidad.index'))->assertOk();
-        $this->get(route('admin.produccion.index'))->assertOk();
-        $this->get(route('admin.liquidaciones.index'))->assertOk();
-        $this->get(route('admin.dashboard.index'))->assertOk();
-
-        $this->get(route('admin.proveedores.create'))->assertForbidden();
+        $this->actingAs(Usuario::factory()->create(['roles' => ['acopiador']]), 'operador');
+        foreach (['admin.proveedores.index', 'admin.usuarios.index', 'admin.recepcion.index', 'admin.liquidaciones.index'] as $ruta) {
+            $this->get(route($ruta))->assertForbidden();
+        }
         $this->post(route('admin.calidad.store'))->assertForbidden();
+    }
+
+    public function test_calidad_consulta_recepcion_pero_no_gestiona_usuarios_ni_zonas(): void
+    {
+        $this->actingAs(Usuario::factory()->create(['roles' => ['calidad']]), 'operador');
+        $this->get(route('admin.recepcion.index'))->assertOk();
+        $this->get(route('admin.calidad.create'))->assertOk();
+        $this->get(route('admin.zonas-vehiculos.index'))->assertForbidden();
         $this->get(route('admin.usuarios.index'))->assertForbidden();
     }
 
-    public function test_el_rol_recepcion_gestiona_solo_su_modulo(): void
+    public function test_admin_y_calidad_ingresan_al_panel_y_acopiador_a_sus_mapas(): void
     {
-        $usuario = Usuario::factory()->create(['roles' => ['recepcion']]);
-        $this->actingAs($usuario, 'operador');
-
-        $this->get(route('admin.recepcion.index'))->assertOk();
-        $this->get(route('admin.calidad.index'))->assertOk();
-
-        $this->post(route('admin.calidad.store'))->assertForbidden();
-        $this->get(route('admin.zonas-vehiculos.index'))->assertForbidden();
-    }
-
-    public function test_los_roles_nuevos_pueden_iniciar_sesion_en_la_web(): void
-    {
-        foreach (['recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'] as $rol) {
+        foreach (['admin', 'calidad', 'acopiador'] as $rol) {
             $usuario = Usuario::factory()->create(['pin_hash' => '1234', 'roles' => [$rol]]);
-
             $this->post('/login', ['username' => $usuario->username, 'pin' => '1234'])
-                ->assertRedirect(route('admin.dashboard.index'));
+                ->assertRedirect(route($rol === 'acopiador' ? 'admin.mapa-rutas.index' : 'admin.dashboard.index'));
             $this->post('/logout');
         }
     }

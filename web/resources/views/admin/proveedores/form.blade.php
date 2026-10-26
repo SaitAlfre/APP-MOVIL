@@ -36,6 +36,8 @@
                     <x-ui.field name="nombres" label="Nombre del proveedor o finca" required maxlength="150" :value="$proveedor?->nombres"
                         class="sm:col-span-2" placeholder="Juan Pérez Quispe" />
                     <x-ui.field name="telefono" label="Celular" maxlength="30" :value="$proveedor?->telefono" placeholder="95XXXXXXX" />
+                    <x-ui.field name="dueno" label="Propietario o responsable (opcional)" maxlength="150" :value="$proveedor?->dueno"
+                        hint="Persona responsable de la finca; no cambia la cuenta de acceso vinculada." />
                     <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona" :selected="$proveedor?->zonaId"
                         :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
                     <x-ui.field name="direccion" label="Dirección o referencia" maxlength="255" :value="$proveedor?->direccion"

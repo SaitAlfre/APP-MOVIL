@@ -39,8 +39,15 @@ data class Proveedor(
             if (codigo.isBlank()) return Result.failure(ProveedorInvalidoException.CodigoVacio)
             if (nombres.isBlank()) return Result.failure(ProveedorInvalidoException.NombresVacios)
             if (dni.isBlank()) return Result.failure(ProveedorInvalidoException.DniVacio)
-            if (tachos <= 0) return Result.failure(ProveedorInvalidoException.TachosInvalidos)
-            if (capacidadTachoL <= 0.0) return Result.failure(ProveedorInvalidoException.CapacidadInvalida)
+            for ((valor, maximo, campo) in listOf(
+                Triple(codigo, 50, "El código"), Triple(nombres, 150, "El nombre"),
+                Triple(dni, 20, "El documento"), Triple(telefono.orEmpty(), 30, "El teléfono"),
+                Triple(direccion.orEmpty(), 255, "La dirección"),
+            )) {
+                if (valor.trim().length > maximo) return Result.failure(IllegalArgumentException("$campo admite hasta $maximo caracteres."))
+            }
+            if (tachos !in 1..1000) return Result.failure(ProveedorInvalidoException.TachosInvalidos)
+            if (!capacidadTachoL.isFinite() || capacidadTachoL < 0.01) return Result.failure(ProveedorInvalidoException.CapacidadInvalida)
             return Result.success(
                 Proveedor(
                     id = id,

@@ -1,0 +1,1040 @@
+{
+  "corte_documental": "2026-10-26",
+  "base_git": "056bcb9cd0de60f081b533a496cde013d8c76127",
+  "branch": "main",
+  "nota": "Estado local, sin commit/publicación. Se excluye este manifiesto y cierre.json para evitar autorreferencia de hashes.",
+  "archivos": [
+    {
+      "path": "androidApp/build.gradle.kts",
+      "git_status": " M",
+      "sha256": "c6419bd3d30773db833b25636c62a925b2146d94a01888672e54e540756d04ed",
+      "bytes": 3630,
+      "motivo": "Dependencias QA y selección explícita del runner C1 sin reemplazar el runner previo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt",
+      "git_status": " M",
+      "sha256": "e05caf9381db9ac93938a06e57676fd82ccb85ecc9cbb4cd6a63242b0ab79395",
+      "bytes": 4335,
+      "motivo": "Inicializar protector Android y convertir secretos locales antes de declarar listo el arranque.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/README.md",
+      "git_status": " M",
+      "sha256": "5817667f3a609889ce7669ea03de63ac75f6e7334f2194e9567bcbb2fe448bb4",
+      "bytes": 8480,
+      "motivo": "Enlazar informe técnico C1 desde el índice único de documentación.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/herramientas/tests/test_verificaciones.py",
+      "git_status": " M",
+      "sha256": "f9ded986037c42910aae39bbd3c6b8ae357473ddadb6a63803671911e0715d12",
+      "bytes": 10453,
+      "motivo": "Regresión de hash actual/histórico, contenido alterado y ruta externa para el verificador.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/herramientas/verificar_documentacion.py",
+      "git_status": " M",
+      "sha256": "8150be930358fbc9273bc0e1a5eed11e17152d6657422beb36378cc4845467c1",
+      "bytes": 23025,
+      "motivo": "Verificar versiones históricas por hash exacto conservado en Git sin atribuirlas a código actual.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/requisitos/rf-fuente-y-cobertura.md",
+      "git_status": " M",
+      "sha256": "46c960f73fab36e7d2b5fb967a39b2ebb09a43fba538cb9e0f697cf09d257b1b",
+      "bytes": 25313,
+      "motivo": "Anotar decisión oficial de cuatro roles sin reescribir RF original ni inventar aprobación del beneficiario.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/tecnica/arquitectura-datos-y-sincronizacion.md",
+      "git_status": " M",
+      "sha256": "be841789d1f51a3866448ea833419ecdae3bdbf0309019d144ff038ca7aa37ea",
+      "bytes": 26739,
+      "motivo": "Actualizar fuente contractual C1 sin borrar análisis y resultados históricos de otros módulos.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CambiosPanelWebTest.kt",
+      "git_status": " M",
+      "sha256": "288d076ec1d0f654ff6657194d0ad55bc5afcc06c89be8d28144f04d8b192ee3",
+      "bytes": 15793,
+      "motivo": "Prueba C1: inyectar protector de secretos ficticio en integración existente; no alterar lógica de negocio probada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CoordinadorPanelWebTest.kt",
+      "git_status": " M",
+      "sha256": "d6a09eb7b76b5778ddb31d6c249547142a9735cc1776dd149296ad81bb785c45",
+      "bytes": 5182,
+      "motivo": "Prueba C1: inyectar protector de secretos ficticio en integración existente; no alterar lógica de negocio probada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/IntegracionPanelWebTest.kt",
+      "git_status": " M",
+      "sha256": "7e5491f6baf56bbdd7f8096ffeccc1a1431177aa964abddc7a196a0093b7e44d",
+      "bytes": 15124,
+      "motivo": "Prueba C1: inyectar protector de secretos ficticio en integración existente; no alterar lógica de negocio probada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/PersistenciaListaAcopioTest.kt",
+      "git_status": " M",
+      "sha256": "ee7c26411a69194f0696ed5c90e2f903ca0bec79724956e43f875d80a2ae060f",
+      "bytes": 13978,
+      "motivo": "Solo preparación del fixture de esquema antiguo ante columnas/tablas C1 nuevas; reglas de acopio intactas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/RefreshSesionPanelWebTest.kt",
+      "git_status": " M",
+      "sha256": "d52b7105bfa4a66d75f265fb714cfa451021fd782ae6da774048a6f53986dada",
+      "bytes": 6488,
+      "motivo": "Prueba C1: inyectar protector de secretos ficticio en integración existente; no alterar lógica de negocio probada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidMain/kotlin/pe/ecolecta/data/local/DatabaseDriverFactory.android.kt",
+      "git_status": " M",
+      "sha256": "26c4166c373522fc110b9b464681317b3948d69af79f8d93a8f02a53cc986511",
+      "bytes": 351,
+      "motivo": "Usar wrapper de esquema que archiva perfiles antes del borrado histórico.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/local/CambiosPendientes.kt",
+      "git_status": " M",
+      "sha256": "3798a500f5f6a35cde993785f5437c53748b7e1fce121866139b192af5f5d61b",
+      "bytes": 1953,
+      "motivo": "Corregir comentario: PIN pendiente ya protegido, nunca pasar texto plano al marcador.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/local/Mappers.kt",
+      "git_status": " M",
+      "sha256": "8a0ac1d660ba9e6abe7afb75628ce4184b6f179740a85406f5f30780b5c01072",
+      "bytes": 4955,
+      "motivo": "Propagar el requisito de verificación de la cuenta persistida.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/remote/ServidorWebRepositoryKtor.kt",
+      "git_status": " M",
+      "sha256": "a687b33c59549a523a9bf7900f34de616987321b17fee52877fe5265168abb35",
+      "bytes": 14012,
+      "motivo": "Proteger tokens, revalidar ante 401, preservar refresh sin red y tratar fallo de almacenamiento como fallo real.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/repository/SqlDelightCambiosLocalesRepository.kt",
+      "git_status": " M",
+      "sha256": "652f6eaedcb28cf554e6caf2f4f57ce0b95920bb864f883e411b7d0a0f879df2",
+      "bytes": 12858,
+      "motivo": "Cifrar PIN en cola, abrirlo solo para enviar y añadir revisiones base únicamente en entidades C1.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/repository/SqlDelightDatosServidorRepository.kt",
+      "git_status": " M",
+      "sha256": "580f88856be9f3b80508667664ce33205df9698f0726f68712f01577ecb51b05",
+      "bytes": 23640,
+      "motivo": "Preservar pendientes; aplicar asignación/bloqueo/dueno y desvinculación; registrar bases confirmadas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/repository/SqlDelightOperacionAdminRepository.kt",
+      "git_status": " M",
+      "sha256": "d65a615cfcc81f180b060d83911ba265c247e57beed36d9c0e80854a61717b77",
+      "bytes": 9545,
+      "motivo": "Solo C1: marcar cuenta modificada al cambiar zona; otras operaciones no modificadas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/repository/SqlDelightSesionRepository.kt",
+      "git_status": " M",
+      "sha256": "2abbf8c2d42f4bdf4b8cb29250ce638a11caf29370c60a2597059b614f956844",
+      "bytes": 2989,
+      "motivo": "Observar y revalidar estado/rol/bloqueo; limpiar sesión que ya no está autorizada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/di/Koin.kt",
+      "git_status": " M",
+      "sha256": "971b54dc11b83873db490f8375df6aa2e980c5235f1c6544410c69bd2e8fa865",
+      "bytes": 25500,
+      "motivo": "Inyectar seguridad, servidor y cierre de sesión; sin servidor no almacenar PIN recuperable.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/UsuarioInvalidoException.kt",
+      "git_status": " M",
+      "sha256": "f4580e5222f76f3fa55b89395c7acf33c83e66af9ef36ab0717b93a68b8913c3",
+      "bytes": 1583,
+      "motivo": "Mensaje de verificación requerida sin tratar revocación como falta de conexión.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/model/Usuario.kt",
+      "git_status": " M",
+      "sha256": "04d9e57e8b1fdbbee0d1857565ab8d6de3ae16e5879a584f3742083e2ba71927",
+      "bytes": 1802,
+      "motivo": "Modelo local: flag requiereVerificacion con valor por defecto compatible.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/repository/CambiosServidor.kt",
+      "git_status": " M",
+      "sha256": "7226b4585d56cedfda98b45b3a0a8676f21b68763ab9389fa6ba0c60e2c446be",
+      "bytes": 2050,
+      "motivo": "Aclarar diferencia entre hash de login y secreto protegido pendiente para API.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/repository/DatosServidor.kt",
+      "git_status": " M",
+      "sha256": "ab310c995f6d72d3eaa82c9a1c2dd6589e37a7d70e5b93c88dd0bc8662815619",
+      "bytes": 6391,
+      "motivo": "Contrato C1 con presencia de zona/responsable, bloqueo y revisiones opcionales compatibles.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/auth/CerrarSesionUseCase.kt",
+      "git_status": " M",
+      "sha256": "086df9709b8175f4c5441429452b5200642f103e5612f65f2e57cf65b7113234",
+      "bytes": 1195,
+      "motivo": "Cerrar local primero e intentar revocación remota respetando cancelación.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/auth/IniciarSesionUseCase.kt",
+      "git_status": " M",
+      "sha256": "f71a0975b6fb7bc8ea32b154375db93413dbd92beabecc0f33785dab7a9635b6",
+      "bytes": 4031,
+      "motivo": "Autenticar online, limitar fallback offline, conservar pendientes y devolver fallo seguro de persistencia.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/auth/LoginOfflineUseCase.kt",
+      "git_status": " M",
+      "sha256": "4ac12df789f308c5f9542534a003bd441b492a1b763cbc5a0bb50bcc8a8e4c01",
+      "bytes": 3293,
+      "motivo": "Denegar revocación conocida; hash fuera de UI y auditoría solo tras éxito final.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/auth/SeleccionarRolUseCase.kt",
+      "git_status": " M",
+      "sha256": "38b8c200ab08d53da1fbe7e9496210c1242daf764bff8e28411c9f20f4a1889a",
+      "bytes": 872,
+      "motivo": "Convertir rechazo de repositorio en Result fallido sin anunciar sesión abierta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/proveedor/ActualizarProveedorUseCase.kt",
+      "git_status": " M",
+      "sha256": "fe3cf507f926077ec2f82ad445b6570bec1e5d644f2f98423332c646b596c1bb",
+      "bytes": 2047,
+      "motivo": "Validar longitud compartida del propietario/responsable sin tocar reglas de acopio.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/proveedor/CrearProveedorUseCase.kt",
+      "git_status": " M",
+      "sha256": "faaf88b0c2431c6418dde9e1a57ff7f27341d2347f58899451f0fbb7977b8af4",
+      "bytes": 1762,
+      "motivo": "Validar longitud compartida del propietario/responsable.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/usuario/CambiarPinUsuarioUseCase.kt",
+      "git_status": " M",
+      "sha256": "06d04ad8a912a239ac1a95a2108efc478aeb3cf646add097c69dd31abb277105",
+      "bytes": 1356,
+      "motivo": "Calcular hash fuera del hilo UI sin cambiar la política de longitud pendiente.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/usuario/CrearUsuarioUseCase.kt",
+      "git_status": " M",
+      "sha256": "942ecc4cdb7f407653af4085ade4cdae30851c9126f2db54785f1c57adaa48be",
+      "bytes": 2171,
+      "motivo": "Calcular hash fuera del hilo UI conservando validaciones actuales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/usecase/usuario/GestionUsuariosUseCases.kt",
+      "git_status": " M",
+      "sha256": "59c9a2d0c9182d724892cbc52248ecca0f19fe536dce12c4d6f52bd685e83aef",
+      "bytes": 15510,
+      "motivo": "Hash fuera de UI y validación de longitud de responsable al crear ficha vinculada.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/presentation/auth/LoginViewModel.kt",
+      "git_status": " M",
+      "sha256": "4925fd5346b8a92a0eb509b9bb91d47c69f8bc27ab2ca60f7fe25fdc406acbae",
+      "bytes": 3066,
+      "motivo": "Mostrar selección fallida correctamente; no navegar como si el acceso se hubiera aprobado.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/cambioPendiente.sq",
+      "git_status": " M",
+      "sha256": "26a571bd9fc046983bbe9319af08d7039c72f473f7d232ff2447cde50bb97757",
+      "bytes": 2252,
+      "motivo": "Consultas para proteger y migrar PIN pendientes conservando fila/error/contadores.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/sesion.sq",
+      "git_status": " M",
+      "sha256": "a629e007c803127c7e53f062fee373be5b8b5e171ffe6c8810ccf71adee5e103",
+      "bytes": 1444,
+      "motivo": "Contexto de validación de sesión y limpieza por cuenta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/tokenServidor.sq",
+      "git_status": " M",
+      "sha256": "2bdc4fe49cd2b6ec9ed2e5122cf9a873c4702c60af7442e9aa2e45afeec4f4ea",
+      "bytes": 1059,
+      "motivo": "Lectura para convertir secretos existentes; comentarios precisan alcance Android.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/usuario.sq",
+      "git_status": " M",
+      "sha256": "a89c895c564f1204a523ef3bc414eddbc408311707c7cd98480ebbe543036339",
+      "bytes": 1996,
+      "motivo": "Flag de verificación requerida y consultas para revocar/confirmar confianza local.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonTest/kotlin/pe/ecolecta/domain/usecase/LoginOfflineUseCaseTest.kt",
+      "git_status": " M",
+      "sha256": "4023ec84320cbced4b7ece9822ddddede5f0c11c84b7e5f798014799365ef4ef",
+      "bytes": 3963,
+      "motivo": "Prueba C1: denegación por verificación requerida.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonTest/kotlin/pe/ecolecta/presentation/calidad/LoginCalidadFaonTest.kt",
+      "git_status": " M",
+      "sha256": "8c58738738d66b618e944ee6197ba3c176193b6584e5500799b41e91b97965b7",
+      "bytes": 6585,
+      "motivo": "Esperar fin real del login asíncrono tras mover hash fuera de UI, sin omitir aserciones.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/iosMain/kotlin/pe/ecolecta/data/local/DatabaseDriverFactory.ios.kt",
+      "git_status": " M",
+      "sha256": "622417fe7e092d2297459fd7c805edb1613211a56643d1ce6fb507dd16f7996e",
+      "bytes": 278,
+      "motivo": "Usar el mismo esquema protector de asociaciones; no acredita ejecución iOS ni Keychain.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Auth/AutenticarOperadorUseCase.php",
+      "git_status": " M",
+      "sha256": "8669c4ba4ac7b3697ae2d03c0fedb053c5ca66a87c2a1718f12a053db70e756f",
+      "bytes": 2384,
+      "motivo": "Impedir acceso de cuentas sin un rol oficial reconocido.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Movil/AplicarCambioMovilUseCase.php",
+      "git_status": " M",
+      "sha256": "0d5f692e98c122147142487d26531ad0827a0cc5bdef7697e480ee73626a590f",
+      "bytes": 22473,
+      "motivo": "Solo entidades C1: revisión previa en transacción, zona de cuenta y responsable de ficha.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Movil/ExportarDatosMovilQuery.php",
+      "git_status": " M",
+      "sha256": "3f60391c57cc4e70779dd9407da41ed5e9a904a2130cb5d445341fc19b869975",
+      "bytes": 11496,
+      "motivo": "Exportar zona/presencia, bloqueo, responsable y revisiones; limitar datos de cuenta a quien corresponde.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Proveedores/ActualizarProveedorUseCase.php",
+      "git_status": " M",
+      "sha256": "cd1749c64d63b06114415da43fa1b190d2af5dac88b59e928f5ac06eb5097afc",
+      "bytes": 1865,
+      "motivo": "Crear/actualizar responsable explícito conservando valor si cliente antiguo lo omite.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Proveedores/CrearProveedorUseCase.php",
+      "git_status": " M",
+      "sha256": "f3344911faee876a0913f8a153bf1426868b73a04a5edaa4423c6af56f7984df",
+      "bytes": 1502,
+      "motivo": "Crear/actualizar responsable explícito conservando valor si cliente antiguo lo omite.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Proveedores/DatosProveedor.php",
+      "git_status": " M",
+      "sha256": "f435fc26720c36397c2bedb6acde399149144620eb8d61ff9c7f1eb1d3d323e2",
+      "bytes": 553,
+      "motivo": "Distinguir responsable omitido de valor explícito/null.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Usuarios/ActualizarUsuarioUseCase.php",
+      "git_status": " M",
+      "sha256": "a14f448131fcf0e36ba601a69610d9450efb0166834b272dc6fa51adee9f8bac",
+      "bytes": 3364,
+      "motivo": "Propagar/validar zona de cuenta y conservarla al actualizar roles y datos; reglas C1.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Usuarios/CrearUsuarioUseCase.php",
+      "git_status": " M",
+      "sha256": "2dcd255594555266d8882e5058066dbe366360e1a6dfcf27c56154284a9b9ab3",
+      "bytes": 1945,
+      "motivo": "Propagar/validar zona de cuenta y conservarla al actualizar roles y datos; reglas C1.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Usuarios/ValidaDatosUsuario.php",
+      "git_status": " M",
+      "sha256": "28d3e6c785a873033d3c46b68b6569c23fc20b2e8f7cf7988844922b7e7a654b",
+      "bytes": 2061,
+      "motivo": "Reglas de asignación zona y separación proveedor/personal; conservar mezclas heredadas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Vehiculos/CambiarEstadoVehiculoUseCase.php",
+      "git_status": " M",
+      "sha256": "1d7a0c22852aaa7fb98099f7176dee66ffd66a5ea3643c899e83d5d9366965e6",
+      "bytes": 844,
+      "motivo": "Rechazar desactivación con jornada abierta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Zonas/CambiarEstadoZonaUseCase.php",
+      "git_status": " M",
+      "sha256": "e882e673d7254dc6b55640e235fea6e579e38c1ebd8e9818b07ec09a7cd41223",
+      "bytes": 1204,
+      "motivo": "Rechazar desactivación con proveedores, cuentas asignadas o jornada abierta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Domain/Proveedores/Proveedor.php",
+      "git_status": " M",
+      "sha256": "1853f39eb34530fec1ac668291a02d47b5691fbdbe43b821abc16d8ec781d9da",
+      "bytes": 6449,
+      "motivo": "Responsable opcional conservado en todas las copias del agregado.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Domain/Usuarios/Rol.php",
+      "git_status": " M",
+      "sha256": "ffaa90456a70ac5b5f006618545eefa1989f5184ca4ca0c18b7ee08fbea80217",
+      "bytes": 938,
+      "motivo": "Solo cuatro roles oficiales; acceso móvil reconocido y panel limitado por perfil.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Domain/Usuarios/Usuario.php",
+      "git_status": " M",
+      "sha256": "48569ebe6459bd0cd439fccfb030f372a8db743ffb620bac62ff4b0b7f048e42",
+      "bytes": 7388,
+      "motivo": "Zona conservada al copiar estados/PIN/roles de cuenta; solo perfiles oficiales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Domain/Vehiculos/VehiculoRepositoryInterface.php",
+      "git_status": " M",
+      "sha256": "987edc3a8d003e20130dab542cc775011e5aff05b29fd9419ffc55ae1cb348b9",
+      "bytes": 461,
+      "motivo": "Contrato para consultar si existe uso en jornada abierta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Domain/Zonas/ZonaRepositoryInterface.php",
+      "git_status": " M",
+      "sha256": "150b5eb8b2c105ab72cb5d1b74c52bc9d19ce6bfdce7f112088cb8bf9cab608b",
+      "bytes": 547,
+      "motivo": "Contratos para comprobar referencias antes de desactivar.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Controllers/Admin/UsuarioController.php",
+      "git_status": " M",
+      "sha256": "4f6121827fd9ac9e07597cbcb10bbbfd4ac1d0b12789e468b16b9ecfe0d8443f",
+      "bytes": 7432,
+      "motivo": "Validar/guardar zona y ofrecer cuatro roles oficiales en altas/ediciones.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Controllers/Admin/VehiculoController.php",
+      "git_status": " M",
+      "sha256": "6e01973ff15f4fef078a06971770a1472b3a040a3e0252c366b4a725707c46ca",
+      "bytes": 2820,
+      "motivo": "Validar estado solicitado y presentar rechazo de guarda sin error 500.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Controllers/Admin/ZonaController.php",
+      "git_status": " M",
+      "sha256": "4ce2b220760837f4f4e413635e3597de77279ddbcbc5b42c715f70e25911d4e1",
+      "bytes": 2455,
+      "motivo": "Validar estado y presentar rechazo de referencias de forma coherente.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Controllers/Api/MovilController.php",
+      "git_status": " M",
+      "sha256": "bcbfdeeb0c2dedd8fdf836956cf5f4cb6b5d1ee26e1031fc521801b3699652cd",
+      "bytes": 16181,
+      "motivo": "Validar únicamente roles oficiales y nuevos campos C1; devolver estado de cuenta/asignación.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Middleware/AutenticarTokenMovil.php",
+      "git_status": " M",
+      "sha256": "0153a45b5f0d470a107bc00f9e9e2f35341d596b2cc4bbd4aaae6391a403fd56",
+      "bytes": 1849,
+      "motivo": "Rechazar cuenta sin perfil oficial, además de controles existentes.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Http/Requests/Admin/StoreProveedorRequest.php",
+      "git_status": " M",
+      "sha256": "8484cd22e8cd44ff1d185a0e60c76e9717ed7af8f9d43d4e8f76656488fc8813",
+      "bytes": 1592,
+      "motivo": "Validar responsable opcional máximo 150 caracteres.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Proveedor.php",
+      "git_status": " M",
+      "sha256": "474e3e922e9a7d55e5500665113da03148a9ff76cbf885fc8bda0d3177c37260",
+      "bytes": 1316,
+      "motivo": "Persistir campo responsable en modelo Eloquent.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Repositories/EloquentProveedorRepository.php",
+      "git_status": " M",
+      "sha256": "c9675f9258497196510f7efb492918fedfc655b650bce4f8c03993c26b38f3e7",
+      "bytes": 4981,
+      "motivo": "Propagar responsable entre dominio y persistencia.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Repositories/EloquentUsuarioRepository.php",
+      "git_status": " M",
+      "sha256": "802de4a210937d09b6e6dea49b96ea4ed07bcde086c7e784c8de46e084f2ee3f",
+      "bytes": 6045,
+      "motivo": "Propagar zona y omitir roles desconocidos de forma segura sin convertir cuentas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Repositories/EloquentVehiculoRepository.php",
+      "git_status": " M",
+      "sha256": "380578dc389913f397584ebc90851a40700feb29d2b5524711fed0ee04278d5a",
+      "bytes": 2254,
+      "motivo": "Consultar jornada abierta para guarda C1 sin alterar lógica C2.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Repositories/EloquentZonaRepository.php",
+      "git_status": " M",
+      "sha256": "25d896cd4d565a9396de6eb973694d27672f89b80c9555ee2282581beeb6e6f6",
+      "bytes": 2443,
+      "motivo": "Consultar referencias activas para guarda C1 sin alterar lógica C2.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/TokenMovil.php",
+      "git_status": " M",
+      "sha256": "b754aaae587af7be2f1219bbb03c279e243cb76cd73c8569af9887b0048dc4b2",
+      "bytes": 5353,
+      "motivo": "No renovar tokens de cuentas sin un rol oficial.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Infrastructure/Persistence/Eloquent/Usuario.php",
+      "git_status": " M",
+      "sha256": "a2b404b2c7a962a3f7528dcdd1c28cd0e696d6c606574aa730a08789f3a96839",
+      "bytes": 2690,
+      "motivo": "Persistir zona y reconocer solo roles oficiales para autorización, sin perder cuenta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/config/permisos.php",
+      "git_status": " M",
+      "sha256": "020970bcc83ad1846e3ceac83198a103728a4cf4eec35c29f0ce445b58bef31e",
+      "bytes": 2861,
+      "motivo": "Retirar roles obsoletos, mantener permisos previos de cuatro perfiles y acceso Admin a módulos existentes.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/database/seeders/EscenarioPeruDemoSeeder.php",
+      "git_status": " M",
+      "sha256": "94b84ae57002caaf2108645aec320995847acd3777911bdd1451d8e7c1fc4646",
+      "bytes": 12036,
+      "motivo": "Solo sección de cuentas C1: dejar de crear perfiles retirados; no borrar usuarios existentes.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/resources/views/admin/proveedores/form.blade.php",
+      "git_status": " M",
+      "sha256": "ef36932199c1e23fa475bc4a3d6cea309a7d42a0d8c6751553cedb20df688bf5",
+      "bytes": 7657,
+      "motivo": "Campo propietario/responsable opcional separado de nombre productivo y cuenta.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/resources/views/admin/usuarios/form.blade.php",
+      "git_status": " M",
+      "sha256": "d55bd24af43daa73e030dc0cc6897c43512b623c52a72c1e532d8ef4bfeee805",
+      "bytes": 4510,
+      "motivo": "Cuatro casillas de roles y selector de zona; sin etiquetas obsoletas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/resources/views/admin/usuarios/index.blade.php",
+      "git_status": " M",
+      "sha256": "ee68f9c4ad2cf5c3a61b7645bdaeecf0d42f40ef325573481bf60f9ba02199c2",
+      "bytes": 12189,
+      "motivo": "No anunciar acceso móvil a cuentas sin rol; señalar asignación necesaria.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminEntregasPanelTest.php",
+      "git_status": " M",
+      "sha256": "d284d4f8ec090e4c11f7ea4d98012509484f6ce52257fd58e7bf46cf0428e9d2",
+      "bytes": 7007,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminLiquidacionDetalleTest.php",
+      "git_status": " M",
+      "sha256": "b7d59203912007ce1b948ff4f5d897c391e1ef092377a935d4dfc36e53d6ec08",
+      "bytes": 6436,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminNavegacionYPermisosTest.php",
+      "git_status": " M",
+      "sha256": "9efbf94d86f6f2709121498bdab1f9beb55ce416d500016963e99991b0da2603",
+      "bytes": 5308,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminProveedoresPanelTest.php",
+      "git_status": " M",
+      "sha256": "e67a78ff9cd731d0906efd7de28e8b56d1dea92b904a2cac52cbf19ce3fb77ad",
+      "bytes": 10607,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminUsuariosModuleTest.php",
+      "git_status": " M",
+      "sha256": "7dc3a12b71a1a5fc5ac975a899b2d28905152c78dbd22e6680f730288b168439",
+      "bytes": 10610,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AdminZonasRutasVehiculosTest.php",
+      "git_status": " M",
+      "sha256": "56bba63dbdcf14c41e7ec751f1aff48e10e6aa1d12e3740626a2bcd23587a58e",
+      "bytes": 6510,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AuditoriaSeguridadTest.php",
+      "git_status": " M",
+      "sha256": "ad65b1b781da7ba7f3c4e0d332387c8bcffa5158de80e77101d6530faa13ed08",
+      "bytes": 12618,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/CambiosMovilTest.php",
+      "git_status": " M",
+      "sha256": "09a139b8a95355118e597c7785488dd4a223ae45cbfc1e641927fc432fc14aca",
+      "bytes": 11459,
+      "motivo": "Prueba automatizada C1: fixtures/aserciones de permisos adaptados a los cuatro roles aprobados, sin modificar reglas del módulo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "androidApp/src/androidTest/kotlin/pe/ecolecta/qa/VerificacionCoder1Instrumentada.kt",
+      "git_status": "??",
+      "sha256": "98950c1c7c4575043ab672e631322d7f490d1f19de8f1b7fc3324a52586db1a0",
+      "bytes": 13206,
+      "motivo": "Siete comprobaciones reales en preview/local; bases QA separadas y capturas, sin simular pulsaciones.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/android-administrador.png",
+      "git_status": "??",
+      "sha256": "522135eef4b198c070b9beee6b3016719677daefbfd4dec4adb3593d85f395ea",
+      "bytes": 33052,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/android-login.png",
+      "git_status": "??",
+      "sha256": "38608897d44abef0e04bc2916a3e76729ca9ccdbb14a58921ae9f19a5845cd18",
+      "bytes": 59727,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/android-nativo.json",
+      "git_status": "??",
+      "sha256": "14ddeb13a0f7ba4fa7b3cac498c2e59adada4ef80a7439dab4d7297640f17391",
+      "bytes": 5796,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/android-reapertura.png",
+      "git_status": "??",
+      "sha256": "74bd9388c244632c0c76e2e3ce998fc0e17cf1e0bc2a1c8a1b2129c0b2a01928",
+      "bytes": 126673,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/artefactos-locales.json",
+      "git_status": "??",
+      "sha256": "ff0706c101d5021b76574618c5c2adc44febb780132739409210db33cd5a578e",
+      "bytes": 533,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/build.json",
+      "git_status": "??",
+      "sha256": "d41fa5fed6706fe7679aaa9d8359a2458211e1e1bae34c2a8e89d0ab41a2dcd3",
+      "bytes": 535,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/build.txt",
+      "git_status": "??",
+      "sha256": "b4fdc1edf831923c153e8634ea97295821c234abefbe600099ab274ba0a49231",
+      "bytes": 7305,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/herramientas.txt",
+      "git_status": "??",
+      "sha256": "3724d64f4cb60b9486632803b9c71f7b1846ccdf028688b82efbcd3d846e4d59",
+      "bytes": 3917,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/kotlin.json",
+      "git_status": "??",
+      "sha256": "5aa2740266b56a4212362be4e40486860cfcc8e245b8d6085ddff4d8a83c67fd",
+      "bytes": 56013,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/kotlin.txt",
+      "git_status": "??",
+      "sha256": "e189291e392e5523b52a76b8063954d0d1cd10ba88236fea4f947dd9c4d168dc",
+      "bytes": 8624,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/logcat.json",
+      "git_status": "??",
+      "sha256": "e32520b7978e4cbf025d6f3ee0eaa92b7eafa21d239871ee0852aaec4631d0f6",
+      "bytes": 735,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/phpunit.json",
+      "git_status": "??",
+      "sha256": "7292707fe1dcb57d49a8ad36b67567917022a1192d9854ec92e48e870edcbc5f",
+      "bytes": 55811,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/phpunit.txt",
+      "git_status": "??",
+      "sha256": "c2a43022a33bd4f4c5b62de30cd47ef18cd85cfec1197b2fda46fc65f2904d8e",
+      "bytes": 99,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/web-altas-android.png",
+      "git_status": "??",
+      "sha256": "5f694a70696913f92e9c22fb0bda6bd0729503b4ebdce34a355fe6aea2e2adc1",
+      "bytes": 67016,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/web-calidad-zona.png",
+      "git_status": "??",
+      "sha256": "2464e2e33d7d334351a390cb580b22d5b9fd2e0074159d74e641d2ce5784bfd3",
+      "bytes": 66163,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/web-cuatro-roles.png",
+      "git_status": "??",
+      "sha256": "868bfe1cf7d0f11428dcc0f339de86e40c8295d6b3539291dc47b59367b8833d",
+      "bytes": 34464,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/pruebas/evidencias/coder1-2026-10-25/web-zona-protegida.png",
+      "git_status": "??",
+      "sha256": "51d80fca825ec8a0f4689081fde85322d809d8de4fa613f397db96d659190c29",
+      "bytes": 37486,
+      "motivo": "Evidencia C1 real y local: recibo, salida, captura o metadatos; sin APK/DB ni credenciales reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "docs/tecnica/coder1-implementacion.md",
+      "git_status": "??",
+      "sha256": "5e71d51ed85343c6eaf2786532c102b1dda57e9062c1bcdc33b39efc39698f88",
+      "bytes": 25836,
+      "motivo": "Informe solicitado A–H, decisión vigente, 12 tareas, resultados y tutoriales con pendientes reales.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/AccesoRemotoCoder1Test.kt",
+      "git_status": "??",
+      "sha256": "9f05ce67230646b0b885b954f00d3f1457e99b41a3ceec0cb22c202f6d0a8e4b",
+      "bytes": 5828,
+      "motivo": "Prueba C1: fallback de red, revocación, almacenamiento fallido y auditoría.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CatalogosDescargaCoder1Test.kt",
+      "git_status": "??",
+      "sha256": "a75be3ca95b62bd41262bc616fd6f900a3e4786ecd19954a20e976285160bb59",
+      "bytes": 8405,
+      "motivo": "Prueba C1: zona, vínculo null, pendientes, código por ID y dueño.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/CredencialesProtegidasCoder1Test.kt",
+      "git_status": "??",
+      "sha256": "5c307e911dd78f14f69f6d6e63fb4b2a6f0fdb85c77be33301efe2b29a5298d2",
+      "bytes": 4576,
+      "motivo": "Prueba C1: PIN/tokens protegidos y fallo cerrado.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/MigracionRolesCoder1Test.kt",
+      "git_status": "??",
+      "sha256": "a7fb190f18c3f7e871aa5fef81130d1f314caf4d42456b307668be06d417317e",
+      "bytes": 4284,
+      "motivo": "Prueba C1: archivo de roles y relaciones desde esquemas 8/10.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/ProtectorSecretosPrueba.kt",
+      "git_status": "??",
+      "sha256": "f7a2f7be550ad5bd0c5c981b48529e4557e541921b11cba7e5654338de08ae7c",
+      "bytes": 1482,
+      "motivo": "Protector JVM solo para tests; no se presenta como prueba de Android Keystore.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/kotlin/pe/ecolecta/data/SesionPersistidaTest.kt",
+      "git_status": "??",
+      "sha256": "d9c4ad0017725583c8aea7bc55983609dbf95b19ddce0b31239000564ee90726",
+      "bytes": 4782,
+      "motivo": "Prueba C1: revalidación, rol retirado, cuenta desactivada/bloqueada y errores de selección.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidHostTest/resources/coder1/esquema-8.sql",
+      "git_status": "??",
+      "sha256": "89a79af018fb6e0d01d2cb4d0dba3a4277e5684c11e3b1d4b1a04aecc3a12a3d",
+      "bytes": 7522,
+      "motivo": "DDL histórico sin datos personales, usado para probar migración real desde esquema antiguo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidMain/kotlin/pe/ecolecta/data/security/ProteccionCredencialesLocales.kt",
+      "git_status": "??",
+      "sha256": "562e77ac3211f8dcbaf6bda963a6e9b64f01c0aa91d66ba01158225ee32b60fc",
+      "bytes": 1449,
+      "motivo": "Convertir filas PIN/token anteriores de manera transaccional e idempotente sin perder pendientes.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/androidMain/kotlin/pe/ecolecta/data/security/ProtectorSecretosKeystore.kt",
+      "git_status": "??",
+      "sha256": "166d4df9db851ddfb24b7f8afefc39613252ab8c63d483b56f8c07696820ada2",
+      "bytes": 2696,
+      "motivo": "AES-GCM con clave Android Keystore no exportable, nonce y contexto por cuenta/tipo.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/data/local/SchemaCuentasSeguras.kt",
+      "git_status": "??",
+      "sha256": "4d95459f0cb00f58f7672af6c849a0d0df868addd76c7acc3ae7f5042d3737b6",
+      "bytes": 1802,
+      "motivo": "Archivar asociaciones de roles antes de la migración histórica 10, sin reescribirla.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/pe/ecolecta/domain/security/ProtectorSecretos.kt",
+      "git_status": "??",
+      "sha256": "2e4ce84235fb23a19ce700deb0fca10c80e718569b48f2755d0f465f5499d883",
+      "bytes": 773,
+      "motivo": "Contrato de cifrado y fallo cerrado si falta adaptador; excepción segura sin secretos.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/18.sqm",
+      "git_status": "??",
+      "sha256": "304b27fa50cc01ef2015204f653298d340cb390dfeb000efa4d7ddac8d7a1ef5",
+      "bytes": 172,
+      "motivo": "Agregar requiere_verificacion sin eliminar datos.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/19.sqm",
+      "git_status": "??",
+      "sha256": "d12262d7d68613ba534c1aeb3efa45ece2fffda6c4c1bca4e2507099498d819f",
+      "bytes": 720,
+      "motivo": "Archivar roles no oficiales y retirar asociaciones/sesiones inválidas; conservar cuentas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/20.sqm",
+      "git_status": "??",
+      "sha256": "3734dadd9ba777a42c0281d4e716ccc19c68e01cb594f39d849bd1531a56365e",
+      "bytes": 262,
+      "motivo": "Agregar persistencia de revisión base de catálogos.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/usuarioRolPendiente.sq",
+      "git_status": "??",
+      "sha256": "d7d6c6ba7f6011c3f2387fc57d425f4c3626644ee8c506711e05619fb2825f5c",
+      "bytes": 326,
+      "motivo": "Acceso al archivo exacto de asociaciones retiradas.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonMain/sqldelight/pe/ecolecta/db/versionCatalogo.sq",
+      "git_status": "??",
+      "sha256": "7cce293fe06f4864a4599174bf93fc92fc999b26daf36758a237b555d25b99f7",
+      "bytes": 400,
+      "motivo": "Guardar y consultar revisión base confirmada por entidad/ID.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "shared/src/commonTest/kotlin/pe/ecolecta/domain/usecase/CerrarSesionUseCaseTest.kt",
+      "git_status": "??",
+      "sha256": "434c6d4230a3183225df3eddeb30f06616ef17f45c919de24beee5e4626c7674",
+      "bytes": 2111,
+      "motivo": "Prueba C1: cierre primero local y revocación remota.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/app/Application/Movil/RevisionCatalogo.php",
+      "git_status": "??",
+      "sha256": "8305bc346b4b895a80603d077da8cb222f2561a6ad940d13902067a8753ef0c8",
+      "bytes": 5670,
+      "motivo": "Huella de estado no secreto, control concurrente C1 e idempotencia al repetir el mismo estado.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/database/migrations/2026_10_25_230000_add_zona_id_to_usuarios_table.php",
+      "git_status": "??",
+      "sha256": "91ed04019ae46cb9e042848e523ed6bce97c0f7a19588da8fdfba8cc0accb0bd",
+      "bytes": 569,
+      "motivo": "Zona nullable/FK restrictiva y migración aditiva.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/database/migrations/2026_10_25_231000_archive_roles_retirados_usuarios.php",
+      "git_status": "??",
+      "sha256": "f8e37229a1ca5db0076bac8b59989c1f2d3b5e9fc8bc0a2249a8c3b0eedef148",
+      "bytes": 3339,
+      "motivo": "Archivo de roles exactos, preservación de cuenta/relaciones y reversión que no pisa asignaciones posteriores.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/database/migrations/2026_10_25_232000_add_dueno_to_proveedores_table.php",
+      "git_status": "??",
+      "sha256": "e9ceb6595a337f1626e489cf9c4d1c9bef5bd37e53c1e476f9069af15a201f00",
+      "bytes": 517,
+      "motivo": "Campo responsable opcional compartido; migración aditiva.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/AsignacionZonaCoder1Test.php",
+      "git_status": "??",
+      "sha256": "db525d6b3e87d9a6541c3a1503fb2ab816006e8141d49725c653973c05ac1e04",
+      "bytes": 5770,
+      "motivo": "Prueba automatizada C1: asignación/reasignación/presencia y permisos de zona.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/CamposProveedorCoder1Test.php",
+      "git_status": "??",
+      "sha256": "f1abf32dcfc80c77523576662cc3448277dc37f7d7034dbb7dc35aab1da80f32",
+      "bytes": 3641,
+      "motivo": "Prueba automatizada C1: propietario, omisión compatible y validación.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/ConcurrenciaCatalogosCoder1Test.php",
+      "git_status": "??",
+      "sha256": "b7df601fdf8ea60e1d6acfe6c8642fc3e4aa5e5009bc3c2dd7aa2eb2282a2d78",
+      "bytes": 5585,
+      "motivo": "Prueba automatizada C1: revisión obsoleta, mismo estado idempotente y aislamiento de secretos.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/ProteccionCatalogosCoder1Test.php",
+      "git_status": "??",
+      "sha256": "fc82122edf603322fe295756f04e41d1cbc2098e2cd736f57e019d8ac78b31d5",
+      "bytes": 5346,
+      "motivo": "Prueba automatizada C1: referencias de zonas/vehículos y rollback API.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    },
+    {
+      "path": "web/tests/Feature/RolesCompatiblesCoder1Test.php",
+      "git_status": "??",
+      "sha256": "d3ae507801390f92e33ce82381892b79e93093878b7d68701892d0250b8db413",
+      "bytes": 8394,
+      "motivo": "Prueba automatizada C1: cuatro roles, rechazo de retirados, archivo/reversión y acceso Admin conservado.",
+      "alcance": "Solo infraestructura/pruebas/documentación C1; sin reglas productivas C2/C3/C4"
+    }
+  ]
+}

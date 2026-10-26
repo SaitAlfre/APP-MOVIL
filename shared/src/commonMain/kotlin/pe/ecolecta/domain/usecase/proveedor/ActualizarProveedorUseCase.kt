@@ -23,10 +23,15 @@ class ActualizarProveedorUseCase(
         estado: EstadoProveedor,
         dueno: String? = null,
     ): Result<Unit> {
+        if (dueno != null && dueno.trim().length > 150) return Result.failure(IllegalArgumentException("El propietario o responsable admite hasta 150 caracteres."))
         val anterior = proveedorRepository.obtenerPorId(id)
+        if (anterior == null) return Result.failure(IllegalArgumentException("La ficha de proveedor ya no existe."))
+        if (codigoActual.trim() != anterior.codigo && proveedorRepository.existeCodigo(codigoActual.trim(), id)) {
+            return Result.failure(ProveedorInvalidoException.CodigoDuplicado)
+        }
         // Solo se valida si el documento cambia: hay fichas antiguas con documento repetido y, si no,
         // no se podría corregir ni su teléfono. Un documento nuevo sí debe ser único.
-        if (dni.trim() != anterior?.dni && proveedorRepository.existeDni(dni.trim(), id)) {
+        if (dni.trim() != anterior.dni && proveedorRepository.existeDni(dni.trim(), id)) {
             return Result.failure(ProveedorInvalidoException.DniDuplicado)
         }
         val proveedor = Proveedor.crear(
@@ -42,8 +47,8 @@ class ActualizarProveedorUseCase(
             estado = estado,
             updatedAt = reloj.ahora().toEpochMilliseconds(),
         ).getOrElse { return Result.failure(it) }.copy(
-            dueno = if (dueno == null) anterior?.dueno else dueno.trim().ifBlank { null },
-            usuarioId = anterior?.usuarioId,
+            dueno = if (dueno == null) anterior.dueno else dueno.trim().ifBlank { null },
+            usuarioId = anterior.usuarioId,
         )
 
         return runCatching { proveedorRepository.actualizar(proveedor) }

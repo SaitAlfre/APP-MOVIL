@@ -1,0 +1,22 @@
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-web-a-android Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-01-perfil-y-usuarios Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-02-zona-formulario-y-error Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-03-vehiculo-formulario-y-error Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-04-ficha-proveedor Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=INT-C1-ui-android-web Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-rol-acopiador Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-rol-calidad Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-rol-proveedor Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: coder1_check=UI-C1-rol-admin Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"INT-C1-web-a-android","estado":"Passed"},{"id":"UI-C1-01-perfil-y-usuarios","estado":"Passed"},{"id":"UI-C1-02-zona-formulario-y-error","estado":"Passed"},{"id":"UI-C1-03-vehiculo-formulario-y-error","estado":"Passed"},{"id":"UI-C1-04-ficha-proveedor","estado":"Passed"},{"id":"INT-C1-ui-android-web","estado":"Passed"},{"id":"UI-C1-rol-acopiador","estado":"Passed"},{"id":"UI-C1-rol-calidad","estado":"Passed"},{"id":"UI-C1-rol-proveedor","estado":"Passed"},{"id":"UI-C1-rol-admin","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-perfil.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-usuarios.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-formulario.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-cuenta-rechazada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-zona-rechazada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-zona-creada.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-vehiculo-rechazado.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-vehiculo-creado.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-proveedor-formulario.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-envio-confirmado.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-acopiador.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-calidad.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-proveedor.png","\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-ui-admin.png"],"prefijoFicticio":"","ui":"Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio"}
+INSTRUMENTATION_CODE: -1

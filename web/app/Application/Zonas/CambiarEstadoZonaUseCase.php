@@ -20,6 +20,18 @@ final class CambiarEstadoZonaUseCase
             throw new RuntimeException('La zona no existe.');
         }
 
+        if (! $activo) {
+            if ($this->zonas->tieneProveedoresActivos($zonaId)) {
+                throw new RuntimeException('No se puede desactivar: hay proveedores activos en esta zona.');
+            }
+            if ($this->zonas->tieneJornadasAbiertas($zonaId)) {
+                throw new RuntimeException('No se puede desactivar: hay una jornada abierta en esta zona.');
+            }
+            if ($this->zonas->tieneCuentasAsignadas($zonaId)) {
+                throw new RuntimeException('No se puede desactivar: hay cuentas con esta zona asignada. Reasígnalas en Usuarios y roles.');
+            }
+        }
+
         return $this->zonas->guardar($zona->conEstado($activo));
     }
 }

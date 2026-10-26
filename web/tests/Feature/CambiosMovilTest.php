@@ -58,7 +58,7 @@ class CambiosMovilTest extends TestCase
         $this->assertDatabaseHas('vehiculos', ['placa' => 'ABC-123', 'nombre' => 'Isuzu']);
     }
 
-    public function test_una_cuenta_creada_en_la_app_entra_al_panel_y_conserva_sus_roles_solo_web(): void
+    public function test_cuenta_movil_conserva_roles_retirados_en_archivo_sin_asignarlos(): void
     {
         $token = $this->token('admin_app');
         $datos = ['username' => 'nuevo_app', 'nombres' => 'Lucía Ramos Mamani', 'dni' => '99007777', 'roles' => ['ACOPIADOR'], 'activo' => true, 'pin' => '2468'];
@@ -67,8 +67,9 @@ class CambiosMovilTest extends TestCase
         $this->token('nuevo_app', '2468');
 
         Usuario::query()->whereKey($id)->update(['roles' => ['acopiador', 'produccion']]);
-        $this->cambiar($token, 'usuario', [...$datos, 'servidorId' => $id, 'roles' => ['ACOPIADOR', 'CALIDAD'], 'pin' => null])->assertOk();
-        $this->assertEqualsCanonicalizing(['acopiador', 'calidad', 'produccion'], Usuario::query()->findOrFail($id)->roles);
+        (require database_path('migrations/2026_10_25_231000_archive_roles_retirados_usuarios.php'))->up();
+        $this->cambiar($token, 'usuario', [...$datos, 'servidorId' => $id, 'roles' => ['ACOPIADOR'], 'pin' => null])->assertOk();
+        $this->assertEqualsCanonicalizing(['acopiador'], Usuario::query()->findOrFail($id)->roles);
 
         $this->cambiar($token, 'usuario', [...$datos, 'username' => 'sin_pin', 'pin' => null])
             ->assertUnprocessable()->assertJsonPath('codigo', 'pin_requerido');
@@ -137,7 +138,7 @@ class CambiosMovilTest extends TestCase
         // Sin entrega todavía: el análisis igual se guarda; la entrega se califica cuando llega.
         $id = $this->cambiar($token, 'calidad', $datos)->assertOk()->json('id');
         $this->cambiar($token, 'calidad', $datos)->assertOk()->assertJsonPath('id', $id);
-        $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()->subHour()]);
+        $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()]);
 
         $analisis = AnalisisCalidad::query()->sole();
         $this->assertSame('cc-1', $analisis->uuid);

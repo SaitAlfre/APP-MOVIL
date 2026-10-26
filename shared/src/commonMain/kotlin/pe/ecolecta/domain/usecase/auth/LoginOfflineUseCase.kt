@@ -1,5 +1,7 @@
 package pe.ecolecta.domain.usecase.auth
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pe.ecolecta.domain.model.AccionAuditoria
 import pe.ecolecta.domain.DeviceIdProvider
 import pe.ecolecta.domain.PinInvalidoException
@@ -28,11 +30,12 @@ class LoginOfflineUseCase(
         const val BLOQUEO_MINUTOS = 5
     }
 
-    suspend operator fun invoke(username: String, pin: String): Result<Usuario> {
+    suspend operator fun invoke(username: String, pin: String, registrarAuditoria: Boolean = true): Result<Usuario> {
         val usuario = usuarioRepository.obtenerPorUsername(username.trim())
             ?: return Result.failure(PinInvalidoException.Incorrecto)
 
         if (!usuario.activo) return Result.failure(PinInvalidoException.Inactivo)
+        if (usuario.requiereVerificacion) return Result.failure(PinInvalidoException.RequiereConexion)
 
         val ahoraMs = reloj.ahora().toEpochMilliseconds()
         val bloqueadoHasta = usuario.bloqueadoHasta
@@ -40,7 +43,7 @@ class LoginOfflineUseCase(
             return Result.failure(PinInvalidoException.Bloqueado(bloqueadoHasta))
         }
 
-        val pinValido = pinHasher.verificar(pin, usuario.pinSalt, usuario.pinHash)
+        val pinValido = withContext(Dispatchers.Default) { pinHasher.verificar(pin, usuario.pinSalt, usuario.pinHash) }
         if (!pinValido) {
             usuarioRepository.registrarIntentoFallido(usuario.id, ahoraMs)
             if (usuario.intentosFallidos + 1 >= MAX_INTENTOS) {
@@ -49,8 +52,14 @@ class LoginOfflineUseCase(
             return Result.failure(PinInvalidoException.Incorrecto)
         }
 
+        if (usuario.roles.isEmpty()) return Result.failure(PinInvalidoException.SinPerfilMovil)
         usuarioRepository.resetIntentos(usuario.id, ahoraMs)
 
+        if (registrarAuditoria) registrarAcceso(usuario)
+        return Result.success(usuario.copy(intentosFallidos = 0, bloqueadoHasta = null))
+    }
+
+    suspend fun registrarAcceso(usuario: Usuario) {
         auditoriaRepository.insertar(
             Auditoria(
                 id = nuevoId(),
@@ -61,12 +70,11 @@ class LoginOfflineUseCase(
                 valorDespues = null,
                 motivo = null,
                 usuarioId = usuario.id,
-                ocurridoEn = ahoraMs,
+                ocurridoEn = reloj.ahora().toEpochMilliseconds(),
                 deviceId = deviceIdProvider.obtenerId(),
                 syncState = SyncState.PENDING,
             ),
         )
 
-        return Result.success(usuario.copy(intentosFallidos = 0, bloqueadoHasta = null))
     }
 }

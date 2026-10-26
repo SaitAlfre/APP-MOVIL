@@ -2,6 +2,8 @@
 
 [Inicio del repositorio](../README.md)
 
+**[Informe completo de Ecolactea Digital en Word](academico/informe-ecolactea-digital.docx)** — informe académico de todo el proyecto, con corte de evidencia y pendientes explícitos. [Campaña manual T12 de Coder 1](pruebas/ejecuciones/coder1-t12-manual.md): veinte casos para ejecutar y revisar uno por uno.
+
 **Actualización:** 2026-10-23. **Scrum como marco principal + prácticas Kanban.** El proceso está preparado para adopción; los acuerdos del equipo y buena parte de su ejecución **no están acreditados**. Código presente no significa Done. Corte de evidencia histórica Git: 2026-10-19.
 
 ## Empezar aquí
@@ -50,6 +52,10 @@ Histórico analítico: [S01](scrum/sprint-1.md), [S02](scrum/sprint-2.md), [S03]
 - Notas funcionales con versión: [administración móvil](tecnica/administracion-movil.md), [calidad móvil](tecnica/calidad-movil.md) y [portal del proveedor](tecnica/portal-proveedor-movil.md). Conservan descripciones útiles de versiones anteriores; no son requisitos ni resultados de pruebas nuevos.
 - [Acceso y datos ficticios](pruebas/acceso-y-datos-de-prueba.md): preparar cuentas por perfil sin publicar secretos.
 - Para ejecutar o repetir una comprobación, usar la [guía de pruebas](pruebas/README.md); para registrar el obtenido, una [nueva ejecución](plantillas/ejecucion-prueba.md). Los archivos de evidencia no se mueven ni se sobrescriben.
+
+### Implementación local de Coder 1
+
+[Decisiones, mejoras, pruebas y tutoriales de usuarios, roles y catálogos](tecnica/coder1-implementacion.md). Incluye la decisión del equipo del 25-10-2026 sobre los cuatro roles oficiales y distingue lo comprobado de lo pendiente.
 
 ## Entrega académica y continuidad
 

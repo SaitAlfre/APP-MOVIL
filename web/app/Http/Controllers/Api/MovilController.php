@@ -6,6 +6,7 @@ use App\Application\Auth\AutenticarOperadorUseCase;
 use App\Application\Entregas\SincronizarEntregaMovilUseCase;
 use App\Application\Movil\AplicarCambioMovilUseCase;
 use App\Application\Movil\ExportarDatosMovilQuery;
+use App\Application\Movil\RevisionCatalogo;
 use App\Domain\Auth\Exceptions\CuentaBloqueadaException;
 use App\Domain\Auth\Exceptions\CuentaInactivaException;
 use App\Domain\Entregas\Exceptions\EntregaMovilRechazadaException;
@@ -19,6 +20,7 @@ use App\Infrastructure\Persistence\Eloquent\TokenMovil;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
@@ -48,6 +50,12 @@ class MovilController extends Controller
         }
 
         $usuario = Usuario::query()->where('username', $datos['username'])->firstOrFail();
+        if (array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? []) === []) {
+            return response()->json([
+                'message' => 'Esta cuenta no tiene un perfil móvil compatible. Sus roles se conservan; consulta al administrador.',
+                'codigo' => 'perfil_no_disponible',
+            ], 403);
+        }
         [$registro, $token, $refreshToken] = TokenMovil::emitir($usuario, $datos['dispositivo'] ?? null);
 
         Auditoria::query()->create([
@@ -88,6 +96,8 @@ class MovilController extends Controller
                 'id' => $usuario->id, 'username' => $usuario->username, 'nombres' => $usuario->nombres,
                 'dni' => (string) $usuario->dni, 'activo' => (bool) $usuario->activo,
                 'roles' => array_values(array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? [])),
+                'zonaId' => $usuario->zona_id, 'asignacionZonaIncluida' => true,
+                'bloqueado' => $usuario->estaBloqueada(),
             ],
         ])->header('Cache-Control', 'no-store')->header('Pragma', 'no-cache');
     }
@@ -121,7 +131,15 @@ class MovilController extends Controller
         auth('operador')->setUser($autor);
 
         try {
-            $id = $aplicar->ejecutar($autor, $entidad, $datos);
+            if (in_array($entidad, ['zona', 'vehiculo', 'usuario', 'proveedor'], true)) {
+                $confirmacion = DB::transaction(function () use ($aplicar, $autor, $entidad, $datos) {
+                    $id = $aplicar->ejecutar($autor, $entidad, $datos);
+
+                    return ['id' => $id, 'revision' => RevisionCatalogo::confirmada($entidad, $id)];
+                });
+            } else {
+                $confirmacion = ['id' => $aplicar->ejecutar($autor, $entidad, $datos)];
+            }
         } catch (CambioMovilRechazadoException $e) {
             return response()->json(['message' => $e->getMessage(), 'codigo' => $e->codigo, 'definitivo' => $e->definitivo], $e->estadoHttp);
         } catch (\DomainException|RuntimeException|\InvalidArgumentException|\ValueError $e) {
@@ -134,24 +152,29 @@ class MovilController extends Controller
             }
         }
 
-        return response()->json(['id' => $id]);
+        return response()->json($confirmacion);
     }
 
     /** @return array<string, list<string>> */
     private function reglasCambio(string $entidad): array
     {
         $servidor = ['servidorId' => ['nullable', 'integer']];
+        $catalogo = [...$servidor, 'controlVersion' => ['sometimes', 'boolean'], 'revisionBase' => ['nullable', 'string', 'size:64']];
 
         return match ($entidad) {
-            'zona' => [...$servidor, 'nombre' => ['required', 'string', 'max:100'], 'activo' => ['required', 'boolean']],
-            'vehiculo' => [...$servidor, 'nombre' => ['required', 'string', 'max:100'], 'placa' => ['required', 'string', 'max:20'], 'activo' => ['required', 'boolean']],
-            'usuario' => [...$servidor, 'username' => ['required', 'string', 'max:60'], 'nombres' => ['required', 'string', 'max:150'],
-                'dni' => ['required', 'string', 'max:20'], 'roles' => ['required', 'array', 'min:1'], 'roles.*' => ['string'],
-                'activo' => ['required', 'boolean'], 'pin' => ['nullable', 'string', 'max:8']],
-            'proveedor' => [...$servidor, 'codigo' => ['required', 'string', 'max:60'], 'nombres' => ['required', 'string', 'max:150'],
+            'zona' => [...$catalogo, 'nombre' => ['required', 'string', 'max:100'], 'activo' => ['required', 'boolean']],
+            'vehiculo' => [...$catalogo, 'nombre' => ['required', 'string', 'max:100'], 'placa' => ['required', 'string', 'max:20'], 'activo' => ['required', 'boolean']],
+            'usuario' => [...$catalogo, 'username' => ['required', 'string', 'max:60'], 'nombres' => ['required', 'string', 'max:150'],
+                'dni' => ['required', 'string', 'max:20'], 'roles' => ['required', 'array', 'min:1'],
+                'roles.*' => ['string', 'in:admin,acopiador,calidad,proveedor,ADMIN,ACOPIADOR,CALIDAD,PROVEEDOR'],
+                'activo' => ['required', 'boolean'], 'pin' => ['nullable', 'string', 'regex:/\A[0-9]{4}\z/'],
+                'asignacionZonaIncluida' => ['sometimes', 'boolean'], 'zonaId' => ['nullable', 'integer'],
+                'zonaNombre' => ['nullable', 'string', 'max:100']],
+            'proveedor' => [...$catalogo, 'codigo' => ['required', 'string', 'max:50'], 'nombres' => ['required', 'string', 'max:150'],
+                'dueno' => ['nullable', 'string', 'max:150'],
                 'dni' => ['required', 'string', 'max:20'], 'telefono' => ['nullable', 'string', 'max:30'], 'direccion' => ['nullable', 'string', 'max:255'],
                 'zonaId' => ['nullable', 'integer'], 'zonaNombre' => ['required', 'string', 'max:120'], 'tachos' => ['required', 'integer', 'min:1', 'max:1000'],
-                'capacidadTachoL' => ['required', 'numeric', 'gt:0'], 'estado' => ['required', 'string', 'in:ACTIVO,SUSPENDIDO,RETIRADO'],
+                'capacidadTachoL' => ['required', 'numeric', 'min:0.01'], 'estado' => ['required', 'string', 'in:ACTIVO,SUSPENDIDO,RETIRADO'],
                 'usuarioUsername' => ['present', 'nullable', 'string', 'max:60']],
             'traslado' => ['uuid' => ['required', 'string', 'max:64'], 'proveedorId' => ['nullable', 'integer'],
                 'proveedorCodigo' => ['required', 'string', 'max:60'], 'zonaDestinoId' => ['nullable', 'integer'],

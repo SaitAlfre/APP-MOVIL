@@ -51,15 +51,21 @@ class EnviarCambiosServidorUseCase(
                 cambios.fallar(cambio, "Falta la cuenta autora del cambio; no se ha enviado al panel.", definitivo = false)
                 continue
             }
+            val esCatalogo = cambio.entidad in setOf("zona", "vehiculo", "usuario", "proveedor")
             val resultado = try {
-                servidor.enviarCambio(cambio.usuarioId, cambio.entidadRemota ?: if (cambio.entidad == "solicitud") "reclamo" else cambio.entidad, cuerpo)
+                if (esCatalogo) servidor.enviarCatalogo(cambio.usuarioId, cambio.entidad, cuerpo)
+                else servidor.enviarCambio(cambio.usuarioId, cambio.entidadRemota ?: if (cambio.entidad == "solicitud") "reclamo" else cambio.entidad, cuerpo)
+                    .map { pe.ecolecta.domain.repository.ConfirmacionCatalogo(it) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Result.failure(e)
             }
             resultado.fold(
-                onSuccess = { id -> cambios.completar(cambio, id); enviados++ },
+                onSuccess = { ack ->
+                    if (esCatalogo) cambios.completarCatalogo(cambio, ack) else cambios.completar(cambio, ack.servidorId)
+                    enviados++
+                },
                 onFailure = { error ->
                     when (error) {
                         is SinConexionRemotaException -> return ResultadoCambios(enviados, conError, sinConexion = true)

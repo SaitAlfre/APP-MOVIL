@@ -40,7 +40,7 @@ class RefreshSesionPanelWebTest {
     private val usuarioId = "usuario-local-refresh"
 
     private fun servidor(direccion: String = url) = ServidorWebRepositoryKtor(
-        direccion, http, db, SqlDelightUsuarioRepository(db, Dispatchers.IO), reloj, Dispatchers.IO,
+        direccion, http, db, SqlDelightUsuarioRepository(db, Dispatchers.IO), reloj, Dispatchers.IO, protector = ProtectorSecretosPrueba,
     )
 
     @Before
@@ -90,7 +90,7 @@ class RefreshSesionPanelWebTest {
     @Test
     fun `un 401 renueva una vez y un refresh revocado pide login`() = runBlocking<Unit> {
         val anterior = db.tokenServidorQueries.porUsuario(usuarioId).executeAsOne()
-        val hash = MessageDigest.getInstance("SHA-256").digest(anterior.token.toByteArray()).joinToString("") { "%02x".format(it) }
+        val hash = MessageDigest.getInstance("SHA-256").digest(ProtectorSecretosPrueba.abrir(anterior.token, "access:$usuarioId").toByteArray()).joinToString("") { "%02x".format(it) }
         DriverManager.getConnection("jdbc:sqlite:$baseWeb").use { conexion ->
             conexion.prepareStatement("UPDATE tokens_movil SET expira_en = '2000-01-01 00:00:00' WHERE token_hash = ?").use {
                 it.setString(1, hash)
@@ -100,7 +100,7 @@ class RefreshSesionPanelWebTest {
         servidor().descargarDatos(usuarioId).getOrThrow()
         val nueva = db.tokenServidorQueries.porUsuario(usuarioId).executeAsOne()
         assertNotEquals(anterior.token, nueva.token)
-        val nuevoHash = MessageDigest.getInstance("SHA-256").digest(nueva.token.toByteArray()).joinToString("") { "%02x".format(it) }
+        val nuevoHash = MessageDigest.getInstance("SHA-256").digest(ProtectorSecretosPrueba.abrir(nueva.token, "access:$usuarioId").toByteArray()).joinToString("") { "%02x".format(it) }
         DriverManager.getConnection("jdbc:sqlite:$baseWeb").use { conexion ->
             conexion.prepareStatement("DELETE FROM refresh_tokens_movil WHERE token_movil_id IN (SELECT id FROM tokens_movil WHERE token_hash = ?)").use {
                 it.setString(1, nuevoHash)

@@ -15,4 +15,6 @@ interface VehiculoRepositoryInterface
     public function buscarPorPlaca(string $placa): ?Vehiculo;
 
     public function guardar(Vehiculo $vehiculo): Vehiculo;
+
+    public function tieneJornadasAbiertas(int $id): bool;
 }

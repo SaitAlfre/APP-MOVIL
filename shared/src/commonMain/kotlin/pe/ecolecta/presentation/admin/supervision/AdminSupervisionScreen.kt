@@ -162,7 +162,7 @@ fun AdminProveedorDetalleScreen(id: String, alVolver: () -> Unit, alEditar: () -
                     Text("Teléfono: ${p.telefono ?: "No registrado"}")
                     Text("Dirección: ${p.direccion ?: "No registrada"}")
                     Text("Estado: ${p.estado.name.lowercase().replaceFirstChar { it.uppercase() }}")
-                    Text("${p.tachos} tachos · ${formatearLitros(p.capacidadTotalL)} L de capacidad")
+                    Text("${p.tachos} tachos · ${formatearLitros(p.capacidadTotalL)} de capacidad")
                     TextButton(onClick = alEditar) { Text("Editar datos del proveedor") }
                 } }
                 val controles = datos.controles.filter { it.proveedorId == id }

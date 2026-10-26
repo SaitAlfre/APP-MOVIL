@@ -3,8 +3,9 @@ package pe.ecolecta.domain.repository
 import kotlinx.serialization.json.JsonObject
 
 /**
- * El PIN solo se guarda en el celular como hash, pero el panel web necesita el PIN en claro para crear o
- * restablecer la cuenta. Quien fija un PIN lo entrega aquí; se conserva solo hasta enviarlo al panel.
+ * La autenticación local conserva el hash del PIN. Para crear o restablecer una cuenta en el panel,
+ * la cola necesita además el PIN recuperable hasta confirmar el envío. En Android se cifra mediante
+ * el protector de secretos de la plataforma; nunca se debe escribir aquí sin protección configurada.
  */
 interface PinesParaServidor {
     suspend fun recordarPin(usuarioId: String, pin: String)
@@ -27,6 +28,9 @@ data class CambioParaServidor(
     val entidadRemota: String? = null,
 )
 
+/** Estado que el servidor acaba de confirmar, dentro de su transacción. */
+data class ConfirmacionCatalogo(val servidorId: Long?, val revision: String? = null)
+
 /** Resumen de la cola celular -> panel para la pantalla de sincronización. */
 data class EstadoCambiosServidor(val pendientes: Long, val conError: Long, val ultimoError: String?)
 
@@ -37,6 +41,9 @@ interface CambiosLocalesRepository {
 
     /** El panel aceptó el cambio; [servidorId] es el id de la fila en el panel (se recuerda para no duplicar). */
     suspend fun completar(cambio: CambioParaServidor, servidorId: Long?)
+
+    /** Guarda la revisión aceptada, incluso si existe otra edición local posterior al envío. */
+    suspend fun completarCatalogo(cambio: CambioParaServidor, confirmacion: ConfirmacionCatalogo) = completar(cambio, confirmacion.servidorId)
 
     /** [definitivo] = el panel lo rechazó por el dato: queda en error hasta que se vuelva a cambiar. */
     suspend fun fallar(cambio: CambioParaServidor, mensaje: String, definitivo: Boolean)

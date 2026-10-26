@@ -34,25 +34,33 @@ import pe.ecolecta.domain.repository.PinesParaServidor
 class SqlDelightCambiosLocalesRepository(
     private val db: EcolectaDatabase,
     private val dispatcher: CoroutineDispatcher,
+    private val protector: pe.ecolecta.domain.security.ProtectorSecretos = pe.ecolecta.domain.security.ProtectorSecretos.NoDisponible,
 ) : CambiosLocalesRepository, PinesParaServidor {
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun recordarPin(usuarioId: String, pin: String) = withContext(dispatcher) {
-        db.marcarCambio(EntidadCambio.USUARIO, usuarioId, pin)
+        db.marcarCambio(EntidadCambio.USUARIO, usuarioId, protector.proteger(pin, "pin:$usuarioId"))
     }
 
     override suspend fun pendientes(): List<CambioParaServidor> = withContext(dispatcher) {
         db.cambioPendienteQueries.pendientes().executeAsList().map { fila ->
             val solicitud = if (fila.entidad == EntidadCambio.SOLICITUD) contenido<SolicitudProveedor>(fila.local_id) else null
-            val payload = cuerpo(fila)
+            var errorCredencial: String? = null
+            val payload = try { cuerpo(fila) } catch (error: pe.ecolecta.domain.security.SecretoLocalNoDisponibleException) {
+                errorCredencial = error.message
+                null
+            }
             CambioParaServidor(fila.entidad, fila.local_id, fila.usuario_id, fila.marcado_en, payload,
-                if (solicitud != null && (solicitud.tipo !in setOf("RECLAMO", "TRASLADO") || payload == null))
+                errorCredencial ?: if (solicitud != null && (solicitud.tipo !in setOf("RECLAMO", "TRASLADO") || payload == null))
                     "Esta solicitud aún no tiene un destino compatible en el panel. Se conserva en este teléfono; no se ha enviado." else null,
                 if (solicitud?.tipo == "TRASLADO") "traslado" else null)
         }
     }
 
-    override suspend fun completar(cambio: CambioParaServidor, servidorId: Long?) = withContext(dispatcher) {
+    override suspend fun completar(cambio: CambioParaServidor, servidorId: Long?) = completarCatalogo(cambio, pe.ecolecta.domain.repository.ConfirmacionCatalogo(servidorId))
+
+    override suspend fun completarCatalogo(cambio: CambioParaServidor, confirmacion: pe.ecolecta.domain.repository.ConfirmacionCatalogo) = withContext(dispatcher) {
+        val servidorId = confirmacion.servidorId
         db.transaction {
             if (servidorId != null && cambio.entidad in ENTIDADES_MAPEADAS) {
                 db.servidorMapaQueries.guardar(cambio.entidad, servidorId, cambio.localId)
@@ -62,6 +70,9 @@ class SqlDelightCambiosLocalesRepository(
                 contenido<SolicitudProveedor>(cambio.localId)?.takeIf { it.estado == "PENDIENTE_ENVIO" }?.let {
                     db.portalProveedorQueries.actualizarContenido(json.encodeToString(SolicitudProveedor.serializer(), it.copy(estado = "PENDIENTE")), it.id)
                 }
+            }
+            if (cambio.entidad in ENTIDADES_MAPEADAS && confirmacion.revision != null) {
+                db.versionCatalogoQueries.guardar(cambio.entidad, cambio.localId, confirmacion.revision)
             }
             db.cambioPendienteQueries.completar(cambio.entidad, cambio.localId, cambio.marcadoEn)
         }
@@ -85,6 +96,10 @@ class SqlDelightCambiosLocalesRepository(
 
     private fun JsonObjectBuilder.putServidor(entidad: String, localId: String, clave: String = "servidorId") {
         servidorId(entidad, localId)?.let { put(clave, it) }
+        if (clave == "servidorId" && entidad in ENTIDADES_MAPEADAS) {
+            put("controlVersion", true)
+            put("revisionBase", db.versionCatalogoQueries.obtener(entidad, localId).executeAsOneOrNull())
+        }
     }
 
     /** null = ya no hay nada que enviar (la fila se borró o no es de un tipo que el panel reciba). */
@@ -97,12 +112,17 @@ class SqlDelightCambiosLocalesRepository(
         }
         EntidadCambio.USUARIO -> db.usuarioQueries.selectPorId(c.local_id).executeAsOneOrNull()?.let { u ->
             val roles = db.usuarioRolQueries.selectPorUsuario(u.id).executeAsList()
+            val zona = db.usuarioZonaQueries.selectZonaId(u.id).executeAsOneOrNull()
+                ?.let { db.zonaQueries.selectPorId(it).executeAsOneOrNull() }
             if (roles.isEmpty()) return null
             buildJsonObject {
                 putServidor(c.entidad, u.id)
                 put("username", u.username); put("nombres", u.nombres); put("dni", u.dni); put("activo", u.activo == 1L)
                 putJsonArray("roles") { roles.forEach { add(JsonPrimitive(it)) } }
-                c.pin?.let { put("pin", it) }
+                put("asignacionZonaIncluida", true)
+                put("zonaId", zona?.let { servidorId(EntidadCambio.ZONA, it.id) })
+                put("zonaNombre", zona?.nombre)
+                c.pin?.let { put("pin", protector.abrir(it, "pin:${u.id}")) }
             }
         }
         EntidadCambio.PROVEEDOR -> db.proveedorQueries.selectPorId(c.local_id).executeAsOneOrNull()?.let { p ->
@@ -112,6 +132,7 @@ class SqlDelightCambiosLocalesRepository(
                 putServidor(c.entidad, p.id)
                 put("codigo", p.codigo); put("nombres", p.nombres); put("dni", p.dni)
                 put("telefono", p.telefono); put("direccion", p.direccion)
+                put("dueno", p.dueno)
                 putServidor(EntidadCambio.ZONA, zona.id, "zonaId"); put("zonaNombre", zona.nombre)
                 put("tachos", p.tachos); put("capacidadTachoL", p.capacidad_tacho_l); put("estado", p.estado)
                 put("usuarioUsername", cuenta?.username)

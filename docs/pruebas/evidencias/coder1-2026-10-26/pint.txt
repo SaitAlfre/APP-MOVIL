@@ -1,0 +1,1 @@
+{"tool":"pint","result":"fixed","files":[{"path":"web\/tests\/Feature\/CompatibilidadFormulariosCoder1Test.php","fixers":["fully_qualified_strict_types","ordered_imports"]}]}

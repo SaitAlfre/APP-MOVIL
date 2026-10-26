@@ -9,6 +9,7 @@ use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\Usuario as UsuarioDominio;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
+use App\Domain\Zonas\ZonaRepositoryInterface;
 use DateTimeImmutable;
 use RuntimeException;
 
@@ -19,15 +20,26 @@ final class ActualizarUsuarioUseCase
     public function __construct(
         private readonly UsuarioRepositoryInterface $usuarios,
         private readonly AuditoriaRepositoryInterface $auditorias,
+        private readonly ZonaRepositoryInterface $zonas,
     ) {}
 
     /** @param list<Rol> $roles */
-    public function ejecutar(int $id, string $nombres, string $dni, array $roles, bool $actorEsAdmin, int $actorId): UsuarioDominio
+    public function ejecutar(int $id, string $nombres, string $dni, array $roles, bool $actorEsAdmin, int $actorId, ?int $zonaId = null, bool $actualizarZona = false): UsuarioDominio
     {
         $usuario = $this->usuarios->buscarPorId($id);
 
         if ($usuario === null) {
             throw new RuntimeException('Usuario no encontrado.');
+        }
+
+        $dni = trim($dni);
+        $this->validarIdentidad($usuario->username, $dni, $usuario);
+        $this->validarRolesAsignables($roles, $usuario->roles);
+        $rolesSinCambio = collect($roles)->map(fn (Rol $rol) => $rol->value)->sort()->values()->all()
+            === collect($usuario->roles)->map(fn (Rol $rol) => $rol->value)->sort()->values()->all();
+        $zonaEfectiva = $actualizarZona ? $zonaId : $usuario->zonaId;
+        if (! $rolesSinCambio || $zonaEfectiva !== $usuario->zonaId) {
+            $this->validarZonaAsignada($zonaEfectiva, $roles);
         }
 
         $perdioAdmin = $usuario->esAdmin() && ! in_array(Rol::Admin, $roles, true);
@@ -48,21 +60,25 @@ final class ActualizarUsuarioUseCase
         $cambiaronRoles = $rolesAnteriores !== $rolesNuevos;
 
         $actualizado = $usuario->conDatosDePerfil($nombres, $dni)->conRoles($roles);
+        if ($actualizarZona) {
+            $actualizado = $actualizado->conZonaAsignada($zonaId);
+        }
         $guardado = $this->usuarios->guardar($actualizado);
 
-        if ($cambiaronRoles) {
+        $cambioZona = $usuario->zonaId !== $guardado->zonaId;
+        if ($cambiaronRoles || $cambioZona) {
             // Los permisos cambiaron: se fuerza a iniciar sesión de nuevo para que se apliquen.
             $this->usuarios->invalidarSesiones($id);
         }
 
-        if ($cambiaronRoles || $usuario->nombres !== $nombres || $usuario->dni !== $dni) {
+        if ($cambiaronRoles || $cambioZona || $usuario->nombres !== $nombres || $usuario->dni !== $dni) {
             $this->auditorias->registrar(new Auditoria(
                 id: null,
                 entidad: 'usuario',
                 entidadId: $id,
                 accion: AccionAuditoria::Actualizar,
-                valorAntes: json_encode(['nombres' => $usuario->nombres, 'roles' => $rolesAnteriores]),
-                valorDespues: json_encode(['nombres' => $guardado->nombres, 'roles' => $rolesNuevos, 'dni_modificado' => $usuario->dni !== $dni]),
+                valorAntes: json_encode(['nombres' => $usuario->nombres, 'roles' => $rolesAnteriores, 'zona_id' => $usuario->zonaId]),
+                valorDespues: json_encode(['nombres' => $guardado->nombres, 'roles' => $rolesNuevos, 'zona_id' => $guardado->zonaId, 'dni_modificado' => $usuario->dni !== $dni]),
                 motivo: null,
                 usuarioId: $actorId,
                 ocurridoEn: new DateTimeImmutable,

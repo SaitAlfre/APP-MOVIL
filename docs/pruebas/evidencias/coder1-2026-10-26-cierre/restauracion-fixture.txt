@@ -1,0 +1,1 @@
+{"fixture":"qa_c1_ed120b_1","bloqueado":false,"medio":"Caso de uso, no GUI"}

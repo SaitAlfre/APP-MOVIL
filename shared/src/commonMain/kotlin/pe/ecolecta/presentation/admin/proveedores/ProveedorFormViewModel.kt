@@ -42,7 +42,7 @@ data class ProveedorFormUiState(
             nombres.isBlank() -> "Escribe el nombre del proveedor o finca."
             dni.isBlank() -> "Escribe el DNI o RUC."
             zonaId.isBlank() -> "Selecciona la zona."
-            (tachos.toIntOrNull() ?: 0) <= 0 -> "La cantidad de tachos debe ser mayor a 0."
+            (tachos.toIntOrNull() ?: 0) !in 1..1000 -> "La cantidad de tachos debe estar entre 1 y 1000."
             (capacidadTachoL.replace(',', '.').toDoubleOrNull() ?: 0.0) <= 0.0 -> "La capacidad por tacho debe ser mayor a 0."
             else -> null
         }
@@ -94,12 +94,12 @@ class ProveedorFormViewModel(
     fun codigo(v: String) = _uiState.update { it.copy(codigo = v.uppercase(), error = null) }
     fun nombres(v: String) = _uiState.update { it.copy(nombres = v, error = null) }
     fun dueno(v: String) = _uiState.update { it.copy(dueno = v) }
-    fun dni(v: String) { if (v.length <= 11 && v.all(Char::isDigit)) _uiState.update { it.copy(dni = v, error = null) } }
-    fun telefono(v: String) { if (v.length <= 12 && v.all { it.isDigit() || it == '+' }) _uiState.update { it.copy(telefono = v) } }
+    fun dni(v: String) = _uiState.update { it.copy(dni = v, error = null) }
+    fun telefono(v: String) = _uiState.update { it.copy(telefono = v, error = null) }
     fun direccion(v: String) = _uiState.update { it.copy(direccion = v) }
     fun zona(v: String) = _uiState.update { it.copy(zonaId = v, error = null) }
-    fun tachos(v: String) { if (v.length <= 2 && v.all(Char::isDigit)) _uiState.update { it.copy(tachos = v, error = null) } }
-    fun capacidad(v: String) { if (v.length <= 5) _uiState.update { it.copy(capacidadTachoL = v, error = null) } }
+    fun tachos(v: String) { if (v.all(Char::isDigit)) _uiState.update { it.copy(tachos = v, error = null) } }
+    fun capacidad(v: String) = _uiState.update { it.copy(capacidadTachoL = v, error = null) }
     fun estado(v: EstadoProveedor) = _uiState.update { it.copy(estado = v) }
 
     fun guardar() {

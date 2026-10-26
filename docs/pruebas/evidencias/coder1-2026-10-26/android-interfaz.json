@@ -1,0 +1,337 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "INT-C1-web-a-android",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-01-perfil-y-usuarios",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-02-zona-formulario-y-error",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-03-vehiculo-formulario-y-error",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-04-ficha-proveedor",
+      "estado": "Passed"
+    },
+    {
+      "id": "INT-C1-ui-android-web",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-acopiador",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-calidad",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-proveedor",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-admin",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    {
+      "archivo": "coder1-ui-perfil.png",
+      "sha256": "28255d9ac55559e902b2a8539b8417ddab012b746d4ecc8d0422b7f011a883fb"
+    },
+    {
+      "archivo": "coder1-ui-usuarios.png",
+      "sha256": "a76cec037eeb89e2a7a6ac0341ff1b20fb23d351367c0d41cbed5d283109c10c"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-formulario.png",
+      "sha256": "d0f6f4260f369a1ddfef790c3ab49b6204c3bf31b9f7777b5d33a1f037d9aa9f"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-rechazada.png",
+      "sha256": "9b9d728f4977eaf1afde9d19585d7650fce3099a5367d0e98fcf1bb4797af5be"
+    },
+    {
+      "archivo": "coder1-ui-zona-rechazada.png",
+      "sha256": "5b6a6e0e68a7012774ceeb6586e175f03ddb90ec1db239fa65d71d32d16b3383"
+    },
+    {
+      "archivo": "coder1-ui-zona-creada.png",
+      "sha256": "169928b656fcc4cb1995160c647d4a022e94afbfe26c05f9711c23c02b034e31"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-rechazado.png",
+      "sha256": "6c8332e18f33d169ff57fca62fe542fbe916cf60de3318eebfa902c09b1a31e0"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-creado.png",
+      "sha256": "db5deeb4642b16aa9659874753f6115432672417b42479748202c538fb4901b9"
+    },
+    {
+      "archivo": "coder1-ui-proveedor-formulario.png",
+      "sha256": "1cc6fa2453a5bccc649c0300c82213bfbe70e6d59a51312f9063f1acc24af381"
+    },
+    {
+      "archivo": "coder1-ui-envio-confirmado.png",
+      "sha256": "723c2e156b11bdb344bbb9cc391b0d75a4389b87069942ca314df3c0ce0359d7"
+    },
+    {
+      "archivo": "coder1-ui-acopiador.png",
+      "sha256": "4a066dd08e38e7b48302e7471a6e189d6f50bf79a00fa3fc60ac6f3505d49fe9"
+    },
+    {
+      "archivo": "coder1-ui-calidad.png",
+      "sha256": "b51d4c543aec289a67add014e9b21a62e764dca767f3eb5d55f55fe41758125b"
+    },
+    {
+      "archivo": "coder1-ui-proveedor.png",
+      "sha256": "f0666387efe486156d7ba283ce6963c9da68c3d426add03170feb888ed58fffd"
+    },
+    {
+      "archivo": "coder1-ui-admin.png",
+      "sha256": "cb8b239bc46b0f63eb45514379a64222d7080931dd2326fe3ddae0ff224ff147"
+    }
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "commands": [
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "emu",
+        "avd",
+        "name"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "-t",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "entorno",
+        "coder1-ficticio",
+        "-e",
+        "modo",
+        "interfaz",
+        "-e",
+        "pinPrueba",
+        "<PIN_FICTICIO>",
+        "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-perfil.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-perfil.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-usuarios.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-usuarios.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-formulario.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-cuenta-formulario.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-rechazada.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-cuenta-rechazada.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-rechazada.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-zona-rechazada.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-creada.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-zona-creada.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-rechazado.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-vehiculo-rechazado.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-creado.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-vehiculo-creado.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-proveedor-formulario.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-proveedor-formulario.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-envio-confirmado.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-envio-confirmado.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-acopiador.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-acopiador.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-calidad.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-calidad.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-proveedor.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-proveedor.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-admin.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/coder1-ui-admin.png"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/sdcard/Android/data/pe.ecolecta.preview/files/coder1-ui-arbol.txt",
+        "/tmp/ecolactea-coder1-c8fmp23t/continuacion-evidencias/ui-05/arbol.txt"
+      ],
+      "returncode": 0
+    }
+  ],
+  "counts": {
+    "Passed": 10,
+    "Failed": 0
+  },
+  "APK_sha256": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+  "recibo_original_sha256": "8e0ff6cadf14c2964f46a5e79e044f83fbfe13f973533dc773c79a32b1be1b17",
+  "salida": "android-interfaz.txt",
+  "salida_sha256": "8eabd9a87345cece992171e732db5619dc8be10c931825208d76d59057b39897"
+}

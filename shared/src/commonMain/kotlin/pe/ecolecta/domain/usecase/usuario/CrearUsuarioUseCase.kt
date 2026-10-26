@@ -1,5 +1,7 @@
 package pe.ecolecta.domain.usecase.usuario
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pe.ecolecta.domain.PinInvalidoException
 import pe.ecolecta.domain.Reloj
 import pe.ecolecta.domain.UsuarioInvalidoException
@@ -35,7 +37,7 @@ class CrearUsuarioUseCase(
             return Result.failure(UsuarioInvalidoException.DniDuplicado)
         }
 
-        val parHash = pinHasher.crearHash(pin)
+        val parHash = withContext(Dispatchers.Default) { pinHasher.crearHash(pin) }
         val usuario = Usuario.crear(
             id = nuevoId(),
             username = username,

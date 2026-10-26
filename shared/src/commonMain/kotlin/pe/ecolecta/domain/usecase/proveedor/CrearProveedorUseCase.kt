@@ -21,6 +21,7 @@ class CrearProveedorUseCase(
         capacidadTachoL: Double = 40.0,
         dueno: String? = null,
     ): Result<Proveedor> {
+        if (dueno != null && dueno.trim().length > 150) return Result.failure(IllegalArgumentException("El propietario o responsable admite hasta 150 caracteres."))
         if (proveedorRepository.existeCodigo(codigo.trim(), "")) {
             return Result.failure(ProveedorInvalidoException.CodigoDuplicado)
         }

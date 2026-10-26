@@ -1,0 +1,24 @@
+{
+  "suite": "apk",
+  "command": [
+    "bash",
+    "./gradlew",
+    "--offline",
+    "--no-daemon",
+    "--no-configuration-cache",
+    "-PlocalPreview=true",
+    "-Pecolecta.servidorUrl=http://10.0.2.2:8871",
+    "--console=plain",
+    "-Pecolecta.qa.coder1=true",
+    ":androidApp:assembleDebug",
+    ":androidApp:assembleDebugAndroidTest"
+  ],
+  "returncode": 0,
+  "tests": [],
+  "counts": {
+    "Passed": 0,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "054624208e0ea4e79b430e789dec06e1d7e24310b6667dd3bc553b1d9aaf9a1d"
+}

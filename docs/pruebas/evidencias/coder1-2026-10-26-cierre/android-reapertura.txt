@@ -1,0 +1,4 @@
+INSTRUMENTATION_STATUS: coder1_check=NAT-C1-07-sesion-persistida Passed
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: coder1_json={"exito":true,"checks":[{"id":"NAT-C1-07-sesion-persistida","estado":"Passed"}],"capturas":["\/storage\/emulated\/0\/Android\/data\/pe.ecolecta.preview\/files\/coder1-reapertura.png"],"prefijoFicticio":"","ui":"captura real; autenticación invocada por casos de uso, sin pulsaciones manuales"}
+INSTRUMENTATION_CODE: -1

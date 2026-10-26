@@ -1,0 +1,31 @@
+{
+  "suite": "apk",
+  "returncode": 0,
+  "command": [
+    "bash",
+    "./gradlew",
+    "--offline",
+    "--no-daemon",
+    "--no-configuration-cache",
+    "-PlocalPreview=true",
+    "-Pecolecta.servidorUrl=http://10.0.2.2:8871",
+    "-Pecolecta.qa.coder1=true",
+    ":androidApp:assembleDebug",
+    ":androidApp:assembleDebugAndroidTest",
+    "--console=plain"
+  ],
+  "tests": [],
+  "counts": {
+    "Passed": 0,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "9177d347871a47aaa62ee9defba3b83b2610810b2618b7ed9261baf9d6dfa806",
+  "recibo_original_sha256": "77275c2e03d1e443ff2634edc136ec3a8dbaccd056ab8e84eeb0269c914ff879",
+  "log_original_sha256": "9177d347871a47aaa62ee9defba3b83b2610810b2618b7ed9261baf9d6dfa806",
+  "log": "build.txt",
+  "artefactos_sha256": {
+    "androidApp-debug.apk": "e384e6467939494fc6c5fa3e81b4eff852d705e782bdd080c7388164556dcac8",
+    "androidApp-debug-androidTest.apk": "b26bafdf30db9080e0af14aea74056bbf47a98ae7fba801c05eaa25c7f3894b0"
+  }
+}

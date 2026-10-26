@@ -75,7 +75,7 @@ class LoginCalidadFaonTest {
         loginViewModel.onEvent(LoginUiEvent.Ingresar)
         advanceUntilIdle()
 
-        val estadoLogin = loginViewModel.uiState.value
+        val estadoLogin = loginViewModel.uiState.first { !it.cargando && (it.sesionIniciada || it.error != null) }
         assertNull(estadoLogin.error, "El login no debería fallar con calidad_faon/8642")
         assertTrue(estadoLogin.sesionIniciada, "Con un solo rol (CALIDAD) debe entrar directo, sin pedir selección de rol")
         assertFalse(estadoLogin.requiereSeleccionRol)

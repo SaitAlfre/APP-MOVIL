@@ -107,6 +107,7 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             'estado' => $proveedor->estado,
             'creado_por_usuario_id' => $proveedor->creadoPorUsuarioId,
             'usuario_id' => $proveedor->usuarioId,
+            'dueno' => $proveedor->dueno,
         ]);
         $registro->save();
 
@@ -128,6 +129,7 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             estado: $proveedor->estado,
             creadoPorUsuarioId: $proveedor->creado_por_usuario_id,
             usuarioId: $proveedor->usuario_id,
+            dueno: $proveedor->dueno,
         );
     }
 }

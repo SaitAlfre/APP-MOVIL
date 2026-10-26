@@ -22,6 +22,7 @@ final class Usuario
         public readonly ?string $motivoBloqueo,
         public readonly ?int $bloqueadoPorId,
         public readonly ?DateTimeImmutable $bloqueadoManualEn,
+        public readonly ?int $zonaId = null,
     ) {}
 
     /** @param list<Rol> $roles */
@@ -67,8 +68,9 @@ final class Usuario
         ?string $motivoBloqueo = null,
         ?int $bloqueadoPorId = null,
         ?DateTimeImmutable $bloqueadoManualEn = null,
+        ?int $zonaId = null,
     ): self {
-        return new self($id, $username, $nombres, $dni, $pinHash, $activo, $roles, $intentosFallidos, $bloqueadoHasta, $bloqueadoManualmente, $motivoBloqueo, $bloqueadoPorId, $bloqueadoManualEn);
+        return new self($id, $username, $nombres, $dni, $pinHash, $activo, $roles, $intentosFallidos, $bloqueadoHasta, $bloqueadoManualmente, $motivoBloqueo, $bloqueadoPorId, $bloqueadoManualEn, $zonaId);
     }
 
     public function tieneRol(Rol $rol): bool
@@ -109,12 +111,12 @@ final class Usuario
             ? $ahora->modify('+'.$minutosBloqueo.' minutes')
             : $this->bloqueadoHasta;
 
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $intentos, $bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $intentos, $bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     public function sinIntentosFallidos(): self
     {
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, 0, null, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, 0, null, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     /** @param list<Rol> $roles */
@@ -122,19 +124,19 @@ final class Usuario
     {
         self::validar($this->username, $this->nombres, $this->dni, $roles);
 
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     public function conDatosDePerfil(string $nombres, string $dni): self
     {
         self::validar($this->username, $nombres, $dni, $this->roles);
 
-        return new self($this->id, $this->username, trim($nombres), trim($dni), $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, trim($nombres), trim($dni), $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     public function conEstado(bool $activo): self
     {
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     public function conBloqueoManual(string $motivo, int $bloqueadoPorId, DateTimeImmutable $ahora): self
@@ -143,17 +145,22 @@ final class Usuario
             throw UsuarioInvalidoException::motivoBloqueoObligatorio();
         }
 
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, true, trim($motivo), $bloqueadoPorId, $ahora);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, true, trim($motivo), $bloqueadoPorId, $ahora, $this->zonaId);
     }
 
     public function sinBloqueoManual(): self
     {
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, false, null, null, null);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, false, null, null, null, $this->zonaId);
     }
 
     public function conPinHash(string $pinHash): self
     {
-        return new self($this->id, $this->username, $this->nombres, $this->dni, $pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn);
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
+    }
+
+    public function conZonaAsignada(?int $zonaId): self
+    {
+        return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $zonaId);
     }
 
     /** @param list<Rol> $roles */

@@ -9,7 +9,7 @@
 | pueden además "gestionar" (crear, editar, cambiar estado, ejecutar
 | acciones). Administrador siempre tiene ambos en todos los módulos.
 |
-| "Consulta" ve todo pero no gestiona nada. Los módulos de Producción,
+| Los cuatro perfiles oficiales sustituyen a los roles anteriores. Los módulos de Producción,
 | Liquidaciones y Auditoría no se filtran por zona: una vez recepcionada,
 | la leche se junta en una sola pila sin importar su origen.
 |
@@ -22,7 +22,7 @@
 |
 */
 
-$rolesWeb = ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'];
+$rolesWeb = ['admin', 'calidad'];
 
 return [
 
@@ -32,58 +32,58 @@ return [
     ],
 
     'proveedores' => [
-        'ver' => ['admin', 'consulta'],
+        'ver' => ['admin'],
         'gestionar' => ['admin'],
     ],
 
     'acopiadores' => [
-        'ver' => ['admin', 'consulta'],
+        'ver' => ['admin'],
         'gestionar' => ['admin'],
     ],
 
     'zonas_vehiculos' => [
-        'ver' => ['admin', 'consulta'],
+        'ver' => ['admin'],
         'gestionar' => ['admin'],
     ],
 
     'mapa_rutas' => [
-        'ver' => ['admin', 'consulta', 'acopiador'],
+        'ver' => ['admin', 'acopiador'],
         'gestionar' => ['admin'],
     ],
 
     'recepcion' => [
-        'ver' => ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'],
-        'gestionar' => ['admin', 'recepcion'],
+        'ver' => ['admin', 'calidad'],
+        'gestionar' => ['admin'],
     ],
 
     'calidad' => [
-        'ver' => ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'],
+        'ver' => ['admin', 'calidad'],
         'gestionar' => ['admin', 'calidad'],
     ],
 
     'entregas' => [
-        'ver' => ['admin', 'recepcion', 'calidad', 'consulta'],
-        'gestionar' => ['admin', 'recepcion'],
+        'ver' => ['admin', 'calidad'],
+        'gestionar' => ['admin'],
     ],
 
     'sanciones' => [
-        'ver' => ['admin', 'calidad', 'liquidaciones', 'consulta'],
+        'ver' => ['admin', 'calidad'],
         'gestionar' => ['admin', 'calidad'],
     ],
 
     'produccion' => [
-        'ver' => ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'],
-        'gestionar' => ['admin', 'produccion'],
+        'ver' => ['admin'],
+        'gestionar' => ['admin'],
     ],
 
     'inventario' => [
-        'ver' => ['admin', 'produccion', 'consulta'],
-        'gestionar' => ['admin', 'produccion'],
+        'ver' => ['admin'],
+        'gestionar' => ['admin'],
     ],
 
     'ventas' => [
-        'ver' => ['admin', 'produccion', 'consulta'],
-        'gestionar' => ['admin', 'produccion'],
+        'ver' => ['admin'],
+        'gestionar' => ['admin'],
     ],
 
     'comunicados' => [
@@ -102,12 +102,12 @@ return [
     ],
 
     'liquidaciones' => [
-        'ver' => ['admin', 'recepcion', 'calidad', 'produccion', 'liquidaciones', 'consulta'],
-        'gestionar' => ['admin', 'liquidaciones'],
+        'ver' => ['admin'],
+        'gestionar' => ['admin'],
     ],
 
     'auditoria' => [
-        'ver' => ['admin', 'consulta'],
+        'ver' => ['admin'],
         'gestionar' => ['admin'],
     ],
 

@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Application\Movil\ExportarDatosMovilQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +77,8 @@ class TokenMovil extends Model
             $usuario = $registro->usuario;
             if ($refresh->usado_en !== null || $registro->refresh_expira_en === null
                 || $registro->refresh_expira_en->lte(now()) || $usuario === null
-                || ! $usuario->activo || $usuario->estaBloqueada()) {
+                || ! $usuario->activo || $usuario->estaBloqueada()
+                || array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? []) === []) {
                 $registro->delete();
 
                 return null;

@@ -1,0 +1,1667 @@
+{
+  "suite": "php",
+  "returncode": 0,
+  "command": [
+    "/tmp/ecolactea-coder1-c8fmp23t/runtime/bin/php",
+    "vendor/bin/phpunit",
+    "--colors=never",
+    "--log-junit",
+    "/tmp/ecolactea-coder1-c8fmp23t/logs/continuacion-php-final-02.xml"
+  ],
+  "tests": [
+    {
+      "class": "Tests.Unit.ExampleTest",
+      "name": "test_that_true_is_true",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Unit.ProveedorQrTest",
+      "name": "test_codifica_el_codigo_con_el_mismo_formato_que_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Unit.ProveedorQrTest",
+      "name": "test_sigue_leyendo_el_formato_anterior_por_id",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Unit.ProveedorQrTest",
+      "name": "test_rechaza_contenido_ajeno_o_vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_litros_hoy_compara_contra_ayer_y_no_contra_todo_el_periodo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_sin_entregas_ayer_no_se_calcula_variacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_proveedores_atendidos_cuenta_distintos_y_los_compara_con_los_activos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_las_jornadas_abiertas_se_listan_con_su_acopiador_zona_y_litros",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_la_distribucion_de_calidad_se_limita_al_periodo_filtrado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_las_entregas_sin_calidad_alimentan_la_cola_de_controles_pendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_las_ultimas_entregas_se_limitan_a_cinco_filas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_los_accesos_rapidos_dependen_de_los_permisos_del_rol",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardPanelTest",
+      "name": "test_el_filtro_de_zona_no_afecta_los_indicadores_globales_de_produccion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardTest",
+      "name": "test_el_dashboard_calcula_los_indicadores_principales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardTest",
+      "name": "test_el_dashboard_no_falla_con_denominadores_en_cero_ni_sin_datos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardTest",
+      "name": "test_una_merma_sobre_el_umbral_configurado_aparece_como_alerta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardTest",
+      "name": "test_un_proveedor_no_puede_acceder_al_dashboard",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminDashboardTest",
+      "name": "test_iniciar_sesion_redirige_al_dashboard",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_busca_por_proveedor_y_por_acopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_filtra_por_fecha_zona_y_estado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_el_total_del_filtro_excluye_las_entregas_anuladas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_los_totales_del_encabezado_respetan_el_filtro_de_fecha",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_un_filtro_invalido_se_rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_sin_jornadas_abiertas_el_registro_por_lote_avisa_en_vez_de_ofrecer_el_formulario",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_el_registro_por_lote_rechaza_proveedores_repetidos_en_la_misma_carga",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminEntregasPanelTest",
+      "name": "test_calidad_ve_el_listado_pero_no_puede_registrar_lotes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_todos_los_modulos_del_figma_tienen_rutas_reales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_venta_completada_descuenta_stock_y_registra_movimiento",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_ajuste_no_permite_inventario_negativo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_control_rechazado_genera_propuesta_de_sancion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_registro_por_lote_crea_entregas_reales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_sancion_aprobada_se_descuenta_una_sola_vez_de_la_liquidacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_comunicado_publicado_y_configuracion_se_persisten",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminFigmaModulesTest",
+      "name": "test_importacion_csv_valida_y_confirma_proveedores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_un_admin_puede_abrir_una_jornada_en_nombre_de_un_acopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_no_se_puede_abrir_una_jornada_en_una_zona_ya_ocupada_por_otro_acopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_un_admin_puede_registrar_una_entrega_en_nombre_del_acopiador_de_la_jornada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_no_se_puede_registrar_una_entrega_que_supera_la_capacidad_del_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_registrar_una_entrega_duplicada_del_mismo_proveedor_muestra_opcion_de_sumar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_un_admin_puede_anular_una_entrega_con_motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_un_admin_puede_cerrar_una_jornada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminJornadaEntregaTest",
+      "name": "test_un_acopiador_no_puede_acceder_a_la_gestion_de_jornadas_del_admin",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_el_detalle_agrupa_las_entregas_por_dia_dentro_del_periodo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_el_detalle_excluye_entregas_anuladas_y_las_de_otros_proveedores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_el_detalle_ignora_las_entregas_fuera_del_periodo_liquidado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_avisa_cuando_el_detalle_actual_no_coincide_con_los_litros_congelados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_una_liquidacion_sin_entregas_en_el_periodo_no_rompe_la_ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_una_liquidacion_pendiente_ofrece_marcarla_pagada_y_una_pagada_no",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_una_liquidacion_inexistente_devuelve_404",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_la_ruta_de_alta_no_se_confunde_con_la_ficha_de_una_liquidacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminLiquidacionDetalleTest",
+      "name": "test_calidad_ve_la_ficha_pero_no_puede_marcarla_pagada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminModulesTest",
+      "name": "test_el_listado_de_acopiadores_muestra_las_jornadas_con_sus_totales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminModulesTest",
+      "name": "test_el_listado_de_zonas_y_vehiculos_muestra_los_registros_existentes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminModulesTest",
+      "name": "test_el_listado_de_auditoria_muestra_los_registros_existentes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminModulesTest",
+      "name": "test_las_secciones_de_calidad_liquidaciones_produccion_y_reportes_responden_correctamente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminModulesTest",
+      "name": "test_un_acopiador_no_puede_ver_los_modulos_de_administracion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_el_admin_ve_todos_los_grupos_del_menu",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_produccion_retirado_no_accede_a_planta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_liquidaciones_retirado_no_accede_a_finanzas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_consulta_retirado_no_puede_consultar_ni_modificar_catalogos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_calidad_y_acopiador_acceden_solo_a_sus_pantallas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_dos_roles_oficiales_internos_suman_solo_sus_permisos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_la_campana_de_comunicados_cuenta_solo_los_publicados_de_la_ultima_semana",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_sin_comunicados_recientes_la_campana_no_muestra_contador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_el_panel_ofrece_saltar_al_contenido_principal",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminNavegacionYPermisosTest",
+      "name": "test_una_cuenta_desactivada_pierde_el_acceso_aunque_tenga_sesion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPantallasTest",
+      "name": "test_todas_las_pantallas_de_solo_lectura_responden_con_datos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPantallasTest",
+      "name": "test_la_vista_previa_de_una_importacion_se_muestra_con_sus_errores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPantallasTest",
+      "name": "test_la_navegacion_del_panel_solo_muestra_los_modulos_permitidos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_inventario_marca_stock_bajo_por_debajo_del_umbral",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_los_movimientos_viven_en_su_pestana_y_muestran_el_signo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_sin_productos_el_inventario_remite_a_produccion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_el_total_de_ventas_de_hoy_solo_cuenta_las_completadas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_los_clientes_viven_en_su_propia_pestana",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_la_pestana_de_reglas_de_calidad_publica_las_referencias_de_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_un_valor_fuera_de_rango_se_resalta_en_vez_de_ocultarse",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_la_navegacion_de_produccion_marca_la_subpagina_activa",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminPestanasModulosTest",
+      "name": "test_las_pestanas_conservan_el_filtro_de_calidad_al_cambiar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_el_acopio_del_dia_agrupa_litros_aprobados_por_vehiculo_real_y_excluye_rechazados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_una_receta_requiere_litros_por_unidad_mayor_a_cero",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_la_recepcion_descuenta_merma_y_el_lote_de_produccion_usa_el_saldo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_no_se_puede_asignar_un_lote_con_mas_litros_que_el_saldo_disponible",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_se_pueden_crear_varios_lotes_de_productos_distintos_el_mismo_dia_repartiendo_el_saldo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_cancelar_un_lote_libera_su_reserva_de_litros",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_transiciones_de_estado_invalidas_se_rechazan",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_finalizar_no_permite_que_usado_mas_merma_de_proceso_superen_lo_asignado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_calcula_las_unidades_estimadas_segun_los_litros_asignados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_no_se_puede_producir_sin_acopios_pendientes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_el_historial_muestra_los_kpis_y_el_lote_registrado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProduccionModuleTest",
+      "name": "test_un_proveedor_no_puede_acceder_al_modulo_de_produccion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_el_listado_filtra_por_nombre_codigo_o_dni",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_el_listado_filtra_por_zona_y_por_estado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_una_busqueda_sin_coincidencias_muestra_el_estado_vacio_y_no_el_inicial",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_un_filtro_de_zona_inexistente_se_rechaza_en_vez_de_ignorarse",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_el_listado_muestra_los_litros_de_la_semana_y_la_ultima_entrega",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_la_ficha_muestra_los_datos_generales_y_la_ultima_entrega",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_la_ficha_separa_entregas_calidad_liquidaciones_y_auditoria_en_pestanas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_la_auditoria_de_la_ficha_solo_trae_los_movimientos_de_ese_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_una_pestana_desconocida_cae_en_el_resumen_en_vez_de_fallar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_la_ficha_de_un_proveedor_inexistente_devuelve_404",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_la_ruta_de_alta_no_se_confunde_con_la_ficha_de_un_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_calidad_no_accede_a_la_administracion_de_proveedores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminProveedoresPanelTest",
+      "name": "test_el_resumen_semanal_ignora_entregas_anuladas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_registrar_llegada_conserva_lo_recolectado_y_lo_medido_y_calcula_la_diferencia",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_registrar_llegada_no_requiere_que_calidad_haya_evaluado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_dos_viajes_del_mismo_camion_el_mismo_dia_generan_recepciones_independientes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_registrar_llegada_de_nuevo_para_la_misma_jornada_corrige_en_vez_de_duplicar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_rechaza_litros_medidos_negativos_y_exige_motivo_cuando_hay_diferencia",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_bloquea_registrar_o_corregir_la_recepcion_si_el_dia_ya_fue_procesado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_el_listado_filtra_por_estado_pendiente_y_registrada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminRecepcionModuleTest",
+      "name": "test_un_proveedor_no_puede_acceder_a_recepcion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_un_admin_puede_crear_un_usuario_con_varios_roles",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_no_se_puede_crear_un_usuario_con_username_duplicado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_un_admin_puede_editar_datos_y_roles_de_un_usuario",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_el_listado_filtra_por_busqueda_rol_y_estado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_desactivar_un_usuario_le_quita_el_acceso_de_inmediato_aunque_tenga_sesion_abierta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_no_se_puede_desactivar_al_unico_administrador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_se_puede_desactivar_un_admin_si_queda_otro_admin_activo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_un_admin_puede_bloquear_y_desbloquear_con_motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_bloquear_exige_un_motivo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_no_se_puede_bloquear_al_unico_administrador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_restablecer_credenciales_cambia_el_pin_e_invalida_sesiones",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_restablecer_credenciales_rechaza_un_pin_con_formato_invalido",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_los_cambios_de_roles_bloqueo_y_restablecimiento_quedan_auditados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_acopiador_no_accede_a_catalogos_ni_gestion_de_otros_modulos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_calidad_consulta_recepcion_pero_no_gestiona_usuarios_ni_zonas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminUsuariosModuleTest",
+      "name": "test_admin_y_calidad_ingresan_al_panel_y_acopiador_a_sus_mapas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_cada_pestana_muestra_su_catalogo_y_rutas_redirige_al_mapa",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_una_pestana_desconocida_cae_en_zonas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_el_listado_de_zonas_cuenta_proveedores_activos_y_rutas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_un_admin_puede_crear_una_ruta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_no_se_puede_repetir_el_codigo_de_una_ruta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_una_ruta_necesita_una_zona_existente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_un_admin_puede_editar_y_desactivar_una_ruta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_editar_una_ruta_puede_conservar_su_propio_codigo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_acopiador_no_administra_catalogos_ni_crea_rutas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasRutasVehiculosTest",
+      "name": "test_los_catalogos_vacios_explican_para_que_sirve_cada_uno",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_crear_una_zona",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_no_se_puede_crear_una_zona_con_nombre_vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_actualizar_y_desactivar_una_zona",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_crear_un_vehiculo_y_la_placa_se_normaliza_en_mayusculas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_actualizar_y_desactivar_un_vehiculo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_registra_un_analisis_lactoscan_y_se_califica_como_en_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_parametro_fuera_de_referencia_observa_y_el_agua_anadida_rechaza",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_analisis_sin_resultados_o_con_valores_invalidos_no_se_guarda",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_el_analisis_califica_las_entregas_del_proveedor_de_ese_dia_y_las_que_lleguen_despues",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_el_listado_de_calidad_muestra_los_conteos_y_la_tasa_de_aprobacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_generar_una_liquidacion_calculada_automaticamente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_no_se_puede_generar_una_liquidacion_sin_entregas_en_el_periodo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_admin_puede_marcar_una_liquidacion_como_pagada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_el_reporte_general_muestra_los_totales_de_los_ultimos_7_dias",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AdminZonasVehiculosCalidadProduccionLiquidacionesTest",
+      "name": "test_un_proveedor_no_puede_acceder_a_los_modulos_de_administracion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AsignacionZonaCoder1Test",
+      "name": "test_crear_reasignar_y_quitar_zona_desde_web_conserva_la_cuenta_y_exporta_el_contrato",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AsignacionZonaCoder1Test",
+      "name": "test_clientes_anteriores_preservan_zona_y_los_actuales_pueden_reasignar_y_quitar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AsignacionZonaCoder1Test",
+      "name": "test_no_asigna_zona_inactiva_inexistente_o_a_un_perfil_ajeno",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AsignacionZonaCoder1Test",
+      "name": "test_zona_asignada_no_se_desactiva_y_bloquear_desbloquear_no_pierde_la_asignacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AsignacionZonaCoder1Test",
+      "name": "test_la_zona_de_otras_cuentas_no_se_exporta_como_dato_autorizado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_filtra_por_responsable_entidad_accion_y_periodo_con_paginacion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_detalle_escapa_html_y_oculta_secretos_incluso_en_registros_antiguos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_auditoria_admite_cambios_largos_y_sanea_datos_antes_de_guardarlos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_detalle_exige_permiso_y_los_filtros_se_validan",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_pin_no_se_conserva_en_errores_de_validacion_ni_duplicados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_login_y_logout_auditados_sin_credenciales_y_limite_para_cuentas_inexistentes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_restablecer_revoca_sesion_anterior_aunque_no_use_tabla_sessions",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_login_rechaza_username_no_textual_sin_error_interno",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_fecha_de_auditoria_es_la_del_registro_y_no_la_llegada_declarada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_solo_admin_puede_quitar_admin_incluso_invocando_el_caso_de_uso",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_calidad_se_audita_y_no_se_guarda_si_falla_la_auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_errores_de_base_de_datos_no_exponen_consultas_ni_bindings",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_liquidacion_y_pago_registran_valor_anterior_y_nuevo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_iniciar_lote_registra_al_actor_y_no_al_creador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuditoriaSeguridadTest",
+      "name": "test_rutas_nuevo_no_se_interpretan_como_identificadores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_admin_puede_iniciar_sesion_con_el_pin_correcto",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_acopiador_puede_iniciar_sesion_en_la_web_para_ver_sus_rutas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_proveedor_no_puede_iniciar_sesion_en_la_web",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_rechaza_un_pin_incorrecto",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_bloquea_la_cuenta_tras_cinco_intentos_fallidos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_rechaza_a_un_usuario_desactivado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_visitante_no_autenticado_es_redirigido_al_login",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_usuario_puede_cerrar_sesion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.AuthenticationTest",
+      "name": "test_un_acopiador_no_puede_entrar_al_panel_administrativo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_zonas_y_vehiculos_creados_o_editados_en_la_app_llegan_al_panel",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_cuenta_movil_conserva_roles_retirados_en_archivo_sin_asignarlos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_proveedor_y_su_cuenta_desde_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_solo_el_admin_cambia_catalogos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_jornada_abierta_y_cerrada_en_la_app_sin_entregas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_comunicado_publicado_y_retirado_desde_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_el_analisis_de_la_app_llega_completo_y_califica_las_entregas_del_dia",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_reclamo_del_proveedor_y_su_resolucion_por_el_admin",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_liquidacion_aprobada_y_pagada_en_la_app",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CambiosMovilTest",
+      "name": "test_corregir_en_la_app_una_entrega_registrada_en_la_web_no_la_duplica",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CamposProveedorCoder1Test",
+      "name": "test_formulario_anterior_no_borra_responsable_y_el_actual_permite_retirarlo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CamposProveedorCoder1Test",
+      "name": "test_responsable_se_sincroniza_y_cambiar_estado_o_vincular_no_lo_pierde",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CamposProveedorCoder1Test",
+      "name": "test_limite_del_responsable_se_valida_sin_truncar_ni_borrar_el_valor_actual",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_dominio_rechaza_capacidad_no_finita_y_menor_al_minimo_del_formulario",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_formulario_rechaza_textos_que_exceden_el_contrato_sin_crear_fichas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_altas_y_restablecimientos_exigen_cuatro_digitos_sin_cambiar_hash_por_error",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_acceso_heredado_funciona_hasta_restablecimiento_manual_a_cuatro",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_caso_de_uso_no_admite_pin_con_salto_final_ni_digitos_no_ascii",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.CompatibilidadFormulariosCoder1Test",
+      "name": "test_api_restringe_escritura_de_catalogos_a_admin_y_proveedor_a_su_ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_la_insignia_de_estado_traduce_las_claves_del_dominio",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_la_insignia_de_estado_normaliza_acentos_y_mayusculas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_un_estado_desconocido_se_muestra_legible_en_vez_de_romper",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_color_de_la_insignia_nunca_va_solo_sin_texto",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_un_icono_inexistente_cae_en_un_icono_generico_sin_fallar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_un_icono_de_varios_trazos_los_dibuja_todos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_grafico_de_barras_sin_datos_muestra_el_mensaje_vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_grafico_de_barras_con_todo_en_cero_tambien_muestra_el_vacio",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_grafico_de_barras_ofrece_una_alternativa_textual_con_los_valores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_grafico_de_barras_reparte_como_maximo_seis_etiquetas_en_el_eje",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_la_dona_calcula_porcentajes_y_total_sobre_los_valores_reales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_la_dona_descarta_las_categorias_en_cero",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_las_barras_horizontales_muestran_la_linea_de_contexto",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_la_tabla_lleva_caption_accesible_y_encabezados_con_scope",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_campo_marca_el_error_de_validacion_del_formulario",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_un_campo_obligatorio_se_anuncia_tambien_a_lectores_de_pantalla",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_boton_es_enlace_cuando_recibe_href_y_boton_cuando_no",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_las_pestanas_marcan_la_activa_con_aria_current",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_paginador_usa_la_plantilla_del_diseno",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ComponentesUiTest",
+      "name": "test_el_estado_vacio_puede_ofrecer_una_accion_siguiente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ConcurrenciaCatalogosCoder1Test",
+      "name": "test_los_cuatro_catalogos_rechazan_base_antigua_sin_sobrescribir",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ConcurrenciaCatalogosCoder1Test",
+      "name": "test_base_vigente_permite_actualizar_y_reintento_tras_respuesta_perdida_no_duplica",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ConcurrenciaCatalogosCoder1Test",
+      "name": "test_una_alta_no_puede_pisar_otra_zona_del_mismo_nombre_sin_base",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ConcurrenciaCatalogosCoder1Test",
+      "name": "test_cliente_anterior_conserva_contrato_y_uno_actual_necesita_descargar_su_base",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ConcurrenciaCatalogosCoder1Test",
+      "name": "test_una_revision_valida_no_otorga_permiso_de_edicion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_el_inicio_de_sesion_devuelve_la_cuenta_para_crearla_en_el_celular",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_el_administrador_recibe_los_cambios_del_panel",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_el_proveedor_solo_recibe_su_ficha_y_sus_entregas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_sin_token_no_hay_datos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_el_analisis_de_calidad_del_panel_llega_completo_al_celular",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.DatosMovilTest",
+      "name": "test_pagos_y_resoluciones_regresan_al_proveedor_sin_exponer_los_ajenos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.EscenarioPeruDemoTest",
+      "name": "test_escenario_completo_conserva_admin_y_no_duplica_operaciones",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ExampleTest",
+      "name": "test_the_root_url_redirects_to_the_login",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_login_emite_token_aleatorio_guarda_hash_y_no_expone_credenciales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_token_valido_permite_datos_y_token_alterado_no",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_sin_token_o_token_en_query_no_autentica",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_rechaza_token_en_el_instante_de_expiracion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_logout_revoca_solo_el_token_presentado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_pin_incorrecto_y_cuenta_inexistente_no_emiten_token",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_valida_tipos_y_campos_sin_error_interno",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_cinco_pines_incorrectos_bloquean_login_y_token_existente_temporalmente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_limita_intentos_incluso_para_usuarios_inexistentes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_token_no_otorga_permisos_de_otro_rol",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_restablecer_pin_revoca_todos_los_tokens_de_esa_cuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_reactivar_cuenta_no_resucita_tokens_anteriores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.MovilAuthenticationTest",
+      "name": "test_desbloquear_cuenta_no_resucita_tokens_anteriores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_receta_reutilizable_descuenta_ingredientes_y_agrega_produccion_real_una_sola_vez",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_no_crea_lote_si_falta_un_ingrediente_y_muestra_cantidad_faltante",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_revalida_stock_al_iniciar_y_no_hace_descuentos_parciales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_editar_receta_no_cambia_ingredientes_de_lotes_existentes",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_cancelar_borrador_libera_leche_pero_cancelar_iniciado_conserva_consumos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_recetas_sirven_para_yogur_y_se_calculan_por_cantidad_a_producir",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_validacion_impide_ingredientes_duplicados_negativos_y_desconocidos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_materiales_validan_unidad_precision_y_evitan_stock_negativo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_inactiva_no_permite_crear_lotes_y_datos_incompletos_no_rompen_calculo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_formularios_ficha_y_pestanas_de_planta_muestran_receta_y_materiales",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_proveedor_no_puede_gestionar_materiales_recetas_ni_iniciar_produccion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_quitar_ingredientes_de_receta_no_borra_historial_ni_cambia_stock",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.PlantaRecetasInventarioTest",
+      "name": "test_no_permite_producto_terminado_sin_consumo_de_leche",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_zona_con_proveedores_activos_rechaza_desactivacion_y_conserva_relaciones",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_zona_y_vehiculo_con_jornada_abierta_no_se_desactivan",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_jornada_cerrada_y_proveedor_retirado_permiten_desactivar_y_reactivar_sin_borrar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_estado_es_obligatorio_y_booleano",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_la_api_aplica_las_mismas_guardas_y_revierte_el_renombrado_en_caso_de_rechazo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProteccionCatalogosCoder1Test",
+      "name": "test_consulta_no_puede_modificar_estados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_admin_puede_registrar_un_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_rechaza_un_codigo_de_proveedor_duplicado",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_rechaza_tachos_en_cero",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_los_campos_obligatorios_muestran_mensajes_en_espanol",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_admin_puede_actualizar_un_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_admin_puede_cambiar_el_estado_de_un_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_admin_puede_ver_el_codigo_qr_de_un_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_visitante_no_autenticado_no_puede_gestionar_proveedores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorManagementTest",
+      "name": "test_un_acopiador_no_puede_gestionar_proveedores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorVinculacionTest",
+      "name": "test_un_admin_puede_vincular_un_usuario_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorVinculacionTest",
+      "name": "test_rechaza_vincular_un_usuario_sin_rol_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorVinculacionTest",
+      "name": "test_rechaza_vincular_un_usuario_ya_vinculado_a_otro_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ProveedorVinculacionTest",
+      "name": "test_un_admin_puede_desvincular_un_usuario",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_login_emite_par_de_tokens_con_hashes_y_respuesta_no_cacheable",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_refresh_rota_ambos_tokens_y_no_extiende_la_sesion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_renueva_con_access_token_vencido_sin_enviar_pin",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_reutilizar_refresh_usado_revoca_su_sesion_y_preserva_otro_dispositivo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_refresh_vencido_no_renueva",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_rotacion_no_emite_access_mas_alla_del_vencimiento_refresh",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_refresh_inventado_o_access_como_refresh_no_revoca_sesion_legitima",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_refresh_no_se_puede_usar_como_bearer_para_datos",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_logout_con_access_revoca_tambien_refresh_e_historial",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_logout_con_refresh_funciona_aunque_access_haya_vencido",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_cambiar_pin_revoca_access_y_refresh",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_cuenta_inactiva_o_bloqueada_no_puede_renovar",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_valida_refresh_en_body_sin_aceptar_bearer_como_reemplazo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_refresh_tiene_limite_independiente_del_login",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_auditoria_oculta_refresh_y_access_en_texto_y_json",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RefreshTokenMovilTest",
+      "name": "test_tokens_emitidos_antes_de_migrar_siguen_validos_hasta_su_vencimiento",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ReporteDashboardTest",
+      "name": "test_el_dashboard_filtra_los_indicadores_y_el_detalle_por_zona",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.ReporteDashboardTest",
+      "name": "test_exporta_un_csv_compatible_con_excel_respetando_los_filtros",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_api_y_laravel_reconocen_cuatro_roles_y_los_permisos_no_incluyen_retirados",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_formularios_solo_ofrecen_cuatro_roles_sin_etiquetas_obsoletas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_web_y_api_rechazan_retirados_incluso_junto_a_un_rol_oficial",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_retirados_no_ingresan_no_renuevan_y_no_se_convierten",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_migracion_conserva_cuenta_pin_zona_ficha_y_roles_originales_sin_conceder_admin",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_mixtos_conservan_solo_oficiales_y_revocan_sesiones_sin_duplicar_archivo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_reversion_no_pisa_asignaciones_posteriores",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_no_crea_mezclas_proveedor_personal_y_conserva_las_heredadas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_modulos_conservados_son_accesibles_al_admin_y_no_otorgan_gestion_a_calidad",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.RolesCompatiblesCoder1Test",
+      "name": "test_cuenta_sin_rol_oficial_requiere_asignacion_y_no_se_anuncia_como_movil",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_entrega_pendiente_queda_visible_en_el_panel_del_administrador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_reintentar_la_misma_version_no_duplica",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_correccion_y_anulacion_actualizan_la_misma_fila_con_auditoria",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_una_version_atrasada_no_pisa_la_mas_reciente",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_una_anulacion_no_se_revierte_desde_el_celular",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_datos_que_no_existen_en_el_servidor_se_rechazan_sin_crear_nada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_sin_token_o_con_pin_incorrecto_no_se_acepta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_el_token_solo_guarda_su_hash_y_deja_de_valer_al_desactivar_la_cuenta",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_acopiador_no_puede_enviar_entregas_a_nombre_de_otro",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_proveedor_no_puede_enviar_entregas",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_el_proveedor_recibe_sus_liquidaciones_con_su_estado_real_pendiente_o_pagada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_proveedor_nunca_recibe_liquidaciones_de_otra_ficha",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_una_cuenta_de_proveedor_sin_ficha_no_recibe_liquidaciones",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_acopiador_que_no_existe_en_el_panel_se_rechaza_aunque_envie_un_admin",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_acopiador_no_puede_consultar_liquidaciones_de_proveedor",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_cerrar_sesion_revoca_el_token",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_una_correccion_enviada_por_admin_se_audita_a_su_nombre_y_la_entrega_sigue_siendo_del_acopiador",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_un_token_vencido_se_rechaza_como_sesion_invalida_sin_crear_nada",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_enviar_muchas_entregas_no_agota_el_limite_de_inicio_de_sesion",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_una_edicion_offline_no_sobrescribe_una_correccion_posterior_del_panel",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.SincronizacionMovilTest",
+      "name": "test_la_revision_detecta_cambios_incluso_en_el_mismo_segundo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.TrasladoMovilTest",
+      "name": "test_el_traslado_llega_al_panel_y_solo_admin_puede_aprobarlo",
+      "state": "Passed"
+    },
+    {
+      "class": "Tests.Feature.TrasladoMovilTest",
+      "name": "test_un_proveedor_no_puede_enviar_ni_leer_traslados_ajenos",
+      "state": "Passed"
+    }
+  ],
+  "counts": {
+    "Passed": 329,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "5d518d3074ab4d4f59e5abd1bf8463d6d4765061e089fb7dcfac219a1fb25618",
+  "recibo_original_sha256": "1a0796fe751af45087f1a3079748abd1b4f66fd6242bd7b67cf8493747924177",
+  "log_original_sha256": "5d518d3074ab4d4f59e5abd1bf8463d6d4765061e089fb7dcfac219a1fb25618",
+  "log": "phpunit.txt"
+}

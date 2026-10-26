@@ -32,6 +32,7 @@ class ExportarDatosMovilQuery
         $admin = $usuario->tieneRol('admin');
         $desde = now()->subDays(self::DIAS_OPERACION)->startOfDay();
         $miFicha = Proveedor::query()->where('usuario_id', $usuario->id)->first();
+        $puedeDatosProveedor = $usuario->tieneRol('proveedor');
         $soloProveedor = ! $admin && ! $usuario->tieneRol('acopiador') && ! $usuario->tieneRol('calidad');
 
         $proveedores = $soloProveedor
@@ -87,7 +88,7 @@ class ExportarDatosMovilQuery
             ->filter(fn (Usuario $u) => $this->rolesMovil($u) !== []);
 
         $traslados = SolicitudTraslado::query()
-            ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+            ->when(! $admin, fn ($q) => $q->where('proveedor_id', $puedeDatosProveedor ? ($miFicha?->id ?? 0) : 0))
             ->orderBy('id')->get()->map(fn (SolicitudTraslado $t) => [
                 'id' => $t->uuid_movil, 'proveedorId' => $t->proveedor_id, 'tipo' => 'TRASLADO',
                 'referenciaId' => null, 'zonaDestinoId' => $t->zona_destino_id, 'litros' => null,
@@ -100,22 +101,26 @@ class ExportarDatosMovilQuery
             // Solo la copia del admin trae todo el catálogo: lo que falte en ella se retiró en el panel.
             'completo' => $admin,
             'zonas' => Zona::query()->orderBy('id')->get()->map(fn (Zona $z) => [
-                'id' => $z->id, 'nombre' => $z->nombre, 'activo' => (bool) $z->activo,
+                'revision' => RevisionCatalogo::de($z), 'id' => $z->id, 'nombre' => $z->nombre, 'activo' => (bool) $z->activo,
             ])->values(),
             'vehiculos' => Vehiculo::query()->orderBy('id')->get()->map(fn (Vehiculo $v) => [
-                'id' => $v->id, 'nombre' => $v->nombre, 'placa' => $v->placa, 'activo' => (bool) $v->activo,
+                'revision' => RevisionCatalogo::de($v), 'id' => $v->id, 'nombre' => $v->nombre, 'placa' => $v->placa, 'activo' => (bool) $v->activo,
             ])->values(),
             'usuarios' => $usuarios->map(fn (Usuario $u) => [
-                'id' => $u->id, 'username' => $u->username, 'nombres' => $u->nombres,
+                'revision' => ($admin || $u->id === $usuario->id) ? RevisionCatalogo::de($u) : null, 'id' => $u->id, 'username' => $u->username, 'nombres' => $u->nombres,
                 'dni' => ($admin || $u->id === $usuario->id) ? (string) $u->dni : null,
                 'roles' => $this->rolesMovil($u),
                 'activo' => (bool) $u->activo,
+                'bloqueado' => $u->estaBloqueada(),
+                'zonaId' => ($admin || $u->id === $usuario->id) ? $u->zona_id : null,
+                'asignacionZonaIncluida' => $admin || $u->id === $usuario->id,
             ])->values(),
             'proveedores' => $proveedores->map(fn (Proveedor $p) => [
-                'id' => $p->id, 'codigo' => $p->codigo, 'nombres' => $p->nombres, 'dni' => (string) $p->dni,
+                'revision' => RevisionCatalogo::de($p), 'id' => $p->id, 'codigo' => $p->codigo, 'nombres' => $p->nombres, 'dni' => (string) $p->dni,
                 'telefono' => $p->telefono, 'direccion' => $p->direccion, 'zonaId' => $p->zona_id,
                 'tachos' => (int) $p->tachos, 'capacidadTachoL' => (float) $p->capacidad_tacho_l,
                 'estado' => strtoupper($p->estado->value), 'usuarioId' => $p->usuario_id,
+                'dueno' => $p->dueno, 'responsableIncluido' => true,
             ])->values(),
             'jornadas' => $jornadas->map(fn (Jornada $j) => [
                 'id' => $j->id, 'uuidMovil' => $j->uuid_movil, 'usuarioId' => $j->usuario_id,
@@ -142,7 +147,7 @@ class ExportarDatosMovilQuery
                 'registradoEn' => $a->registrado_en->getTimestampMs(),
             ])->values(),
             'pagos' => Liquidacion::query()
-                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $puedeDatosProveedor ? ($miFicha?->id ?? 0) : 0))
                 ->orderBy('id')->get()->map(fn (Liquidacion $p) => [
                     'id' => $p->id, 'proveedorId' => $p->proveedor_id,
                     'desde' => $p->periodo_inicio->toDateString(), 'hasta' => $p->periodo_fin->toDateString(),
@@ -152,7 +157,7 @@ class ExportarDatosMovilQuery
                     'estado' => strtoupper($p->estado->value), 'fechaPago' => $p->pagada_en?->toDateString(),
                 ])->values(),
             'solicitudes' => ReclamoProveedor::query()->with('entrega')
-                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $miFicha?->id ?? 0))
+                ->when(! $admin, fn ($q) => $q->where('proveedor_id', $puedeDatosProveedor ? ($miFicha?->id ?? 0) : 0))
                 ->orderBy('id')->get()->map(fn (ReclamoProveedor $r) => [
                     'id' => $r->uuid_movil ?? "web-reclamo-{$r->id}", 'proveedorId' => $r->proveedor_id,
                     'referenciaId' => $r->entrega?->uuid_movil ?? ($r->entrega_id ? "web-entrega-{$r->entrega_id}" : null),

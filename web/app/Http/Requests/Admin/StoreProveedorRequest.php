@@ -17,11 +17,12 @@ class StoreProveedorRequest extends FormRequest
         return [
             'codigo' => ['required', 'string', 'max:50'],
             'nombres' => ['required', 'string', 'max:150'],
+            'dueno' => ['nullable', 'string', 'max:150'],
             'dni' => ['required', 'string', 'max:20'],
             'telefono' => ['nullable', 'string', 'max:30'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'zona_id' => ['required', 'integer', 'exists:zonas,id'],
-            'tachos' => ['required', 'integer', 'min:1'],
+            'tachos' => ['required', 'integer', 'min:1', 'max:1000'],
             'capacidad_tacho_l' => ['required', 'numeric', 'min:0.01'],
         ];
     }
@@ -37,6 +38,8 @@ class StoreProveedorRequest extends FormRequest
             zonaId: $this->integer('zona_id'),
             tachos: $this->integer('tachos'),
             capacidadTachoL: (float) $this->input('capacidad_tacho_l'),
+            dueno: $this->string('dueno')->toString() ?: null,
+            responsableIncluido: $this->exists('dueno'),
         );
     }
 }

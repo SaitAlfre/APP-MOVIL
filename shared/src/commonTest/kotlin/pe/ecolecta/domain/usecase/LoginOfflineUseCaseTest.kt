@@ -35,6 +35,16 @@ class LoginOfflineUseCaseTest {
     }
 
     @Test
+    fun `una cuenta sin perfil movil no inicia sesion ni pierde su identidad`() = runTest {
+        sembrarUsuario()
+        usuarioRepository.quitarRol("u1", Rol.ACOPIADOR)
+        val resultado = useCase("jperez", "1234")
+        assertIs<PinInvalidoException.SinPerfilMovil>(resultado.exceptionOrNull())
+        assertEquals("jperez", usuarioRepository.obtenerPorId("u1")?.username)
+        assertTrue(auditoriaRepository.insertados.isEmpty())
+    }
+
+    @Test
     fun `login exitoso con pin correcto registra auditoria y resetea intentos`() = runTest {
         sembrarUsuario(pin = "1234")
 

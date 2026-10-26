@@ -1,0 +1,320 @@
+{
+  "fecha_utc": "2026-10-26T11:07:48.564032+00:00",
+  "git": {
+    "head": "056bcb9cd0de60f081b533a496cde013d8c76127",
+    "staging_vacio": true,
+    "diff_check": 0,
+    "sin_commit_push_ni_remotos": true
+  },
+  "delta_archivos_de_implementacion_y_docs": 40,
+  "fuentes_identicas_a_copia": 818,
+  "evidencias_anteriores_sin_alterar": 70,
+  "seguridad": {
+    "archivos_privados_o_binarios_en_pack": [],
+    "patrones_de_secretos_en_pack": [],
+    "limite": "Escaneo de patrones y revisión de archivos; no auditoría de penetración. Datos y PIN explícitos son solo fixtures sintéticos de tests."
+  },
+  "alcance": {
+    "negocio_otros_coders_modificado": false,
+    "limite": "Se cambian puertas C1 de autorización/DTO/cola compartida y expectativas de permisos en fixtures. Sin cambiar cálculos/operación de otros módulos; suites completas aprobadas no acreditan todo flujo de negocio."
+  },
+  "enlaces": {
+    "ok": true,
+    "markdown": 110,
+    "local_links": 1949,
+    "errores": 0,
+    "advertencias": [
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:635: columnas 6, se esperaban 5",
+      "docs/metodologia/APLICACION_METODOLOGIA_SCRUM.md:636: columnas 5, se esperaban 6",
+      "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt: evidencia histórica verificada en git:c9ace988ca444be42df228b1bd1b2bd78b6ad39d; no acredita la versión actual",
+      "web/tests/Feature/AdminNavegacionYPermisosTest.php: evidencia histórica verificada en git:8674b53756ec9c765dc6de763ea7af32efe956ad; no acredita la versión actual",
+      "web/tests/Feature/AdminZonasRutasVehiculosTest.php: evidencia histórica verificada en git:8674b53756ec9c765dc6de763ea7af32efe956ad; no acredita la versión actual",
+      "EXE-20261023T040434Z-android-ui-7c3474: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+      "EXE-20261023T040739Z-android-ui-1a416a: 5 controles no alcanzados por el arnés; sin nombres en el recibo inicial",
+      "EXE-20261023T041246Z-android-ui-212406: 4 controles no alcanzados por el arnés; sin nombres en el recibo inicial"
+    ],
+    "recibo": "enlaces.json"
+  },
+  "resultado": "10 tareas completadas en alcance técnico local; T04 y T12 pendientes por política/evidencia manual y campo.",
+  "pruebas": {
+    "phpunit": {
+      "aprobadas": 339,
+      "fallidas": 0,
+      "omitidas": 0,
+      "aserciones": 2087
+    },
+    "shared": {
+      "aprobadas": 321,
+      "fallidas": 0,
+      "omitidas": 0,
+      "http_locales_incluidas": 6
+    },
+    "android_interfaz": {
+      "checks_grupo": 10
+    },
+    "android_cierre": {
+      "checks_grupo": 7,
+      "int_repetido": "INT-C1-web-a-android",
+      "ids_distintos_ambos_grupos": 16
+    },
+    "android_nativo": 6,
+    "android_reapertura": 1,
+    "herramientas": 27,
+    "builds": "APK/test APK y Vite correctos; advertencias preservadas en salida"
+  },
+  "entorno": "SQLite sintético y localhost; AVD temporal apagado normalmente al terminar, sin borrar datos. No migración productiva, Firebase real ni cambios GitHub.",
+  "artefactos": [
+    {
+      "archivo": "android-bloqueo-anterior.json",
+      "sha256": "b67b15ab84e480478a696683693a811b33bfd69b6fbd57479f97bad56f2f0b71"
+    },
+    {
+      "archivo": "android-bloqueo-anterior.txt",
+      "sha256": "e5ac92b281b43a53812c962bd6ae0398da65e3dd17b7fa80eeee9dbe6913f295"
+    },
+    {
+      "archivo": "android-cierre.json",
+      "sha256": "a592f3a42def6209d9913efd573e9c47f578b9668c25c8186fd82cb001c3381e"
+    },
+    {
+      "archivo": "android-cierre.txt",
+      "sha256": "8cd53dcccc5aece8bf9bc2f134e58114a19118c42a3f34c73ff5c8f3fa068384"
+    },
+    {
+      "archivo": "android-interfaz.json",
+      "sha256": "ec303846891f7dd494c26819c90a6fbb9d61c1805e965565bb14487305d4fcbd"
+    },
+    {
+      "archivo": "android-interfaz.txt",
+      "sha256": "8eabd9a87345cece992171e732db5619dc8be10c931825208d76d59057b39897"
+    },
+    {
+      "archivo": "android-nativo.json",
+      "sha256": "85846b7523fa398c15850978d4df59d573966aee9d7665a886024f9fddca11f5"
+    },
+    {
+      "archivo": "android-nativo.txt",
+      "sha256": "34e0081eee5aa37994c71af4fdefbb3f17659f1663c7503cdd80e2e59f0a7be2"
+    },
+    {
+      "archivo": "android-reapertura.json",
+      "sha256": "3496a3fd6a72bcfca8b011f540da666991d61defb4b2c699e92c64c7ae2a8c4d"
+    },
+    {
+      "archivo": "android-reapertura.txt",
+      "sha256": "7abc10e0dbf91ffecddf7efbb74ed4a92d115749c4917d91ddf349a17e69f834"
+    },
+    {
+      "archivo": "archivos-cambiados.json",
+      "sha256": "61c73ae081d8118550841496633bd6a126eec4be4c9f4a3b5a426f3cf7c00f60"
+    },
+    {
+      "archivo": "avd-cierre.json",
+      "sha256": "e825203550faa5ce50bc46e910a1cef2a332cd74d5346a916adbe3681e05a21c"
+    },
+    {
+      "archivo": "build.json",
+      "sha256": "7ea8e4d2b12911630047233179a57870f0cc5bded2a05aaf19d90a73d75955ac"
+    },
+    {
+      "archivo": "build.txt",
+      "sha256": "054624208e0ea4e79b430e789dec06e1d7e24310b6667dd3bc553b1d9aaf9a1d"
+    },
+    {
+      "archivo": "coder1-administrador.png",
+      "sha256": "24ba3f715d447b87d43a43fa5a8d5d3869c6177463597261a1b5f52bb5a362c2"
+    },
+    {
+      "archivo": "coder1-login.png",
+      "sha256": "dfa1a4f202642616327114c072c2e844aee9af9bcb62b2fe2446a9c8c3d9c8cb"
+    },
+    {
+      "archivo": "coder1-reapertura.png",
+      "sha256": "c30da7f09973226313a3c11984f6912d96bb1be7ae38dfd094037aaa80ea92b8"
+    },
+    {
+      "archivo": "coder1-ui-acopiador.png",
+      "sha256": "5ebd83eaed221167ebda643a42334d325b4044a6060a351017492430e9f57a69"
+    },
+    {
+      "archivo": "coder1-ui-admin-final.png",
+      "sha256": "0388c3917596b4894ff64b34fb69a0bdd872c4cbb7eff0075ec0592ea66d993c"
+    },
+    {
+      "archivo": "coder1-ui-admin.png",
+      "sha256": "35bdf3e49b1457776ed2296fda7844a64eb7bd88bcd61336812c6d3b7b02afa7"
+    },
+    {
+      "archivo": "coder1-ui-calidad.png",
+      "sha256": "f75122efd9804ca8fa82a9b96d875c988e6191964d45dff53f7a66040a08366d"
+    },
+    {
+      "archivo": "coder1-ui-cierre-confirmado.png",
+      "sha256": "ec6f31e50130c6f7ec19834728dd871cb5769847bbb0864aef3e0c218979d76a"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-bloqueada.png",
+      "sha256": "563874d95a7021ff432554737c62cd8f1dc787dedc9c374ca5889fb7c501a270"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-creada.png",
+      "sha256": "9c82934c87b4a1e76416f71f503d021a912bf35ef5e3ac76fecdf3eadf6f2420"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-desactivada.png",
+      "sha256": "8488b71c061fd60eff315e15eb4f097fecbe5628721926c0aca1d3ccc92bc913"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-editada.png",
+      "sha256": "e9f848da5c60d1c9379c6c8bec099e8e4e3b32234d34e5345e19015e817f37bc"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-formulario.png",
+      "sha256": "a84470a5b5bee13b14872933f79a9fcead9c95baea059c9ac0e916e904783c75"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-reactivada.png",
+      "sha256": "d3d9ba1921e902b9ae3b60ef940430cf05a69c0d5d251fec755f36a8c904fabe"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-rechazada.png",
+      "sha256": "69440e1d881a1b114ed3d3bff7e862f45ab856728fa76222f419211365f0a77c"
+    },
+    {
+      "archivo": "coder1-ui-envio-confirmado.png",
+      "sha256": "94b7ef9b7eb04dbb1fb095be197a43f157244f947e0205739cbb4429d927dee8"
+    },
+    {
+      "archivo": "coder1-ui-perfil.png",
+      "sha256": "b4d0bc1b0e1324ed90e161a978969411ea310cdcd20d9e74d1295d7955b4afe0"
+    },
+    {
+      "archivo": "coder1-ui-proveedor-formulario.png",
+      "sha256": "b5788fe38c0901eedc829872c47f14d8fa81bec83d9947a87ea40c06cbfd7632"
+    },
+    {
+      "archivo": "coder1-ui-proveedor.png",
+      "sha256": "4db4ade2a78212dd85180f1653830a4c4973adf1a83eafbc0fdd3b78310ce6d9"
+    },
+    {
+      "archivo": "coder1-ui-usuarios.png",
+      "sha256": "6e98e5315e41d558d0efa1343c15d5d5a0cf10ca510851b3f7a0739358ba553a"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-creado.png",
+      "sha256": "52f490b4dc69887ec0298849178d0efd1c8f64a3501fb057cab28f1686366231"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-desactivado.png",
+      "sha256": "57509748bdf2c3b9da3353f6f57b2ffe978db4e30958ef5113aa9256ef6d1ed2"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-reactivado.png",
+      "sha256": "6ac30b6ec6378014632b520a19715919562d2134d2e0b7227b7960ed2778faa7"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-rechazado.png",
+      "sha256": "f55c035bc2d1b1bdc341998994570eb737d5ef1578e3c662b30d8e93d0ad9521"
+    },
+    {
+      "archivo": "coder1-ui-zona-creada.png",
+      "sha256": "ea25732e7d491d79ce6dbc44064298158989f7645d4fcedcc24d0a240bb065aa"
+    },
+    {
+      "archivo": "coder1-ui-zona-desactivada.png",
+      "sha256": "b34da84adf6960f4bfced3e3bc8336b46f4352cb5bfc2384d4387c5677af55c3"
+    },
+    {
+      "archivo": "coder1-ui-zona-reactivada.png",
+      "sha256": "26705bc6e277e480e11e9c9b93fc3d713d42dff7639a313e545c59e45cbeca35"
+    },
+    {
+      "archivo": "coder1-ui-zona-rechazada.png",
+      "sha256": "f0b8a1a98476eb9fc93ed6d434dc12314d984c026e69010629d30c70ec9b6096"
+    },
+    {
+      "archivo": "enlaces.json",
+      "sha256": "84754753d63f82db31011c2c2805556dc4eb63a23473dc3956dba68721b08897"
+    },
+    {
+      "archivo": "fuentes-verificadas.json",
+      "sha256": "7ce522a43130edac289b2676feb2b67de718ec225ea9c33f9f58066d6cefed01"
+    },
+    {
+      "archivo": "herramientas.txt",
+      "sha256": "5effe2cf98306f87d313768346ad26614e900f9941eed14af351b765e7daf81c"
+    },
+    {
+      "archivo": "intento-ack-sin-revision.json",
+      "sha256": "9a665a1634557acd073475998fcc73230fbc09b8e5c02d9197d6e35dd33a6b9f"
+    },
+    {
+      "archivo": "intento-ack-sin-revision.txt",
+      "sha256": "6735db21a7d53c7d8540211b30633e11a286953883dfa9492482aa3bfdb99844"
+    },
+    {
+      "archivo": "intentos.json",
+      "sha256": "56a8e2b68ea57cd76d4e7d798cae1cd4b986a2088fde0ad644327b79f921e552"
+    },
+    {
+      "archivo": "kotlin.json",
+      "sha256": "e30d0c86c1fca8cc02921cde74487c1795db8ca4cdb2060a887a1617a9ff962e"
+    },
+    {
+      "archivo": "kotlin.txt",
+      "sha256": "c13ed3cb2037c0eecebc27cff7c20190e7bd889922fa9239ffc01ce5faa57933"
+    },
+    {
+      "archivo": "navegador.json",
+      "sha256": "6257e8016ccd4e0f7ce0ca70c039f71ab3a881914f9e310dab211d95f62e1a90"
+    },
+    {
+      "archivo": "phpunit.json",
+      "sha256": "6c89f631e44438aed0a6c15defd5daa6ea7c8b728d0ed80b92866f4153fd895e"
+    },
+    {
+      "archivo": "phpunit.txt",
+      "sha256": "2f4b1285ce2b4cb82ad78ed815683cc4b8c861bcf39510068a6e6848b6134a31"
+    },
+    {
+      "archivo": "pint.json",
+      "sha256": "d3a01674f32c1b65cf5972b3c7c64baf22570db19225d2ce31d245691ad41717"
+    },
+    {
+      "archivo": "pint.txt",
+      "sha256": "f980801229c945e3f94b357132992fc49ed650074058b408e9419e00b7c82be1"
+    },
+    {
+      "archivo": "restauracion-fixture.txt",
+      "sha256": "038fa641dd9cf04f08f272a4460eee847bcf4200d1413fb640bcb44eb294bbda"
+    },
+    {
+      "archivo": "web-build.json",
+      "sha256": "88a20dc5caa1e83ce63db4a3513b1c14937d255a042964606c11de314c1afcd7"
+    },
+    {
+      "archivo": "web-build.txt",
+      "sha256": "9d20806ab0e087db6ff3c0878778ad667f544c596c034035a3f3efa8badefa90"
+    },
+    {
+      "archivo": "web-calidad-dashboard.png",
+      "sha256": "2785ce963002663dd986e6392abd3a4cf762c501a01728b9559afb8e15e97032"
+    },
+    {
+      "archivo": "web-calidad-liquidaciones-403.png",
+      "sha256": "b44c55608ef51ba7fbf79f6c056155f090a776f8f950e0ace410ede4adc64f4f"
+    },
+    {
+      "archivo": "web-calidad-produccion-403.png",
+      "sha256": "b44c55608ef51ba7fbf79f6c056155f090a776f8f950e0ace410ede4adc64f4f"
+    },
+    {
+      "archivo": "web-cuenta-bloqueada.png",
+      "sha256": "37919ce0b56fcce854b9bc247537a87593a4b7453ef176eaeda40a48f77283c4"
+    },
+    {
+      "archivo": "web-cuenta-cuatro-roles.png",
+      "sha256": "ab2b7f96fade3ca8af379b80ba5517f5fe50009aa5ff931b8b50a5b6f837940b"
+    }
+  ]
+}

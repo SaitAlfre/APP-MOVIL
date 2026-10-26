@@ -1,0 +1,14 @@
+[
+  {
+    "path_local": "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk",
+    "bytes": 99470431,
+    "sha256": "0922302add7aaa716f9972ec4fa1c901dbf9f399741a11565a35a9b5012236f7",
+    "versionado": false
+  },
+  {
+    "path_local": "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk",
+    "bytes": 819749,
+    "sha256": "5be619ae455120ded8a7f83ba9204d86a1eec6ce3fee339a8e0d41ee1f1cc70b",
+    "versionado": false
+  }
+]

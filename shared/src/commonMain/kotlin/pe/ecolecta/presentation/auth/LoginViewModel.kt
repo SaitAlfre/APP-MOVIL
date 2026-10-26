@@ -36,12 +36,13 @@ class LoginViewModel(
             iniciarSesion(estado.username, estado.pin).fold(
                 onSuccess = { inicio ->
                     val usuario = inicio.usuario
-                    // En segundo plano: el ingreso offline no espera a la red. Si el panel ya validó la
-                    // cuenta (cuenta nueva o PIN cambiado en la web), solo se traen sus datos.
+                    // La autenticación ya resolvió online/offline; la descarga se inicia en segundo plano.
                     if (inicio.enlazado) vincularServidor.yaEnlazado() else vincularServidor(usuario.id, usuario.username, estado.pin)
                     if (usuario.roles.size == 1) {
-                        seleccionarRolUseCase(usuario, usuario.roles.first())
-                        _uiState.update { it.copy(cargando = false, sesionIniciada = true) }
+                        seleccionarRolUseCase(usuario, usuario.roles.first()).fold(
+                            onSuccess = { _uiState.update { it.copy(cargando = false, sesionIniciada = true) } },
+                            onFailure = { error -> _uiState.update { it.copy(cargando = false, error = mensajeDeError(error)) } },
+                        )
                     } else {
                         _uiState.update {
                             it.copy(cargando = false, usuarioAutenticadoId = usuario.id, requiereSeleccionRol = true)

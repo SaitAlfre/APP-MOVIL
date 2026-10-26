@@ -1,0 +1,18 @@
+{
+  "suite": "pint",
+  "command": [
+    "/tmp/ecolactea-c1-cierre-ei2ci5pu/runtime/usr/bin/php",
+    "/tmp/ecolactea-c1-cierre-ei2ci5pu/project/web/vendor/bin/pint",
+    "--format",
+    "agent",
+    "--dirty"
+  ],
+  "returncode": 0,
+  "tests": [],
+  "counts": {
+    "Passed": 0,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "f980801229c945e3f94b357132992fc49ed650074058b408e9419e00b7c82be1"
+}

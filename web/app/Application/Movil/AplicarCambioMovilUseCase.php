@@ -58,17 +58,26 @@ class AplicarCambioMovilUseCase
     {
         $this->autorizar($autor, $entidad);
 
-        return DB::transaction(fn () => match ($entidad) {
-            'zona' => $this->zona($datos),
-            'vehiculo' => $this->vehiculo($datos),
-            'usuario' => $this->usuario($autor, $datos),
-            'proveedor' => $this->proveedor($autor, $datos),
-            'jornada' => $this->jornada($autor, $datos),
-            'comunicado' => $this->comunicado($autor, $datos),
-            'calidad' => $this->calidad($autor, $datos),
-            'reclamo' => $this->reclamo($autor, $datos),
-            'traslado' => $this->traslado($autor, $datos),
-            'liquidacion' => $this->liquidacion($datos),
+        return DB::transaction(function () use ($autor, $entidad, $datos) {
+            if (in_array($entidad, ['zona', 'vehiculo', 'usuario', 'proveedor'], true) && ($datos['controlVersion'] ?? false)) {
+                $confirmado = app(RevisionCatalogo::class)->comprobar($entidad, $datos);
+                if ($confirmado !== null) {
+                    return $confirmado;
+                }
+            }
+
+            return match ($entidad) {
+                'zona' => $this->zona($datos),
+                'vehiculo' => $this->vehiculo($datos),
+                'usuario' => $this->usuario($autor, $datos),
+                'proveedor' => $this->proveedor($autor, $datos),
+                'jornada' => $this->jornada($autor, $datos),
+                'comunicado' => $this->comunicado($autor, $datos),
+                'calidad' => $this->calidad($autor, $datos),
+                'reclamo' => $this->reclamo($autor, $datos),
+                'traslado' => $this->traslado($autor, $datos),
+                'liquidacion' => $this->liquidacion($datos),
+            };
         });
     }
 
@@ -119,8 +128,8 @@ class AplicarCambioMovilUseCase
     }
 
     /**
-     * Los roles que solo existen en el panel (producción, recepción...) se conservan: el celular solo
-     * decide sobre los perfiles que conoce.
+     * Solo cuatro roles oficiales; las combinaciones heredadas no cambian sin revisión manual.
+     * La validación de altas y cambios se comparte con el panel web.
      *
      * @param  array<string, mixed>  $datos
      */
@@ -129,19 +138,27 @@ class AplicarCambioMovilUseCase
         $usuario = $this->porServidorId(Usuario::class, $datos) ?? Usuario::query()->where('username', $datos['username'])->first();
         $rolesMovil = array_values(array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, array_map('strtolower', $datos['roles'])));
         $pin = $datos['pin'] ?? null;
+        $incluyeZona = (bool) ($datos['asignacionZonaIncluida'] ?? false);
+        $zonaId = null;
+        if ($incluyeZona && (isset($datos['zonaId']) || isset($datos['zonaNombre']))) {
+            $zona = $this->porServidorId(Zona::class, $datos, 'zonaId')
+                ?? Zona::query()->where('nombre', $datos['zonaNombre'] ?? '')->first()
+                ?? throw CambioMovilRechazadoException::noExiste('La zona', $datos['zonaNombre'] ?? (string) $datos['zonaId']);
+            $zonaId = $zona->id;
+        }
 
         if ($usuario === null) {
             if ($pin === null) {
                 throw new CambioMovilRechazadoException('Para crear la cuenta en el panel hace falta su PIN: vuelve a asignarle un PIN en la app.', 'pin_requerido');
             }
             $id = app(CrearUsuarioUseCase::class)->ejecutar(
-                $datos['username'], $datos['nombres'], $datos['dni'], $pin, $this->roles($rolesMovil), true, $autor->id,
+                $datos['username'], $datos['nombres'], $datos['dni'], $pin, $this->roles($rolesMovil), true, $autor->id, $zonaId,
             )->id;
         } else {
             $id = $usuario->id;
             $roles = array_values(array_unique([...array_diff($usuario->roles ?? [], ExportarDatosMovilQuery::ROLES_MOVIL), ...$rolesMovil]));
-            if ($usuario->nombres !== $datos['nombres'] || (string) $usuario->dni !== $datos['dni'] || collect($usuario->roles)->sort()->values()->all() !== collect($roles)->sort()->values()->all()) {
-                app(ActualizarUsuarioUseCase::class)->ejecutar($id, $datos['nombres'], $datos['dni'], $this->roles($roles), true, $autor->id);
+            if ($usuario->nombres !== $datos['nombres'] || (string) $usuario->dni !== $datos['dni'] || collect($usuario->roles)->sort()->values()->all() !== collect($roles)->sort()->values()->all() || ($incluyeZona && $usuario->zona_id !== $zonaId)) {
+                app(ActualizarUsuarioUseCase::class)->ejecutar($id, $datos['nombres'], $datos['dni'], $this->roles($roles), true, $autor->id, $zonaId, $incluyeZona);
             }
             if ($pin !== null) {
                 app(RestablecerCredencialesUsuarioUseCase::class)->ejecutar($id, $pin, $autor->id);
@@ -163,6 +180,7 @@ class AplicarCambioMovilUseCase
             codigo: $datos['codigo'], nombres: $datos['nombres'], dni: $datos['dni'], telefono: $datos['telefono'] ?? null,
             direccion: $datos['direccion'] ?? null, zonaId: $zona->id, tachos: (int) $datos['tachos'],
             capacidadTachoL: (float) $datos['capacidadTachoL'],
+            dueno: $datos['dueno'] ?? null, responsableIncluido: array_key_exists('dueno', $datos),
         );
         $id = $proveedor === null
             ? app(CrearProveedorUseCase::class)->ejecutar($ficha, $autor->id)->id

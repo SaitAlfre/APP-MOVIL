@@ -51,9 +51,11 @@
                         <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $usuario->dni }}</td>
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-1">
-                                @foreach ($usuario->roles as $rol)
+                                @forelse ($usuario->roles as $rol)
                                     <x-ui.badge variant="blue" :label="$rol->etiqueta()" />
-                                @endforeach
+                                @empty
+                                    <x-ui.badge variant="yellow" label="Requiere asignación" />
+                                @endforelse
                             </div>
                         </td>
                         <td class="px-4 py-3">
@@ -69,7 +71,7 @@
                                 <x-ui.badge variant="green" label="Activo" />
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $accesoWeb ? 'Sí' : 'Solo app móvil' }}</td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $usuario->roles === [] ? 'Sin perfil asignado' : ($accesoWeb ? 'Sí' : 'Solo app móvil') }}</td>
                         <td class="px-4 py-3">
                             @if ($puedeGestionar)
                                 <div class="flex items-center justify-end gap-1">
@@ -161,9 +163,9 @@
                         <label for="pin-nuevo-{{ $usuario->id }}" class="text-sm font-medium text-eh-text">
                             Nuevo PIN <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
                         </label>
-                        <input id="pin-nuevo-{{ $usuario->id }}" type="password" inputmode="numeric" name="pin" required minlength="4" maxlength="8" pattern="\d{4,8}"
+                        <input id="pin-nuevo-{{ $usuario->id }}" type="password" inputmode="numeric" name="pin" required minlength="4" maxlength="4" pattern="\d{4}"
                             class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
-                        <p class="text-xs text-eh-text-muted">Entre 4 y 8 dígitos numéricos.</p>
+                        <p class="text-xs text-eh-text-muted">Exactamente 4 dígitos numéricos.</p>
                     </div>
                     <div class="flex justify-end gap-2">
                         <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>

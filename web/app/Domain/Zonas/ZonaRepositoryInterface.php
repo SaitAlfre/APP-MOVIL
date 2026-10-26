@@ -15,4 +15,10 @@ interface ZonaRepositoryInterface
     public function buscarPorNombre(string $nombre): ?Zona;
 
     public function guardar(Zona $zona): Zona;
+
+    public function tieneProveedoresActivos(int $id): bool;
+
+    public function tieneJornadasAbiertas(int $id): bool;
+
+    public function tieneCuentasAsignadas(int $id): bool;
 }

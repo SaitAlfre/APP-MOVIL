@@ -49,6 +49,7 @@ internal fun UsuarioFila.aDominio(roles: List<Rol>): Usuario = Usuario(
     updatedAt = updated_at,
     intentosFallidos = intentos_fallidos.toInt(),
     bloqueadoHasta = bloqueado_hasta,
+    requiereVerificacion = requiere_verificacion != 0L,
 )
 
 internal fun ZonaFila.aDominio(): Zona = Zona(id = id, nombre = nombre, activo = activo != 0L)

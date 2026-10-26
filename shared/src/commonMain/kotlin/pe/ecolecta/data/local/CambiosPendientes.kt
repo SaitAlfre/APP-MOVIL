@@ -20,7 +20,8 @@ object EntidadCambio {
  * Anota que la fila [localId] de [entidad] cambió en este celular y debe llegar al panel web. El autor es la
  * cuenta en sesión (su token firma el envío). Solo lo llaman los repositorios al guardar un cambio del
  * usuario: lo que llega del panel se escribe con consultas directas y nunca se anota (no hay eco).
- * [pin] = PIN nuevo en claro de una cuenta, solo hasta enviarlo; un cambio posterior sin PIN lo conserva.
+ * [pin] = PIN nuevo ya protegido por el adaptador de plataforma, solo hasta confirmar el envío;
+ * un cambio posterior sin PIN conserva ese valor protegido. No pasar el PIN en claro.
  */
 internal fun EcolectaDatabase.marcarCambio(entidad: String, localId: String, pin: String? = null) {
     val previo = cambioPendienteQueries.porClave(entidad, localId).executeAsOneOrNull()

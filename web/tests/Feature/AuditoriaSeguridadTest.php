@@ -92,7 +92,7 @@ class AuditoriaSeguridadTest extends TestCase
     public function test_pin_no_se_conserva_en_errores_de_validacion_ni_duplicados(): void
     {
         $admin = $this->admin();
-        $datos = ['username' => $admin->username, 'nombres' => 'Prueba', 'dni' => '12345678', 'pin' => '5678', 'roles' => ['consulta']];
+        $datos = ['username' => $admin->username, 'nombres' => 'Prueba', 'dni' => '12345678', 'pin' => '5678', 'roles' => ['calidad']];
         $this->post(route('admin.usuarios.store'), $datos)->assertSessionHasErrors('username')->assertSessionMissing('_old_input.pin');
         $this->post(route('admin.usuarios.store'), array_replace($datos, ['roles' => []]))->assertSessionHasErrors('roles')->assertSessionMissing('_old_input.pin');
     }
@@ -116,7 +116,7 @@ class AuditoriaSeguridadTest extends TestCase
     public function test_restablecer_revoca_sesion_anterior_aunque_no_use_tabla_sessions(): void
     {
         $admin = $this->admin();
-        $usuario = Usuario::factory()->create(['roles' => ['consulta']]);
+        $usuario = Usuario::factory()->create(['roles' => ['calidad']]);
         $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678'])->assertSessionHasNoErrors();
         $this->assertEquals(1, $usuario->fresh()->version_sesion);
         $this->actingAs($usuario->fresh(), 'operador')->withSession(['version_sesion' => [$usuario->id => 0]])
@@ -148,7 +148,7 @@ class AuditoriaSeguridadTest extends TestCase
         $admin = $this->admin();
         Usuario::factory()->create(['roles' => ['admin']]);
         $this->expectException(UsuarioInvalidoException::class);
-        app(ActualizarUsuarioUseCase::class)->ejecutar($admin->id, $admin->nombres, $admin->dni, [Rol::Consulta], false, $admin->id);
+        app(ActualizarUsuarioUseCase::class)->ejecutar($admin->id, $admin->nombres, $admin->dni, [Rol::Calidad], false, $admin->id);
     }
 
     /** @return array<string, mixed> */

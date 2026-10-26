@@ -40,6 +40,6 @@ final class CrearProveedorUseCase
             creadoPorUsuarioId: $creadoPorUsuarioId,
         );
 
-        return $this->proveedores->guardar($proveedor);
+        return $this->proveedores->guardar($proveedor->conResponsable($datos->dueno));
     }
 }

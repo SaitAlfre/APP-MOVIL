@@ -228,17 +228,11 @@ class AdminProveedoresPanelTest extends TestCase
         $this->get('/admin/proveedores/nuevo')->assertOk()->assertSee('Nuevo proveedor');
     }
 
-    public function test_un_rol_de_solo_consulta_ve_la_ficha_pero_no_las_acciones_de_gestion(): void
+    public function test_calidad_no_accede_a_la_administracion_de_proveedores(): void
     {
-        $consulta = Usuario::factory()->create(['roles' => ['consulta']]);
-        $proveedor = Proveedor::factory()->create(['nombres' => 'Celestino Apaza']);
-        $this->actingAs($consulta, 'operador');
-
-        $respuesta = $this->get("/admin/proveedores/{$proveedor->id}");
-
-        $respuesta->assertOk();
-        $respuesta->assertSee('Celestino Apaza');
-        $respuesta->assertDontSee('Nuevo proveedor');
+        $proveedor = Proveedor::factory()->create();
+        $this->actingAs(Usuario::factory()->create(['roles' => ['calidad']]), 'operador');
+        $this->get("/admin/proveedores/{$proveedor->id}")->assertForbidden();
         $this->get('/admin/proveedores/nuevo')->assertForbidden();
     }
 

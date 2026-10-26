@@ -1,0 +1,71 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "NAT-C1-01-keystore-real",
+      "estado": "Passed"
+    },
+    {
+      "id": "NAT-C1-02-cuatro-roles",
+      "estado": "Passed"
+    },
+    {
+      "id": "NAT-C1-03-altas-y-descarga-segundo-dispositivo",
+      "estado": "Passed"
+    },
+    {
+      "id": "NAT-C1-04-sin-red-y-reintento",
+      "estado": "Passed"
+    },
+    {
+      "id": "NAT-C1-05-conflicto-conservado",
+      "estado": "Passed"
+    },
+    {
+      "id": "NAT-C1-06-login-y-navegacion",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-login.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-administrador.png"
+  ],
+  "prefijoFicticio": "qa_c1_1845d5",
+  "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales",
+  "timestamp": "2026-10-26T11:00:58.954612+00:00",
+  "mode": "nativo",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "d4c4a8c52553e9979194ddb71ef308d883b04f0d864336ba725e250779ac7718",
+  "test_apk_sha256": "169a56dd06d9fc81cb7d50e5adbda5c1d622112260fefe14e9a404d9dfa0b7f9",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "nativo",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ],
+  "capturas_exportadas": [
+    {
+      "archivo": "coder1-login.png",
+      "sha256": "dfa1a4f202642616327114c072c2e844aee9af9bcb62b2fe2446a9c8c3d9c8cb"
+    },
+    {
+      "archivo": "coder1-administrador.png",
+      "sha256": "24ba3f715d447b87d43a43fa5a8d5d3869c6177463597261a1b5f52bb5a362c2"
+    }
+  ]
+}

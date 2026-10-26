@@ -1,0 +1,18 @@
+{
+  "suite": "assets",
+  "command": [
+    "<RUNTIME_NODE_LOCAL>/node",
+    "/tmp/ecolactea-c1-cierre-ei2ci5pu/runtime/npm/package/bin/npm-cli.js",
+    "run",
+    "build"
+  ],
+  "returncode": 0,
+  "tests": [],
+  "counts": {
+    "Passed": 0,
+    "Failed": 0,
+    "Skipped": 0
+  },
+  "log_sha256": "9d20806ab0e087db6ff3c0878778ad667f544c596c034035a3f3efa8badefa90",
+  "publicacion": "Ruta privada del runtime Node anonimizada; equivalente reproducible: npm run build. Resultado y salida de la ejecución real conservados."
+}

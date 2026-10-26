@@ -1,0 +1,12 @@
+CREATE TABLE version_catalogo_servidor (
+    entidad TEXT NOT NULL,
+    local_id TEXT NOT NULL,
+    revision TEXT NOT NULL,
+    PRIMARY KEY (entidad, local_id)
+);
+
+obtener:
+SELECT revision FROM version_catalogo_servidor WHERE entidad = :entidad AND local_id = :local_id;
+
+guardar:
+INSERT OR REPLACE INTO version_catalogo_servidor(entidad, local_id, revision) VALUES (:entidad, :local_id, :revision);

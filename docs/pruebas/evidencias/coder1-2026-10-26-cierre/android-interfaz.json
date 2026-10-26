@@ -1,0 +1,147 @@
+{
+  "exito": true,
+  "checks": [
+    {
+      "id": "INT-C1-web-a-android",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-01-perfil-y-usuarios",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-02-zona-formulario-y-error",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-03-vehiculo-formulario-y-error",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-04-ficha-proveedor",
+      "estado": "Passed"
+    },
+    {
+      "id": "INT-C1-ui-android-web",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-acopiador",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-calidad",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-proveedor",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-rol-admin",
+      "estado": "Passed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-perfil.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-usuarios.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-formulario.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-rechazada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-rechazada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-creada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-rechazado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-creado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-proveedor-formulario.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-envio-confirmado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-acopiador.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-calidad.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-proveedor.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-admin.png"
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "timestamp": "2026-10-26T11:00:38.376939+00:00",
+  "mode": "interfaz",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "d4c4a8c52553e9979194ddb71ef308d883b04f0d864336ba725e250779ac7718",
+  "test_apk_sha256": "169a56dd06d9fc81cb7d50e5adbda5c1d622112260fefe14e9a404d9dfa0b7f9",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "interfaz",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ],
+  "capturas_exportadas": [
+    {
+      "archivo": "coder1-ui-perfil.png",
+      "sha256": "b4d0bc1b0e1324ed90e161a978969411ea310cdcd20d9e74d1295d7955b4afe0"
+    },
+    {
+      "archivo": "coder1-ui-usuarios.png",
+      "sha256": "6e98e5315e41d558d0efa1343c15d5d5a0cf10ca510851b3f7a0739358ba553a"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-formulario.png",
+      "sha256": "a84470a5b5bee13b14872933f79a9fcead9c95baea059c9ac0e916e904783c75"
+    },
+    {
+      "archivo": "coder1-ui-cuenta-rechazada.png",
+      "sha256": "69440e1d881a1b114ed3d3bff7e862f45ab856728fa76222f419211365f0a77c"
+    },
+    {
+      "archivo": "coder1-ui-zona-rechazada.png",
+      "sha256": "f0b8a1a98476eb9fc93ed6d434dc12314d984c026e69010629d30c70ec9b6096"
+    },
+    {
+      "archivo": "coder1-ui-zona-creada.png",
+      "sha256": "ea25732e7d491d79ce6dbc44064298158989f7645d4fcedcc24d0a240bb065aa"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-rechazado.png",
+      "sha256": "f55c035bc2d1b1bdc341998994570eb737d5ef1578e3c662b30d8e93d0ad9521"
+    },
+    {
+      "archivo": "coder1-ui-vehiculo-creado.png",
+      "sha256": "52f490b4dc69887ec0298849178d0efd1c8f64a3501fb057cab28f1686366231"
+    },
+    {
+      "archivo": "coder1-ui-proveedor-formulario.png",
+      "sha256": "b5788fe38c0901eedc829872c47f14d8fa81bec83d9947a87ea40c06cbfd7632"
+    },
+    {
+      "archivo": "coder1-ui-envio-confirmado.png",
+      "sha256": "94b7ef9b7eb04dbb1fb095be197a43f157244f947e0205739cbb4429d927dee8"
+    },
+    {
+      "archivo": "coder1-ui-acopiador.png",
+      "sha256": "5ebd83eaed221167ebda643a42334d325b4044a6060a351017492430e9f57a69"
+    },
+    {
+      "archivo": "coder1-ui-calidad.png",
+      "sha256": "f75122efd9804ca8fa82a9b96d875c988e6191964d45dff53f7a66040a08366d"
+    },
+    {
+      "archivo": "coder1-ui-proveedor.png",
+      "sha256": "4db4ade2a78212dd85180f1653830a4c4973adf1a83eafbc0fdd3b78310ce6d9"
+    },
+    {
+      "archivo": "coder1-ui-admin.png",
+      "sha256": "35bdf3e49b1457776ed2296fda7844a64eb7bd88bcd61336812c6d3b7b02afa7"
+    }
+  ]
+}

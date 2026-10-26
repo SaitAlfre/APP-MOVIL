@@ -1,0 +1,73 @@
+{
+  "exito": false,
+  "checks": [
+    {
+      "id": "INT-C1-web-a-android",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-05-alta-cuenta",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-06-edicion-cuenta-y-pin",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-07-estados-cuenta",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-08-estados-zona-libre",
+      "estado": "Passed"
+    },
+    {
+      "id": "UI-C1-09-estados-vehiculo-libre",
+      "estado": "Passed"
+    },
+    {
+      "id": "INT-C1-cierre-ui-web-pin-y-reintento",
+      "estado": "Failed"
+    }
+  ],
+  "capturas": [
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-creada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-editada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-desactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-cuenta-reactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-desactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-zona-reactivada.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-desactivado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-vehiculo-reactivado.png",
+    "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-ui-fallo.png"
+  ],
+  "prefijoFicticio": "",
+  "ui": "Interacción gráfica automatizada mediante accesibilidad de Android; no operación manual en Android Studio",
+  "fallo": "IllegalStateException en InterfazCoder1.kt:312: Check failed.",
+  "timestamp": "2026-10-26T10:40:53.762134+00:00",
+  "mode": "cierre",
+  "serial": "emulator-5558",
+  "avd": "Coder1_Cierre_26",
+  "app_sha256": "7b32bd5daecdaa3a4287becea70e42a87f65953aaadbb688f2fa407261f2cc4a",
+  "test_apk_sha256": "38c7defe34b360efd461b750380630ef9bce70f329abba3edaf3ef09f8bec48c",
+  "command": [
+    "adb",
+    "-s",
+    "emulator-5558",
+    "shell",
+    "am",
+    "instrument",
+    "-w",
+    "-r",
+    "-e",
+    "entorno",
+    "coder1-ficticio",
+    "-e",
+    "modo",
+    "cierre",
+    "-e",
+    "pinPrueba",
+    "<PIN_FICTICIO>",
+    "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+  ]
+}

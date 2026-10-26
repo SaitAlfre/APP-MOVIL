@@ -31,6 +31,7 @@ class Proveedor extends Model
         'estado',
         'creado_por_usuario_id',
         'usuario_id',
+        'dueno',
     ];
 
     protected function casts(): array

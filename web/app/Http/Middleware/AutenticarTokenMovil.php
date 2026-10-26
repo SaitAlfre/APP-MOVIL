@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Application\Movil\ExportarDatosMovilQuery;
 use App\Infrastructure\Persistence\Eloquent\TokenMovil;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Closure;
@@ -27,7 +28,8 @@ class AutenticarTokenMovil
         /** @var Usuario|null $usuario */
         $usuario = $registro?->usuario;
 
-        if ($usuario === null || ! $usuario->activo || $usuario->estaBloqueada()) {
+        if ($usuario === null || ! $usuario->activo || $usuario->estaBloqueada()
+            || array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? []) === []) {
             return response()->json([
                 'message' => 'La sesión del celular con el servidor no es válida. Vuelve a iniciar sesión con conexión.',
                 'codigo' => 'token_invalido',

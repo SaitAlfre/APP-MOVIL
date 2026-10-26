@@ -77,6 +77,7 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
         $registro->dni = $usuario->dni;
         $registro->activo = $usuario->activo;
         $registro->roles = array_map(fn (Rol $r) => $r->value, $usuario->roles);
+        $registro->zona_id = $usuario->zonaId;
         $registro->intentos_fallidos = $usuario->intentosFallidos;
         $registro->bloqueado_hasta = $usuario->bloqueadoHasta;
         $registro->bloqueado_manualmente = $usuario->bloqueadoManualmente;
@@ -127,7 +128,8 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
             dni: $usuario->dni,
             pinHash: $usuario->pin_hash,
             activo: $usuario->activo,
-            roles: array_map(fn (string $r) => Rol::from($r), $usuario->roles ?? []),
+            roles: array_values(array_filter(array_map(fn (string $r) => Rol::tryFrom($r), $usuario->roles ?? []))),
+            zonaId: $usuario->zona_id,
             intentosFallidos: $usuario->intentos_fallidos,
             bloqueadoHasta: $bloqueadoHasta !== null ? DateTimeImmutable::createFromInterface($bloqueadoHasta) : null,
             bloqueadoManualmente: $usuario->bloqueado_manualmente,

@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RuntimeException;
 
 class VehiculoController extends Controller
 {
@@ -61,7 +62,12 @@ class VehiculoController extends Controller
 
     public function cambiarEstado(int $vehiculo, Request $request, CambiarEstadoVehiculoUseCase $cambiarEstado): RedirectResponse
     {
-        $cambiarEstado->ejecutar($vehiculo, $request->boolean('activo'));
+        $request->validate(['activo' => ['required', 'boolean']]);
+        try {
+            $cambiarEstado->ejecutar($vehiculo, $request->boolean('activo'));
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['activo' => $this->mensajeSeguro($e)]);
+        }
 
         return redirect()->route('admin.zonas-vehiculos.index')->with('estado', 'Estado del vehículo actualizado.');
     }

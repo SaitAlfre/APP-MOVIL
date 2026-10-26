@@ -1,0 +1,8 @@
+{
+  "fecha_utc": "2026-10-26T11:04:05.734248+00:00",
+  "avd": "Coder1_Cierre_26",
+  "serial": "emulator-5558",
+  "accion": "Apagado normal del AVD temporal propio; no wipe ni eliminación de userdata",
+  "returncode": 0,
+  "respuesta": "OK: killing emulator, bye bye\nOK\n"
+}

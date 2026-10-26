@@ -1,0 +1,9 @@
+-- Archivo de asociaciones originales; no concede permisos ni convierte perfiles.
+CREATE TABLE IF NOT EXISTS usuario_rol_pendiente (
+    usuario_id TEXT NOT NULL,
+    rol_original TEXT NOT NULL,
+    PRIMARY KEY (usuario_id, rol_original)
+);
+
+selectTodos:
+SELECT * FROM usuario_rol_pendiente ORDER BY usuario_id, rol_original;

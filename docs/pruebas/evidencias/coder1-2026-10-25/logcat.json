@@ -1,0 +1,24 @@
+{
+  "commands": [
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "logcat",
+        "-d",
+        "--pid=3855",
+        "-s",
+        "AndroidRuntime:E",
+        "EcolectaInicio:E"
+      ],
+      "returncode": 0,
+      "log": "native-logcat-errores.log"
+    }
+  ],
+  "bytes": 0,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scope": "AndroidRuntime:E y EcolectaInicio:E del PID preview después de iniciar; no toda la sesión",
+  "normalizacion": "Ruta del SDK local sustituida por $ANDROID_HOME; contenido de resultados conservado.",
+  "recibo_previo_sha256": "63b11ff6fbf7325efc7ee9147812a0a6f3638ff630d674a9d515f0cc00cd0669"
+}

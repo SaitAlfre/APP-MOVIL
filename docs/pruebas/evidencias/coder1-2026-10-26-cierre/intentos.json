@@ -1,0 +1,109 @@
+{
+  "fecha": "2026-10-26T10:51:31.956015+00:00",
+  "nota": "Intentos anteriores al cierre, no se cuentan como pruebas aprobadas. Los recibos finales son los de cada suite.",
+  "intentos": [
+    {
+      "intento": "php-acuerdos-01",
+      "resultado": {
+        "Passed": 42,
+        "Failed": 3,
+        "Skipped": 0
+      },
+      "exito": false,
+      "causa_y_resolucion": "La copia omitió vistas vendor versionadas; se corrigió el filtro de preparación, sin cambiar la app.",
+      "recibo_original_sha256": "22140fd51a19689481b5e3ca134e3700b7afd7056719d6aaeb68629372e02540"
+    },
+    {
+      "intento": "php-acuerdos-02",
+      "resultado": {
+        "Passed": 44,
+        "Failed": 1,
+        "Skipped": 0
+      },
+      "exito": false,
+      "causa_y_resolucion": "Fixture de cambio a Calidad sin zona; se ajustó a la decisión aprobada.",
+      "recibo_original_sha256": "bd68abe5c92d7276ed25399a6a4674b53c595badd909980df06e1db1047de728"
+    },
+    {
+      "intento": "php-completa-01",
+      "resultado": {
+        "Passed": 333,
+        "Failed": 4,
+        "Skipped": 0
+      },
+      "exito": false,
+      "causa_y_resolucion": "Expectativa anterior de Calidad en liquidaciones; fixture de auditoría sin zona; texto Admin alterado accidentalmente y restaurado; GD ausente en runtime temporal.",
+      "recibo_original_sha256": "6544b6d4ce5e845b568ff35b60a3456accc8f0805c59859f0a804f48e2f1a0b3"
+    },
+    {
+      "intento": "android-cierre-final",
+      "resultado": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-05-alta-cuenta",
+          "estado": "Failed"
+        }
+      ],
+      "exito": false,
+      "causa_y_resolucion": "Test de desplazamiento sin esperar animación.",
+      "recibo_original_sha256": "cd3d98c51d10a9d2cc38ce266fec444ab42dfcbf98b5251f7e230f95acd3bea4"
+    },
+    {
+      "intento": "android-cierre-02",
+      "resultado": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-05-alta-cuenta",
+          "estado": "Failed"
+        }
+      ],
+      "exito": false,
+      "causa_y_resolucion": "Test observaba el título compartido Nueva cuenta antes de terminar el guardado.",
+      "recibo_original_sha256": "e25aa00d050362e5e6a856a056198c3729b0720d6cf16ad315166fb8a2873133"
+    },
+    {
+      "intento": "android-cierre-03",
+      "resultado": [
+        {
+          "id": "INT-C1-web-a-android",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-05-alta-cuenta",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-06-edicion-cuenta-y-pin",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-07-estados-cuenta",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-08-estados-zona-libre",
+          "estado": "Passed"
+        },
+        {
+          "id": "UI-C1-09-estados-vehiculo-libre",
+          "estado": "Passed"
+        },
+        {
+          "id": "INT-C1-cierre-ui-web-pin-y-reintento",
+          "estado": "Failed"
+        }
+      ],
+      "exito": false,
+      "causa_y_resolucion": "Fallo real: ACK sin revisión inicial dejaba edición posterior en ERROR. Cambio conservado; corregido mediante ACK atómico y base confirmada.",
+      "recibo_original_sha256": "9a665a1634557acd073475998fcc73230fbc09b8e5c02d9197d6e35dd33a6b9f"
+    }
+  ],
+  "nota_visual": "Después de pasar los recorridos, algunas capturas mostraban una transición. Se ajustó únicamente la espera de fotograma del test y se repitieron cierre/interfaz/nativo/reapertura: los recibos finales y PNG son de esa repetición. No se suman como nuevos tests.",
+  "verificacion_documental": "El verificador detectó la ruta privada del runtime Node en el recibo Vite; se anonimizó la ruta publicada, conservando el resultado y sin modificar el verificador."
+}

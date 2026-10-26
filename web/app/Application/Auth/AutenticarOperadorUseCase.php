@@ -38,6 +38,9 @@ final class AutenticarOperadorUseCase
         if ($usuario === null) {
             return false;
         }
+        if ($usuario->roles === []) {
+            return false;
+        }
 
         if (! $usuario->activo) {
             throw new CuentaInactivaException;

@@ -150,14 +150,12 @@ class AdminZonasRutasVehiculosTest extends TestCase
         $respuesta->assertSessionHasNoErrors();
     }
 
-    public function test_un_rol_de_consulta_ve_los_catalogos_pero_no_puede_crear_rutas(): void
+    public function test_acopiador_no_administra_catalogos_ni_crea_rutas(): void
     {
-        $this->actingAs(Usuario::factory()->create(['roles' => ['consulta']]), 'operador');
-        $zona = Zona::factory()->create(['nombre' => 'Zona Este']);
-
-        $this->get('/admin/zonas-vehiculos')->assertOk()->assertSee('Zona Este')->assertDontSee('Nueva zona');
-        $this->post('/admin/zonas-vehiculos/rutas', ['codigo' => 'R-11', 'nombre' => 'Ruta 11', 'zona_id' => $zona->id])
-            ->assertForbidden();
+        $this->actingAs(Usuario::factory()->create(['roles' => ['acopiador']]), 'operador');
+        $zona = Zona::factory()->create();
+        $this->get('/admin/zonas-vehiculos')->assertForbidden();
+        $this->post('/admin/zonas-vehiculos/rutas', ['codigo' => 'R-11', 'nombre' => 'Ruta 11', 'zona_id' => $zona->id])->assertForbidden();
     }
 
     public function test_los_catalogos_vacios_explican_para_que_sirve_cada_uno(): void

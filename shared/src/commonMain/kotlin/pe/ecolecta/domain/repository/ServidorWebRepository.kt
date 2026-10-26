@@ -92,6 +92,10 @@ interface ServidorWebRepository {
     suspend fun enviarCambio(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<Long?> =
         Result.failure(UnsupportedOperationException("Este celular no tiene servidor configurado."))
 
+    /** ACK con revisión para los cuatro catálogos C1; compatible con servidores/adaptadores anteriores. */
+    suspend fun enviarCatalogo(usuarioId: String, entidad: String, cuerpo: kotlinx.serialization.json.JsonObject): Result<ConfirmacionCatalogo> =
+        enviarCambio(usuarioId, entidad, cuerpo).map { ConfirmacionCatalogo(it) }
+
     /** Lo que el panel publica para la cuenta de [usuarioId] (catálogos y operación reciente). */
     suspend fun descargarDatos(usuarioId: String): Result<DatosServidor> =
         Result.failure(UnsupportedOperationException("Este celular no tiene servidor configurado."))

@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label for="pin" class="text-[11px] font-semibold text-eh-text">PIN o contraseña</label>
+                    <label for="pin" class="text-[11px] font-semibold text-eh-text">PIN</label>
                     <div class="relative">
                         <input id="pin" name="pin" type="password" inputmode="numeric" required autocomplete="current-password" placeholder="••••••"
                             @if ($errors->any()) aria-invalid="true" aria-describedby="login-error" @endif

@@ -1,0 +1,224 @@
+{
+  "environment": "AVD Galaxy_S25_Android_16, preview, Laravel local 8871",
+  "results": [
+    {
+      "exito": true,
+      "checks": [
+        {
+          "id": "NAT-C1-01-keystore-real",
+          "estado": "Passed"
+        },
+        {
+          "id": "NAT-C1-02-cuatro-roles",
+          "estado": "Passed"
+        },
+        {
+          "id": "NAT-C1-03-altas-y-descarga-segundo-dispositivo",
+          "estado": "Passed"
+        },
+        {
+          "id": "NAT-C1-04-sin-red-y-reintento",
+          "estado": "Passed"
+        },
+        {
+          "id": "NAT-C1-05-conflicto-conservado",
+          "estado": "Passed"
+        },
+        {
+          "id": "NAT-C1-06-login-y-navegacion",
+          "estado": "Passed"
+        }
+      ],
+      "capturas": [
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-login.png",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-administrador.png"
+      ],
+      "prefijoFicticio": "qa_c1_ed120b",
+      "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales"
+    },
+    {
+      "exito": true,
+      "checks": [
+        {
+          "id": "NAT-C1-07-sesion-persistida",
+          "estado": "Passed"
+        }
+      ],
+      "capturas": [
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-reapertura.png"
+      ],
+      "prefijoFicticio": "",
+      "ui": "captura real; autenticación invocada por casos de uso, sin pulsaciones manuales"
+    }
+  ],
+  "counts": {
+    "Passed": 7,
+    "Failed": 0
+  },
+  "commands": [
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "emu",
+        "avd",
+        "name"
+      ],
+      "returncode": 0,
+      "log": "native-avd.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+      ],
+      "returncode": 0,
+      "log": "native-instalar-app.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "install",
+        "-r",
+        "-t",
+        "/tmp/ecolactea-coder1-c8fmp23t/project/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk"
+      ],
+      "returncode": 0,
+      "log": "native-instalar-test.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "entorno",
+        "coder1-ficticio",
+        "-e",
+        "pinPrueba",
+        "<PIN_FICTICIO_REDACTADO>",
+        "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+      ],
+      "returncode": 0,
+      "log": "native-integracion.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-login.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/evidencias/coder1-login.png"
+      ],
+      "returncode": 0,
+      "log": "native-pull-coder1-login.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-administrador.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/evidencias/coder1-administrador.png"
+      ],
+      "returncode": 0,
+      "log": "native-pull-coder1-administrador.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "entorno",
+        "coder1-ficticio",
+        "-e",
+        "pinPrueba",
+        "<PIN_FICTICIO_REDACTADO>",
+        "-e",
+        "modo",
+        "reabrir",
+        "pe.ecolecta.preview.test/pe.ecolecta.qa.VerificacionCoder1Instrumentada"
+      ],
+      "returncode": 0,
+      "log": "native-reabrir.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "pull",
+        "/storage/emulated/0/Android/data/pe.ecolecta.preview/files/coder1-reapertura.png",
+        "/tmp/ecolactea-coder1-c8fmp23t/evidencias/coder1-reapertura.png"
+      ],
+      "returncode": 0,
+      "log": "native-pull-coder1-reapertura.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "am",
+        "start",
+        "-W",
+        "-n",
+        "pe.ecolecta.preview/pe.ecolecta.MainActivity"
+      ],
+      "returncode": 0,
+      "log": "native-iniciar-app.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "shell",
+        "pidof",
+        "-s",
+        "pe.ecolecta.preview"
+      ],
+      "returncode": 0,
+      "log": "native-pid.log"
+    },
+    {
+      "command": [
+        "$ANDROID_HOME/platform-tools/adb",
+        "-s",
+        "emulator-5554",
+        "logcat",
+        "-d",
+        "--pid=3855",
+        "-s",
+        "AndroidRuntime:E",
+        "EcolectaInicio:E"
+      ],
+      "returncode": 0,
+      "log": "native-logcat-errores.log"
+    }
+  ],
+  "ui_limit": "Capturas reales y navegación por estado; no pulsaciones manuales de formularios.",
+  "normalizacion": "Ruta del SDK local sustituida por $ANDROID_HOME; contenido de resultados conservado.",
+  "recibo_previo_sha256": "6bf40c88f2f8a568e70a748da25c66c920bb3230122c03b22b65c890fb31def4"
+}

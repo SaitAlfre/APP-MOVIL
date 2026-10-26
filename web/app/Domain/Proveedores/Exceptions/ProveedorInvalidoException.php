@@ -23,7 +23,7 @@ final class ProveedorInvalidoException extends DomainException
 
     public static function tachosInvalidos(): self
     {
-        return new self('La cantidad de tachos debe ser mayor a 0.');
+        return new self('La cantidad de tachos debe estar entre 1 y 1000.');
     }
 
     public static function capacidadInvalida(): self
