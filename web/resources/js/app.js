@@ -43,9 +43,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuOverlay = document.querySelector('[data-admin-menu-overlay]');
     const menuClose = document.querySelector('[data-admin-menu-close]');
 
+    const desktopMenu = window.matchMedia('(min-width: 1024px)');
+    const collapseToggle = document.querySelector('[data-sidebar-collapse]');
+    const readPreference = (key) => {
+        try { return localStorage.getItem(key); } catch { return null; }
+    };
+    const savePreference = (key, value) => {
+        try { localStorage.setItem(key, value); } catch { /* Navegación disponible sin almacenamiento. */ }
+    };
+    let compactMenu = readPreference('ecolecta.sidebar.compact') === 'true';
+    const updateCompactMenu = () => {
+        adminMenu?.classList.toggle('sidebar-compact', desktopMenu.matches && compactMenu);
+        collapseToggle?.setAttribute('aria-expanded', String(!compactMenu));
+        const label = compactMenu ? 'Expandir menú lateral' : 'Contraer menú lateral';
+        collapseToggle?.setAttribute('aria-label', label);
+        collapseToggle?.setAttribute('title', label);
+    };
+    updateCompactMenu();
+    desktopMenu.addEventListener('change', updateCompactMenu);
+    collapseToggle?.addEventListener('click', () => {
+        compactMenu = !compactMenu;
+        updateCompactMenu();
+        savePreference('ecolecta.sidebar.compact', String(compactMenu));
+    });
+    adminMenu?.querySelectorAll('[data-nav-group]').forEach((group) => {
+        const key = `ecolecta.sidebar.group.${group.dataset.navGroup}`;
+        const saved = readPreference(key);
+        if (group.dataset.active === 'true') {
+            group.open = true;
+        } else if (saved !== null) {
+            group.open = saved === 'true';
+        }
+        group.addEventListener('toggle', () => savePreference(key, String(group.open)));
+        group.querySelector('summary')?.addEventListener('click', (event) => {
+            if (desktopMenu.matches && compactMenu) {
+                event.preventDefault();
+                compactMenu = false;
+                updateCompactMenu();
+                savePreference('ecolecta.sidebar.compact', 'false');
+                group.open = true;
+            }
+        });
+    });
+
     if (menuToggle && adminMenu) {
         const closeMenu = () => {
             adminMenu.classList.add('-translate-x-full');
+            adminMenu.inert = !desktopMenu.matches;
             menuOverlay?.setAttribute('hidden', '');
             document.body.classList.remove('overflow-hidden');
             menuToggle.setAttribute('aria-expanded', 'false');
@@ -53,12 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const openMenu = () => {
+            adminMenu.inert = false;
             adminMenu.classList.remove('-translate-x-full');
             menuOverlay?.removeAttribute('hidden');
             document.body.classList.add('overflow-hidden');
             menuToggle.setAttribute('aria-expanded', 'true');
             menuToggle.setAttribute('aria-label', 'Cerrar menú de administración');
+            menuClose?.focus();
         };
+
+        if (!desktopMenu.matches) { closeMenu(); }
 
         menuToggle.addEventListener('click', () => {
             const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
@@ -92,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.matchMedia('(min-width: 1024px)').addEventListener('change', (event) => {
             if (event.matches) {
+                adminMenu.inert = false;
                 menuOverlay?.setAttribute('hidden', '');
                 document.body.classList.remove('overflow-hidden');
                 menuToggle.setAttribute('aria-expanded', 'false');

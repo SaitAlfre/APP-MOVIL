@@ -66,96 +66,87 @@
     --color-eh-sidebar-label: var(--eh-sidebar-label);
 }
 
-/*
- * Tokens de EcolectaHuata — los valores claros replican la paleta del diseño
- * "Mockup Admin Dashboard" (Figma Make): tinta #142820, lima #d8ff57, fondo
- * #f4f4ef, arena #e6ddd1 y salvia #6c8c7b. `.dark` redefine los mismos nombres
- * para que cada utilidad `eh-*` siga siendo correcta en ambos temas.
- */
+/* Paleta cálida inspirada en la referencia Ember, con contraste legible. */
 :root {
-    --eh-bg: #f4f4ef;
+    color-scheme: light;
+    --eh-bg: #fffbfa;
     --eh-surface: #ffffff;
-    --eh-surface-alt: #eef0e9;
-    --eh-border: #17231e14;
-    --eh-border-strong: #17231e1f;
-    --eh-text: #17231e;
-    --eh-text-muted: #66706b;
-    --eh-primary: #142820;
-    --eh-primary-dark: #203c31;
-    --eh-primary-soft: #e3ebe3;
+    --eh-surface-alt: #faf5f3;
+    --eh-border: #ebe3e0;
+    --eh-border-strong: #d8ccc7;
+    --eh-text: #292524;
+    --eh-text-muted: #746761;
+    --eh-primary: #c73f33;
+    --eh-primary-dark: #ac3027;
+    --eh-primary-soft: #fdece8;
     --eh-on-primary: #ffffff;
-    --eh-success: #39765d;
-    --eh-success-soft: #e3f1e8;
-    --eh-lime: #d8ff57;
-    --eh-lime-soft: #e7ff95;
-    --eh-ink: #142820;
-    --eh-sand: #e6ddd1;
-    --eh-sage: #6c8c7b;
-    --eh-sage-soft: #cfd7ce;
-    --eh-blue: #285989;
-    --eh-blue-soft: #d9ecff;
-    --eh-violet: #655497;
-    --eh-violet-soft: #ede9f8;
-    --eh-gold: #926b22;
-    --eh-gold-soft: #fff0d1;
-    --eh-gold-ink: #3a2e0a;
-    --eh-red: #b55e4d;
-    --eh-red-dark: #9a4a3b;
-    --eh-red-soft: #f8e5df;
-    --eh-coral: #ef765d;
-    --eh-table-head: #f4f4efa6;
-    --eh-stripe: #f8f8f4;
-    --eh-sidebar: #142820;
-    --eh-sidebar-active: #ffffff;
-    --eh-sidebar-muted: #ffffff94;
-    --eh-sidebar-label: #ffffff4d;
-    --eh-shadow-ink: 0 10px 25px rgb(20 40 32 / 0.16);
+    --eh-success: #168451;
+    --eh-success-soft: #e8f6ee;
+    --eh-lime: #f9d9d2;
+    --eh-lime-soft: #fdece8;
+    --eh-ink: #292524;
+    --eh-sand: #f1e8e3;
+    --eh-sage: #647d72;
+    --eh-sage-soft: #e8efeb;
+    --eh-blue: #087f8c;
+    --eh-blue-soft: #e4f4f5;
+    --eh-violet: #7964ce;
+    --eh-violet-soft: #f0ecfc;
+    --eh-gold: #94620d;
+    --eh-gold-soft: #fff3d9;
+    --eh-gold-ink: #66440b;
+    --eh-red: #bd352b;
+    --eh-red-dark: #a12b23;
+    --eh-red-soft: #fdebe8;
+    --eh-coral: #e94f40;
+    --eh-table-head: #faf5f3;
+    --eh-stripe: #fffcfb;
+    --eh-sidebar: #fcf9f8;
+    --eh-sidebar-active: #fdece8;
+    --eh-sidebar-muted: #746761;
+    --eh-sidebar-label: #8a7971;
+    --eh-shadow-ink: 0 2px 5px rgb(85 49 35 / 0.08);
 }
 
 .dark {
     color-scheme: dark;
-    --eh-bg: #0f1a15;
-    --eh-surface: #16241e;
-    --eh-surface-alt: #1d2c25;
-    --eh-border: #ffffff14;
-    --eh-border-strong: #ffffff24;
-    --eh-text: #eef1ea;
-    --eh-text-muted: #9aa7a0;
-    --eh-primary: #d8ff57;
-    --eh-primary-dark: #c6ee45;
-    --eh-primary-soft: #22342b;
-    --eh-on-primary: #142820;
-    --eh-success: #8fcaa9;
-    --eh-success-soft: #1f3329;
-    --eh-lime: #d8ff57;
-    --eh-lime-soft: #3a4a1c;
-    --eh-ink: #0a1410;
-    --eh-sand: #2a2721;
-    --eh-sage: #7ba18e;
-    --eh-sage-soft: #33443b;
-    --eh-blue: #8cbfee;
-    --eh-blue-soft: #1c2b3a;
-    --eh-violet: #b3a6e0;
-    --eh-violet-soft: #28233a;
-    --eh-gold: #e5bd6a;
-    --eh-gold-soft: #332a17;
-    --eh-gold-ink: #2a2107;
-    --eh-red: #ec8f7c;
-    --eh-red-dark: #d9735f;
-    --eh-red-soft: #3a221d;
-    --eh-coral: #ef765d;
-    --eh-table-head: #1a2923;
-    --eh-stripe: #1a2822;
-    --eh-sidebar: #0a1410;
-    --eh-sidebar-active: #ffffff;
-    --eh-sidebar-muted: #ffffff94;
-    --eh-sidebar-label: #ffffff4d;
-    --eh-shadow-ink: 0 10px 25px rgb(0 0 0 / 0.35);
-}
-
-/* En modo oscuro la acción principal pasa a lima: su texto debe ser tinta, no blanco. */
-.dark .bg-eh-primary.text-white {
-    color: var(--eh-on-primary);
+    --eh-bg: #0c0a09;
+    --eh-surface: #191412;
+    --eh-surface-alt: #231c19;
+    --eh-border: #342924;
+    --eh-border-strong: #504039;
+    --eh-text: #f4efec;
+    --eh-text-muted: #b8a79e;
+    --eh-primary: #f27c68;
+    --eh-primary-dark: #f59483;
+    --eh-primary-soft: #33201b;
+    --eh-on-primary: #26100c;
+    --eh-success: #62c994;
+    --eh-success-soft: #152c21;
+    --eh-lime: #f0a292;
+    --eh-lime-soft: #33201b;
+    --eh-ink: #211a17;
+    --eh-sand: #30251f;
+    --eh-sage: #98b5a6;
+    --eh-sage-soft: #243029;
+    --eh-blue: #67c7cd;
+    --eh-blue-soft: #142c2e;
+    --eh-violet: #b7a4f4;
+    --eh-violet-soft: #292139;
+    --eh-gold: #e4ba6c;
+    --eh-gold-soft: #322818;
+    --eh-gold-ink: #f0ce8f;
+    --eh-red: #f58d7f;
+    --eh-red-dark: #f8a396;
+    --eh-red-soft: #351d19;
+    --eh-coral: #f27c68;
+    --eh-table-head: #211a17;
+    --eh-stripe: #1d1714;
+    --eh-sidebar: #100c0a;
+    --eh-sidebar-active: #2b1c17;
+    --eh-sidebar-muted: #baa99f;
+    --eh-sidebar-label: #ac9689;
+    --eh-shadow-ink: 0 2px 6px rgb(0 0 0 / 0.2);
 }
 
 * {
@@ -631,3 +622,29 @@ body {
         animation-iteration-count: 1 !important;
     }
 }
+
+/* Navegación administrativa: grupos desplegables y modo compacto de escritorio. */
+[data-admin-menu] { flex-shrink: 0; transition: width 180ms ease, transform 180ms ease; }
+.sidebar-group { list-style: none; }
+.sidebar-group::-webkit-details-marker { display: none; }
+.sidebar-group .sidebar-chevron { transition: transform 180ms ease; }
+details[open] > .sidebar-group .sidebar-chevron { transform: rotate(180deg); }
+details[data-active="true"] > .sidebar-group { color: var(--eh-primary); }
+@media (min-width: 1024px) {
+    [data-admin-menu].sidebar-compact { width: 80px; padding-inline: 12px; }
+    .sidebar-compact .sidebar-label,
+    .sidebar-compact .sidebar-chevron,
+    .sidebar-compact .sidebar-children { display: none; }
+    .sidebar-compact .sidebar-link,
+    .sidebar-compact .sidebar-group { justify-content: center; padding-inline: 0; }
+    .sidebar-compact > div:first-child { padding-inline: 10px; }
+    .sidebar-compact .sidebar-account { padding: 8px; border: 0; background: transparent; }
+    .sidebar-compact .sidebar-account > div,
+    .sidebar-compact .sidebar-account button { justify-content: center; width: 100%; }
+    .sidebar-compact .sidebar-collapse-icon { rotate: 0deg; }
+}
+
+/* Movimiento discreto y acentos suaves para lectura prolongada. */
+.admin-page > *, [data-toast] { animation: none !important; }
+::selection { background: var(--eh-primary-soft); color: var(--eh-text); }
+[data-admin-menu] { border-right: 1px solid var(--eh-border); }

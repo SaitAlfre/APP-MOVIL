@@ -12,11 +12,11 @@
         'md' => 'text-xs px-4 py-3',
     ];
     $variantes = [
-        'primary' => 'bg-eh-primary text-eh-on-primary shadow-[var(--eh-shadow-ink)] hover:-translate-y-0.5 hover:bg-eh-primary-dark',
+        'primary' => 'bg-eh-primary text-eh-on-primary shadow-[var(--eh-shadow-ink)] hover:bg-eh-primary-dark',
         'secondary' => 'bg-eh-surface-alt text-eh-text hover:bg-eh-primary-soft',
-        'danger' => 'bg-eh-red text-white hover:-translate-y-0.5 hover:bg-eh-red-dark',
+        'danger' => 'bg-eh-red text-white hover:bg-eh-red-dark',
         'ghost' => 'text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text',
-        'accent' => 'bg-eh-lime text-[#142820] hover:-translate-y-0.5 hover:brightness-95',
+        'accent' => 'bg-eh-primary text-eh-on-primary hover:brightness-95',
         'outline' => 'border border-eh-border-strong bg-eh-surface/65 text-eh-text hover:bg-eh-surface',
     ];
     $clases = implode(' ', [

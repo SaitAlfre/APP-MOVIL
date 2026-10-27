@@ -4,11 +4,12 @@ function isDark() {
 
 function setDark(dark) {
     document.documentElement.classList.toggle('dark', dark);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f1a15' : '#f4f4ef');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0c0a09' : '#fffbfa');
     try {
         localStorage.setItem('eh-theme', dark ? 'dark' : 'light');
     } catch {}
     document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+        btn.setAttribute('aria-label', dark ? 'Activar modo claro' : 'Activar modo oscuro');
         const label = btn.querySelector('[data-theme-label]');
         if (label) {
             label.textContent = dark ? 'Modo claro' : 'Modo oscuro';

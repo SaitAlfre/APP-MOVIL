@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f4f4ef">
+    <meta name="theme-color" content="#fffbfa">
     @include('partials.theme-init')
     <title>@yield('titulo', 'Centro operativo') · Ecolactea Digital</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,47 +22,47 @@
             ->map(fn ($nombre) => mb_strtoupper(mb_substr($nombre, 0, 1)))
             ->implode('');
 
-        /**
-         * Navegación del panel: mismos grupos, orden, etiquetas e iconos que el
-         * diseño Ecolactea Digital. Cada ítem se muestra solo si el rol autenticado
-         * tiene permiso de lectura sobre el módulo.
-         */
         $navGroups = [
-            'Principal' => [
-                ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Centro operativo', 'icono' => 'home'],
+            'Inicio' => [
+                ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Resumen del día', 'icono' => 'home'],
             ],
-            'Administración' => [
-                ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y roles', 'icono' => 'users'],
-                ['ruta' => 'admin.acopiadores.catalogo', 'patron' => 'admin.acopiadores.catalogo', 'modulo' => 'acopiadores', 'etiqueta' => 'Acopiadores', 'icono' => 'truck'],
-                ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'userCircle'],
-                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Sectores y vehículos', 'icono' => 'truck'],
-            ],
-            'Operaciones' => [
-                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Rutas de acopio', 'icono' => 'map'],
-                ['ruta' => 'admin.jornadas.index', 'patron' => 'admin.jornadas.*', 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'play'],
-                ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'arrowPath'],
+            'Acopio' => [
+                ['ruta' => 'admin.jornadas.index', 'patron' => ['admin.jornadas.*', 'admin.acopiadores.jornadas.*'], 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'play'],
                 ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Entregas', 'icono' => 'droplets'],
+                ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'arrowPath'],
+            ],
+            'Proveedores' => [
+                ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'userCircle'],
+            ],
+            'Calidad' => [
                 ['ruta' => 'admin.calidad.index', 'patron' => 'admin.calidad.*', 'modulo' => 'calidad', 'etiqueta' => 'Calidad', 'icono' => 'beaker'],
                 ['ruta' => 'admin.sanciones.index', 'patron' => 'admin.sanciones.*', 'modulo' => 'sanciones', 'etiqueta' => 'Sanciones', 'icono' => 'exclamation'],
             ],
-            'Finanzas' => [
+            'Liquidaciones y pagos' => [
                 ['ruta' => 'admin.liquidaciones.index', 'patron' => 'admin.liquidaciones.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Liquidaciones y pagos', 'icono' => 'banknotes'],
+                ['ruta' => 'admin.tarifas.index', 'patron' => 'admin.tarifas.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Precios de leche', 'icono' => 'banknotes'],
             ],
             'Planta' => [
                 ['ruta' => 'admin.produccion.index', 'patron' => 'admin.produccion.*', 'modulo' => 'produccion', 'etiqueta' => 'Producción', 'icono' => 'factory'],
                 ['ruta' => 'admin.inventario.index', 'patron' => 'admin.inventario.*', 'modulo' => 'inventario', 'etiqueta' => 'Inventario', 'icono' => 'cube'],
                 ['ruta' => 'admin.ventas.index', 'patron' => 'admin.ventas.*', 'modulo' => 'ventas', 'etiqueta' => 'Ventas', 'icono' => 'shoppingCart'],
             ],
+            'Organización del acopio' => [
+                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Rutas de acopio', 'icono' => 'map'],
+                ['ruta' => 'admin.acopiadores.catalogo', 'patron' => 'admin.acopiadores.catalogo', 'modulo' => 'acopiadores', 'etiqueta' => 'Acopiadores', 'icono' => 'truck'],
+                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Sectores y vehículos', 'icono' => 'truck'],
+            ],
             'Comunicación' => [
                 ['ruta' => 'admin.comunicados.index', 'patron' => 'admin.comunicados.*', 'modulo' => 'comunicados', 'etiqueta' => 'Comunicados', 'icono' => 'megaphone'],
             ],
-            'Análisis' => [
+            'Reportes' => [
                 ['ruta' => 'admin.reportes.index', 'patron' => 'admin.reportes.*', 'modulo' => 'reportes', 'etiqueta' => 'Reportes', 'icono' => 'chartBar'],
             ],
-            'Sistema' => [
+            'Administración' => [
+                ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y accesos', 'icono' => 'users'],
+                ['ruta' => 'admin.configuracion.index', 'patron' => 'admin.configuracion.*', 'modulo' => 'configuracion', 'etiqueta' => 'Configuración', 'icono' => 'cog'],
                 ['ruta' => 'admin.importaciones.index', 'patron' => 'admin.importaciones.*', 'modulo' => 'importaciones', 'etiqueta' => 'Importaciones', 'icono' => 'arrowUpTray'],
                 ['ruta' => 'admin.auditoria.index', 'patron' => 'admin.auditoria.*', 'modulo' => 'auditoria', 'etiqueta' => 'Auditoría', 'icono' => 'shield'],
-                ['ruta' => 'admin.configuracion.index', 'patron' => 'admin.configuracion.*', 'modulo' => 'configuracion', 'etiqueta' => 'Configuración', 'icono' => 'cog'],
             ],
         ];
 
@@ -79,59 +79,76 @@
         <div data-admin-menu-overlay hidden class="fixed inset-0 z-20 bg-[#0c1612]/45 backdrop-blur-sm lg:hidden"></div>
 
         <aside id="menu-administracion" data-admin-menu aria-label="Navegación principal"
-            class="no-print sidebar-transition fixed left-0 top-0 z-30 flex h-full w-[244px] -translate-x-full flex-col bg-eh-sidebar px-4 py-5 text-white lg:static lg:z-auto lg:translate-x-0">
+            class="no-print sidebar-transition fixed left-0 top-0 z-30 flex h-full w-[272px] -translate-x-full flex-col bg-eh-sidebar px-4 py-5 text-eh-text lg:static lg:z-auto lg:translate-x-0">
             <div class="flex shrink-0 items-center gap-3 px-3 pb-7">
-                <a href="{{ route($rutaInicio) }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
-                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eh-lime text-[#142820] shadow-[0_6px_20px_rgba(216,255,87,.16)]">
+                <a href="{{ route($rutaInicio) }}" aria-label="Ecolactea Digital — Inicio" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eh-primary">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eh-primary-soft text-eh-primary ">
                         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 8.5c.5 2 2.5 3.5 3.5 3.5s3-1.5 3.5-3.5"/>
                         </svg>
                     </span>
-                    <span class="min-w-0">
-                        <span class="block truncate font-semibold leading-tight tracking-[-.02em] text-white">Ecolactea</span>
-                        <span class="block truncate text-[10px] font-medium uppercase tracking-[.2em] text-white/40">Digital</span>
+                    <span class="sidebar-label min-w-0">
+                        <span class="block truncate font-semibold leading-tight tracking-[-.02em] text-eh-text">Ecolactea</span>
+                        <span class="block truncate text-[10px] font-medium uppercase tracking-[.2em] text-eh-text-muted">Digital</span>
                     </span>
                 </a>
-                <button type="button" data-admin-menu-close class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Cerrar menú">
+                <button type="button" data-admin-menu-close class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text lg:hidden" aria-label="Cerrar menú">
                     <x-icon name="xMark" class="h-4 w-4" />
                 </button>
             </div>
 
-            <nav class="-mx-1 flex-1 space-y-5 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
+            <nav aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
                 @foreach ($navGroups as $grupo => $items)
-                    @php $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo'])); @endphp
+                    @php
+                        $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']));
+                        $grupoActivo = $itemsVisibles->contains(fn ($item) => request()->routeIs(...(array) $item['patron']));
+                    @endphp
                     @continue($itemsVisibles->isEmpty())
-                    <div class="space-y-1">
-                        <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[.17em] text-eh-sidebar-label">{{ $grupo }}</p>
-                        @foreach ($itemsVisibles as $item)
-                            @php $activo = request()->routeIs($item['patron']); @endphp
-                            <a href="{{ route($item['ruta']) }}" @class([
-                                'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80',
-                                'bg-eh-sidebar-active font-medium text-[#142820] shadow-lg' => $activo,
-                                'text-eh-sidebar-muted hover:bg-white/[.07] hover:text-white' => ! $activo,
-                            ]) @if ($activo) aria-current="page" @endif>
-                                <x-icon :name="$item['icono']" class="h-[17px] w-[17px] shrink-0" />
-                                <span class="flex-1 truncate">{{ $item['etiqueta'] }}</span>
-                            </a>
-                        @endforeach
-                    </div>
+                    @if ($itemsVisibles->count() > 1)
+                        <details data-nav-group="{{ $loop->index }}" data-active="{{ $grupoActivo ? 'true' : 'false' }}" @if ($grupoActivo) open @endif>
+                            <summary class="sidebar-group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-eh-text hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary" title="{{ $grupo }}">
+                                <x-icon :name="$itemsVisibles->first()['icono']" class="h-[18px] w-[18px] shrink-0" />
+                                <span class="sidebar-label flex-1">{{ $grupo }}</span>
+                                <x-icon name="chevronDown" class="sidebar-chevron h-3.5 w-3.5 shrink-0" />
+                            </summary>
+                            <div class="sidebar-children ml-5 mt-1 space-y-1 border-l border-eh-border pl-2">
+                    @endif
+                    @foreach ($itemsVisibles as $item)
+                        @php $activo = request()->routeIs(...(array) $item['patron']); @endphp
+                        <a href="{{ route($item['ruta']) }}" title="{{ $item['etiqueta'] }}" aria-label="{{ $item['etiqueta'] }}" @class([
+                            'sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-eh-primary',
+                            'bg-eh-sidebar-active font-semibold text-eh-primary' => $activo,
+                            'text-eh-sidebar-muted hover:bg-eh-surface-alt hover:text-eh-text' => ! $activo,
+                        ]) @if ($activo) aria-current="page" @endif>
+                            <x-icon :name="$item['icono']" class="h-[18px] w-[18px] shrink-0" />
+                            <span class="sidebar-label flex-1">{{ $item['etiqueta'] }}</span>
+                        </a>
+                    @endforeach
+                    @if ($itemsVisibles->count() > 1)
+                            </div>
+                        </details>
+                    @endif
                 @endforeach
             </nav>
+            <button type="button" data-sidebar-collapse aria-controls="menu-administracion" aria-expanded="true" aria-label="Contraer menú lateral" title="Contraer menú lateral" class="mb-3 hidden items-center justify-center gap-2 rounded-xl border border-eh-border px-3 py-2.5 text-xs text-eh-text hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary lg:flex">
+                <x-icon name="chevronRight" class="sidebar-collapse-icon h-4 w-4 rotate-180" />
+                <span class="sidebar-label">Contraer menú</span>
+            </button>
 
-            <div class="mt-3 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.055] p-4">
+            <div class="sidebar-account mt-3 shrink-0 overflow-hidden rounded-2xl border border-eh-border bg-eh-surface-alt p-4">
                 <div class="flex items-center gap-3">
-                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eh-lime text-xs font-bold text-[#142820]">{{ $iniciales }}</span>
-                    <span class="min-w-0">
-                        <span class="block truncate text-xs font-semibold text-white">{{ $operador->nombres }}</span>
-                        <span class="block truncate text-[11px] text-white/40">{{ $rolVisible }}</span>
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eh-primary-soft text-xs font-bold text-eh-primary">{{ $iniciales }}</span>
+                    <span class="sidebar-label min-w-0">
+                        <span class="block truncate text-xs font-semibold text-eh-text">{{ $operador->nombres }}</span>
+                        <span class="block truncate text-[11px] text-eh-text-muted">{{ $rolVisible }}</span>
                     </span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="mt-3">
                     @csrf
-                    <button type="submit" class="flex items-center gap-2 rounded-md text-xs font-medium text-white underline decoration-white/20 underline-offset-4 hover:decoration-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+                    <button type="submit" aria-label="Cerrar sesión" title="Cerrar sesión" class="flex items-center gap-2 rounded-md text-xs font-medium text-eh-text underline decoration-eh-border-strong underline-offset-4 hover:decoration-eh-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eh-primary">
                         <x-icon name="logout" class="h-3.5 w-3.5" />
-                        Cerrar sesión
+                        <span class="sidebar-label">Cerrar sesión</span>
                     </button>
                 </form>
             </div>
