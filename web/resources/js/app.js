@@ -1,8 +1,10 @@
+import { iniciarProveedores } from './proveedores';
 import { bindThemeToggle } from './theme';
 import { iniciarMapasRutas } from './mapa-rutas';
 
 document.addEventListener('DOMContentLoaded', () => {
     bindThemeToggle();
+    iniciarProveedores();
     iniciarMapasRutas();
 
     document.querySelectorAll('[data-receta-editor]').forEach((editor) => {

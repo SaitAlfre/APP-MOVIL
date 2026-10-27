@@ -14,6 +14,26 @@ use Tests\TestCase;
  */
 class ComponentesUiTest extends TestCase
 {
+    public function test_las_clases_de_distribucion_pertenecen_al_contenedor_del_campo(): void
+    {
+        view()->share('errors', new ViewErrorBag);
+
+        foreach (['field', 'select'] as $componente) {
+            $html = Blade::render('<x-ui.'.$componente.' name="referencia" label="Referencia" class="sm:col-span-2" control-class="uppercase" hint="Dato de referencia" />');
+            $documento = new \DOMDocument;
+            @$documento->loadHTML($html);
+            $xpath = new \DOMXPath($documento);
+            $campo = $xpath->query('//*[@id="referencia"]')->item(0);
+            $contenedor = $xpath->query('//label[@for="referencia"]/parent::*')->item(0);
+
+            $this->assertStringContainsString('sm:col-span-2', $contenedor->getAttribute('class'));
+            $this->assertStringNotContainsString('sm:col-span-2', $campo->getAttribute('class'));
+            $this->assertStringContainsString('uppercase', $campo->getAttribute('class'));
+            $this->assertSame('referencia-hint', $campo->getAttribute('aria-describedby'));
+            $this->assertSame(1, $xpath->query('//*[@id="referencia-hint"]')->length);
+        }
+    }
+
     public function test_la_insignia_de_estado_traduce_las_claves_del_dominio(): void
     {
         $casos = [
@@ -69,7 +89,7 @@ class ComponentesUiTest extends TestCase
     {
         $html = Blade::render('<x-icon name="cog" />');
 
-        $this->assertSame(2, substr_count($html, '<path'), 'El icono cog tiene dos trazos en el diseño.');
+        $this->assertSame(2, substr_count($html, '<path') + substr_count($html, '<circle'), 'El icono cog conserva sus dos figuras Lucide.');
     }
 
     public function test_el_grafico_de_barras_sin_datos_muestra_el_mensaje_vacio(): void

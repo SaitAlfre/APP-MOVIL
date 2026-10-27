@@ -16,7 +16,7 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-ui.field name="nombre" label="Nombre" required :value="$vehiculo?->nombre" placeholder="Camión 1" class="sm:col-span-2" />
-                <x-ui.field name="placa" label="Placa" required :value="$vehiculo?->placa" placeholder="ABC-123" class="uppercase" />
+                <x-ui.field name="placa" label="Placa" required :value="$vehiculo?->placa" placeholder="ABC-123" control-class="uppercase" />
             </div>
 
             <div class="flex justify-end gap-2 border-t border-eh-border pt-4">

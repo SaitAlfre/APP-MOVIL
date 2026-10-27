@@ -4,7 +4,7 @@ function isDark() {
 
 function setDark(dark) {
     document.documentElement.classList.toggle('dark', dark);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0c0a09' : '#fffbfa');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#100e0d' : '#f8f7f6');
     try {
         localStorage.setItem('eh-theme', dark ? 'dark' : 'light');
     } catch {}

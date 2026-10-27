@@ -20,7 +20,7 @@
 @endphp
 
 <article {{ $attributes->class([
-    'rounded-[20px] border p-5 transition-transform duration-300 hover:-translate-y-1',
+    'min-w-0 rounded-2xl border p-5',
     'border-eh-ink bg-eh-ink text-white' => $dark,
     'border-eh-border bg-eh-surface/70' => ! $dark,
 ]) }}>
@@ -35,7 +35,7 @@
         </span>
     </div>
     <div class="flex items-end justify-between gap-3">
-        <p class="mono min-w-0 truncate text-[27px] font-semibold leading-none tracking-[-.04em]">
+        <p class="mono min-w-0 break-words text-[26px] font-semibold leading-none tracking-[-.04em]">
             {{ $value }}@if ($unit)<span @class(['ml-1 text-sm font-medium tracking-normal', 'text-white/45' => $dark, 'text-eh-text-muted' => ! $dark])>{{ $unit }}</span>@endif
         </p>
         @if ($trend !== null)
@@ -46,7 +46,7 @@
                 'text-eh-success' => ! $dark && $trendUp,
                 'text-eh-red' => ! $dark && ! $trendUp,
             ])>
-                {{ $trendUp ? '↑' : '↓' }} {{ $trend }}
+                {{ $trendUp ? 'â†‘' : 'â†“' }} {{ $trend }}
             </p>
         @endif
     </div>

@@ -19,14 +19,14 @@
     </x-ui.page-header>
 
     <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-3">
-        <x-ui.kpi label="Acopiadores registrados" :value="$acopiadores->count()" icon="truck" color="green" />
+        <x-ui.kpi label="Acopiadores registrados" :value="$acopiadores->count()" icon="acopiador" color="green" />
         <x-ui.kpi label="Con jornada en curso" :value="$conJornada" icon="play" color="blue" />
         <x-ui.kpi label="Cuentas activas" :value="$acopiadores->where('activo', true)->count()" icon="check" color="green" />
     </div>
 
     <x-ui.card>
         @if ($acopiadores->isEmpty())
-            <x-ui.empty icon="truck" title="No hay usuarios con rol Acopiador"
+            <x-ui.empty icon="acopiador" title="No hay usuarios con rol Acopiador"
                 description="Crea una cuenta con el rol «Acopiador» desde Usuarios y roles para que pueda registrar jornadas." />
         @else
             <x-ui.table :headers="['Código', 'Nombre', 'DNI', 'Estado', 'Jornada actual', 'Zona', 'Vehículo', '']" caption="Acopiadores registrados y su jornada en curso">

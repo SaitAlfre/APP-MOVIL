@@ -18,7 +18,7 @@
     </x-ui.page-header>
 
     <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <x-ui.kpi label="Liquidaciones en esta página" :value="$paginador->count()" icon="banknotes" color="blue" />
+        <x-ui.kpi label="Liquidaciones en esta página" :value="$paginador->count()" icon="liquidacion" color="blue" />
         <x-ui.kpi label="Pendiente de pago" :value="'S/ '.number_format($totalPendiente, 2)" icon="clock" color="yellow"
             hint="Suma de todas las liquidaciones pendientes." />
         <x-ui.kpi label="Pagado" :value="'S/ '.number_format($totalPagado, 2)" icon="check" color="green"
@@ -27,7 +27,7 @@
 
     <x-ui.card>
         @if ($filas->isEmpty())
-            <x-ui.empty icon="banknotes" title="Aún no hay liquidaciones generadas"
+            <x-ui.empty icon="liquidacion" title="Aún no hay liquidaciones generadas"
                 description="Genera la primera con el botón «Generar liquidación».">
                 @if ($puedeGestionar)
                     <x-slot:action>

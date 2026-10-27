@@ -20,33 +20,40 @@
         @endunless
     </x-ui.page-header>
 
-    <div class="grid max-w-5xl grid-cols-1 gap-4 lg:grid-cols-3">
-        <x-ui.card padding="p-6" class="lg:col-span-2">
+    <div @class(['grid grid-cols-1 gap-6', 'max-w-3xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
+        <x-ui.card padding="p-5 sm:p-6" :class="$esNuevo ? '' : 'lg:col-span-2'">
             <form method="POST"
                 action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
-                class="space-y-6" data-once>
+                class="space-y-6" data-once data-proveedor-form
+                data-duplicados-url="{{ route('admin.proveedores.duplicados') }}" data-proveedor-id="{{ $proveedor?->id }}">
                 @csrf
                 @unless ($esNuevo)
                     @method('PUT')
                 @endunless
 
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <x-ui.field name="codigo" label="Código" required maxlength="30" :value="$proveedor?->codigo" placeholder="PRV-009" />
+                <fieldset class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                    <legend class="mb-4 text-sm font-semibold text-eh-text">Identificación del proveedor</legend>
+                    <x-ui.field name="codigo" label="Código" required maxlength="50" :value="$proveedor?->codigo" placeholder="PRV-009" />
                     <x-ui.field name="dni" label="DNI" required maxlength="20" :value="$proveedor?->dni" placeholder="01234580" />
                     <x-ui.field name="nombres" label="Nombre del proveedor o finca" required maxlength="150" :value="$proveedor?->nombres"
                         class="sm:col-span-2" placeholder="Juan Pérez Quispe" />
-                    <x-ui.field name="telefono" label="Celular" maxlength="30" :value="$proveedor?->telefono" placeholder="95XXXXXXX" />
+                    <div class="sm:col-span-2" data-proveedor-duplicados role="status" aria-live="polite"></div>
+                </fieldset>
+
+                <fieldset class="grid min-w-0 grid-cols-1 gap-4 border-t border-eh-border pt-5 sm:grid-cols-2">
+                    <legend class="pr-3 text-sm font-semibold text-eh-text">Contacto y ubicación</legend>
+                    <x-ui.field name="telefono" label="Celular" type="tel" autocomplete="tel" maxlength="30" :value="$proveedor?->telefono" placeholder="95XXXXXXX" />
                     <x-ui.field name="dueno" label="Propietario o responsable (opcional)" maxlength="150" :value="$proveedor?->dueno"
                         hint="Persona responsable de la finca; no cambia la cuenta de acceso vinculada." />
                     <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona" :selected="$proveedor?->zonaId"
                         :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
                     <x-ui.field name="direccion" label="Dirección o referencia" maxlength="255" :value="$proveedor?->direccion"
                         class="sm:col-span-2" placeholder="Sector Quispe, Huata" />
-                </div>
+                </fieldset>
 
                 <div class="flex justify-end gap-2 border-t border-eh-border pt-4">
                     <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost">Cancelar</x-ui.btn>
-                    <x-ui.btn type="submit">{{ $esNuevo ? 'Guardar proveedor' : 'Guardar cambios' }}</x-ui.btn>
+                    <x-ui.btn type="submit" icon="guardar">{{ $esNuevo ? 'Guardar proveedor' : 'Guardar cambios' }}</x-ui.btn>
                 </div>
             </form>
         </x-ui.card>

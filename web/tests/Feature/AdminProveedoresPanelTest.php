@@ -30,6 +30,34 @@ class AdminProveedoresPanelTest extends TestCase
         $this->actingAs($this->admin, 'operador');
     }
 
+    public function test_la_comprobacion_de_duplicados_devuelve_solo_coincidencias_exactas(): void
+    {
+        $proveedor = Proveedor::factory()->create(['codigo' => 'PRV-501', 'dni' => '12345678']);
+
+        $this->getJson(route('admin.proveedores.duplicados', ['codigo' => 'PRV-501', 'dni' => '12345678']))
+            ->assertOk()
+            ->assertJsonPath('coincidencias.codigo.nombre', $proveedor->nombres)
+            ->assertJsonPath('coincidencias.dni.url', route('admin.proveedores.show', $proveedor->id));
+
+        $this->getJson(route('admin.proveedores.duplicados', ['dni' => '1234']))
+            ->assertOk()->assertJsonCount(0, 'coincidencias');
+
+        $this->getJson(route('admin.proveedores.duplicados', ['dni' => '12345678', 'excluir' => $proveedor->id]))
+            ->assertOk()->assertJsonCount(0, 'coincidencias');
+    }
+
+    public function test_la_comprobacion_de_duplicados_requiere_permiso_de_gestion(): void
+    {
+        $this->actingAs(Usuario::factory()->create(['roles' => ['proveedor']]), 'operador');
+        $this->getJson(route('admin.proveedores.duplicados', ['dni' => '12345678']))->assertForbidden();
+    }
+
+    public function test_la_comprobacion_rechaza_documentos_fuera_del_contrato(): void
+    {
+        $this->getJson(route('admin.proveedores.duplicados', ['dni' => str_repeat('1', 21)]))
+            ->assertUnprocessable()->assertJsonValidationErrors('dni');
+    }
+
     public function test_el_listado_filtra_por_nombre_codigo_o_dni(): void
     {
         Proveedor::factory()->create(['nombres' => 'Celestino Apaza', 'codigo' => 'PRV-101', 'dni' => '11111111']);

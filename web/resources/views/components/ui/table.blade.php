@@ -3,7 +3,7 @@
     'caption' => null,
 ])
 
-<div {{ $attributes->class('overflow-x-auto') }}>
+<div {{ $attributes->class('ui-table min-w-0 max-w-full overflow-x-auto') }}>
     <table class="w-full text-xs">
         @if ($caption)
             <caption class="sr-only">{{ $caption }}</caption>
@@ -12,7 +12,7 @@
             <thead>
                 <tr class="border-b border-eh-border">
                     @foreach ($headers as $encabezado)
-                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[.12em] text-eh-text-muted">{{ $encabezado }}</th>
+                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[.05em] text-eh-text-muted">{{ $encabezado }}</th>
                     @endforeach
                 </tr>
             </thead>

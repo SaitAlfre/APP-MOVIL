@@ -69,16 +69,16 @@
 /* Paleta cálida inspirada en la referencia Ember, con contraste legible. */
 :root {
     color-scheme: light;
-    --eh-bg: #fffbfa;
+    --eh-bg: #f8f7f6;
     --eh-surface: #ffffff;
     --eh-surface-alt: #faf5f3;
-    --eh-border: #ebe3e0;
+    --eh-border: #e7e2df;
     --eh-border-strong: #d8ccc7;
     --eh-text: #292524;
     --eh-text-muted: #746761;
-    --eh-primary: #c73f33;
+    --eh-primary: #c04436;
     --eh-primary-dark: #ac3027;
-    --eh-primary-soft: #fdece8;
+    --eh-primary-soft: #fceeea;
     --eh-on-primary: #ffffff;
     --eh-success: #168451;
     --eh-success-soft: #e8f6ee;
@@ -110,13 +110,13 @@
 
 .dark {
     color-scheme: dark;
-    --eh-bg: #0c0a09;
-    --eh-surface: #191412;
+    --eh-bg: #100e0d;
+    --eh-surface: #1b1715;
     --eh-surface-alt: #231c19;
     --eh-border: #342924;
     --eh-border-strong: #504039;
     --eh-text: #f4efec;
-    --eh-text-muted: #b8a79e;
+    --eh-text-muted: #c1b2a9;
     --eh-primary: #f27c68;
     --eh-primary-dark: #f59483;
     --eh-primary-soft: #33201b;
@@ -484,7 +484,7 @@ body {
 
     .btn-primary:hover {
         background: var(--eh-primary-dark);
-        transform: translateY(-2px);
+
     }
 
     .btn-secondary {
@@ -648,3 +648,22 @@ details[data-active="true"] > .sidebar-group { color: var(--eh-primary); }
 .admin-page > *, [data-toast] { animation: none !important; }
 ::selection { background: var(--eh-primary-soft); color: var(--eh-text); }
 [data-admin-menu] { border-right: 1px solid var(--eh-border); }
+
+/* Contenedores flexibles; las tablas amplias se desplazan dentro de su sección. */
+.admin-content { min-width: 0; overscroll-behavior: contain; }
+.admin-page { width: 100%; min-width: 0; }
+.admin-page :where(.grid, form, section, article) { min-width: 0; }
+.admin-page > .grid > *, .admin-page .grid > .ui-card { min-width: 0; }
+.ui-card { box-shadow: 0 1px 3px rgb(40 25 18 / 0.04); }
+.ui-page-header h1 { overflow-wrap: anywhere; }
+.ui-table { overscroll-behavior-x: contain; }
+.sidebar-nav { min-height: 0; overscroll-behavior: contain; scrollbar-color: var(--eh-border-strong) transparent; }
+.sidebar-group, .sidebar-link { min-height: 42px; }
+.sidebar-group .sidebar-label { overflow-wrap: anywhere; }
+button, a, summary { touch-action: manipulation; }
+[data-modal] { overscroll-behavior: contain; }
+.admin-page .stagger > * { animation: none; }
+@media (max-width: 639px) {
+    .admin-content input, .admin-content select, .admin-content textarea { font-size: 16px; }
+    .ui-page-header > .no-print { width: 100%; }
+}

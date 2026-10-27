@@ -98,7 +98,7 @@
             ['label' => 'Nueva entrega', 'icono' => 'droplets', 'url' => route('admin.entregas.index'), 'permiso' => 'entregas'],
             ['label' => 'Control calidad', 'icono' => 'beaker', 'url' => route('admin.calidad.create'), 'permiso' => 'calidad'],
             ['label' => 'Iniciar jornada', 'icono' => 'play', 'url' => route('admin.acopiadores.jornadas.create'), 'permiso' => 'acopiadores'],
-            ['label' => 'Generar liquidación', 'icono' => 'banknotes', 'url' => route('admin.liquidaciones.create'), 'permiso' => 'liquidaciones'],
+            ['label' => 'Generar liquidación', 'icono' => 'liquidacion', 'url' => route('admin.liquidaciones.create'), 'permiso' => 'liquidaciones'],
         ])->filter(fn ($acceso) => $usuario->puede($acceso['permiso'], 'gestionar'))->values();
 
         // Presentación: saludo según la hora y periodo rápido activo.
@@ -154,7 +154,7 @@
 
     {{-- Indicadores del día --}}
     <section class="stagger mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <x-ui.kpi dark label="Litros hoy" :value="number_format($panel['litros_hoy'], 1)" unit="L" icon="droplets" color="green"
+        <x-ui.kpi label="Litros hoy" :value="number_format($panel['litros_hoy'], 1)" unit="L" icon="droplets" color="green"
             :trend="$panel['litros_hoy_variacion'] !== null ? number_format(abs($panel['litros_hoy_variacion']), 1).'% vs ayer' : null"
             :trend-up="($panel['litros_hoy_variacion'] ?? 0) >= 0"
             hint="Litros recolectados hoy, sin contar entregas anuladas." />
@@ -172,7 +172,7 @@
         <x-ui.kpi label="Entregas registradas" :value="$panel['entregas_registradas']" icon="clipboardList" color="green"
             hint="Entregas no anuladas registradas en el periodo filtrado." />
         @if ($usuario->puede('acopiadores'))
-        <x-ui.kpi label="Jornadas abiertas" :value="count($panel['jornadas_abiertas'])" icon="play" color="blue"
+        <x-ui.kpi label="Jornadas abiertas" :value="count($panel['jornadas_abiertas'])" icon="jornada" color="blue"
             hint="Jornadas de acopio que siguen sin cerrarse." />
         @endif
         <x-ui.kpi label="Alertas de calidad" :value="$panel['calidad_alertas']" icon="exclamation" color="yellow"
@@ -225,16 +225,16 @@
                 description="Litros recolectados por zona." empty="Sin datos por zona para mostrar." />
         </x-ui.card>
 
-        <article class="rounded-[22px] bg-eh-ink p-5 text-white md:p-6">
+        <article class="min-w-0 rounded-2xl border border-eh-border bg-eh-surface p-5 text-eh-text md:p-6">
             <h2 class="font-semibold tracking-[-.02em]">Accesos rápidos</h2>
-            <p class="mt-1 text-[11px] text-white/40">Acciones frecuentes de tu rol</p>
+            <p class="mt-1 text-[11px] text-eh-text-muted">Acciones frecuentes de tu rol</p>
             @if ($accesosRapidos->isEmpty())
-                <p class="mt-5 rounded-2xl border border-white/10 bg-white/[.055] px-4 py-6 text-center text-xs text-white/55">Tu rol no tiene acciones rápidas disponibles.</p>
+                <p class="mt-5 rounded-2xl border border-eh-border bg-eh-surface-alt px-4 py-6 text-center text-xs text-eh-text-muted">Tu rol no tiene acciones rápidas disponibles.</p>
             @else
                 <div class="stagger mt-5 grid grid-cols-2 gap-2">
                     @foreach ($accesosRapidos as $acceso)
-                        <a href="{{ $acceso['url'] }}" class="group flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.055] p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
-                            <span class="grid h-9 w-9 place-items-center rounded-xl bg-eh-lime text-[#142820] shadow-[0_6px_20px_rgba(216,255,87,.16)]">
+                        <a href="{{ $acceso['url'] }}" class="group flex flex-col gap-3 rounded-2xl border border-eh-border bg-eh-surface-alt p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:bg-eh-text/10">
+                            <span class="grid h-9 w-9 place-items-center rounded-xl bg-eh-primary-soft text-eh-primary">
                                 <x-icon :name="$acceso['icono']" class="h-[18px] w-[18px]" />
                             </span>
                             <span class="flex items-center justify-between gap-2 text-xs font-medium leading-tight">

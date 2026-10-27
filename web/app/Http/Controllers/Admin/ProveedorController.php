@@ -24,12 +24,37 @@ use App\Http\Requests\Admin\StoreProveedorRequest;
 use App\Http\Requests\Admin\UpdateProveedorRequest;
 use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use DateTimeImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProveedorController extends Controller
 {
+    public function comprobarDuplicados(Request $request, ProveedorRepositoryInterface $proveedores): JsonResponse
+    {
+        $datos = $request->validate([
+            'codigo' => ['nullable', 'string', 'max:50'],
+            'dni' => ['nullable', 'string', 'max:20'],
+            'excluir' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $coincidencias = [];
+
+        foreach (['codigo' => 'buscarPorCodigo', 'dni' => 'buscarPorDni'] as $campo => $metodo) {
+            $valor = trim($datos[$campo] ?? '');
+            $existente = $valor !== '' ? $proveedores->{$metodo}($valor) : null;
+
+            if ($existente !== null && $existente->id !== (int) ($datos['excluir'] ?? 0)) {
+                $coincidencias[$campo] = [
+                    'nombre' => $existente->nombres,
+                    'url' => route('admin.proveedores.show', $existente->id),
+                ];
+            }
+        }
+
+        return response()->json(['coincidencias' => (object) $coincidencias])->header('Cache-Control', 'no-store');
+    }
+
     public function index(
         Request $request,
         ListarProveedoresUseCase $listar,

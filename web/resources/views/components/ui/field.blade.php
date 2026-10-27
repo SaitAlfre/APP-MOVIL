@@ -7,6 +7,7 @@
     'error' => null,
     'hint' => null,
     'required' => false,
+    'controlClass' => '',
     'unit' => null,
 ])
 
@@ -16,9 +17,9 @@
     $valor = old($name, $value);
 @endphp
 
-<div class="flex flex-col gap-1">
+<div {{ $attributes->only('class')->class('ui-field flex min-w-0 flex-col gap-1.5') }}>
     @if ($label)
-        <label for="{{ $campoId }}" class="text-[11px] font-semibold text-eh-text">
+        <label for="{{ $campoId }}" class="text-xs font-medium text-eh-text">
             {{ $label }}
             @if ($required)
                 <span class="text-eh-red" aria-hidden="true">*</span>
@@ -35,8 +36,9 @@
             value="{{ $valor }}"
             @if ($required) required @endif
             @if ($mensaje) aria-invalid="true" aria-describedby="{{ $campoId }}-error" @elseif ($hint) aria-describedby="{{ $campoId }}-hint" @endif
-            {{ $attributes->class([
-                'w-full rounded-xl border bg-eh-surface px-3.5 py-2.5 text-[13px] text-eh-text transition focus:outline-none focus:ring-[3px]',
+            {{ $attributes->except('class')->class([
+                $controlClass,
+                'min-h-11 min-w-0 w-full rounded-lg border bg-eh-surface px-3.5 py-2.5 text-[13px] text-eh-text transition focus:outline-none focus:ring-[3px]',
                 'border-eh-red focus:border-eh-red focus:ring-eh-red/15' => (bool) $mensaje,
                 'border-eh-border-strong focus:border-eh-sage focus:ring-eh-sage/15' => ! $mensaje,
                 'pr-12' => (bool) $unit,

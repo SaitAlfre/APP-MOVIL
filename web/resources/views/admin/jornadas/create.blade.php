@@ -9,7 +9,7 @@
 
     @if (empty($acopiadores))
         <x-ui.card class="max-w-2xl">
-            <x-ui.empty icon="truck" title="No hay acopiadores registrados"
+            <x-ui.empty icon="acopiador" title="No hay acopiadores registrados"
                 description="Crea un usuario con rol «Acopiador» antes de abrir una jornada.">
                 @if (auth('operador')->user()->puede('usuarios', 'gestionar'))
                     <x-slot:action>

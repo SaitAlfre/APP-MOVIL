@@ -5,8 +5,8 @@
     'eyebrow' => null,
 ])
 
-<section {{ $attributes->class('mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end') }}>
-    <div class="min-w-0">
+<section {{ $attributes->class('ui-page-header mb-6 flex flex-wrap items-start justify-between gap-4') }}>
+    <div class="min-w-0 flex-1 basis-64">
         @if (! empty($breadcrumbs))
             <nav aria-label="Ruta de navegación" class="no-print mb-1 flex flex-wrap items-center gap-1 text-xs font-semibold uppercase tracking-[.18em] text-eh-sage">
                 @foreach ($breadcrumbs as $indice => $miga)
@@ -25,12 +25,12 @@
         @elseif ($eyebrow)
             <p class="mb-1 text-xs font-semibold uppercase tracking-[.18em] text-eh-sage">{{ $eyebrow }}</p>
         @endif
-        <h1 class="text-pretty text-[32px] font-semibold leading-tight tracking-[-.045em] text-eh-text md:text-[40px]">{{ $title }}</h1>
+        <h1 class="text-pretty text-[26px] font-semibold leading-tight tracking-[-.025em] text-eh-text md:text-[30px]">{{ $title }}</h1>
         @if ($description)
             <p class="mt-1 max-w-2xl text-sm text-eh-text-muted">{{ $description }}</p>
         @endif
     </div>
     @isset($actions)
-        <div class="no-print flex shrink-0 flex-wrap items-center gap-2">{{ $actions }}</div>
+        <div class="no-print flex max-w-full flex-wrap items-center gap-2">{{ $actions }}</div>
     @endisset
 </section>

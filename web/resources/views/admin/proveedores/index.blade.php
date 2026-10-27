@@ -17,24 +17,24 @@
     </x-ui.page-header>
 
     <x-ui.card padding="p-4" class="mb-4">
-        <form method="GET" action="{{ route('admin.proveedores.index') }}" class="flex flex-col gap-3 sm:flex-row">
-            <div class="flex-1">
-                <x-ui.search name="q" :value="$busqueda" label="Buscar proveedores" placeholder="Buscar por nombre, código o DNI…" />
+        <form method="GET" action="{{ route('admin.proveedores.index') }}" class="flex flex-col gap-3 lg:flex-row lg:flex-wrap" data-proveedores-filtros>
+            <div class="min-w-0 flex-1 lg:min-w-64">
+                <x-ui.search name="q" :value="$busqueda" label="Buscar proveedores" maxlength="120" autocomplete="off" placeholder="Buscar por nombre, código o DNI…" />
             </div>
             <x-ui.select name="zona_id" placeholder="Todas las zonas" class="sm:w-52" aria-label="Filtrar por zona"
                 :options="collect($zonasDisponibles)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" :selected="$zonaId" />
             <x-ui.select name="estado" placeholder="Todos los estados" class="sm:w-48" aria-label="Filtrar por estado"
                 :options="['activo' => 'Activo', 'suspendido' => 'Suspendido', 'retirado' => 'Retirado']" :selected="$estadoFiltro?->value" />
             <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
-            @if ($busqueda || $zonaId || $estadoFiltro)
-                <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost" icon="xMark">Limpiar</x-ui.btn>
-            @endif
+                <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost" icon="xMark" data-proveedores-limpiar>Limpiar</x-ui.btn>
         </form>
     </x-ui.card>
 
+    <p data-proveedores-estado role="status" aria-live="polite" class="mb-3 text-sm text-eh-text-muted"></p>
+    <div data-proveedores-resultados aria-busy="false">
     <x-ui.card>
         @if ($proveedores->total() === 0)
-            <x-ui.empty icon="userCircle"
+            <x-ui.empty icon="proveedores"
                 :title="$busqueda || $zonaId || $estadoFiltro ? 'No se encontraron proveedores' : 'Aún no hay proveedores registrados'"
                 :description="$busqueda || $zonaId || $estadoFiltro ? 'Prueba con otros filtros o limpia la búsqueda.' : 'Registra el primero con el botón «Nuevo proveedor».'">
                 @if ($puedeGestionar && ! ($busqueda || $zonaId || $estadoFiltro))
@@ -98,4 +98,5 @@
             </div>
         @endif
     </x-ui.card>
+    </div>
 @endsection

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f4f4ef">
+    <meta name="theme-color" content="#f8f7f6">
     @include('partials.theme-init')
     <title>Ecolactea Digital · Iniciar sesión</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,11 +13,8 @@
         <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-[42vh] bg-eh-ink"></div>
         <div class="animate-rise relative w-full max-w-sm rounded-[22px] border border-eh-border bg-eh-surface p-8 shadow-[0_30px_80px_rgba(20,40,32,.18)]">
             <div class="mb-8 flex flex-col items-center">
-                <span class="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-eh-lime text-[#142820] shadow-[0_6px_20px_rgba(216,255,87,.25)]">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 8.5c.5 2 2.5 3.5 3.5 3.5s3-1.5 3.5-3.5"/>
-                    </svg>
+                <span class="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-eh-primary-soft text-eh-primary">
+                    <x-icon name="milk" class="h-6 w-6" />
                 </span>
                 <div class="text-center">
                     <p class="text-2xl font-semibold tracking-[-.045em] text-eh-text">Ecolactea</p>
