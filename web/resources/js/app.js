@@ -156,8 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-modal-open]').forEach((trigger) => {
         trigger.addEventListener('click', () => {
             const dialog = document.getElementById(trigger.dataset.modalOpen);
-            dialog?.showModal();
-            dialog?.querySelector('input, select, textarea, button:not([data-modal-close])')?.focus();
+            if (!dialog || dialog.open) { return; }
+            dialog.showModal();
+            const focusTarget = window.matchMedia('(max-width: 639px)').matches
+                ? dialog.querySelector('h2')
+                : dialog.querySelector('input:not([type="hidden"]), select, textarea, button:not([data-modal-close])');
+            focusTarget?.focus({ preventScroll: true });
         });
     });
 
@@ -168,7 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dialog.addEventListener('click', (event) => {
             if (event.target === dialog) {
-                dialog.close();
+                const bounds = dialog.getBoundingClientRect();
+                const outside = event.clientX < bounds.left || event.clientX > bounds.right
+                    || event.clientY < bounds.top || event.clientY > bounds.bottom;
+                if (outside) { dialog.close(); }
             }
         });
     });

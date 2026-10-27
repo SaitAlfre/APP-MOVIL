@@ -116,7 +116,7 @@
                         <div><label for="parada-ubicacion" class="mb-1 block text-[11px] font-semibold">Ubicación</label><input id="parada-ubicacion" name="ubicacion" required data-stop-location class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm" placeholder="Latitud, longitud o enlace de Google Maps"><p class="mt-1 text-xs text-eh-text-muted">Se completa al pulsar en el mapa. También admite coordenadas o un enlace que las incluya.</p></div>
                         <x-ui.field id="parada-referencia" name="referencia" label="Referencia para llegar (opcional)" maxlength="500" placeholder="Ej. Portón azul junto al colegio" />
                         <p data-stop-error role="alert" hidden class="text-xs text-eh-red"></p>
-                        <div class="flex justify-end gap-2"><x-ui.btn variant="ghost" data-stop-close>Cancelar</x-ui.btn><x-ui.btn type="submit" data-stop-submit>Agregar parada</x-ui.btn></div>
+                        <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn variant="ghost" data-stop-close>Cancelar</x-ui.btn><x-ui.btn type="submit" data-stop-submit>Agregar parada</x-ui.btn></div>
                     </form>
                 </dialog>
             @endif

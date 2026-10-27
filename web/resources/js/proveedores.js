@@ -86,6 +86,7 @@ export function iniciarProveedores() {
     const formulario = document.querySelector('[data-proveedor-form]');
     const aviso = formulario?.querySelector('[data-proveedor-duplicados]');
     if (!formulario || !aviso) { return; }
+    iniciarConsultaDni(formulario);
     let demora;
     let consulta;
     let revision = 0;
@@ -131,4 +132,99 @@ export function iniciarProveedores() {
         const actual = revision;
         demora = setTimeout(() => comprobar(actual), 450);
     });
+}
+
+function iniciarConsultaDni(formulario) {
+    const boton = formulario.querySelector('[data-consultar-dni]');
+    const resultado = formulario.querySelector('[data-dni-resultado]');
+    const dni = formulario.elements.namedItem('dni');
+    const nombre = formulario.elements.namedItem('nombres');
+    if (!boton || !resultado || formulario.dataset.dniDisponible !== 'true') { return; }
+    let consulta;
+    let demora;
+    let revision = 0;
+    let autocompletado = '';
+    const aplicar = (valor) => {
+        nombre.value = valor;
+        autocompletado = valor;
+        nombre.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    const consultar = async () => {
+        clearTimeout(demora);
+        consulta?.abort();
+        const actual = ++revision;
+        const numero = dni.value.trim();
+        if (!/^[0-9]{8}$/.test(numero)) {
+            resultado.textContent = 'Para consultar, ingresa un DNI de 8 dígitos. Puedes guardar otros documentos manualmente.';
+            return;
+        }
+        consulta = new AbortController();
+        boton.disabled = true;
+        resultado.setAttribute('aria-busy', 'true');
+        resultado.textContent = 'Consultando DNI…';
+        try {
+            const respuesta = await fetch(formulario.dataset.dniUrl, {
+                method: 'POST', signal: consulta.signal,
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': formulario.elements.namedItem('_token').value },
+                body: JSON.stringify({ dni: numero }),
+            });
+            if (respuesta.redirected || !respuesta.ok) { throw new Error('consulta'); }
+            const datos = await respuesta.json();
+            if (actual !== revision || dni.value.trim() !== numero) { return; }
+            resultado.replaceChildren();
+            if (datos.estado === 'encontrado') {
+                const texto = document.createElement('p');
+                texto.textContent = `Datos encontrados: ${datos.nombre}.`;
+                resultado.append(texto);
+                if (!nombre.value.trim()) {
+                    aplicar(datos.nombre);
+                    texto.append(' Nombre completado. Revísalo antes de guardar.');
+                } else {
+                    const usar = document.createElement('button');
+                    usar.type = 'button';
+                    usar.className = 'rounded-lg border border-eh-border-strong px-3 py-2 text-sm font-semibold text-eh-primary hover:bg-eh-primary-soft';
+                    usar.textContent = 'Usar este nombre en la ficha';
+                    usar.addEventListener('click', () => {
+                        if (dni.value.trim() !== numero) { return; }
+                        aplicar(datos.nombre);
+                        resultado.textContent = 'Nombre aplicado. Revísalo antes de guardar.';
+                    });
+                    resultado.append(usar);
+                }
+            } else {
+                resultado.textContent = datos.mensaje || 'Completa los datos manualmente.';
+                if (datos.estado === 'registrado') {
+                    const enlace = document.createElement('a');
+                    enlace.href = datos.url;
+                    enlace.textContent = ' Ver proveedor registrado';
+                    enlace.className = 'font-semibold text-eh-primary underline';
+                    resultado.append(enlace);
+                }
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError' && actual === revision) {
+                resultado.textContent = 'No se pudo consultar el DNI. Puedes reintentar o completar los datos manualmente.';
+            }
+        } finally {
+            if (actual === revision) {
+                boton.disabled = false;
+                resultado.setAttribute('aria-busy', 'false');
+            }
+        }
+    };
+    dni.addEventListener('input', () => {
+        clearTimeout(demora);
+        consulta?.abort();
+        revision += 1;
+        boton.disabled = false;
+        resultado.setAttribute('aria-busy', 'false');
+        resultado.replaceChildren();
+        if (autocompletado && nombre.value === autocompletado) { nombre.value = ''; }
+        autocompletado = '';
+        if (/^[0-9]{8}$/.test(dni.value.trim())) { demora = setTimeout(consultar, 550); }
+    });
+    nombre.addEventListener('input', () => {
+        if (nombre.value !== autocompletado) { autocompletado = ''; }
+    });
+    boton.addEventListener('click', consultar);
 }

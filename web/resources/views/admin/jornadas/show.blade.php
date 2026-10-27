@@ -117,7 +117,7 @@
  @method('PATCH')
                 <p class="text-sm">Se registrará la hora actual. Conserva los {{ $entregas }} recojos y {{ number_format($litros, 1) }} L recibidos. El acopiador verá el cierre al sincronizar.</p>
                 <x-ui.field name="motivo" id="motivo-cierre" label="Motivo del cierre desde administración" required minlength="5" maxlength="255" />
-                <div class="flex justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit" variant="danger">Confirmar cierre</x-ui.btn></div>
+                <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit" variant="danger">Confirmar cierre</x-ui.btn></div>
             </form>
         </x-ui.modal>
 @endif
@@ -132,7 +132,7 @@
                     <x-ui.field name="litros" id="litros-{{ $entrega->id }}" label="Litros correctos" type="number" step="0.01" min="0.01" max="18500" :value="$entrega->litros" required unit="L" />
                     <x-ui.field name="observaciones" id="observaciones-{{ $entrega->id }}" label="Observación (opcional)" :value="$entrega->observaciones" maxlength="255" />
                     <x-ui.field name="motivo" id="motivo-correccion-{{ $entrega->id }}" label="Motivo de la corrección" required minlength="5" maxlength="255" />
-                    <div class="flex justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">Guardar corrección</x-ui.btn></div>
+                    <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">Guardar corrección</x-ui.btn></div>
                 </form>
             </x-ui.modal>
             <x-ui.modal id="anular-{{ $entrega->id }}" title="Anular recojo">
@@ -141,7 +141,7 @@
 
                     <p class="text-sm">Se conservará el registro como anulado y dejará de sumar litros.</p>
                     <x-ui.field name="motivo" id="motivo-anulacion-{{ $entrega->id }}" label="Motivo de la anulación" required minlength="5" maxlength="255" />
-                    <div class="flex justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit" variant="danger">Anular recojo</x-ui.btn></div>
+                    <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit" variant="danger">Anular recojo</x-ui.btn></div>
                 </form>
             </x-ui.modal>
 
@@ -156,7 +156,7 @@
  @method('PATCH')
                     <p class="text-sm">{{ $fila['proveedor']->nombres }}. Deshacer conserva el historial y devuelve el proveedor a pendiente si no tiene recojos.</p>
                     <x-ui.field name="motivo" id="motivo-marca-{{ $fila['marca']->id }}" label="Motivo de la revisión" required minlength="5" maxlength="255" />
-                    <div class="flex justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">Deshacer marca</x-ui.btn></div>
+                    <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn data-modal-close variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">Deshacer marca</x-ui.btn></div>
                 </form>
             </x-ui.modal>
 

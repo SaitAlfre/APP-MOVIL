@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Liquidaciones\CalcularImporteTemporadas;
 use App\Application\Proveedores\ActualizarProveedorUseCase;
 use App\Application\Proveedores\CambiarEstadoProveedorUseCase;
+use App\Application\Proveedores\ConsultarDniUseCase;
 use App\Application\Proveedores\CrearProveedorUseCase;
 use App\Application\Proveedores\DesvincularUsuarioProveedorUseCase;
 use App\Application\Proveedores\ListarProveedoresUseCase;
@@ -31,6 +32,17 @@ use Illuminate\View\View;
 
 class ProveedorController extends Controller
 {
+    public function consultarDni(Request $request, ConsultarDniUseCase $consultar, ProveedorRepositoryInterface $proveedores): JsonResponse
+    {
+        $datos = $request->validate(['dni' => ['required', 'string', 'regex:/^[0-9]{8}$/']]);
+        $existente = $proveedores->buscarPorDni($datos['dni']);
+        $resultado = $existente !== null
+            ? ['estado' => 'registrado', 'mensaje' => 'Este documento ya tiene una ficha de proveedor.', 'url' => route('admin.proveedores.show', $existente->id)]
+            : $consultar->ejecutar($datos['dni']);
+
+        return response()->json($resultado)->header('Cache-Control', 'no-store');
+    }
+
     public function comprobarDuplicados(Request $request, ProveedorRepositoryInterface $proveedores): JsonResponse
     {
         $datos = $request->validate([

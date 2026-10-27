@@ -180,7 +180,7 @@
                             class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ old('observaciones', $recepcion?->observaciones) }}</textarea>
                     </div>
 
-                    <div class="flex justify-end gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                         <x-ui.btn type="submit">Guardar recepción</x-ui.btn>
                     </div>

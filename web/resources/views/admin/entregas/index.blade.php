@@ -136,7 +136,7 @@
                     </x-ui.alert>
                 @endif
 
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     @if ($jornadas->isNotEmpty())
                         <x-ui.btn type="submit">Registrar lote</x-ui.btn>

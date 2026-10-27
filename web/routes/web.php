@@ -79,6 +79,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::get('proveedores/{proveedor}/qr', [ProveedorQrController::class, 'mostrar'])->name('proveedores.qr');
         });
         Route::middleware('permiso:proveedores,gestionar')->group(function () {
+            Route::post('proveedores/consultar-dni', [ProveedorController::class, 'consultarDni'])->middleware('throttle:10,1')->name('proveedores.consultar-dni');
             Route::get('proveedores/comprobar-duplicados', [ProveedorController::class, 'comprobarDuplicados'])->middleware('throttle:60,1')->name('proveedores.duplicados');
             Route::get('proveedores/nuevo', [ProveedorController::class, 'create'])->name('proveedores.create');
             Route::post('proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');

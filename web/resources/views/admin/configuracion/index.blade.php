@@ -59,7 +59,7 @@
         </x-ui.card>
 
         @if ($puedeGestionar)
-            <div class="flex justify-end gap-2">
+            <div class="flex flex-wrap items-center justify-end gap-2">
                 <x-ui.btn :href="route('admin.configuracion.index')" variant="ghost">Cancelar</x-ui.btn>
                 <x-ui.btn type="submit">Guardar configuración</x-ui.btn>
             </div>

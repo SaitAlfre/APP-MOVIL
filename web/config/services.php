@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'decolecta' => [
+        'token' => env('DECOLECTA_TOKEN'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

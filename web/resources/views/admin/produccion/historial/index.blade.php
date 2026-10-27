@@ -178,7 +178,7 @@
                             Los demás ingredientes ya fueron consumidos al iniciar y no se descuentan de nuevo.
                         </x-ui.alert>
 
-                        <div class="flex justify-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
                             <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                             <x-ui.btn type="submit">Finalizar lote</x-ui.btn>
                         </div>
@@ -205,7 +205,7 @@
                             <textarea id="motivo-lote-{{ $lote->id }}" name="motivo" required maxlength="255" rows="3"
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary"></textarea>
                         </div>
-                        <div class="flex justify-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
                             <x-ui.btn type="button" variant="ghost" data-modal-close>Volver</x-ui.btn>
                             <x-ui.btn type="submit" variant="danger">Confirmar cancelación</x-ui.btn>
                         </div>

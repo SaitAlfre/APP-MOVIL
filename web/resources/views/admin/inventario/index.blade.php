@@ -136,7 +136,7 @@
                 <x-ui.alert type="warning">
                     Esta acción modifica el stock y queda registrada en el historial de auditoría.
                 </x-ui.alert>
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Confirmar ajuste</x-ui.btn>
                 </div>

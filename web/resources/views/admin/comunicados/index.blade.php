@@ -84,7 +84,7 @@
                     <x-ui.field name="publicar_en" label="Publicar el" type="datetime-local"
                         hint="Obligatorio si el estado es «Programado»." />
                 </div>
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Guardar comunicado</x-ui.btn>
                 </div>
@@ -136,7 +136,7 @@
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
                         </div>
                     </div>
-                    <div class="flex justify-end gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                         <x-ui.btn type="submit">Guardar cambios</x-ui.btn>
                     </div>

@@ -135,7 +135,7 @@
                     ])->all()" />
                 <x-ui.field name="litros_solicitados" label="Litros solicitados por el proveedor" type="number" step="0.01" min="0.01" required unit="L" />
                 <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. diferencia en los litros registrados" />
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Registrar reclamo</x-ui.btn>
                 </div>
@@ -179,7 +179,7 @@
                             <textarea id="respuesta-{{ $reclamo->id }}" name="respuesta" required maxlength="500" rows="3"
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary"></textarea>
                         </div>
-                        <div class="flex justify-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
                             <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                             <x-ui.btn type="submit">Guardar decisión</x-ui.btn>
                         </div>

@@ -25,6 +25,8 @@
             <form method="POST"
                 action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
                 class="space-y-6" data-once data-proveedor-form
+                data-dni-url="{{ route('admin.proveedores.consultar-dni') }}"
+                data-dni-disponible="{{ filled(config('services.decolecta.token')) ? 'true' : 'false' }}"
                 data-duplicados-url="{{ route('admin.proveedores.duplicados') }}" data-proveedor-id="{{ $proveedor?->id }}">
                 @csrf
                 @unless ($esNuevo)
@@ -34,9 +36,15 @@
                 <fieldset class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                     <legend class="mb-4 text-sm font-semibold text-eh-text">Identificación del proveedor</legend>
                     <x-ui.field name="codigo" label="Código" required maxlength="50" :value="$proveedor?->codigo" placeholder="PRV-009" />
-                    <x-ui.field name="dni" label="DNI" required maxlength="20" :value="$proveedor?->dni" placeholder="01234580" />
+                    <x-ui.field name="dni" label="Documento del proveedor" required maxlength="20" inputmode="numeric" autocomplete="off" :value="$proveedor?->dni" placeholder="01234580" />
                     <x-ui.field name="nombres" label="Nombre del proveedor o finca" required maxlength="150" :value="$proveedor?->nombres"
-                        class="sm:col-span-2" placeholder="Juan Pérez Quispe" />
+                        class="sm:col-span-2" placeholder="Juan Pérez Quispe"
+                        hint="Nombre con el que se identifica al proveedor. Si usas el nombre de una finca, la consulta de DNI no lo reemplazará automáticamente." />
+                    <div class="space-y-2 sm:col-span-2">
+                        <x-ui.btn type="button" variant="outline" size="sm" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar DNI</x-ui.btn>
+                        <p class="text-xs text-eh-text-muted">La consulta se realiza al completar un DNI de 8 dígitos. Otros documentos se registran manualmente.</p>
+                        <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted">@if (! filled(config('services.decolecta.token')))La consulta de DNI no está disponible. Puedes completar los datos manualmente.@endif</div>
+                    </div>
                     <div class="sm:col-span-2" data-proveedor-duplicados role="status" aria-live="polite"></div>
                 </fieldset>
 

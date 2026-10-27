@@ -136,7 +136,7 @@
                 </div>
 
                 <div class="overflow-x-auto rounded-xl border border-eh-border">
-                    <table class="w-full text-sm">
+                    <table class="w-full min-w-[560px] text-sm">
                         <caption class="sr-only">Productos de la venta</caption>
                         <thead>
                             <tr class="border-b border-eh-border bg-eh-surface-alt">
@@ -151,7 +151,7 @@
                                     <td class="px-4 py-2">
                                         <label class="sr-only" for="venta-producto-{{ $i }}">Producto de la fila {{ $i + 1 }}</label>
                                         <select id="venta-producto-{{ $i }}" name="productos[{{ $i }}][producto_id]" @if ($i === 0) required @endif
-                                            class="w-full rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
+                                            class="min-w-52 w-full rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
                                             <option value="">Seleccionar…</option>
                                             @foreach ($productos as $producto)
                                                 <option value="{{ $producto->id }}">{{ $producto->nombre }} ({{ number_format((float) $producto->existencia, 2) }} {{ $producto->unidad_produccion }})</option>
@@ -184,7 +184,7 @@
                     Una venta completada descuenta stock de inmediato. Si una línea falla, no se guarda ninguna.
                 </x-ui.alert>
 
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Registrar venta</x-ui.btn>
                 </div>
@@ -202,7 +202,7 @@
                     <x-ui.field name="celular" label="Celular" maxlength="20" />
                     <x-ui.field name="ciudad" label="Ciudad" maxlength="80" />
                 </div>
-                <div class="flex justify-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     <x-ui.btn type="submit">Guardar cliente</x-ui.btn>
                 </div>

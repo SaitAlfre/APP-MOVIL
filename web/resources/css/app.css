@@ -667,3 +667,21 @@ button, a, summary { touch-action: manipulation; }
     .admin-content input, .admin-content select, .admin-content textarea { font-size: 16px; }
     .ui-page-header > .no-print { width: 100%; }
 }
+
+/* Preflight elimina el margen automático nativo de dialog: centrar explícitamente. */
+[data-modal], [data-stop-dialog] {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: calc(100% - 2rem);
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overscroll-behavior: contain;
+}
+[data-modal][open] { display: flex; flex-direction: column; overflow: hidden; }
+.ui-modal-body { overscroll-behavior: contain; scrollbar-gutter: stable; }
+[data-stop-dialog] { overflow-y: auto; }
+.admin-shell:has(dialog[open]) .admin-content { overflow-y: hidden; }
+@media (max-width: 639px) {
+    [data-modal], [data-stop-dialog] { width: calc(100% - 1.5rem); max-height: calc(100dvh - 1.5rem); }
+}
