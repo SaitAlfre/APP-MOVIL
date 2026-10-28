@@ -93,7 +93,7 @@ export function iniciarProveedores() {
     const comprobar = async (actual) => {
         const url = new URL(formulario.dataset.duplicadosUrl);
         for (const nombre of ['codigo', 'dni']) {
-            const valor = formulario.elements.namedItem(nombre).value.trim();
+            const valor = (formulario.elements.namedItem(nombre)?.value ?? '').trim();
             if (valor) { url.searchParams.set(nombre, valor); }
         }
         if (!url.search) { return; }

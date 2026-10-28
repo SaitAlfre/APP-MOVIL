@@ -12,6 +12,42 @@ class ProveedorManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_el_alta_simple_genera_codigos_sin_pedirlos_al_administrador(): void
+    {
+        $this->comoAdmin();
+        $zona = Zona::factory()->create();
+        foreach (['12345678', '87654321'] as $dni) {
+            $this->post('/admin/proveedores', ['dni' => $dni, 'nombres' => 'Productor de prueba', 'zona_id' => $zona->id])
+                ->assertSessionHasNoErrors()->assertRedirect(route('admin.proveedores.index'));
+        }
+        $codigos = Proveedor::query()->pluck('codigo');
+        $this->assertCount(2, $codigos->unique());
+        foreach ($codigos as $codigo) {
+            $this->assertMatchesRegularExpression('/^PRV-[A-Z0-9]{8}$/', $codigo);
+        }
+    }
+
+    public function test_editar_sin_campos_antiguos_conserva_codigo_responsable_y_referencia(): void
+    {
+        $this->comoAdmin();
+        $proveedor = Proveedor::factory()->create(['codigo' => 'LEGADO-42', 'dueno' => 'Responsable anterior', 'direccion' => 'Referencia anterior']);
+        $this->put(route('admin.proveedores.update', $proveedor->id), [
+            'nombres' => 'Nombre corregido', 'dni' => $proveedor->dni, 'zona_id' => $proveedor->zona_id,
+        ])->assertSessionHasNoErrors();
+        $proveedor->refresh();
+        $this->assertSame('LEGADO-42', $proveedor->codigo);
+        $this->assertSame('Responsable anterior', $proveedor->dueno);
+        $this->assertSame('Referencia anterior', $proveedor->direccion);
+    }
+
+    public function test_el_alta_nueva_solo_acepta_dni_de_ocho_digitos(): void
+    {
+        $this->comoAdmin();
+        $this->post('/admin/proveedores', ['dni' => '123456789', 'nombres' => 'Productor', 'zona_id' => Zona::factory()->create()->id])
+            ->assertSessionHasErrors('dni');
+        $this->assertDatabaseCount('proveedores', 0);
+    }
+
     private function comoAdmin(): Usuario
     {
         $admin = Usuario::factory()->create(['roles' => ['admin']]);
@@ -90,7 +126,6 @@ class ProveedorManagementTest extends TestCase
         $this->comoAdmin();
 
         $this->post('/admin/proveedores', [])->assertSessionHasErrors([
-            'codigo' => 'El campo código es obligatorio.',
             'nombres' => 'El campo nombre completo es obligatorio.',
             'dni' => 'El campo DNI es obligatorio.',
             'zona_id' => 'El campo zona es obligatorio.',

@@ -154,7 +154,7 @@
         </aside>
 
         <div class="admin-panel flex min-w-0 flex-1 flex-col overflow-hidden">
-            <header class="no-print z-20 flex h-[68px] shrink-0 items-center justify-between gap-3 border-b border-eh-border bg-eh-surface/95 px-5 backdrop-blur-xl md:px-8 lg:px-8">
+            <header class="no-print z-20 flex h-[68px] shrink-0 items-center justify-between gap-2 border-b border-eh-border bg-eh-surface/95 px-3 backdrop-blur-xl sm:px-5 lg:px-8">
                 <div class="flex min-w-0 items-center gap-3">
                     <button type="button" data-admin-menu-toggle aria-controls="menu-administracion" aria-expanded="false"
                         class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-eh-ink text-white lg:hidden" aria-label="Abrir menú de administración">
@@ -170,6 +170,9 @@
                         <x-icon name="moon" data-theme-icon="moon" class="h-[17px] w-[17px]" />
                         <x-icon name="sun" data-theme-icon="sun" class="h-[17px] w-[17px]" hidden />
                     </button>
+                    <button type="button" data-modal-open="preferencias-interfaz" aria-label="Personalizar apariencia" title="Personalizar apariencia" class="grid h-10 w-10 place-items-center rounded-xl text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text">
+                        <x-icon name="cog" class="h-[18px] w-[18px]" />
+                    </button>
                     @if ($operador->puede('comunicados'))
                         <a href="{{ route('admin.comunicados.index') }}" class="relative grid h-10 w-10 place-items-center rounded-xl border border-eh-border-strong bg-eh-surface/65 text-eh-text hover:bg-eh-surface"
                             aria-label="Comunicados{{ $notificaciones > 0 ? ' ('.$notificaciones.' publicados esta semana)' : '' }}">
@@ -182,7 +185,7 @@
                     @if ($operador->puede('configuracion'))
                         <a href="{{ route('admin.configuracion.index') }}" class="ml-1 flex items-center gap-2 rounded-xl p-1.5 pr-2 hover:bg-eh-surface">
                             <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-eh-lime text-xs font-bold text-[#142820]">{{ $iniciales }}</span>
-                            <span class="hidden text-left md:block">
+                            <span class="hidden text-left xl:block">
                                 <span class="block max-w-40 truncate text-xs font-semibold text-eh-text">{{ $operador->nombres }}</span>
                                 <span class="block max-w-40 truncate text-[10px] text-eh-text-muted">{{ $roles->first() }}</span>
                             </span>
@@ -190,7 +193,7 @@
                     @else
                         <span class="ml-1 flex items-center gap-2 p-1.5 pr-2">
                             <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-eh-lime text-xs font-bold text-[#142820]">{{ $iniciales }}</span>
-                            <span class="hidden text-left md:block">
+                            <span class="hidden text-left xl:block">
                                 <span class="block max-w-40 truncate text-xs font-semibold text-eh-text">{{ $operador->nombres }}</span>
                                 <span class="block max-w-40 truncate text-[10px] text-eh-text-muted">{{ $roles->first() }}</span>
                             </span>
@@ -220,6 +223,8 @@
             </main>
         </div>
     </div>
+
+    @include('partials.preferences')
 
     @if (session('estado'))
         <div data-toast role="status" aria-live="polite"

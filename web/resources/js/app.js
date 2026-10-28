@@ -60,7 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const label = compactMenu ? 'Expandir menú lateral' : 'Contraer menú lateral';
         collapseToggle?.setAttribute('aria-label', label);
         collapseToggle?.setAttribute('title', label);
+        document.dispatchEvent(new CustomEvent('ecolecta:sidebar-updated', { detail: { compact: compactMenu } }));
     };
+    document.addEventListener('ecolecta:sidebar', (event) => {
+        compactMenu = Boolean(event.detail.compact);
+        updateCompactMenu();
+        savePreference('ecolecta.sidebar.compact', String(compactMenu));
+    });
     updateCompactMenu();
     desktopMenu.addEventListener('change', updateCompactMenu);
     collapseToggle?.addEventListener('click', () => {

@@ -10,7 +10,7 @@
             : null;
     @endphp
 
-    <x-ui.page-header :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
+    <x-ui.page-header :class="$esNuevo ? 'mx-auto max-w-2xl' : ''" :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
         description="Datos del productor y su zona de acopio."
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $esNuevo ? 'Nuevo proveedor' : $proveedor->nombres]]">
         @unless ($esNuevo)
@@ -20,7 +20,7 @@
         @endunless
     </x-ui.page-header>
 
-    <div @class(['grid grid-cols-1 gap-6', 'max-w-3xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
+    <div @class(['grid grid-cols-1 gap-6', 'mx-auto w-full max-w-2xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
         <x-ui.card padding="p-5 sm:p-6" :class="$esNuevo ? '' : 'lg:col-span-2'">
             <form method="POST"
                 action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
@@ -33,31 +33,35 @@
                     @method('PUT')
                 @endunless
 
-                <fieldset class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-                    <legend class="mb-4 text-sm font-semibold text-eh-text">Identificación del proveedor</legend>
-                    <x-ui.field name="codigo" label="Código" required maxlength="50" :value="$proveedor?->codigo" placeholder="PRV-009" />
-                    <x-ui.field name="dni" label="Documento del proveedor" required maxlength="20" inputmode="numeric" autocomplete="off" :value="$proveedor?->dni" placeholder="01234580" />
-                    <x-ui.field name="nombres" label="Nombre del proveedor o finca" required maxlength="150" :value="$proveedor?->nombres"
-                        class="sm:col-span-2" placeholder="Juan Pérez Quispe"
-                        hint="Nombre con el que se identifica al proveedor. Si usas el nombre de una finca, la consulta de DNI no lo reemplazará automáticamente." />
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-eh-border pb-4">
+                    <p class="text-sm font-semibold text-eh-text">{{ $esNuevo ? 'Datos del proveedor' : 'Editar datos del proveedor' }}</p>
+                    <span class="rounded-lg bg-eh-surface-alt px-3 py-1.5 text-xs text-eh-text-muted">{{ $esNuevo ? 'Código automático al guardar' : $proveedor->codigo }}</span>
+                </div>
+                <div class="grid grid-cols-1 items-start gap-5 sm:grid-cols-2">
                     <div class="space-y-2 sm:col-span-2">
-                        <x-ui.btn type="button" variant="outline" size="sm" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar DNI</x-ui.btn>
-                        <p class="text-xs text-eh-text-muted">La consulta se realiza al completar un DNI de 8 dígitos. Otros documentos se registran manualmente.</p>
-                        <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted">@if (! filled(config('services.decolecta.token')))La consulta de DNI no está disponible. Puedes completar los datos manualmente.@endif</div>
+                        <div class="flex flex-wrap items-end gap-2">
+                            <div class="min-w-0 flex-1 basis-48">
+                                <x-ui.field name="dni" label="DNI del proveedor" required maxlength="{{ $esNuevo ? 8 : 20 }}" inputmode="numeric" autocomplete="off" :value="$proveedor?->dni" placeholder="8 dígitos" />
+                            </div>
+                            <x-ui.btn type="button" variant="outline" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar</x-ui.btn>
+                        </div>
+                        <p class="text-xs text-eh-text-muted">Al completar el DNI, buscamos sus nombres automáticamente. También puedes escribirlos.</p>
+                        <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted">@if (! filled(config('services.decolecta.token')))Consulta no disponible. Puedes completar los nombres manualmente.@endif</div>
+                        <div data-proveedor-duplicados role="status" aria-live="polite"></div>
                     </div>
-                    <div class="sm:col-span-2" data-proveedor-duplicados role="status" aria-live="polite"></div>
-                </fieldset>
-
-                <fieldset class="grid min-w-0 grid-cols-1 gap-4 border-t border-eh-border pt-5 sm:grid-cols-2">
-                    <legend class="pr-3 text-sm font-semibold text-eh-text">Contacto y ubicación</legend>
-                    <x-ui.field name="telefono" label="Celular" type="tel" autocomplete="tel" maxlength="30" :value="$proveedor?->telefono" placeholder="95XXXXXXX" />
-                    <x-ui.field name="dueno" label="Propietario o responsable (opcional)" maxlength="150" :value="$proveedor?->dueno"
-                        hint="Persona responsable de la finca; no cambia la cuenta de acceso vinculada." />
-                    <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona" :selected="$proveedor?->zonaId"
-                        :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
-                    <x-ui.field name="direccion" label="Dirección o referencia" maxlength="255" :value="$proveedor?->direccion"
-                        class="sm:col-span-2" placeholder="Sector Quispe, Huata" />
-                </fieldset>
+                    <x-ui.field name="nombres" label="Nombres y apellidos" required maxlength="150" :value="$proveedor?->nombres" class="sm:col-span-2" placeholder="Nombres y apellidos del proveedor" autocomplete="name" />
+                    <x-ui.field name="telefono" label="Celular (opcional)" type="tel" autocomplete="tel" maxlength="30" :value="$proveedor?->telefono" placeholder="Número de contacto" />
+                    <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona" :selected="$proveedor?->zonaId" :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
+                </div>
+                @if (! $esNuevo && ($proveedor->dueno || $proveedor->direccion))
+                    <details class="rounded-xl border border-eh-border p-4">
+                        <summary class="cursor-pointer text-sm font-medium">Datos adicionales existentes</summary>
+                        <div class="mt-4 grid gap-4">
+                            <x-ui.field name="dueno" label="Responsable registrado" maxlength="150" :value="$proveedor->dueno" />
+                            <x-ui.field name="direccion" label="Referencia registrada" maxlength="255" :value="$proveedor->direccion" />
+                        </div>
+                    </details>
+                @endif
 
                 <div class="flex justify-end gap-2 border-t border-eh-border pt-4">
                     <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost">Cancelar</x-ui.btn>
