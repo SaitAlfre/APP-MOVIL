@@ -1,5 +1,7 @@
 import { exportarRegistros } from './exportaciones';
+import { iniciarMenusAcciones } from './menus-acciones';
 export function iniciarGestion(signal) {
+    iniciarMenusAcciones(signal);
     if (!document.querySelector('.gestion-area')) return;
     const preferencias = new Map();
     const actualizarColumnas = () => document.querySelectorAll('[data-table-columns]').forEach(control => {
@@ -53,8 +55,8 @@ export function iniciarGestion(signal) {
             try { localStorage.setItem(`ecolecta.columnas.${id}`, '[]'); } catch { /* Preferencia opcional. */ }
             actualizarColumnas();
         }
-        if (!event.target.closest('.gestion-action-menu, .gestion-columns')) {
-            document.querySelectorAll('.gestion-action-menu[open], .gestion-columns[open]').forEach(menu => { menu.open = false; });
+        if (!event.target.closest('.gestion-columns')) {
+            document.querySelectorAll('.gestion-columns[open]').forEach(menu => { menu.open = false; });
         }
         const boton = event.target.closest('[data-export-table]');
         if (boton) {
@@ -73,7 +75,7 @@ export function iniciarGestion(signal) {
     }, { signal });
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
-            const menu = document.activeElement?.closest('.gestion-action-menu[open], .gestion-columns[open]');
+            const menu = document.activeElement?.closest('.gestion-columns[open]');
             if (menu) { menu.open = false; menu.querySelector('summary')?.focus(); }
         }
     }, { signal });

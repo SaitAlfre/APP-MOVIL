@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Zona;
+use App\Infrastructure\Qr\GeneradorQrPng;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -188,6 +189,58 @@ class ProveedorManagementTest extends TestCase
         $response = $this->get('/admin/proveedores');
 
         $response->assertRedirect('/login');
+    }
+
+    public function test_los_tres_accesos_al_qr_usan_el_mismo_modal_sin_enlaces_a_otras_pestanas(): void
+    {
+        $this->comoAdmin();
+        $proveedor = Proveedor::factory()->create(['nombres' => 'Productor "Uno" & familia', 'codigo' => 'PRV-MODAL-01']);
+        foreach (['admin.proveedores.index', 'admin.proveedores.show', 'admin.proveedores.edit'] as $ruta) {
+            $respuesta = $this->get(route($ruta, $ruta === 'admin.proveedores.index' ? [] : $proveedor->id))->assertOk();
+            $dom = new \DOMDocument;
+            $dom->loadHTML($respuesta->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+            $xpath = new \DOMXPath($dom);
+            $this->assertSame(1, $xpath->query('//dialog[@id="proveedor-qr-modal"]')->length);
+            $boton = $xpath->query('//*[@data-proveedor-qr]')->item(0);
+            $this->assertSame('button', $boton->nodeName);
+            $this->assertSame(route('admin.proveedores.qr', $proveedor->id), $boton->getAttribute('data-qr-url'));
+            $this->assertSame($proveedor->nombres, $boton->getAttribute('data-qr-nombre'));
+            $this->assertSame($proveedor->codigo, $boton->getAttribute('data-qr-codigo'));
+            $this->assertFalse($boton->hasAttribute('target'));
+            $this->assertSame('dialog', $boton->getAttribute('aria-haspopup'));
+            $this->assertSame(2, $xpath->query('//dialog[@id="proveedor-qr-modal"]//*[@data-modal-close]')->length);
+            $this->assertSame(0, $xpath->query('//a[contains(@href,"/qr")]')->length);
+        }
+    }
+
+    public function test_el_modal_es_unico_y_permanece_fuera_de_los_resultados_al_filtrar_y_paginar(): void
+    {
+        $this->comoAdmin();
+        Proveedor::factory()->count(12)->create(['nombres' => 'Grupo modal', 'estado' => 'activo']);
+        $respuesta = $this->get(route('admin.proveedores.index', ['q' => 'Grupo modal', 'estado' => 'activo', 'por_pagina' => 10, 'page' => 2]))
+            ->assertOk()->assertViewHas('proveedores', fn ($pagina) => $pagina->total() === 12 && $pagina->count() === 2);
+        $dom = new \DOMDocument;
+        $dom->loadHTML($respuesta->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($dom);
+        $this->assertSame(2, $xpath->query('//*[@data-proveedores-resultados]//*[@data-proveedor-qr]')->length);
+        $this->assertSame(0, $xpath->query('//*[@data-proveedores-resultados]//dialog')->length);
+        $this->assertSame(1, $xpath->query('//dialog[@id="proveedor-qr-modal"]')->length);
+    }
+
+    public function test_el_png_del_modal_conserva_formato_identificador_y_acceso_protegido(): void
+    {
+        $this->comoAdmin();
+        $uno = Proveedor::factory()->create(['codigo' => 'PRV-QR-UNO']);
+        $dos = Proveedor::factory()->create(['codigo' => 'PRV-QR-DOS']);
+        $primero = $this->get(route('admin.proveedores.qr', $uno->id))->assertOk()->assertHeader('Content-Type', 'image/png');
+        $segundo = $this->get(route('admin.proveedores.qr', $dos->id))->assertOk();
+        $esperado = GeneradorQrPng::generar('ECOLECTA:PROVEEDOR:CODIGO:'.$uno->codigo)->getString();
+        $this->assertSame($esperado, $primero->getContent());
+        $this->assertNotSame($primero->getContent(), $segundo->getContent());
+        $this->actingAs(Usuario::factory()->create(['roles' => ['acopiador']]), 'operador');
+        $this->get(route('admin.proveedores.qr', $uno->id))->assertForbidden();
+        auth('operador')->logout();
+        $this->get(route('admin.proveedores.qr', $uno->id))->assertRedirect('/login');
     }
 
     public function test_un_acopiador_no_puede_gestionar_proveedores(): void

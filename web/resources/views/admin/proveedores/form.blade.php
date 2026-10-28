@@ -121,7 +121,7 @@
                 <x-ui.card padding="p-4">
                     <h2 class="mb-3 text-sm font-semibold text-eh-text">Código QR</h2>
                     <p class="mb-3 text-xs text-eh-text-muted">El acopiador lo escanea para identificar al proveedor en campo.</p>
-                    <x-ui.btn :href="route('admin.proveedores.qr', $proveedor->id)" target="_blank" rel="noopener" variant="outline" icon="qrCode" class="w-full">
+                    <x-ui.btn type="button" data-proveedor-qr :data-qr-url="route('admin.proveedores.qr', $proveedor->id)" :data-qr-nombre="$proveedor->nombres" :data-qr-codigo="$proveedor->codigo" aria-haspopup="dialog" aria-controls="proveedor-qr-modal" variant="outline" icon="qrCode" class="w-full">
                         Ver código QR
                     </x-ui.btn>
                 </x-ui.card>
@@ -129,4 +129,7 @@
         @endunless
     </div>
     </div>
+    @unless ($esNuevo)
+        @include('admin.proveedores.qr-modal')
+    @endunless
 @endsection

@@ -62,4 +62,5 @@
             </x-ui.card>
         @endif
     </div>
+    @include('admin.proveedores.qr-modal')
 @endsection

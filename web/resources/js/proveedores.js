@@ -1,4 +1,7 @@
+import { iniciarQrProveedor } from './proveedor-qr';
+
 export function iniciarProveedores(signal) {
+    iniciarQrProveedor(signal);
     const filtros = document.querySelector('[data-proveedores-filtros]');
     const resultados = document.querySelector('[data-proveedores-resultados]');
     const estado = document.querySelector('[data-proveedores-estado]');

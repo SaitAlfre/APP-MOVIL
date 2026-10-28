@@ -83,6 +83,56 @@ class RolesConfigurablesTest extends TestCase
         $this->assertDatabaseMissing('perfiles_roles', ['id' => $id]);
     }
 
+    public function test_formulario_de_roles_muestra_controles_para_las_cuatro_columnas_y_todos_los_modulos(): void
+    {
+        $this->admin();
+        $contenido = $this->get(route('admin.roles.create'))->assertOk()->getContent();
+
+        $this->assertSame(4, substr_count($contenido, 'data-permission-toggle='));
+        $this->assertSame(array_sum(array_map(fn ($modulo) => count($modulo['acciones']), config('modulos_roles'))), substr_count($contenido, 'data-permission-module='));
+        foreach (['ver', 'crear', 'editar', 'eliminar'] as $accion) {
+            $this->assertStringContainsString('data-permission-toggle="'.$accion.'"', $contenido);
+        }
+        foreach (config('modulos_roles') as $modulo => $config) {
+            foreach ($config['acciones'] as $accion) {
+                $this->assertStringContainsString('id="permiso-'.$modulo.'-'.$accion.'"', $contenido);
+            }
+        }
+        $this->assertStringContainsString('aria-controls="permisos-matriz-cuerpo"', $contenido);
+        $this->assertStringContainsString('aria-label="Matriz de permisos; desplázate horizontalmente en pantallas pequeñas"', $contenido);
+        $this->assertStringContainsString('incluidos los ocultos por los filtros o al desplazarte.', $contenido);
+    }
+
+    public function test_editar_rol_guarda_permisos_y_conserva_campos_personalizados(): void
+    {
+        $this->admin();
+        $id = $this->perfil();
+
+        $this->put(route('admin.roles.update', $id), [
+            'nombre' => 'Auxiliar actualizado',
+            'base' => 'acopiador',
+            'activo' => 1,
+            'permisos' => [
+                'usuarios' => ['crear'],
+                'productos' => ['ver', 'editar'],
+            ],
+        ])->assertSessionHasNoErrors()->assertRedirect(route('admin.roles.index'));
+
+        $perfil = DB::table('perfiles_roles')->find($id);
+        $permisos = json_decode($perfil->permisos, true);
+        $this->assertSame(['crear', 'ver'], $permisos['usuarios']);
+        $this->assertSame(['ver', 'editar'], $permisos['productos']);
+
+        $campos = json_decode($perfil->campos, true);
+        $this->assertSame('Teléfono', $campos['telefono']['etiqueta']);
+        $this->assertTrue($campos['telefono']['obligatorio']);
+
+        $contenido = $this->get(route('admin.roles.edit', $id))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/id="permiso-usuarios-crear"[^>]*\schecked(?:\s|>)/', $contenido);
+        $this->assertMatchesRegularExpression('/id="permiso-usuarios-ver"[^>]*\schecked(?:\s|>)/', $contenido);
+        $this->assertDoesNotMatchRegularExpression('/id="permiso-productos-crear"[^>]*\schecked(?:\s|>)/', $contenido);
+    }
+
     public function test_formulario_visual_guarda_campos_y_el_rol_los_conserva(): void
     {
         $this->admin();

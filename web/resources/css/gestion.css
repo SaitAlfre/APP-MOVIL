@@ -36,9 +36,10 @@ a.gestion-row-title:hover { color: var(--eh-primary); text-decoration: underline
 .gestion-action-menu > summary { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .5rem; list-style: none; cursor: pointer; font-size: .75rem; color: var(--eh-text-muted); }
 .gestion-action-menu > summary::-webkit-details-marker, .gestion-columns > summary::-webkit-details-marker { display: none; }
 .gestion-action-menu[open] > summary, .gestion-action-menu > summary:hover { background: var(--eh-surface-alt); color: var(--eh-text); }
-.gestion-action-menu > div { margin-block: .3rem; min-width: 11rem; border: 1px solid var(--eh-border); border-radius: .6rem; background: var(--eh-surface); padding: .3rem; box-shadow: 0 3px 12px #00000008; }
-.gestion-action-menu > div > a, .gestion-action-menu > div > button, .gestion-action-menu > div > form > button { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .5rem .6rem; border-radius: .35rem; font-size: .75rem; font-weight: 400; text-align: left; }
-.gestion-action-menu > div :is(a,button):hover { background: var(--eh-surface-alt); }
+.gestion-action-menu > div, .gestion-action-popup { position: fixed; inset: auto; z-index: 1000; margin: 0; width: max-content; min-width: 11rem; max-width: min(18rem, calc(100vw - 1rem)); max-height: calc(100dvh - 1rem); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--eh-border); border-radius: .75rem; background: var(--eh-surface); color: var(--eh-text); padding: .3rem; box-shadow: 0 8px 28px #0002; text-align: left; }
+:is(.gestion-action-menu > div, .gestion-action-popup) :is(a,button) { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 2.25rem; padding: .5rem .6rem; border-radius: .4rem; font-size: .75rem; font-weight: 400; text-align: left; white-space: nowrap; }
+:is(.gestion-action-menu > div, .gestion-action-popup) :is(a,button):hover { background: var(--eh-surface-alt); }
+:is(.gestion-action-menu > div, .gestion-action-popup) :is(a,button):focus-visible { outline: 2px solid var(--eh-primary); outline-offset: -2px; background: var(--eh-surface-alt); }
 .gestion-columns { position: relative; align-self: flex-start; font-size: .75rem; }
 .gestion-columns > summary { display: flex; align-items: center; gap: .4rem; min-height: 2.4rem; border: 1px solid var(--eh-border); background: var(--eh-surface); border-radius: .6rem; padding: .5rem .75rem; list-style: none; cursor: pointer; }
 .gestion-columns > fieldset { position: absolute; top: calc(100% + .4rem); right: 0; z-index: 15; min-width: 12rem; padding: .4rem; border: 1px solid var(--eh-border); border-radius: .6rem; background: var(--eh-surface); box-shadow: 0 4px 16px #0000000f; }

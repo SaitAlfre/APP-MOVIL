@@ -22,7 +22,7 @@
         :description="'Código: '.$proveedor->codigo.' · DNI: '.$proveedor->dni"
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $proveedor->nombres]]">
         <x-slot:actions>
-            <x-ui.btn :href="route('admin.proveedores.qr', $proveedor->id)" target="_blank" rel="noopener" variant="ghost" size="sm" icon="qrCode">Ver QR</x-ui.btn>
+            <x-ui.btn type="button" data-proveedor-qr :data-qr-url="route('admin.proveedores.qr', $proveedor->id)" :data-qr-nombre="$proveedor->nombres" :data-qr-codigo="$proveedor->codigo" aria-haspopup="dialog" aria-controls="proveedor-qr-modal" variant="ghost" size="sm" icon="qrCode">Ver QR</x-ui.btn>
             @if ($puedeGestionar)
                 <x-ui.btn :href="route('admin.proveedores.edit', $proveedor->id)" variant="secondary" size="sm" icon="pencil">Editar</x-ui.btn>
             @endif
@@ -191,4 +191,5 @@
             @endif
         </div>
     </x-ui.card>
+    @include('admin.proveedores.qr-modal')
 @endsection

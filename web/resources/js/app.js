@@ -19,7 +19,7 @@ function iniciarPagina() {
     iniciarUsuario(signal);
     iniciarDirectorioUsuarios(signal);
 
-    if (document.querySelector('[data-proveedores-filtros], [data-proveedor-form]')) {
+    if (document.querySelector('[data-proveedores-filtros], [data-proveedor-form], [data-proveedor-qr]')) {
         import('./proveedores').then(({ iniciarProveedores }) => {
             if (!signal.aborted) iniciarProveedores(signal);
         }).catch(() => {
