@@ -109,15 +109,15 @@ class AltaUsuariosDinamicaTest extends TestCase
         $this->post(route('admin.usuarios.store'), $datos)->assertSessionHasErrors(['nombres', 'username', 'dni']);
     }
 
-    public function test_rol_proveedor_crea_una_cuenta_y_no_una_ficha_productiva(): void
+    public function test_rol_proveedor_abre_el_registro_unificado_y_no_crea_cuentas_sueltas(): void
     {
-        $this->get(route('admin.usuarios.create', ['base' => 'proveedor']))->assertOk()->assertSee('Cambiar rol')->assertSee('PIN inicial')->assertViewIs('admin.usuarios.form');
+        $this->get(route('admin.usuarios.create', ['base' => 'proveedor']))->assertRedirect(route('admin.proveedores.create', ['cuenta' => 1, 'origen' => 'usuarios']));
         $datos = $this->datos();
         $datos['roles'] = ['proveedor'];
-        $this->post(route('admin.usuarios.store'), $datos)->assertSessionHasNoErrors();
-        $this->assertDatabaseHas('usuarios', ['username' => $datos['username']]);
+        $this->post(route('admin.usuarios.store'), $datos)->assertRedirect(route('admin.proveedores.create', ['cuenta' => 1, 'origen' => 'usuarios']))->assertSessionHasErrors('dni');
+        $this->assertDatabaseMissing('usuarios', ['username' => $datos['username']]);
         $this->assertDatabaseCount('proveedores', 0);
-        $this->get(route('admin.proveedores.create'))->assertOk()->assertSee('Datos del proveedor')->assertDontSee('PIN inicial');
+        $this->get(route('admin.proveedores.create', ['cuenta' => 1, 'origen' => 'usuarios']))->assertOk()->assertSee('Datos del proveedor')->assertSee('PIN inicial')->assertDontSee('¿Crear cuenta para acceder a la aplicación móvil?')->assertDontSee('Habilitar acceso móvil');
     }
 
     public function test_formulario_personalizado_reutiliza_dni_y_nombre_sin_duplicarlos(): void

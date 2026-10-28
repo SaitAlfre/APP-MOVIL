@@ -11,6 +11,7 @@ use App\Application\Usuarios\CrearUsuarioUseCase;
 use App\Application\Usuarios\DesbloquearUsuarioUseCase;
 use App\Application\Usuarios\ListarDirectorioUsuarios;
 use App\Application\Usuarios\RestablecerCredencialesUsuarioUseCase;
+use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
@@ -82,6 +83,10 @@ class UsuarioController extends Controller
         $base = $perfil?->base ?? $request->string('base')->toString();
         abort_unless(Rol::tryFrom($base), 422);
         abort_if($base === 'admin' && (auth('operador')->user()->perfil_rol_id !== null || ! auth('operador')->user()->tieneRol('admin')), 403);
+        if ($base === Rol::Proveedor->value) {
+            // Un único registro de proveedores: ficha productiva y cuenta móvil en el mismo formulario.
+            return redirect()->route('admin.proveedores.create', ['cuenta' => 1, 'origen' => 'usuarios']);
+        }
 
         return view('admin.usuarios.form', ['perfil' => $perfil, 'base' => $base, 'registro' => null, 'usuario' => null, 'roles' => Rol::cases(), 'zonas' => $zonas->activas(), 'puedeAsignarRol' => $puedeAsignarRol]);
     }
@@ -89,6 +94,10 @@ class UsuarioController extends Controller
     public function store(Request $request, CrearUsuarioUseCase $crear): RedirectResponse
     {
         $datos = $this->validarDatos($request, exigirPin: true);
+        if ($datos['roles'] === [Rol::Proveedor]) {
+            return redirect()->route('admin.proveedores.create', ['cuenta' => 1, 'origen' => 'usuarios'])
+                ->withErrors(['dni' => 'Las cuentas de proveedor se registran junto con su ficha productiva en este formulario.']);
+        }
 
         try {
             $nuevo = $crear->ejecutar(
@@ -110,7 +119,7 @@ class UsuarioController extends Controller
         return redirect()->route('admin.usuarios.index')->with('estado', 'Usuario creado correctamente.');
     }
 
-    public function edit(int $usuario, Request $request, UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas): View
+    public function edit(int $usuario, Request $request, UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas, ProveedorRepositoryInterface $proveedores): View
     {
         $registro = $this->cuentaGestionable($usuario);
         $entidad = $usuarios->buscarPorId($usuario);
@@ -149,7 +158,7 @@ class UsuarioController extends Controller
         $perfil = str_starts_with($seleccionRol, 'perfil:') ? $perfiles->get((int) substr($seleccionRol, 7)) : null;
         $base = Rol::tryFrom($seleccionRol)?->value;
 
-        return view('admin.usuarios.form', ['registro' => $registro, 'perfil' => $perfil, 'base' => $base, 'usuario' => $entidad, 'roles' => Rol::cases(), 'zonas' => $zonasDisponibles, 'opcionesRol' => $opcionesRol, 'seleccionRol' => $seleccionRol, 'puedeAsignarRol' => $puedeAsignarRol]);
+        return view('admin.usuarios.form', ['registro' => $registro, 'perfil' => $perfil, 'base' => $base, 'usuario' => $entidad, 'roles' => Rol::cases(), 'zonas' => $zonasDisponibles, 'opcionesRol' => $opcionesRol, 'seleccionRol' => $seleccionRol, 'puedeAsignarRol' => $puedeAsignarRol, 'fichaProveedor' => $proveedores->buscarPorUsuarioId($entidad->id), 'fichaMismoDni' => $proveedores->buscarPorDni($entidad->dni)]);
     }
 
     public function update(int $usuario, Request $request, ActualizarUsuarioUseCase $actualizar): RedirectResponse

@@ -31,6 +31,10 @@ final class ActualizarProveedorUseCase
             throw ProveedorInvalidoException::codigoDuplicado();
         }
 
+        if ($proveedor->usuarioId !== null && trim($datos->dni) !== trim($proveedor->dni)) {
+            throw ProveedorInvalidoException::dniBloqueadoPorCuentaVinculada();
+        }
+
         $porDni = $this->proveedores->buscarPorDni($datos->dni);
         if ($porDni !== null && $porDni->id !== $proveedor->id) {
             throw ProveedorInvalidoException::dniDuplicado();

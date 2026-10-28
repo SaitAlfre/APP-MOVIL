@@ -82,6 +82,16 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             ->all();
     }
 
+    public function sinCuentaVinculada(): array
+    {
+        return ProveedorEloquent::query()
+            ->whereNull('usuario_id')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (ProveedorEloquent $p) => $this->aDominio($p))
+            ->all();
+    }
+
     public function buscarPorUsuarioId(int $usuarioId): ?ProveedorDominio
     {
         $proveedor = ProveedorEloquent::query()->where('usuario_id', $usuarioId)->first();

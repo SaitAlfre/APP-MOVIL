@@ -33,8 +33,8 @@ class CamposProveedorCoder1Test extends TestCase
     public function test_responsable_se_sincroniza_y_cambiar_estado_o_vincular_no_lo_pierde(): void
     {
         $admin = Usuario::factory()->create(['roles' => ['admin'], 'pin_hash' => '2468']);
-        $cuenta = Usuario::factory()->create(['roles' => ['proveedor']]);
         $p = Proveedor::factory()->create();
+        $cuenta = Usuario::factory()->create(['roles' => ['proveedor'], 'dni' => $p->dni]);
         $token = $this->postJson('/api/movil/sesion', ['username' => $admin->username, 'pin' => '2468'])->assertOk()->json('token');
         $this->withToken($token)->putJson('/api/movil/cambios/proveedor', [
             ...$this->datos($p), 'servidorId' => $p->id, 'zonaId' => $p->zona_id, 'zonaNombre' => $p->zona->nombre,

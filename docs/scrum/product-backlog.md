@@ -1748,8 +1748,8 @@ Escenario: HU-23 rechazo o ausencia de datos
 - **MoSCoW / tamaño inicial:** Must / 8 SP hipotéticos, Poker pendiente.
 - **Dependencias:** [HU-01](product-backlog.md#hu-01).
 - **Responsable propuesto:** Dubcek Leonel. **Estado:** hereda estado por defecto del catálogo.
-- **Selección:** Sin selección; refinamiento posterior; [calendario](calendario-y-capacidad.md). **Tareas:** [T-77](tareas.md#t-77).
-- **Evidencia técnica actual:** ver cobertura por RF; sin tarea histórica atribuida. Aceptación: **EVIDENCIA PENDIENTE**.
+- **Selección:** Sin selección; refinamiento posterior; [calendario](calendario-y-capacidad.md). **Tareas:** [T-77](tareas.md#t-77), [T-92](tareas.md#t-92).
+- **Evidencia técnica actual:** ver cobertura por RF; registro unificado de proveedores implementado y probado en local ([T-92](tareas.md#t-92), [nota técnica](../tecnica/registro-unificado-proveedores.md)). Aceptación: **EVIDENCIA PENDIENTE**.
 
 **Criterios de aceptación propuestos**
 
@@ -1759,6 +1759,9 @@ Escenario: HU-23 rechazo o ausencia de datos
 <a id="ca-hu-24-02"></a>
 
 - **CA-HU-24-02** (RF-USU-04): Un perfil sin permiso no modifica configuración; un valor inválido no reemplaza la última configuración válida.
+<a id="ca-hu-24-03"></a>
+
+- **CA-HU-24-03** (RF-USU-04, RF-USU-05): Un proveedor se registra con un único formulario, accesible desde Proveedores y desde Usuarios y accesos; la cuenta móvil es opcional, se crea con rol Proveedor y queda vinculada a la ficha en la misma transacción; un DNI existente no duplica fichas ni cuentas y solo se vincula con DNI coincidente tras confirmación explícita.
 
 **Dos escenarios de especificación; no ejecutados**
 

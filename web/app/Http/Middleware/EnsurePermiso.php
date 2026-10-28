@@ -28,7 +28,7 @@ class EnsurePermiso
                 return $next($request);
             }
             $accion = match ($request->method()) {
-                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer', 'admin.proveedores.vincular', 'admin.proveedores.desvincular', 'admin.produccion.lotes.*', 'admin.tarifas.actual') ? 'editar' : 'crear',
+                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer', 'admin.proveedores.vincular', 'admin.proveedores.desvincular', 'admin.proveedores.cuenta', 'admin.produccion.lotes.*', 'admin.tarifas.actual') ? 'editar' : 'crear',
                 'DELETE' => 'eliminar',
                 default => $request->isMethod('GET') && ($request->routeIs('*.create') || str_ends_with($request->path(), '/nuevo')) ? 'crear' : 'editar'
             };

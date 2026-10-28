@@ -5,6 +5,7 @@ namespace App\Application\Usuarios;
 use App\Domain\Auditoria\AccionAuditoria;
 use App\Domain\Auditoria\Auditoria;
 use App\Domain\Auditoria\AuditoriaRepositoryInterface;
+use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\Usuario as UsuarioDominio;
@@ -21,6 +22,7 @@ final class ActualizarUsuarioUseCase
         private readonly UsuarioRepositoryInterface $usuarios,
         private readonly AuditoriaRepositoryInterface $auditorias,
         private readonly ZonaRepositoryInterface $zonas,
+        private readonly ProveedorRepositoryInterface $proveedores,
     ) {}
 
     /** @param list<Rol> $roles */
@@ -35,6 +37,7 @@ final class ActualizarUsuarioUseCase
         $dni = trim($dni);
         $this->validarIdentidad($usuario->username, $dni, $usuario);
         $this->validarRolesAsignables($roles, $usuario->roles);
+        $this->validarFichaVinculada($usuario, $dni, $roles);
         $rolesSinCambio = collect($roles)->map(fn (Rol $rol) => $rol->value)->sort()->values()->all()
             === collect($usuario->roles)->map(fn (Rol $rol) => $rol->value)->sort()->values()->all();
         $zonaEfectiva = $actualizarZona ? $zonaId : $usuario->zonaId;
@@ -86,5 +89,24 @@ final class ActualizarUsuarioUseCase
         }
 
         return $guardado;
+    }
+
+    /**
+     * Una cuenta vinculada a una ficha productiva comparte su identidad: no se cambia su DNI ni se le quita
+     * el rol Proveedor sin antes desvincularla, para no dejar relaciones inconsistentes.
+     *
+     * @param  list<Rol>  $roles
+     */
+    private function validarFichaVinculada(UsuarioDominio $usuario, string $dni, array $roles): void
+    {
+        if ($usuario->id === null || $this->proveedores->buscarPorUsuarioId($usuario->id) === null) {
+            return;
+        }
+        if ($dni !== trim($usuario->dni)) {
+            throw new UsuarioInvalidoException('Esta cuenta está vinculada a una ficha de proveedor. Para cambiar el DNI, desvincúlala desde la ficha o corrige ambos registros.');
+        }
+        if (! in_array(Rol::Proveedor, $roles, true)) {
+            throw new UsuarioInvalidoException('Esta cuenta está vinculada a una ficha de proveedor. Desvincúlala desde la ficha antes de quitarle el rol Proveedor.');
+        }
     }
 }

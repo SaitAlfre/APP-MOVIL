@@ -26,5 +26,8 @@ interface ProveedorRepositoryInterface
 
     public function buscarPorUsuarioId(int $usuarioId): ?Proveedor;
 
+    /** Fichas sin cuenta móvil vinculada, para la conciliación supervisada. @return list<Proveedor> */
+    public function sinCuentaVinculada(): array;
+
     public function guardar(Proveedor $proveedor): Proveedor;
 }

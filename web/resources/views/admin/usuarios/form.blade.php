@@ -34,8 +34,23 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
 @if($rolesMarcados->count()>1)<p class="mt-2 text-xs text-eh-text-muted">Se conserva la combinación de roles anterior. Para usar un único rol, selecciónalo arriba.</p>@endif
 @endif
 </section>
-@if($rolBase === 'proveedor' && $esNuevo)
-<p class="rounded-xl border border-eh-border p-4 text-sm text-eh-text-muted">Estás creando una cuenta de acceso para un proveedor. Su ficha productiva se registra y se vincula desde Proveedores.</p>
+@if(!$esNuevo && ($fichaProveedor ?? null))
+<section aria-labelledby="ficha-titulo" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-eh-border p-4" data-ficha-vinculada>
+<div class="min-w-0"><h2 id="ficha-titulo" class="text-sm font-medium text-eh-text-muted">Proveedor asociado</h2><p class="mt-1 font-semibold">{{ $fichaProveedor->nombres }} <span class="mono text-xs font-normal text-eh-text-muted">· {{ $fichaProveedor->codigo }}</span></p>
+@if($fichaProveedor->nombres !== $usuario->nombres)<p class="mt-1 text-xs text-eh-gold">El nombre de la ficha difiere del de la cuenta. Revisa ambos registros; no se sincronizan automáticamente.</p>@endif
+<p class="mt-1 text-xs text-eh-text-muted">El DNI se mantiene igual en la cuenta y en la ficha mientras estén vinculadas.</p></div>
+<x-ui.btn :href="route('admin.proveedores.show', $fichaProveedor->id)" variant="outline" size="sm" icon="proveedores">Ver ficha productiva</x-ui.btn>
+</section>
+@elseif(!$esNuevo && $usuario->tieneRol(\App\Domain\Usuarios\Rol::Proveedor))
+<section aria-label="Ficha productiva" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-eh-gold/30 bg-eh-gold-soft p-4 text-sm" data-ficha-pendiente>
+@if($fichaMismoDni ?? null)
+<p class="min-w-0 flex-1">Existe la ficha {{ $fichaMismoDni->codigo }} con este DNI{{ $fichaMismoDni->usuarioId ? ', pero está vinculada a otra cuenta' : ' sin vincular' }}.</p>
+<x-ui.btn :href="route('admin.proveedores.edit', $fichaMismoDni->id)" variant="outline" size="sm">Revisar ficha</x-ui.btn>
+@else
+<p class="min-w-0 flex-1">Esta cuenta de proveedor aún no tiene ficha productiva.</p>
+<x-ui.btn :href="route('admin.proveedores.create', ['dni' => $usuario->dni, 'origen' => 'usuarios'])" variant="outline" size="sm" icon="plus">Registrar ficha y asociar</x-ui.btn>
+@endif
+</section>
 @endif
 <section aria-label="Datos del usuario" class="space-y-4">
 @php $identidadMostrada = []; @endphp

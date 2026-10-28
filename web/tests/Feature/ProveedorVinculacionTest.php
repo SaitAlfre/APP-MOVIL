@@ -23,7 +23,7 @@ class ProveedorVinculacionTest extends TestCase
     {
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
-        $usuario = Usuario::factory()->create(['roles' => ['proveedor']]);
+        $usuario = Usuario::factory()->create(['roles' => ['proveedor'], 'dni' => $proveedor->dni]);
 
         $response = $this->post("/admin/proveedores/{$proveedor->id}/vincular", ['usuario_id' => $usuario->id]);
 

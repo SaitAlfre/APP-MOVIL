@@ -79,7 +79,7 @@ class CambiosMovilTest extends TestCase
     public function test_proveedor_y_su_cuenta_desde_la_app(): void
     {
         $token = $this->token('admin_app');
-        $cuenta = Usuario::factory()->create(['username' => 'prov_app', 'roles' => ['proveedor']]);
+        $cuenta = Usuario::factory()->create(['username' => 'prov_app', 'dni' => '99008888', 'roles' => ['proveedor']]);
         $datos = ['codigo' => 'PRV-APP-01', 'nombres' => 'Teresa Huanca Condori', 'dni' => '99008888', 'telefono' => null, 'direccion' => null,
             'zonaNombre' => 'FAON-MARKAPAJO', 'tachos' => 2, 'capacidadTachoL' => 40, 'estado' => 'ACTIVO', 'usuarioUsername' => 'prov_app'];
 

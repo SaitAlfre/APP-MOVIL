@@ -23,7 +23,8 @@ class TransaccionAdministrativa
         $request->session()->forget('errors');
         DB::beginTransaction();
         try {
-            if ($request->routeIs('admin.usuarios.*')) {
+            // Mismo cerrojo para cuentas y fichas: serializa altas y vinculaciones concurrentes del mismo DNI.
+            if ($request->routeIs('admin.usuarios.*', 'admin.proveedores.store', 'admin.proveedores.update', 'admin.proveedores.cuenta', 'admin.proveedores.vincular')) {
                 DB::table('usuarios')->orderBy('id')->lockForUpdate()->get(['id']);
             }
 

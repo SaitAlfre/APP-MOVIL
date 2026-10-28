@@ -112,6 +112,7 @@
 | <a id="t-89"></a> **T-89**: Completar el registro y consulta del lote mínimo según campos confirmados | [HU-16-A](product-backlog.md#hu-16-a); CA-HU-16-A-01, CA-HU-16-A-02 | Dubcek Leonel | 1 | S09; EA-04 |
 | <a id="t-90"></a> **T-90**: Revisar PR del lote, CA y documentación como compañero distinto | [HU-16-A](product-backlog.md#hu-16-a); CA-HU-16-A-01, CA-HU-16-A-02 | Medina Paye Jhosue Daniel | 1 | S09; EA-04 |
 | <a id="t-91"></a> **T-91**: Integrar y comprobar la versión de lotes en ambiente local de pruebas | [HU-16-A](product-backlog.md#hu-16-a); CA-HU-16-A-01, CA-HU-16-A-02 | Dubcek Leonel | 0.5 | S09; EA-04 |
+| <a id="t-92"></a> **T-92**: Unificar el registro de proveedores (ficha productiva + cuenta móvil opcional) con detección de duplicados y vinculación supervisada | [HU-24](product-backlog.md#hu-24); CA-HU-24-03 | Dubcek Leonel | Sin estimar | Implementado y probado en local, sin commit; [nota técnica](../tecnica/registro-unificado-proveedores.md); [RegistroUnificadoProveedoresTest](../../web/tests/Feature/RegistroUnificadoProveedoresTest.php). No Done: falta revisión de par, compilación frontend y prueba manual en navegador/dispositivo. |
 
 ## Evidencia técnica obtenida el 22-10
 

@@ -27,6 +27,16 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
         return $usuario !== null ? $this->aDominio($usuario) : null;
     }
 
+    public function buscarPorDni(string $dni): array
+    {
+        return UsuarioEloquent::query()
+            ->where('dni', trim($dni))
+            ->orderBy('id')
+            ->get()
+            ->map(fn (UsuarioEloquent $u) => $this->aDominio($u))
+            ->all();
+    }
+
     public function conRol(Rol $rol): array
     {
         return UsuarioEloquent::query()

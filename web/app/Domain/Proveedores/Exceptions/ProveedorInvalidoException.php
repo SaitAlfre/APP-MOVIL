@@ -55,4 +55,19 @@ final class ProveedorInvalidoException extends DomainException
     {
         return new self('Ese usuario ya está vinculado a otro proveedor.');
     }
+
+    public static function dniNoCoincideConCuenta(): self
+    {
+        return new self('El DNI de la cuenta no coincide con el de la ficha. Corrige el documento antes de vincularlas.');
+    }
+
+    public static function fichaYaVinculada(): self
+    {
+        return new self('Esta ficha ya tiene una cuenta vinculada. Desvincúlala antes de asociar otra.');
+    }
+
+    public static function dniBloqueadoPorCuentaVinculada(): self
+    {
+        return new self('La ficha está vinculada a una cuenta con este DNI. Para cambiar el documento, desvincula la cuenta o corrige ambos registros.');
+    }
 }

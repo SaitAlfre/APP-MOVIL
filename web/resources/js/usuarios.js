@@ -1,3 +1,11 @@
+/** Propone un usuario de acceso (nombre.apellido, 3 a 30 caracteres válidos) a partir del nombre completo. */
+export function sugerirUsuario(nombreCompleto) {
+    const partes = nombreCompleto.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/).filter(Boolean);
+    if (!partes.length) return '';
+    const sugerencia = (partes[0] + (partes.length > 1 ? '.' + partes[1] : '')).slice(0, 30);
+    return sugerencia.length >= 3 ? sugerencia : sugerencia + '01';
+}
+
 export function iniciarUsuario(signal) {
     const form = document.querySelector('[data-usuario-form]');
     if (!form) return;
@@ -73,10 +81,9 @@ export function iniciarUsuario(signal) {
         }
     }, { signal });
     form.querySelector('[data-sugerir-usuario]')?.addEventListener('click', () => {
-        const partes = nombre.value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/).filter(Boolean);
-        if (!partes.length) { nombre.focus(); return; }
-        const sugerencia = (partes[0] + (partes.length > 1 ? '.' + partes[1] : '')).slice(0, 30);
-        form.elements.username.value = sugerencia.length >= 3 ? sugerencia : sugerencia + '01';
+        const sugerencia = sugerirUsuario(nombre.value);
+        if (!sugerencia) { nombre.focus(); return; }
+        form.elements.username.value = sugerencia;
         form.elements.username.focus();
     }, { signal });
     const pin = form.elements.pin;

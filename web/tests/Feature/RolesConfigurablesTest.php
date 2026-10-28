@@ -256,8 +256,8 @@ class RolesConfigurablesTest extends TestCase
         $id = $this->perfil();
         DB::table('perfiles_roles')->where('id', $id)->update(['permisos' => json_encode(['proveedores' => ['ver', 'editar']])]);
         $operador = Usuario::factory()->create(['roles' => ['acopiador'], 'perfil_rol_id' => $id]);
-        $cuenta = Usuario::factory()->create(['roles' => ['proveedor']]);
         $proveedor = Proveedor::factory()->create();
+        $cuenta = Usuario::factory()->create(['roles' => ['proveedor'], 'dni' => $proveedor->dni]);
         $this->actingAs($operador, 'operador');
         $this->getJson(route('admin.proveedores.duplicados', ['dni' => $proveedor->dni]))->assertOk();
         $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => $proveedor->dni])->assertOk()->assertJsonPath('estado', 'registrado');

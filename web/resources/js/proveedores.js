@@ -1,4 +1,5 @@
 import { iniciarQrProveedor } from './proveedor-qr';
+import { sugerirUsuario } from './usuarios';
 
 export function iniciarProveedores(signal) {
     iniciarQrProveedor(signal);
@@ -150,6 +151,7 @@ export function iniciarProveedores(signal) {
     const aviso = formulario?.querySelector('[data-proveedor-duplicados]');
     if (!formulario || !aviso) { return; }
     iniciarConsultaDni(formulario, signal);
+    const registro = formulario.hasAttribute('data-registro-proveedor') ? iniciarRegistroProveedor(formulario, signal) : null;
     let demora;
     let consulta;
     let revision = 0;
@@ -170,6 +172,7 @@ export function iniciarProveedores(signal) {
             const datos = await respuesta.json();
             if (actual !== revision) { return; }
             aviso.replaceChildren();
+            if (registro) { registro.pintar(datos.registro); return; }
             for (const [campo, existente] of Object.entries(datos.coincidencias)) {
                 const parrafo = document.createElement('p');
                 parrafo.className = 'rounded-lg border border-eh-gold/30 bg-eh-gold-soft p-3 text-sm text-eh-text';
@@ -183,6 +186,7 @@ export function iniciarProveedores(signal) {
             }
         } catch (error) {
             if (error.name !== 'AbortError' && actual === revision) {
+                if (registro) { registro.sinComprobar(); return; }
                 aviso.textContent = 'No se pudo comprobar el documento. Se validará de nuevo al guardar.';
             }
         }
@@ -193,9 +197,194 @@ export function iniciarProveedores(signal) {
         consulta?.abort();
         revision += 1;
         aviso.replaceChildren();
+        registro?.reiniciar();
         const actual = revision;
         demora = setTimeout(() => comprobar(actual), 450);
-    });
+    }, { signal });
+    if (registro && /^[0-9]{8}$/.test((formulario.elements.namedItem('dni')?.value ?? '').trim())) {
+        comprobar(revision);
+    }
+}
+
+/**
+ * Formulario unificado: muestra qué se registrará según la situación del DNI y exige confirmar
+ * cuando se reutiliza una ficha o una cuenta existente. El servidor vuelve a validar todo.
+ */
+export function iniciarRegistroProveedor(formulario, signal) {
+    const panel = formulario.querySelector('[data-registro-situacion]');
+    const accion = formulario.querySelector('[data-accion-registro]');
+    const seccion = formulario.querySelector('[data-seccion-cuenta]');
+    const obligatorio = seccion?.dataset.modoAcceso === 'obligatorio';
+    const solicitud = formulario.querySelector('[data-crear-cuenta]');
+    const habilitar = formulario.querySelector('[data-habilitar-acceso]');
+    const quitar = formulario.querySelector('[data-quitar-acceso]');
+    const campos = formulario.querySelector('[data-campos-cuenta]');
+    const noAplica = formulario.querySelector('[data-cuenta-no-aplica]');
+    const resumen = formulario.querySelector('[data-resumen-registro]');
+    const enviar = formulario.querySelector('[data-registro-enviar]');
+    const textoEnviar = formulario.querySelector('[data-texto-enviar]');
+    const entradasCuenta = campos ? Array.from(campos.querySelectorAll('input')) : [];
+    let actual = null;
+    // La cuenta existente se reutiliza: no se piden credenciales nuevas.
+    const usaCuentaExistente = () => ['cuenta_sin_ficha', 'ficha_y_cuenta_sin_vincular'].includes(actual?.situacion);
+    const cuentaActiva = () => solicitud?.value === '1' && !usaCuentaExistente() && !actual?.bloquea;
+    const aplicarCuenta = () => {
+        const activa = cuentaActiva();
+        if (campos) { campos.hidden = !activa; }
+        if (habilitar) {
+            habilitar.hidden = activa || usaCuentaExistente() || Boolean(actual?.bloquea);
+            habilitar.setAttribute('aria-expanded', String(activa));
+        }
+        if (quitar) { quitar.hidden = actual?.situacion === 'ficha_sin_cuenta'; }
+        if (noAplica) {
+            noAplica.hidden = !usaCuentaExistente();
+            noAplica.textContent = usaCuentaExistente() ? `Se usará la cuenta existente «${actual.cuenta?.username ?? ''}»; no hace falta crear credenciales.` : '';
+        }
+        for (const entrada of entradasCuenta) { entrada.disabled = !activa; }
+    };
+    const solicitarAcceso = (valor) => {
+        if (solicitud) { solicitud.value = valor ? '1' : '0'; }
+        aplicarCuenta();
+        actualizarResumen();
+    };
+    const actualizarResumen = () => {
+        const situacion = actual?.situacion ?? 'nuevo';
+        const confirmada = !actual?.accion || accion.value === actual.accion;
+        const cuenta = cuentaActiva();
+        let texto;
+        let boton;
+        let bloqueado = false;
+        if (actual?.bloquea) {
+            texto = 'No se puede registrar con este DNI. Revisa el aviso.';
+            boton = 'Registro bloqueado';
+            bloqueado = true;
+        } else if (situacion === 'ficha_sin_cuenta') {
+            bloqueado = !confirmada || !cuenta;
+            texto = !cuenta ? 'Esta ficha ya existe. Habilita su acceso móvil para darle cuenta personal.' : confirmada ? `Se creará la cuenta móvil y se vinculará a la ficha existente ${actual.ficha?.codigo ?? ''}.` : 'Confirma el uso de la ficha existente para continuar.';
+            boton = 'Crear cuenta y vincular';
+        } else if (situacion === 'cuenta_sin_ficha') {
+            bloqueado = !confirmada;
+            texto = confirmada ? `Se registrará la ficha productiva y se asociará a la cuenta «${actual.cuenta?.username ?? ''}».` : 'Confirma la asociación con la cuenta existente para continuar.';
+            boton = 'Registrar ficha y asociar';
+        } else if (situacion === 'ficha_y_cuenta_sin_vincular') {
+            bloqueado = !confirmada;
+            texto = confirmada ? 'Se vincularán la ficha y la cuenta existentes sin modificar sus datos.' : 'Confirma la vinculación para continuar.';
+            boton = 'Vincular registros';
+        } else {
+            texto = cuenta ? 'Se registrará la ficha productiva y su acceso móvil vinculado.' : 'Se registrará la ficha productiva, con código y QR, sin acceso móvil personal.';
+            boton = cuenta ? 'Registrar proveedor y acceso' : 'Registrar proveedor';
+        }
+        if (resumen) { resumen.textContent = texto; }
+        if (textoEnviar) { textoEnviar.textContent = boton; }
+        if (enviar) { enviar.disabled = bloqueado; }
+    };
+    const enlace = (url, texto) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = texto;
+        a.className = 'font-semibold underline underline-offset-2';
+        return a;
+    };
+    const reiniciar = () => {
+        actual = null;
+        accion.value = '';
+        if (panel) { panel.hidden = true; panel.replaceChildren(); }
+        aplicarCuenta();
+        actualizarResumen();
+    };
+    const pintar = (registro) => {
+        const accionPrevia = accion.value;
+        reiniciar();
+        if (!registro || registro.situacion === 'nuevo' || !panel) { return; }
+        actual = registro;
+        const caja = document.createElement('div');
+        caja.className = registro.bloquea
+            ? 'space-y-2 rounded-xl border border-eh-red/20 bg-eh-red-soft p-4 text-sm text-eh-text'
+            : 'space-y-2 rounded-xl border border-eh-gold/30 bg-eh-gold-soft p-4 text-sm text-eh-text';
+        const mensaje = document.createElement('p');
+        mensaje.className = 'font-medium';
+        mensaje.textContent = registro.mensaje;
+        caja.append(mensaje);
+        const detalles = document.createElement('ul');
+        detalles.className = 'space-y-1 text-xs';
+        if (registro.ficha) {
+            const item = document.createElement('li');
+            item.append(`Ficha ${registro.ficha.codigo} · ${registro.ficha.nombre} · `, enlace(registro.ficha.url, 'Ver ficha'));
+            detalles.append(item);
+        }
+        if (registro.cuenta) {
+            const item = document.createElement('li');
+            item.append(`Cuenta «${registro.cuenta.username}» · ${registro.cuenta.nombre}`);
+            if (registro.cuenta.url) { item.append(' · ', enlace(registro.cuenta.url, 'Ver cuenta')); }
+            detalles.append(item);
+        }
+        if (detalles.childElementCount) { caja.append(detalles); }
+        if (registro.accion) {
+            const etiqueta = document.createElement('label');
+            etiqueta.className = 'flex min-h-10 cursor-pointer items-center gap-2 font-semibold';
+            const casilla = document.createElement('input');
+            casilla.type = 'checkbox';
+            casilla.className = 'h-4 w-4 accent-eh-primary';
+            casilla.dataset.confirmarAccion = registro.accion;
+            casilla.checked = accionPrevia === registro.accion;
+            accion.value = casilla.checked ? registro.accion : '';
+            casilla.addEventListener('change', () => { accion.value = casilla.checked ? registro.accion : ''; actualizarResumen(); });
+            etiqueta.append(casilla, registro.etiqueta_accion);
+            caja.append(etiqueta);
+        }
+        panel.append(caja);
+        panel.hidden = false;
+        // Una ficha existente sin cuenta solo puede completarse con su acceso móvil.
+        if (solicitud && registro.situacion === 'ficha_sin_cuenta') { solicitud.value = '1'; }
+        aplicarCuenta();
+        actualizarResumen();
+    };
+    const sinComprobar = () => {
+        reiniciar();
+        if (!panel) { return; }
+        panel.textContent = 'No se pudo comprobar el DNI. Se validará de nuevo al guardar.';
+        panel.hidden = false;
+    };
+
+    habilitar?.addEventListener('click', () => {
+        solicitarAcceso(true);
+        formulario.elements.namedItem('username')?.focus();
+    }, { signal });
+    quitar?.addEventListener('click', () => {
+        if (obligatorio) { return; }
+        solicitarAcceso(false);
+        habilitar?.focus();
+    }, { signal });
+    formulario.querySelector('[data-sugerir-usuario]')?.addEventListener('click', () => {
+        const nombre = formulario.elements.namedItem('nombres');
+        const usuario = formulario.elements.namedItem('username');
+        const sugerencia = sugerirUsuario(nombre?.value ?? '');
+        if (!sugerencia) { nombre?.focus(); return; }
+        usuario.value = sugerencia;
+        usuario.focus();
+    }, { signal });
+    const pin = formulario.elements.namedItem('pin');
+    const confirmacion = formulario.elements.namedItem('pin_confirmation');
+    if (pin && confirmacion) {
+        const validarPin = () => confirmacion.setCustomValidity(confirmacion.value && pin.value !== confirmacion.value ? 'Los PIN no coinciden.' : '');
+        pin.addEventListener('input', validarPin, { signal });
+        confirmacion.addEventListener('input', validarPin, { signal });
+        const mostrar = formulario.querySelector('[data-mostrar-pin]');
+        mostrar?.addEventListener('click', () => {
+            const visible = mostrar.getAttribute('aria-pressed') !== 'true';
+            pin.type = confirmacion.type = visible ? 'text' : 'password';
+            mostrar.setAttribute('aria-pressed', String(visible));
+            mostrar.querySelector('[data-icono-mostrar]')?.classList.toggle('hidden', visible);
+            mostrar.querySelector('[data-icono-ocultar]')?.classList.toggle('hidden', !visible);
+            const texto = mostrar.querySelector('[data-texto-pin]');
+            if (texto) { texto.textContent = visible ? 'Ocultar PIN' : 'Mostrar PIN'; }
+        }, { signal });
+    }
+    aplicarCuenta();
+    actualizarResumen();
+    formulario.querySelector('[data-registro-errores]')?.focus();
+
+    return { pintar, reiniciar, sinComprobar };
 }
 
 function iniciarConsultaDni(formulario, signal) {

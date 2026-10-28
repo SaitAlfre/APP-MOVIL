@@ -99,6 +99,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::patch('proveedores/{proveedor}/estado', [ProveedorController::class, 'cambiarEstado'])->name('proveedores.estado');
             Route::post('proveedores/{proveedor}/vincular', [ProveedorController::class, 'vincularUsuario'])->name('proveedores.vincular');
             Route::post('proveedores/{proveedor}/desvincular', [ProveedorController::class, 'desvincularUsuario'])->name('proveedores.desvincular');
+            Route::post('proveedores/{proveedor}/cuenta', [ProveedorController::class, 'crearCuenta'])->whereNumber('proveedor')->name('proveedores.cuenta');
         });
 
         Route::middleware('permiso:acopiadores,ver')->group(function () {

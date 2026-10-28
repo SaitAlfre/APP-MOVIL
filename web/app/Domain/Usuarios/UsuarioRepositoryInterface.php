@@ -10,6 +10,9 @@ interface UsuarioRepositoryInterface
 
     public function buscarPorUsername(string $username): ?Usuario;
 
+    /** El DNI de usuarios no es único en base de datos: se devuelven todas las coincidencias para detectar ambigüedades. @return list<Usuario> */
+    public function buscarPorDni(string $dni): array;
+
     /** @return list<Usuario> */
     public function conRol(Rol $rol): array;
 

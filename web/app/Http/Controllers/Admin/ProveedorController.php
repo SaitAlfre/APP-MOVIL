@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Liquidaciones\CalcularImporteTemporadas;
+use App\Application\Proveedores\ActorRegistroProveedor;
 use App\Application\Proveedores\ActualizarProveedorUseCase;
+use App\Application\Proveedores\AnalisisRegistroProveedor;
+use App\Application\Proveedores\AnalizarRegistroProveedorUseCase;
 use App\Application\Proveedores\CambiarEstadoProveedorUseCase;
 use App\Application\Proveedores\ConsultarDniUseCase;
-use App\Application\Proveedores\CrearProveedorUseCase;
+use App\Application\Proveedores\CredencialesCuentaMovil;
 use App\Application\Proveedores\DesvincularUsuarioProveedorUseCase;
 use App\Application\Proveedores\ListarProveedoresUseCase;
+use App\Application\Proveedores\RegistrarProveedorUseCase;
 use App\Application\Proveedores\VincularUsuarioProveedorUseCase;
 use App\Domain\Auditoria\AuditoriaRepositoryInterface;
 use App\Domain\Calidad\ControlCalidadRepositoryInterface;
@@ -16,7 +20,9 @@ use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Domain\Proveedores\EstadoProveedor;
 use App\Domain\Proveedores\Exceptions\ProveedorInvalidoException;
+use App\Domain\Proveedores\Exceptions\RegistroProveedorException;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
+use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
 use App\Domain\Zonas\ZonaRepositoryInterface;
@@ -25,6 +31,7 @@ use App\Http\Requests\Admin\StoreProveedorRequest;
 use App\Http\Requests\Admin\UpdateProveedorRequest;
 use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use DateTimeImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +50,7 @@ class ProveedorController extends Controller
         return response()->json($resultado)->header('Cache-Control', 'no-store');
     }
 
-    public function comprobarDuplicados(Request $request, ProveedorRepositoryInterface $proveedores): JsonResponse
+    public function comprobarDuplicados(Request $request, ProveedorRepositoryInterface $proveedores, AnalizarRegistroProveedorUseCase $analizar): JsonResponse
     {
         $datos = $request->validate([
             'codigo' => ['nullable', 'string', 'max:50'],
@@ -64,7 +71,32 @@ class ProveedorController extends Controller
             }
         }
 
-        return response()->json(['coincidencias' => (object) $coincidencias])->header('Cache-Control', 'no-store');
+        $dni = trim($datos['dni'] ?? '');
+        $registro = empty($datos['excluir']) && preg_match('/\A[0-9]{8}\z/', $dni) ? $this->describirRegistro($analizar->ejecutar($dni)) : null;
+
+        return response()->json(['coincidencias' => (object) $coincidencias, 'registro' => $registro])->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Resumen para el formulario unificado; solo expone nombre, usuario y enlaces, nunca credenciales.
+     *
+     * @return array{situacion: string, mensaje: string, accion: ?string, etiqueta_accion: ?string, bloquea: bool, ficha: ?array{codigo: string, nombre: string, url: string}, cuenta: ?array{username: string, nombre: string, url: ?string}}
+     */
+    private function describirRegistro(AnalisisRegistroProveedor $analisis): array
+    {
+        $operador = auth('operador')->user();
+        $ficha = $analisis->ficha;
+        $cuenta = $analisis->cuenta;
+
+        return [
+            'situacion' => $analisis->situacion->value,
+            'mensaje' => $analisis->situacion->mensaje(),
+            'accion' => $analisis->situacion->accionConfirmable(),
+            'etiqueta_accion' => $analisis->situacion->etiquetaAccion(),
+            'bloquea' => $analisis->situacion->bloqueaRegistro(),
+            'ficha' => $ficha ? ['codigo' => $ficha->codigo, 'nombre' => $ficha->nombres, 'url' => route('admin.proveedores.show', $ficha->id)] : null,
+            'cuenta' => $cuenta ? ['username' => $cuenta->username, 'nombre' => $cuenta->nombres, 'url' => $operador->puede('usuarios', 'gestionar') && $this->esAdministradorOficial() ? route('admin.usuarios.edit', $cuenta->id) : null] : null,
+        ];
     }
 
     public function index(
@@ -178,24 +210,67 @@ class ProveedorController extends Controller
         ]);
     }
 
-    public function create(ZonaRepositoryInterface $zonas): View
+    public function create(Request $request, ZonaRepositoryInterface $zonas): View
     {
+        $datos = $request->validate([
+            'cuenta' => ['nullable', 'boolean'],
+            'origen' => ['nullable', 'string', 'in:proveedores,usuarios'],
+            'dni' => ['nullable', 'string', 'regex:/^[0-9]{8}$/'],
+        ]);
+        $puedeCrearCuentas = $this->actor()->puedeGestionarCuentas && $this->esAdministradorOficial();
+        $origen = $datos['origen'] ?? 'proveedores';
+
         return view('admin.proveedores.form', [
             'proveedor' => null,
             'zonas' => $zonas->activas(),
             'usuariosProveedor' => [],
+            'origen' => $origen,
+            'crearCuentaInicial' => $puedeCrearCuentas && ($origen === 'usuarios' || (bool) ($datos['cuenta'] ?? false)),
+            'puedeCrearCuentas' => $puedeCrearCuentas,
+            'dniInicial' => $datos['dni'] ?? null,
         ]);
     }
 
-    public function store(StoreProveedorRequest $request, CrearProveedorUseCase $crear): RedirectResponse
+    public function store(StoreProveedorRequest $request, RegistrarProveedorUseCase $registrar): RedirectResponse
     {
         try {
-            $crear->ejecutar($request->aDatosProveedor(), auth('operador')->id());
+            $resultado = $registrar->ejecutar($request->aDatosProveedor(), $request->aCredenciales(), $request->accionRegistro(), $this->actor());
+        } catch (RegistroProveedorException|QueryException $e) {
+            return back()->withErrors(['dni' => $this->mensajeSeguro($e)])->withInput($request->except('pin', 'pin_confirmation'));
+        } catch (UsuarioInvalidoException $e) {
+            return back()->withErrors(['username' => $this->mensajeSeguro($e)])->withInput($request->except('pin', 'pin_confirmation'));
         } catch (ProveedorInvalidoException $e) {
-            return back()->withErrors(['codigo' => $this->mensajeSeguro($e)])->withInput();
+            return back()->withErrors(['codigo' => $this->mensajeSeguro($e)])->withInput($request->except('pin', 'pin_confirmation'));
         }
 
-        return redirect()->route('admin.proveedores.index')->with('estado', 'Proveedor registrado correctamente.');
+        $destino = $request->origen() === 'usuarios' && $resultado->cuenta !== null ? 'admin.usuarios.index' : 'admin.proveedores.index';
+
+        return redirect()->route($destino)->with('estado', $resultado->mensaje());
+    }
+
+    public function crearCuenta(int $proveedor, Request $request, RegistrarProveedorUseCase $registrar): RedirectResponse
+    {
+        if (is_string($request->input('username'))) {
+            $request->merge(['username' => strtolower(trim($request->input('username')))]);
+        }
+        $datos = $request->validate([
+            'username' => ['required', 'string', 'regex:/^[a-z0-9._]{3,30}$/', 'unique:usuarios,username'],
+            'pin' => ['required', 'string', 'regex:/\A[0-9]{4}\z/'],
+            'pin_confirmation' => ['required', 'same:pin'],
+        ], [
+            'username.unique' => 'Este nombre de usuario ya está ocupado. Elige otro.',
+            'username.regex' => 'Usa entre 3 y 30 caracteres: minúsculas, números, punto o guion bajo.',
+            'pin.regex' => 'El PIN debe tener exactamente 4 dígitos numéricos.',
+            'pin_confirmation.same' => 'Los PIN no coinciden. Escríbelos de nuevo.',
+        ]);
+
+        try {
+            $resultado = $registrar->crearCuentaParaFicha($proveedor, new CredencialesCuentaMovil($datos['username'], $datos['pin']), $this->actor());
+        } catch (RegistroProveedorException|UsuarioInvalidoException|ProveedorInvalidoException|QueryException $e) {
+            return back()->withErrors(['username' => $this->mensajeSeguro($e)])->withInput($request->only('username'));
+        }
+
+        return redirect()->route('admin.proveedores.edit', $proveedor)->with('estado', $resultado->mensaje());
     }
 
     public function edit(int $proveedor, ZonaRepositoryInterface $zonas, ProveedorRepositoryInterface $proveedores, UsuarioRepositoryInterface $usuarios): View
@@ -203,10 +278,22 @@ class ProveedorController extends Controller
         $entidad = $proveedores->buscarPorId($proveedor);
         abort_if($entidad === null, 404);
 
+        $cuentaVinculada = $entidad->usuarioId !== null ? $usuarios->buscarPorId($entidad->usuarioId) : null;
+        // Solo se ofrecen cuentas de proveedor con el mismo DNI y sin otra ficha: la vinculación exige identidad coincidente.
+        $candidatas = $cuentaVinculada === null
+            ? array_values(array_filter($usuarios->buscarPorDni($entidad->dni), fn ($cuenta) => $cuenta->tieneRol(Rol::Proveedor) && $proveedores->buscarPorUsuarioId($cuenta->id) === null))
+            : [];
+        $puedeCrearCuentas = $this->actor()->puedeGestionarCuentas && $this->esAdministradorOficial();
+
         return view('admin.proveedores.form', [
             'proveedor' => $entidad,
             'zonas' => $zonas->activas(),
-            'usuariosProveedor' => $usuarios->conRol(Rol::Proveedor),
+            'usuariosProveedor' => $cuentaVinculada ? [$cuentaVinculada] : $candidatas,
+            'cuentaVinculada' => $cuentaVinculada,
+            'cuentasCandidatas' => $candidatas,
+            'puedeCrearCuentas' => $puedeCrearCuentas && $candidatas === [] && $usuarios->buscarPorDni($entidad->dni) === [],
+            'puedeVerCuentas' => $puedeCrearCuentas,
+            'origen' => 'proveedores',
         ]);
     }
 
@@ -250,5 +337,24 @@ class ProveedorController extends Controller
         $desvincular->ejecutar($proveedor);
 
         return redirect()->route('admin.proveedores.edit', $proveedor)->with('estado', 'Usuario desvinculado.');
+    }
+
+    private function actor(): ActorRegistroProveedor
+    {
+        $operador = auth('operador')->user();
+
+        return new ActorRegistroProveedor(
+            id: $operador->id,
+            esAdministradorOficial: $this->esAdministradorOficial(),
+            puedeGestionarCuentas: $operador->puede('usuarios', 'gestionar'),
+            puedeVincularCuentas: $operador->puede('proveedores', 'editar'),
+        );
+    }
+
+    private function esAdministradorOficial(): bool
+    {
+        $operador = auth('operador')->user();
+
+        return $operador->perfil_rol_id === null && $operador->tieneRol('admin');
     }
 }

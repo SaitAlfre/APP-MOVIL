@@ -33,6 +33,14 @@ final class VincularUsuarioProveedorUseCase
             throw ProveedorInvalidoException::usuarioYaVinculado();
         }
 
+        if ($proveedor->usuarioId !== null && $proveedor->usuarioId !== $usuarioId) {
+            throw ProveedorInvalidoException::fichaYaVinculada();
+        }
+
+        if (trim($usuario->dni) !== trim($proveedor->dni)) {
+            throw ProveedorInvalidoException::dniNoCoincideConCuenta();
+        }
+
         return $this->proveedores->guardar($proveedor->vincularUsuario($usuarioId));
     }
 }

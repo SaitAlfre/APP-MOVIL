@@ -46,7 +46,7 @@ No replica estados, horas ni descripciones de tareas. Cada fila relaciona histor
 | [HU-21](product-backlog.md#hu-21) | CA-HU-21-01, CA-HU-21-02 | [T-74](tareas.md#t-74) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-22](product-backlog.md#hu-22) | CA-HU-22-01, CA-HU-22-02 | [T-75](tareas.md#t-75) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-23](product-backlog.md#hu-23) | CA-HU-23-01, CA-HU-23-02 | [T-76](tareas.md#t-76) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
-| [HU-24](product-backlog.md#hu-24) | CA-HU-24-01, CA-HU-24-02 | [T-77](tareas.md#t-77) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
+| [HU-24](product-backlog.md#hu-24) | CA-HU-24-01, CA-HU-24-02, CA-HU-24-03 | [T-77](tareas.md#t-77), [T-92](tareas.md#t-92) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 
 ## Evidencia por eslabón
 
