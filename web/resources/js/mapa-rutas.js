@@ -76,7 +76,8 @@ class MapaAcopio {
                 this.changeZoom(event.key === '+' ? 1 : -1);
             }
         });
-        new ResizeObserver(() => this.scheduleRender()).observe(element);
+        this.observer = new ResizeObserver(() => this.scheduleRender());
+        this.observer.observe(element);
     }
 
     project([latitude, longitude], zoom) {
@@ -267,7 +268,7 @@ function longitudCamino(points) {
 
 let ultimaConsultaRutas = 0;
 
-export function iniciarMapasRutas() {
+export function iniciarMapasRutas(signal) {
     document.querySelectorAll('[data-mapa-ruta]').forEach((root) => {
         const config = JSON.parse(root.querySelector('[data-map-config]').textContent);
         let stops = config.paradas ?? [];
@@ -687,7 +688,12 @@ export function iniciarMapasRutas() {
             submitButton.disabled = true;
             saveStatus.textContent = 'Guardando recorrido…';
         });
-        window.addEventListener('beforeunload', (event) => { if ((dirty || draftChanged()) && !submitted) { event.preventDefault(); event.returnValue = ''; } });
+        window.addEventListener('beforeunload', (event) => { if ((dirty || draftChanged()) && !submitted) { event.preventDefault(); event.returnValue = ''; } }, { signal });
+        document.addEventListener('ecolecta:before-visit', (event) => {
+            if ((dirty || draftChanged()) && !submitted && !window.confirm('¿Salir sin guardar el recorrido?')) event.preventDefault();
+        }, { signal });
+        document.addEventListener('ecolecta:visit-failed', () => { submitted = false; refreshControls(); }, { signal });
+        signal?.addEventListener('abort', () => { map.observer?.disconnect(); cancelAnimationFrame(map.frame); pendingRequest?.abort(); }, { once: true });
         refresh();
         map.fit();
     });

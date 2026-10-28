@@ -1,7 +1,7 @@
 const defaults = { theme: 'light', accent: 'coral', density: 'comfortable', container: 'boxed', sidebar: 'expanded' };
 const choices = { theme: ['light', 'dark', 'system'], accent: ['coral', 'green', 'blue', 'violet', 'slate', 'orange'], density: ['compact', 'comfortable', 'spacious'], container: ['boxed', 'fluid'], sidebar: ['expanded', 'compact'] };
 
-export function bindThemeToggle() {
+export function bindThemeToggle(signal) {
     const current = { ...defaults };
     const system = window.matchMedia('(prefers-color-scheme: dark)');
     for (const key of Object.keys(defaults)) {
@@ -27,7 +27,7 @@ export function bindThemeToggle() {
         try { for (const key of ['theme', 'accent', 'density', 'container']) { localStorage.setItem(`eh-${key}`, current[key]); } } catch {}
     };
     apply();
-    system.addEventListener('change', () => { if (current.theme === 'system') { apply(); } });
+    system.addEventListener('change', () => { if (current.theme === 'system') { apply(); } }, { signal });
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => button.addEventListener('click', () => {
         current.theme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
         apply(); save();
@@ -44,7 +44,7 @@ export function bindThemeToggle() {
     document.addEventListener('ecolecta:sidebar-updated', (event) => {
         current.sidebar = event.detail.compact ? 'compact' : 'expanded';
         document.querySelectorAll('[data-preference="sidebar"]').forEach((input) => { input.checked = input.value === current.sidebar; });
-    });
+    }, { signal });
     document.querySelector('[data-preferences-reset]')?.addEventListener('click', () => {
         Object.assign(current, defaults);
         document.dispatchEvent(new CustomEvent('ecolecta:sidebar', { detail: { compact: false } }));

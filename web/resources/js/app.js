@@ -1,11 +1,30 @@
-import { iniciarProveedores } from './proveedores';
 import { bindThemeToggle } from './theme';
-import { iniciarMapasRutas } from './mapa-rutas';
+import { iniciarNavegacion } from './navegacion';
 
-document.addEventListener('DOMContentLoaded', () => {
-    bindThemeToggle();
-    iniciarProveedores();
-    iniciarMapasRutas();
+let pagina;
+function iniciarPagina() {
+    pagina?.abort();
+    pagina = new AbortController();
+    const { signal } = pagina;
+    bindThemeToggle(signal);
+    if (document.querySelector('[data-proveedores-filtros], [data-proveedor-form]')) {
+        import('./proveedores').then(({ iniciarProveedores }) => {
+            if (!signal.aborted) iniciarProveedores(signal);
+        }).catch(() => {
+            if (signal.aborted) return;
+            const status = document.querySelector('[data-proveedores-estado], [data-dni-resultado]');
+            if (status) status.textContent = 'Las consultas automaticas no estan disponibles. Puedes usar el formulario manualmente.';
+        });
+    }
+    if (document.querySelector('[data-map-config]')) {
+        import('./mapa-rutas').then(({ iniciarMapasRutas }) => {
+            if (!signal.aborted) iniciarMapasRutas(signal);
+        }).catch(() => {
+            if (signal.aborted) return;
+            const status = document.querySelector('[data-map-status]');
+            if (status) status.textContent = 'No se pudo cargar el mapa. Comprueba tu conexion y vuelve a entrar.';
+        });
+    }
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const animateChange = (element) => {
@@ -240,9 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
         compactMenu = Boolean(event.detail.compact);
         updateCompactMenu();
         savePreference('ecolecta.sidebar.compact', String(compactMenu));
-    });
+    }, { signal });
     updateCompactMenu();
-    desktopMenu.addEventListener('change', updateCompactMenu);
+    desktopMenu.addEventListener('change', updateCompactMenu, { signal });
     collapseToggle?.addEventListener('click', () => {
         compactMenu = !compactMenu;
         updateCompactMenu();
@@ -313,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeMenu();
                 menuToggle.focus();
             }
-        });
+        }, { signal });
 
         adminMenu.querySelectorAll('a').forEach((link) => {
             link.addEventListener('click', () => {
@@ -332,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 closeMenu();
             }
-        });
+        }, { signal });
     }
 
     const modalSnapshots = new WeakMap();
@@ -441,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             delete button.dataset.sending;
             button.closest('form')?.removeAttribute('aria-busy');
         });
-    });
+    }, { signal });
 
     // La confirmación permanece visible hasta que la persona la cierre.
     document.querySelectorAll('[data-toast]').forEach((toast) => {
@@ -481,4 +500,9 @@ document.addEventListener('DOMContentLoaded', () => {
             empty.hidden = visibleRows !== 0;
         });
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    iniciarPagina();
+    iniciarNavegacion(iniciarPagina, () => pagina?.abort());
 });

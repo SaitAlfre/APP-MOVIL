@@ -762,3 +762,8 @@ button, a, summary { touch-action: manipulation; }
 :root.dark[data-accent="slate"] { --eh-primary: #c2cbd7; --eh-primary-dark: #d9e0e8; --eh-primary-soft: #252c35; --eh-sidebar-active: #252c35; }
 :root[data-accent="orange"] { --eh-primary: #b45309; --eh-primary-dark: #92400e; --eh-primary-soft: #fff7ed; --eh-sidebar-active: #fff7ed; }
 :root.dark[data-accent="orange"] { --eh-primary: #f7b46c; --eh-primary-dark: #fcc58e; --eh-primary-soft: #392716; --eh-sidebar-active: #392716; }
+
+/* El documento permanece montado durante las visitas internas. */
+html.is-navigating::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--color-eh-primary, #c04436); z-index: 100; }
+html.is-navigating .admin-content { cursor: progress; }
+.navigation-status { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 100; max-width: min(90vw, 40rem); padding: 1rem; border-radius: .75rem; background: var(--color-eh-surface, white); color: var(--color-eh-text, #292524); box-shadow: 0 4px 24px #0002; }

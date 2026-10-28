@@ -1,4 +1,4 @@
-export function iniciarProveedores() {
+export function iniciarProveedores(signal) {
     const filtros = document.querySelector('[data-proveedores-filtros]');
     const resultados = document.querySelector('[data-proveedores-resultados]');
     const estado = document.querySelector('[data-proveedores-estado]');
@@ -74,22 +74,17 @@ export function iniciarProveedores() {
                 actualizar(url, 'push');
             }
         });
-        window.addEventListener('popstate', () => {
-            const url = new URL(location.href);
-            for (const nombre of ['q', 'zona_id', 'estado']) {
-                filtros.elements.namedItem(nombre).value = url.searchParams.get(nombre) ?? '';
-            }
-            actualizar(url, 'none');
-        });
+        signal?.addEventListener('abort', cancelar, { once: true });
     }
 
     const formulario = document.querySelector('[data-proveedor-form]');
     const aviso = formulario?.querySelector('[data-proveedor-duplicados]');
     if (!formulario || !aviso) { return; }
-    iniciarConsultaDni(formulario);
+    iniciarConsultaDni(formulario, signal);
     let demora;
     let consulta;
     let revision = 0;
+    signal?.addEventListener('abort', () => { clearTimeout(demora); consulta?.abort(); revision++; }, { once: true });
     const comprobar = async (actual) => {
         const url = new URL(formulario.dataset.duplicadosUrl);
         for (const nombre of ['codigo', 'dni']) {
@@ -134,7 +129,7 @@ export function iniciarProveedores() {
     });
 }
 
-function iniciarConsultaDni(formulario) {
+function iniciarConsultaDni(formulario, signal) {
     const boton = formulario.querySelector('[data-consultar-dni]');
     const resultado = formulario.querySelector('[data-dni-resultado]');
     const dni = formulario.elements.namedItem('dni');
@@ -144,6 +139,7 @@ function iniciarConsultaDni(formulario) {
     let demora;
     let revision = 0;
     let autocompletado = '';
+    signal?.addEventListener('abort', () => { clearTimeout(demora); consulta?.abort(); revision++; }, { once: true });
     const aplicar = (valor) => {
         nombre.value = valor;
         autocompletado = valor;
