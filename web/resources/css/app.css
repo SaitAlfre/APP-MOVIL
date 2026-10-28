@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './gestion.css';
 
 [hidden] { display: none !important; }
 [data-row-actions] :is(a, button) { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.25rem; font-size: .75rem; white-space: nowrap; }
@@ -416,6 +417,27 @@ body {
 
     .admin-content thead tr {
         border-bottom: 1px solid var(--eh-border);
+    }
+
+    .admin-content [data-roles-table] th[scope='row'],
+    .admin-content [data-permisos-tabla] th[scope='row'] {
+        color: var(--eh-text);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        letter-spacing: normal;
+        text-transform: none;
+        white-space: normal;
+    }
+
+    .admin-content [data-permisos-tabla] :is(th, td):not(:first-child) {
+        padding: 0.25rem;
+        text-align: center;
+    }
+
+    .admin-content [data-permisos-tabla] thead th {
+        padding-block: 0.75rem;
+        letter-spacing: normal;
+        text-transform: none;
     }
 
     .admin-content tbody tr {

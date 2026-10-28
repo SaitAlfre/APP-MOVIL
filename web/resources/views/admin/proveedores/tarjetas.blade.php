@@ -7,15 +7,15 @@
             $puedeLlamar = (bool) preg_match('/^\+?[0-9]{6,15}$/', $numeroTelefono);
         @endphp
         <li class="min-w-0">
-            <article data-proveedor-tarjeta class="flex h-full min-w-0 flex-col rounded-2xl border border-eh-border bg-eh-surface p-5 shadow-sm transition-colors hover:border-eh-border-strong">
+            <article data-proveedor-tarjeta class="flex h-full min-w-0 flex-col rounded-xl border border-eh-border bg-eh-surface p-5 transition-colors hover:border-eh-border-strong">
                 <div class="flex items-start gap-3">
-                    <span aria-hidden="true" class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-eh-primary-soft text-sm font-semibold text-eh-primary">{{ $iniciales }}</span>
+                    <span aria-hidden="true" class="gestion-avatar grid h-10 w-10 shrink-0 place-items-center rounded-full bg-eh-primary-soft text-xs font-medium text-eh-primary">{{ $iniciales }}</span>
                     <div class="min-w-0 flex-1">
-                        <h2 class="break-words text-sm font-semibold"><a href="{{ route('admin.proveedores.show',$proveedor->id) }}" class="rounded hover:text-eh-primary hover:underline focus-visible:outline-2 focus-visible:outline-eh-primary">{{ $proveedor->nombres }}</a></h2>
-                        <p class="mt-1 break-all font-mono text-xs text-eh-text-muted">{{ $proveedor->codigo }}</p>
+                        <h2 class="gestion-row-title break-words text-sm font-medium"><a href="{{ route('admin.proveedores.show',$proveedor->id) }}" class="rounded hover:text-eh-primary hover:underline focus-visible:outline-2 focus-visible:outline-eh-primary">{{ $proveedor->nombres }}</a></h2>
+                        <p class="gestion-row-subtitle mt-1 break-all font-mono text-xs text-eh-text-muted">{{ $proveedor->codigo }}</p>
                     </div>
                 </div>
-                <dl class="mt-5 space-y-3 text-sm">
+                <dl class="mt-5 space-y-3 text-xs">
                     <div class="flex items-start justify-between gap-3"><dt class="text-eh-text-muted">DNI</dt><dd class="break-all text-right font-mono text-xs">{{ $proveedor->dni }}</dd></div>
                     <div class="flex items-start justify-between gap-3"><dt class="text-eh-text-muted">Zona</dt><dd class="max-w-[70%] break-words text-right">{{ $zonas->get($proveedor->zonaId)?->nombre ?? 'Sin zona registrada' }}</dd></div>
                     @if($telefono !== '')

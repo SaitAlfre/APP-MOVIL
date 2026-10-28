@@ -71,9 +71,9 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
 
         Route::middleware('permiso:usuarios,ver')->group(function () {
             Route::get('usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
-            Route::get('usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
         });
         Route::middleware('permiso:usuarios,gestionar')->group(function () {
+            Route::get('usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->whereNumber('usuario')->name('usuarios.edit');
             Route::post('usuarios/consultar-dni', [UsuarioController::class, 'consultarDni'])->middleware('throttle:10,1')->withoutMiddleware(TransaccionAdministrativa::class)->name('usuarios.consultar-dni');
             Route::get('usuarios/nuevo', [UsuarioController::class, 'create'])->name('usuarios.create');
             Route::post('usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');

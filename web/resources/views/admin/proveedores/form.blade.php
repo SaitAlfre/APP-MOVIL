@@ -10,7 +10,8 @@
             : null;
     @endphp
 
-    <x-ui.page-header :class="$esNuevo ? 'max-w-3xl' : ''" :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
+    <div @class(['mx-auto w-full', 'max-w-3xl' => $esNuevo, 'max-w-6xl' => !$esNuevo])>
+    <x-ui.page-header :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
         description="Datos del productor y su zona de acopio."
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $esNuevo ? 'Nuevo proveedor' : $proveedor->nombres]]">
         @unless ($esNuevo)
@@ -126,5 +127,6 @@
                 </x-ui.card>
             </div>
         @endunless
+    </div>
     </div>
 @endsection

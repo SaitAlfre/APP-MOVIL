@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 class Usuario extends Authenticatable
 {
@@ -97,6 +98,21 @@ class Usuario extends Authenticatable
         return false;
     }
 
+    public function rutaInicioWeb(): string
+    {
+        if ($this->puede('dashboard')) {
+            return 'admin.dashboard.index';
+        }
+        foreach (array_keys(config('permisos')) as $modulo) {
+            $ruta = $modulo === 'productos' ? 'admin.produccion.productos.index' : 'admin.'.str_replace('_', '-', $modulo).'.index';
+            if ($this->puede($modulo) && Route::has($ruta)) {
+                return $ruta;
+            }
+        }
+
+        return 'login';
+    }
+
     /** Para mostrar u ocultar enlaces de navegación; el control real está en la matriz `permiso:` de las rutas. */
     public function puede(string $modulo, string $accion = 'ver'): bool
     {
@@ -109,6 +125,7 @@ class Usuario extends Authenticatable
 
             return $accion === 'gestionar' ? count(array_intersect($acciones, ['crear', 'editar', 'eliminar'])) > 0 : in_array($accion, $acciones, true);
         }
+        $accion = in_array($accion, ['crear', 'editar', 'eliminar'], true) ? 'gestionar' : $accion;
         $rolesPermitidos = config("permisos.{$modulo}.{$accion}", []);
 
         $oficiales = array_map(fn (Rol $rol) => $rol->value, Rol::cases());

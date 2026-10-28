@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Usuarios\Rol;
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,14 +15,26 @@ use Illuminate\View\View;
 
 class RolController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        return view('admin.roles.index', ['perfiles' => DB::table('perfiles_roles')->orderByDesc('id')->get()]);
+        return view('admin.roles.index', ['perfiles' => $this->listar($request), 'rolesSistema' => Rol::cases()]);
     }
 
-    public function formularios(): View
+    public function formularios(Request $request): View
     {
-        return view('admin.roles.formularios', ['perfiles' => DB::table('perfiles_roles')->orderByDesc('id')->get()]);
+        return view('admin.roles.formularios', ['perfiles' => $this->listar($request)]);
+    }
+
+    private function listar(Request $request): LengthAwarePaginator
+    {
+        $datos = $request->validate(['buscar' => ['nullable', 'string', 'max:100'], 'estado' => ['nullable', Rule::in(['activo', 'inactivo'])], 'por_pagina' => ['nullable', Rule::in([10, 20, 50])], 'page' => ['nullable', 'integer', 'min:1']]);
+
+        return DB::table('perfiles_roles')
+            ->select('perfiles_roles.*')
+            ->selectSub(DB::table('usuarios')->selectRaw('count(*)')->whereColumn('perfil_rol_id', 'perfiles_roles.id'), 'usuarios_count')
+            ->when(filled($datos['buscar'] ?? null), fn ($query) => $query->where('nombre', 'like', '%'.trim($datos['buscar']).'%'))
+            ->when(filled($datos['estado'] ?? null), fn ($query) => $query->where('activo', $datos['estado'] === 'activo'))
+            ->orderByDesc('id')->paginate((int) ($datos['por_pagina'] ?? 10))->withQueryString();
     }
 
     public function editarFormulario(int $rol): View
@@ -38,8 +51,11 @@ class RolController extends Controller
     {
         $perfil = DB::table('perfiles_roles')->find($rol);
         abort_unless($perfil, 404);
+        $request->validate(['campos' => ['nullable', 'array', 'max:40'], 'campos.*' => ['array']]);
         $request->merge(['campos' => array_map(function (array $campo): array {
-            $campo['etiqueta'] = trim($campo['etiqueta'] ?? '');
+            if (is_string($campo['etiqueta'] ?? null)) {
+                $campo['etiqueta'] = trim($campo['etiqueta']);
+            }
 
             return $campo;
         }, array_filter((array) $request->input('campos', []), 'is_array'))]);
@@ -113,7 +129,7 @@ class RolController extends Controller
 
     private function formulario(?object $perfil): View
     {
-        return view('admin.roles.form', ['perfil' => $perfil, 'bases' => array_values(array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)), 'modulos' => array_keys(config('permisos'))]);
+        return view('admin.roles.form', ['perfil' => $perfil, 'bases' => array_values(array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)), 'modulos' => config('modulos_roles'), 'asignado' => $perfil && DB::table('usuarios')->where('perfil_rol_id', $perfil->id)->exists()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -128,7 +144,9 @@ class RolController extends Controller
         abort_unless(DB::table('perfiles_roles')->where('id', $rol)->exists(), 404);
         $datos = $this->datos($request, $rol);
         $anterior = DB::table('perfiles_roles')->find($rol);
-        abort_if($anterior->base !== $datos['base'] && DB::table('usuarios')->where('perfil_rol_id', $rol)->exists(), 422, 'No cambies el perfil base de un rol asignado.');
+        if ($anterior->base !== $datos['base'] && DB::table('usuarios')->where('perfil_rol_id', $rol)->exists()) {
+            throw ValidationException::withMessages(['base' => 'Este rol ya tiene usuarios. Conserva su perfil base o crea otro rol.']);
+        }
         DB::table('perfiles_roles')->where('id', $rol)->update($datos);
 
         return to_route('admin.roles.index')->with('estado', 'Rol actualizado.');
@@ -139,17 +157,36 @@ class RolController extends Controller
         abort_unless(DB::table('perfiles_roles')->where('id', $rol)->exists(), 404);
         if (DB::table('usuarios')->where('perfil_rol_id', $rol)->exists()) {
             return back()->withErrors(['rol' => 'Este rol tiene usuarios. Puedes desactivarlo, pero no eliminarlo.']);
-        } DB::table('perfiles_roles')->where('id', $rol)->delete();
+        }
+        DB::table('perfiles_roles')->where('id', $rol)->delete();
 
         return to_route('admin.roles.index')->with('estado', 'Rol eliminado.');
     }
 
     private function datos(Request $request, ?int $id = null): array
     {
-        $datos = $request->validate(['nombre' => ['required', 'string', 'max:100', Rule::unique('perfiles_roles')->ignore($id)], 'base' => ['required', Rule::in(array_map(fn (Rol $r) => $r->value, array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)))], 'activo' => ['required', 'boolean'], 'permisos' => ['nullable', 'array'], 'permisos.*' => ['array'], 'permisos.*.*' => [Rule::in(['ver', 'crear', 'editar', 'eliminar'])], 'campos_texto' => ['nullable', 'string', 'max:10000']]);
-        $permisos = $datos['permisos'] ?? [];
+        if (is_string($request->input('nombre'))) {
+            $request->merge(['nombre' => trim($request->input('nombre'))]);
+        }
+        $datos = $request->validate([
+            'nombre' => ['required', 'string', 'max:100', Rule::unique('perfiles_roles')->ignore($id)],
+            'base' => ['required', Rule::in(array_map(fn (Rol $r) => $r->value, array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)))],
+            'activo' => ['required', 'boolean'],
+            'permisos' => ['nullable', 'array'],
+            'permisos.*' => ['array'],
+            'permisos.*.*' => ['string', Rule::in(['ver', 'crear', 'editar', 'eliminar'])],
+            'campos_texto' => ['nullable', 'string', 'max:10000'],
+        ], [
+            'nombre.unique' => 'Ya existe un rol con este nombre. Escribe otro nombre.',
+            'base.in' => 'Selecciona un perfil base válido.',
+        ]);
+        $permisos = $datos['permisos'] ?? ($id && ! $request->exists('permisos_presentes') ? json_decode(DB::table('perfiles_roles')->where('id', $id)->value('permisos'), true) : []);
         foreach ($permisos as $modulo => $acciones) {
-            abort_unless(array_key_exists($modulo, config('permisos')), 422);
+            if (! array_key_exists($modulo, config('modulos_roles'))) {
+                throw ValidationException::withMessages(['permisos' => 'Selecciona un módulo válido.']);
+            }
+            $acciones = array_values(array_intersect($acciones, config('modulos_roles.'.$modulo.'.acciones')));
+            $permisos[$modulo] = $acciones;
             if (array_diff($acciones, ['ver'])) {
                 $permisos[$modulo] = array_values(array_unique([...$acciones, 'ver']));
             }
@@ -158,14 +195,17 @@ class RolController extends Controller
         foreach (preg_split('/\R/', $datos['campos_texto'] ?? '') as $linea) {
             if (trim($linea) === '') {
                 continue;
-            } $partes = explode('|', $linea);
+            }
+            $partes = explode('|', $linea);
             $clave = trim($partes[0]);
             if (! preg_match('/^[a-z][a-z0-9_]{0,39}$/', $clave) || isset($campos[$clave])) {
                 throw ValidationException::withMessages(['campos_texto' => 'Cada campo necesita una clave única: letras minúsculas, números o guion bajo.']);
-            } $tipo = trim($partes[2] ?? 'texto');
+            }
+            $tipo = trim($partes[2] ?? 'texto');
             if (! in_array($tipo, ['texto', 'numero', 'fecha'], true)) {
                 throw ValidationException::withMessages(['campos_texto' => 'Tipos admitidos: texto, numero y fecha.']);
-            } $campos[$clave] = ['etiqueta' => trim($partes[1] ?? $clave), 'tipo' => $tipo, 'obligatorio' => trim($partes[3] ?? '') === 'si'];
+            }
+            $campos[$clave] = ['etiqueta' => trim($partes[1] ?? $clave), 'tipo' => $tipo, 'obligatorio' => trim($partes[3] ?? '') === 'si'];
         }
 
         return ['nombre' => $datos['nombre'], 'base' => $datos['base'], 'activo' => $datos['activo'], 'permisos' => json_encode($permisos), 'campos' => json_encode($campos), 'updated_at' => now()];

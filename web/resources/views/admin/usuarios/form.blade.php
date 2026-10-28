@@ -3,24 +3,35 @@
 @section('contenido')
 @php
 $esNuevo = $usuario === null;
-$rolesMarcados = collect(old('roles', $usuario ? array_map(fn($rol) => $rol->value, $usuario->roles) : [$base]));
+$rolesMarcados = collect(old('roles', $base ? [$base] : ($usuario ? array_map(fn($rol) => $rol->value, $usuario->roles) : [])));
 $rolBase = $perfil?->base ?? $rolesMarcados->first();
 $rolNombre = $perfil?->nombre ?? \App\Domain\Usuarios\Rol::tryFrom($rolBase)?->etiqueta();
 $camposPersonalizados = $perfil ? json_decode($perfil->campos, true) : [];
 $identidadPersonalizada = \App\Application\Usuarios\CamposIdentidadFormulario::reconocer($camposPersonalizados);
 $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
 @endphp
+<div class="mx-auto w-full max-w-3xl">
 <x-ui.page-header :title="$esNuevo ? 'Nuevo usuario' : 'Editar usuario'" description="Completa la identidad, los datos del rol y el acceso a la cuenta." :breadcrumbs="[['label'=>'Usuarios y accesos','url'=>route('admin.usuarios.index')],['label'=>$esNuevo ? 'Nuevo usuario' : $usuario->nombres]]" />
-<x-ui.card padding="p-5 sm:p-6" class="max-w-3xl">
+@if(!$esNuevo && $puedeAsignarRol)
+<x-ui.card padding="p-4 sm:p-5" class="mb-4">
+    <form method="GET" action="{{ route('admin.usuarios.edit',$usuario->id) }}" class="flex flex-wrap items-end gap-3">
+        <div class="min-w-48 flex-1"><x-ui.select name="rol" label="Rol del usuario" :options="$opcionesRol" :selected="$seleccionRol" /></div>
+        <x-ui.btn type="submit" variant="secondary">Aplicar rol al formulario</x-ui.btn>
+    </form>
+    <p class="mt-2 text-xs text-eh-text-muted">Elige el rol para revisar sus campos. La asignación se actualiza al guardar los cambios.</p>
+</x-ui.card>
+@endif
+<x-ui.card padding="p-5 sm:p-6">
 <form method="POST" action="{{ $esNuevo ? route('admin.usuarios.store') : route('admin.usuarios.update', $usuario->id) }}" class="space-y-6" data-once data-usuario-form data-base="{{ $rolBase }}" data-dni-url="{{ route('admin.usuarios.consultar-dni') }}" data-usuario-id="{{ $usuario?->id }}">
 @csrf @unless($esNuevo) @method('PUT') @endunless
 @if($errors->any())<div role="alert" tabindex="-1" data-usuario-errores class="rounded-xl border border-eh-red p-4 text-sm text-eh-red">Revisa los campos marcados antes de guardar. @error('roles')<p>{{ $message }}</p>@enderror @error('perfil_rol_id')<p>{{ $message }}</p>@enderror</div>@endif
 <section aria-labelledby="rol-titulo" class="rounded-xl border border-eh-border bg-eh-surface-alt p-4">
-<div class="flex flex-wrap items-center justify-between gap-3"><div><h2 id="rol-titulo" class="text-sm font-medium text-eh-text-muted">Rol del usuario</h2><p class="mt-1 font-semibold">{{ $rolNombre }}</p></div>@if($esNuevo)<x-ui.btn :href="route('admin.usuarios.create')" variant="ghost">Cambiar rol</x-ui.btn>@endif</div>
+<div class="flex flex-wrap items-center justify-between gap-3"><div><h2 id="rol-titulo" class="text-sm font-medium text-eh-text-muted">Rol del usuario</h2><p class="mt-1 font-semibold">{{ $rolNombre }}</p></div>@if($esNuevo && $puedeAsignarRol)<x-ui.btn :href="route('admin.usuarios.create')" variant="ghost">Cambiar rol</x-ui.btn>@endif</div>
 @if($perfil)<input type="hidden" name="perfil_rol_id" value="{{ $perfil->id }}"><input type="hidden" name="roles[]" value="{{ $perfil->base }}">
 @elseif($esNuevo)<input type="hidden" name="roles[]" value="{{ $rolBase }}">
 @else
-<fieldset class="mt-4"><legend class="mb-2 text-sm">Rol asignado</legend><div class="flex flex-wrap gap-3">@foreach($roles as $rol)<label class="flex items-center gap-2 text-sm"><input type="{{ $rolesMarcados->count()>1 ? 'checkbox' : 'radio' }}" name="roles[]" value="{{ $rol->value }}" @checked($rolesMarcados->contains($rol->value))>{{ $rol->etiqueta() }}</label>@endforeach</div></fieldset>
+@foreach($rolesMarcados as $rol)<input type="hidden" name="roles[]" value="{{ $rol }}">@endforeach
+@if($rolesMarcados->count()>1)<p class="mt-2 text-xs text-eh-text-muted">Se conserva la combinación de roles anterior. Para usar un único rol, selecciónalo arriba.</p>@endif
 @endif
 </section>
 @if($rolBase === 'proveedor' && $esNuevo)
@@ -38,7 +49,7 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
             @php $identidadMostrada[] = $destino; @endphp
         @endif
     @else
-        <x-ui.field :name="'datos_formulario['.$clave.']'" :id="'dato-'.$clave" :label="$campo['etiqueta']" :type="match($campo['tipo']) {'numero'=>'number','fecha'=>'date',default=>'text'}" :required="$campo['obligatorio']" :value="old('datos_formulario.'.$clave,$registro?->datos_formulario[$clave] ?? null)" :error="$errors->first('datos_formulario.'.$clave)" :step="$campo['tipo']==='numero' ? 'any' : null" maxlength="1000" />
+        <x-ui.field :name="'datos_formulario['.$clave.']'" :id="'dato-'.$clave" :label="$campo['etiqueta']" :type="match($campo['tipo']) {'numero'=>'number','fecha'=>'date',default=>'text'}" :required="$campo['obligatorio']" :value="old('datos_formulario.'.$clave,$registro?->perfil_rol_id == $perfil?->id ? ($registro?->datos_formulario[$clave] ?? null) : null)" :error="$errors->first('datos_formulario.'.$clave)" :step="$campo['tipo']==='numero' ? 'any' : null" maxlength="1000" />
     @endif
 @endforeach
 </fieldset>
@@ -49,8 +60,9 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
     @endunless
 @endforeach
 <div data-usuario-zona @if(!$usaZona) hidden @endif>
-<x-ui.select name="zona_id" label="Zona de trabajo" :selected="$usuario?->zonaId" :options="collect($zonas)->mapWithKeys(fn($zona)=>[$zona->id=>$zona->nombre])->all()" placeholder="Selecciona una zona" :required="$rolBase === 'calidad' && $esNuevo" hint="Obligatoria para Calidad; opcional para Acopiador." />
+<x-ui.select name="zona_id" label="Zona de trabajo" :selected="$usuario?->zonaId" :options="collect($zonas)->mapWithKeys(fn($zona)=>[$zona->id=>$zona->nombre])->all()" placeholder="Selecciona una zona" :disabled="!$usaZona" :required="$rolBase === 'calidad' && $esNuevo" hint="Obligatoria para Calidad; opcional para Acopiador." />
 </div>
+<input type="hidden" name="zona_id" value="" data-usuario-zona-vacia @disabled($usaZona)>
 </section>
 <section aria-labelledby="acceso-titulo" class="space-y-4 border-t border-eh-border pt-5"><h2 id="acceso-titulo" class="font-semibold">Acceso al sistema</h2>
 @if($esNuevo)
@@ -66,4 +78,5 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
 <div class="flex flex-wrap justify-end gap-3 border-t border-eh-border pt-4"><x-ui.btn :href="route('admin.usuarios.index')" variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">{{ $esNuevo ? 'Crear usuario' : 'Guardar cambios' }}</x-ui.btn></div>
 </form>
 </x-ui.card>
+</div>
 @endsection

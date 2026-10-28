@@ -5,7 +5,6 @@ export function iniciarEditorFormulario(signal) {
     const preview = editor.querySelector('[data-formulario-preview]');
     const estado = editor.querySelector('[data-editor-estado]');
     let indice = Math.max(-1, ...Array.from(lista.querySelectorAll('[name]'), el => Number(el.name.match(/campos\[(\d+)\]/)?.[1] ?? -1))) + 1;
-    let cambiado = false;
     let quitado;
     const actualizar = () => {
         const filas = Array.from(lista.children);
@@ -36,7 +35,7 @@ export function iniciarEditorFormulario(signal) {
             preview.append(texto);
         }
     };
-    const marcar = () => { cambiado = true; estado.textContent = 'Tienes cambios sin guardar.'; actualizar(); };
+    const marcar = () => { editor.dispatchEvent(new Event('formulario:cambio')); estado.textContent = 'Tienes cambios sin guardar.'; actualizar(); };
     editor.addEventListener('input', marcar, { signal });
     editor.addEventListener('change', marcar, { signal });
     editor.addEventListener('click', event => {
@@ -72,10 +71,30 @@ export function iniciarEditorFormulario(signal) {
         } else return;
         marcar();
     }, { signal });
-    editor.addEventListener('submit', () => { cambiado = false; }, { signal });
-    window.addEventListener('beforeunload', event => {
-        if (cambiado) { event.preventDefault(); event.returnValue = ''; }
-    }, { signal });
     actualizar();
     editor.querySelector('[data-editor-errores]')?.focus();
+}
+
+export function protegerCambiosFormulario(signal) {
+    const formularios = [...document.querySelectorAll('[data-usuario-form], [data-proveedor-form], [data-rol-editor], [data-editor-formulario]')];
+    if (!formularios.length) return;
+    const cambios = new Set();
+    let enviando = false;
+    formularios.forEach(form => {
+        const marcar = event => {
+            if (event.target.type === 'search') return;
+            cambios.add(form);
+        };
+        form.addEventListener('input', marcar, { signal });
+        form.addEventListener('change', marcar, { signal });
+        form.addEventListener('formulario:cambio', marcar, { signal });
+        form.addEventListener('submit', event => { if (!event.defaultPrevented) enviando = true; }, { signal });
+    });
+    document.addEventListener('ecolecta:visit-failed', () => { enviando = false; }, { signal });
+    document.addEventListener('ecolecta:before-visit', event => {
+        if (cambios.size && !enviando && !window.confirm('Tienes cambios sin guardar. ¿Salir y descartarlos?')) event.preventDefault();
+    }, { signal });
+    window.addEventListener('beforeunload', event => {
+        if (cambios.size && !enviando) { event.preventDefault(); event.returnValue = ''; }
+    }, { signal });
 }

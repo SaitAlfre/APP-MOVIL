@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'usuarios' => ['nombre' => 'Usuarios y accesos', 'acciones' => ['ver', 'crear', 'editar']],
+    'proveedores' => ['nombre' => 'Proveedores', 'acciones' => ['ver', 'crear', 'editar']],
+    'acopiadores' => ['nombre' => 'Jornadas de acopio', 'acciones' => ['ver', 'crear', 'editar']],
+    'zonas_vehiculos' => ['nombre' => 'Zonas y vehículos', 'acciones' => ['ver', 'crear', 'editar']],
+    'mapa_rutas' => ['nombre' => 'Mapas y rutas', 'acciones' => ['ver', 'crear', 'editar']],
+    'recepcion' => ['nombre' => 'Recepción en planta', 'acciones' => ['ver', 'crear']],
+    'calidad' => ['nombre' => 'Análisis de calidad', 'acciones' => ['ver', 'crear']],
+    'entregas' => ['nombre' => 'Entregas', 'acciones' => ['ver', 'crear']],
+    'sanciones' => ['nombre' => 'Sanciones y reclamos', 'acciones' => ['ver', 'editar']],
+    'produccion' => ['nombre' => 'Producción', 'acciones' => ['ver', 'crear', 'editar']],
+    'productos' => ['nombre' => 'Productos', 'acciones' => ['ver', 'crear', 'editar']],
+    'recetas' => ['nombre' => 'Recetas', 'acciones' => ['ver', 'crear', 'editar']],
+    'inventario' => ['nombre' => 'Inventario', 'acciones' => ['ver', 'crear']],
+    'ventas' => ['nombre' => 'Ventas y compradores', 'acciones' => ['ver', 'crear', 'editar']],
+    'comunicados' => ['nombre' => 'Comunicados', 'acciones' => ['ver', 'crear', 'editar']],
+    'importaciones' => ['nombre' => 'Importaciones', 'acciones' => ['ver', 'crear']],
+    'configuracion' => ['nombre' => 'Configuración', 'acciones' => ['ver', 'editar']],
+    'liquidaciones' => ['nombre' => 'Liquidaciones y precios', 'acciones' => ['ver', 'crear', 'editar']],
+    'auditoria' => ['nombre' => 'Auditoría', 'acciones' => ['ver']],
+    'dashboard' => ['nombre' => 'Resumen del día', 'acciones' => ['ver']],
+    'reportes' => ['nombre' => 'Reportes y exportaciones', 'acciones' => ['ver']],
+];

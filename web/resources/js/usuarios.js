@@ -6,9 +6,8 @@ export function iniciarUsuario(signal) {
     const boton = form.querySelector('[data-consultar-dni]');
     const resultado = form.querySelector('[data-dni-resultado]');
     const zona = form.querySelector('[data-usuario-zona]');
-    const zonaInput = form.elements.zona_id;
-    const zonaVacia = document.createElement('input');
-    zonaVacia.type = 'hidden'; zonaVacia.name = 'zona_id'; zonaVacia.value = ''; zona.append(zonaVacia);
+    const zonaInput = form.querySelector('select[name="zona_id"]');
+    const zonaVacia = form.querySelector('[data-usuario-zona-vacia]');
     let peticion;
     const actualizarZona = () => {
         const rol = form.querySelector('[name="roles[]"]:checked')?.value || form.querySelector('[name="roles[]"]')?.value || form.dataset.base;

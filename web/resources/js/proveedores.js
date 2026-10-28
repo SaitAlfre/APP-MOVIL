@@ -31,7 +31,15 @@ export function iniciarProveedores(signal) {
                 limpiar.href = destino.href;
             }
             if (aplicar) aplicar.hidden = true;
+            const columnas = document.querySelector('[data-proveedores-columnas]');
+            if (columnas) columnas.hidden = vista !== 'tabla';
+            const contador = document.querySelector('[data-proveedores-contador]');
+            if (contador) {
+                const total = Number(resultados.dataset.totalResultados || 0);
+                contador.textContent = `${total} ${total === 1 ? 'proveedor' : 'proveedores'}`;
+            }
             mostrarLimpiar();
+            document.dispatchEvent(new CustomEvent('ecolecta:results-updated'));
         };
         const mismosFiltros = (url, referencia, compararVista = true) => {
             const claves = ['q', 'zona_id', 'estado', 'por_pagina', ...(compararVista ? ['vista'] : [])];

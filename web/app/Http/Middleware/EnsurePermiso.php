@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,8 +18,19 @@ class EnsurePermiso
     {
         $usuario = auth('operador')->user();
         if ($accion === 'gestionar' && $usuario?->perfil_rol_id !== null) {
+            if ($modulo === 'usuarios' && $request->route('usuario') !== null) {
+                $destino = Usuario::find($request->route('usuario'));
+                abort_if($destino?->tieneRol('admin'), 403, 'Solo un administrador puede gestionar cuentas de administradores.');
+            }
+            if ($request->routeIs('admin.usuarios.consultar-dni', 'admin.proveedores.consultar-dni', 'admin.proveedores.duplicados')) {
+                abort_unless($usuario->puede($modulo, 'crear') || $usuario->puede($modulo, 'editar'), 403);
+
+                return $next($request);
+            }
             $accion = match ($request->method()) {
-                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer') ? 'editar' : 'crear', 'DELETE' => 'eliminar', default => $request->isMethod('GET') && str_ends_with($request->path(), '/nuevo') ? 'crear' : 'editar'
+                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer', 'admin.proveedores.vincular', 'admin.proveedores.desvincular', 'admin.produccion.lotes.*', 'admin.tarifas.actual') ? 'editar' : 'crear',
+                'DELETE' => 'eliminar',
+                default => $request->isMethod('GET') && ($request->routeIs('*.create') || str_ends_with($request->path(), '/nuevo')) ? 'crear' : 'editar'
             };
         }
         abort_unless($usuario !== null && $usuario->puede($modulo, $accion), 403);

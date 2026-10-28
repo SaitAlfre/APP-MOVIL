@@ -1,0 +1,102 @@
+.gestion-area {
+    background: color-mix(in srgb, var(--eh-surface) 94%, var(--eh-bg));
+}
+.gestion-area .ui-page-header { margin-bottom: 1.5rem; align-items: center; }
+.gestion-area .ui-page-header h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -.035em; }
+.gestion-area .ui-page-header p { font-size: .8125rem; margin-top: .4rem; }
+.gestion-area .ui-page-header nav { text-transform: none; font-weight: 400; letter-spacing: normal; margin-bottom: .5rem; font-size: .75rem; }
+.gestion-area .ui-card { border-radius: .75rem; box-shadow: 0 1px 3px #00000004; }
+.gestion-area :is(input:not([type='checkbox']):not([type='radio']):not([type='hidden']), select, textarea) { border-radius: .6rem; min-height: 2.4rem; }
+.gestion-area :is(a,button).inline-flex { border-radius: .6rem; }
+.gestion-area .ui-page-header .inline-flex { min-height: 2.4rem; padding: .6rem .9rem; font-size: .8125rem; }
+.gestion-status-tabs { display: inline-flex; max-width: 100%; flex-wrap: wrap; gap: .125rem; border-radius: .6rem; padding: .2rem; background: var(--eh-surface-alt); }
+.gestion-status-tab { display: inline-flex; align-items: center; justify-content: center; min-height: 1.9rem; padding: .35rem .8rem; font-size: .75rem; color: var(--eh-text-muted); border: 1px solid transparent; border-radius: .5rem; transition: color .15s, background-color .15s; }
+.gestion-status-tab:hover { color: var(--eh-text); }
+.gestion-status-tab[aria-current='page'], .gestion-status-tab[aria-pressed='true'] { background: var(--eh-surface); border-color: var(--eh-border); color: var(--eh-text); box-shadow: 0 1px 2px #00000006; }
+.gestion-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.gestion-toolbar :is(input,select) { min-height: 2.4rem; }
+.gestion-toolbar :is(a,button).inline-flex { min-height: 2.4rem; padding: .5rem .75rem; font-size: .75rem; }
+.gestion-area .gestion-table { width: 100%; font-size: .8125rem; border-collapse: collapse; }
+.gestion-area .gestion-table thead { background: transparent; }
+.gestion-area .gestion-table :is(td,th) { padding: .7rem 1rem; text-align: left; vertical-align: middle; white-space: nowrap; }
+.gestion-area .gestion-table th { color: var(--eh-text); font-weight: 500; font-size: .75rem; letter-spacing: normal; text-transform: none; }
+.gestion-area .gestion-table th[scope='row'] { font-size: .8125rem; }
+.gestion-area .gestion-table th:first-child, .gestion-area .gestion-table td:first-child { width: 30%; }
+.gestion-area .gestion-table th:last-child, .gestion-area .gestion-table td:last-child { text-align: right; }
+.gestion-area .gestion-table tbody tr { border-top: 1px solid var(--eh-border); }
+.gestion-area .gestion-table td { color: var(--eh-text); }
+.gestion-area .gestion-table [data-column='acciones'] { width: 1%; }
+.gestion-avatar { display: inline-grid; place-items: center; flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 100%; background: var(--eh-primary-soft); color: var(--eh-primary); font-size: .6875rem; font-weight: 600; }
+.gestion-row-title { display: block; max-width: 24rem; font-size: .8125rem; font-weight: 550; white-space: normal; overflow-wrap: anywhere; }
+a.gestion-row-title:hover { color: var(--eh-primary); text-decoration: underline; }
+.gestion-row-subtitle { margin-top: .15rem; font-weight: 400; font-size: .6875rem; line-height: 1.4; color: var(--eh-text-muted); white-space: normal; overflow-wrap: anywhere; }
+.gestion-area .gestion-table [data-row-actions] :is(a,button) { min-height: 2rem; }
+.gestion-area .gestion-table [data-row-actions] { flex-wrap: nowrap; min-width: 4.5rem; }
+.gestion-action-menu { display: inline-block; max-width: 15rem; text-align: left; }
+.gestion-action-menu > summary { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .5rem; list-style: none; cursor: pointer; font-size: .75rem; color: var(--eh-text-muted); }
+.gestion-action-menu > summary::-webkit-details-marker, .gestion-columns > summary::-webkit-details-marker { display: none; }
+.gestion-action-menu[open] > summary, .gestion-action-menu > summary:hover { background: var(--eh-surface-alt); color: var(--eh-text); }
+.gestion-action-menu > div { margin-block: .3rem; min-width: 11rem; border: 1px solid var(--eh-border); border-radius: .6rem; background: var(--eh-surface); padding: .3rem; box-shadow: 0 3px 12px #00000008; }
+.gestion-action-menu > div > a, .gestion-action-menu > div > button, .gestion-action-menu > div > form > button { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .5rem .6rem; border-radius: .35rem; font-size: .75rem; font-weight: 400; text-align: left; }
+.gestion-action-menu > div :is(a,button):hover { background: var(--eh-surface-alt); }
+.gestion-columns { position: relative; align-self: flex-start; font-size: .75rem; }
+.gestion-columns > summary { display: flex; align-items: center; gap: .4rem; min-height: 2.4rem; border: 1px solid var(--eh-border); background: var(--eh-surface); border-radius: .6rem; padding: .5rem .75rem; list-style: none; cursor: pointer; }
+.gestion-columns > fieldset { position: absolute; top: calc(100% + .4rem); right: 0; z-index: 15; min-width: 12rem; padding: .4rem; border: 1px solid var(--eh-border); border-radius: .6rem; background: var(--eh-surface); box-shadow: 0 4px 16px #0000000f; }
+.gestion-filters > div { position: absolute; top: calc(100% + .4rem); left: 0; z-index: 15; display: grid; gap: 1rem; width: min(18rem, 80vw); padding: 1rem; border: 1px solid var(--eh-border); border-radius: .6rem; background: var(--eh-surface); box-shadow: 0 4px 16px #0000000f; }
+.gestion-filters label { min-height: auto; padding: 0; cursor: default; }
+.gestion-columns label { display: flex; align-items: center; gap: .65rem; min-height: 2.3rem; padding: .4rem .6rem; border-radius: .35rem; cursor: pointer; }
+.gestion-columns label:hover { background: var(--eh-surface-alt); }
+.gestion-columns button { width: 100%; margin-top: .3rem; border-top: 1px solid var(--eh-border); padding: .6rem; text-align: left; color: var(--eh-primary); }
+.gestion-area :is(.gestion-status-tab,.gestion-row-title,.gestion-columns summary,.gestion-action-menu summary,.gestion-action-menu a,.gestion-action-menu button):focus-visible { outline: 2px solid var(--eh-primary); outline-offset: 2px; }
+.gestion-area [data-table-pagination] { padding: .8rem 1rem; font-size: .6875rem; }
+.gestion-area [data-table-pagination] select { min-height: 2rem; }
+.gestion-area [data-permisos-tabla] th[scope='row'] { font-size: .8125rem; }
+@media (max-width: 640px) {
+    .gestion-area .ui-page-header h1 { font-size: 1.4rem; }
+    .gestion-toolbar { flex-direction: column; align-items: stretch; }
+    .gestion-toolbar > form, .gestion-toolbar form { width: 100%; flex: none; }
+    .gestion-toolbar > div:last-child { margin-left: 0; }
+    .gestion-columns > fieldset { left: 0; right: auto; }
+    .gestion-area .gestion-table :is(th,td) { padding: .65rem .75rem; }
+    .gestion-row-title { min-width: 9rem; max-width: 15rem; }
+    .gestion-area .gestion-status-tab { padding-inline: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) { .gestion-status-tab { transition: none; } }
+
+/* Distribución de las referencias: formularios verticales y permisos agrupados. */
+.gestion-area .ui-page-header h1 { font-size: 1.875rem; }
+.gestion-area .gestion-table :is(td,th), .gestion-row-title { font-size: .875rem; }
+.gestion-avatar { width: 2.5rem; height: 2.5rem; font-size: .75rem; }
+.gestion-row-subtitle { font-size: .75rem; }
+.gestion-area .gestion-table :is(th,td) { padding-block: .5rem; }
+.gestion-area .gestion-table tbody tr { height: 3.5rem; }
+.gestion-area .gestion-table [data-column='acciones'] svg { width: 1.125rem; height: 1.125rem; }
+.gestion-columns > fieldset, .gestion-export-panel { min-width: 15rem; border-radius: .875rem; padding: .4rem; background: var(--eh-surface-alt); }
+.gestion-columns .gestion-menu-title, .gestion-export-panel > p { margin: -.4rem -.4rem .4rem; padding: .8rem 1rem; border-bottom: 1px solid var(--eh-border); font-size: .8125rem; font-weight: 600; }
+.gestion-columns label { min-height: 2.6rem; font-size: .875rem; }
+.gestion-columns [data-column-toggle] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.gestion-column-check { width: 1rem; visibility: hidden; font-size: 1rem; }
+.gestion-columns input:checked + .gestion-column-check { visibility: visible; }
+.gestion-columns label:has(input:focus-visible) { outline: 2px solid var(--eh-primary); outline-offset: -2px; }
+.gestion-export-panel { position: absolute; top: calc(100% + .4rem); right: 0; z-index: 20; min-width: 17.5rem; border: 1px solid var(--eh-border); box-shadow: 0 4px 16px #0002; }
+.gestion-export-panel > button { display: flex; align-items: center; gap: .75rem; margin: 0; border: 0; padding: .75rem; border-radius: .4rem; color: var(--eh-text); font-size: .875rem; }
+.gestion-export-panel > button:hover { background: var(--eh-surface); }
+.gestion-export-panel [data-export-status]:not(:empty) { display: block; border-top: 1px solid var(--eh-border); padding: .75rem; font-size: .75rem; }
+.gestion-form-panel { padding: 1.5rem; border: 1px solid var(--eh-border); border-radius: 1.5rem; background: var(--eh-surface); }
+.gestion-area :is([data-usuario-form],[data-proveedor-form],.gestion-form-panel) .ui-field { gap: .5rem; }
+.gestion-area :is([data-usuario-form],[data-proveedor-form],.gestion-form-panel) .ui-field > label { font-size: .875rem; font-weight: 500; }
+.gestion-area :is([data-usuario-form],[data-proveedor-form],.gestion-form-panel) :is(input:not([type='checkbox']):not([type='hidden']),select) { min-height: 2.85rem; background: var(--eh-surface-alt); font-size: .875rem; }
+.gestion-permisos-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem 2rem; padding: 1.5rem; }
+.gestion-permiso-grupo { position: relative; min-width: 0; }
+.gestion-permiso-grupo legend { color: var(--eh-text-muted); font-size: .875rem; margin-bottom: .5rem; padding-right: 3rem; }
+.gestion-permiso-grupo label { display: flex; gap: .65rem; align-items: flex-start; padding-block: .3rem; font-size: .875rem; cursor: pointer; }
+.gestion-permiso-grupo input { flex-shrink: 0; width: 1.15rem; height: 1.15rem; margin-top: .1rem; accent-color: var(--eh-primary); }
+.gestion-permiso-todos { position: absolute; right: 0; top: -.2rem; font-size: .6875rem; color: var(--eh-primary); }
+.gestion-form-panel > div:last-child { flex-direction: column; align-items: flex-start; border: 0; padding-inline: 0; }
+.gestion-area [data-usuario-form] .grid.sm\:grid-cols-2 { grid-template-columns: 1fr; }
+.gestion-area :is([data-usuario-form],[data-proveedor-form]) { padding: .25rem; }
+@media(max-width:640px) {
+    .gestion-permisos-grid { grid-template-columns: 1fr; padding: 1rem 0; }
+    .gestion-form-panel { padding: 1.25rem; }
+    .gestion-export-panel { left: auto; right: 0; min-width: min(17.5rem,85vw); }
+}

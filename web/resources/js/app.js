@@ -1,6 +1,8 @@
 import { iniciarDirectorioUsuarios } from './directorio-usuarios';
 import { iniciarUsuario } from './usuarios';
-import { iniciarEditorFormulario } from './formularios';
+import { iniciarEditorFormulario, protegerCambiosFormulario } from './formularios';
+import { iniciarRoles } from './roles';
+import { iniciarGestion } from './gestion';
 import { bindThemeToggle } from './theme';
 import { iniciarNavegacion } from './navegacion';
 
@@ -11,6 +13,9 @@ function iniciarPagina() {
     const { signal } = pagina;
     bindThemeToggle(signal);
     iniciarEditorFormulario(signal);
+    iniciarRoles(signal);
+    iniciarGestion(signal);
+    protegerCambiosFormulario(signal);
     iniciarUsuario(signal);
     iniciarDirectorioUsuarios(signal);
 
@@ -159,32 +164,6 @@ function iniciarPagina() {
         updateMode();
     });
 
-    const menuSearch = document.querySelector('[data-menu-search]');
-    menuSearch?.addEventListener('input', () => {
-        const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
-        const words = normalize(menuSearch.value.trim()).split(/\s+/).filter(Boolean);
-        let matches = 0;
-        document.querySelectorAll('[data-menu-group]').forEach((group) => {
-            let visible = 0;
-            group.querySelectorAll('[data-menu-link]').forEach((link) => {
-                const text = normalize(link.textContent + ' ' + link.dataset.menuKeywords);
-                link.hidden = !words.every((word) => text.includes(word));
-                if (!link.hidden) visible++;
-            });
-            group.hidden = visible === 0;
-            if (group.tagName === 'DETAILS') {
-                if (words.length && !('searchOriginalOpen' in group.dataset)) group.dataset.searchOriginalOpen = String(group.open);
-                const shouldOpen = words.length ? visible > 0 : group.dataset.searchOriginalOpen === 'true';
-                if ((words.length || 'searchOriginalOpen' in group.dataset) && group.open !== shouldOpen) {
-                    group.dataset.searchToggle = 'true';
-                    group.open = shouldOpen;
-                }
-                if (!words.length) delete group.dataset.searchOriginalOpen;
-            }
-            matches += visible;
-        });
-        document.querySelector('[data-menu-empty]').hidden = matches > 0;
-    });
     document.querySelector('[data-form-errors]')?.focus();
 
     document.querySelectorAll('[data-responsive-table]').forEach((table) => {
@@ -283,8 +262,7 @@ function iniciarPagina() {
             group.open = saved === 'true';
         }
         group.addEventListener('toggle', () => {
-            if (group.dataset.searchToggle === 'true') { delete group.dataset.searchToggle; return; }
-            if (!menuSearch?.value.trim()) savePreference(key, String(group.open));
+            savePreference(key, String(group.open));
         });
         group.querySelector('summary')?.addEventListener('click', (event) => {
             if (desktopMenu.matches && compactMenu) {

@@ -1,19 +1,20 @@
 @extends('layouts.admin')
 @section('titulo', 'Editar formulario')
 @section('contenido')
+<div class="mx-auto w-full max-w-6xl">
 <x-ui.page-header :title="'Formulario de '.$perfil->nombre" description="Personaliza los datos que pedirás al registrar un usuario con este rol." :breadcrumbs="[['label'=>'Formularios','url'=>route('admin.formularios.index')],['label'=>$perfil->nombre]]" />
 @php
 $campos = session()->hasOldInput('editor_formulario') ? old('campos', []) : collect(json_decode($perfil->campos, true))->map(fn($campo, $clave) => ['clave' => $clave] + $campo)->values()->all();
 @endphp
-<form method="POST" action="{{ route('admin.formularios.update', $perfil->id) }}" data-editor-formulario class="space-y-5">
+<form method="POST" action="{{ route('admin.formularios.update', $perfil->id) }}" data-editor-formulario data-once class="space-y-5">
 @csrf @method('PUT')
 <input type="hidden" name="editor_formulario" value="1">
 @if($errors->any())<div role="alert" tabindex="-1" data-editor-errores class="rounded-xl border border-eh-red p-4 text-eh-red"><p class="font-semibold">Revisa los campos marcados antes de guardar.</p>@error('campos')<p>{{ $message }}</p>@enderror</div>@endif
 <div class="grid items-start gap-6 xl:grid-cols-2">
 <div class="space-y-5">
-<x-ui.card padding="p-5"><h2 class="font-semibold">Datos básicos incluidos</h2><p class="mt-2 text-sm text-eh-text-muted">Nombre completo, DNI y datos de acceso ya forman parte del registro. Aquí configuras únicamente los campos adicionales del rol.</p></x-ui.card>
 <x-ui.card padding="p-5">
-<div class="mb-4 flex items-center justify-between gap-3"><h2 class="font-semibold">Campos adicionales <span data-campos-contador class="text-eh-text-muted"></span></h2><span class="text-xs text-eh-text-muted">Máximo 40</span></div>
+<div class="mb-4 flex items-center justify-between gap-3"><h2 class="font-semibold">Campos del formulario <span data-campos-contador class="text-eh-text-muted"></span></h2><span class="text-xs text-eh-text-muted">Máximo 40</span></div>
+<details class="mb-5 rounded-lg bg-eh-surface-alt px-3 py-3"><summary class="cursor-pointer text-xs font-medium focus-visible:outline-2 focus-visible:outline-eh-primary">Identidad y acceso ya incluidos</summary><p class="mt-2 text-xs leading-relaxed text-eh-text-muted">Nombre completo, DNI y acceso forman parte del registro. Si agregas un campo de DNI o nombre, se usará para la identidad sin pedir el mismo dato dos veces.</p></details>
 <div data-campos-vacio @if(count($campos)) hidden @endif class="rounded-xl border border-dashed border-eh-border p-6 text-center"><h3 class="font-medium">Empieza con el primer campo</h3><p class="mt-2 text-sm text-eh-text-muted">Por ejemplo: teléfono de contacto o fecha de ingreso. También puedes guardar sin campos adicionales.</p></div>
 <div data-campos-lista class="space-y-4">@foreach($campos as $i=>$campo)@include('admin.roles.campo', ['indice'=>$i, 'campo'=>$campo])@endforeach</div>
 <template data-campo-template>@include('admin.roles.campo', ['indice'=>'__INDEX__', 'campo'=>[]])</template>
@@ -29,4 +30,5 @@ $campos = session()->hasOldInput('editor_formulario') ? old('campos', []) : coll
 </div>
 <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-eh-border bg-eh-surface p-4"><p class="max-w-xl text-sm text-eh-text-muted">Quitar un campo del formulario conserva las respuestas anteriores. Los cambios se usarán en el registro y la edición de usuarios de este rol.</p><div class="flex gap-3"><x-ui.btn :href="route('admin.formularios.index')" variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">Guardar formulario</x-ui.btn></div></div>
 </form>
+</div>
 @endsection

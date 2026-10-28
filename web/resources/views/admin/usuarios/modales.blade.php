@@ -1,5 +1,6 @@
     @if ($puedeGestionar)
         @foreach ($cuentasPagina as $usuario)
+            @continue(auth('operador')->user()->perfil_rol_id && ($usuario->perfil_rol_id !== auth('operador')->user()->perfil_rol_id || $usuario->tieneRol('admin')))
             @if (! $usuario->bloqueado_manualmente)
                 <x-ui.modal :id="'bloquear-'.$usuario->id" title="Bloquear cuenta" size="sm">
                     <form method="POST" action="{{ route('admin.usuarios.bloquear', $usuario->id) }}" class="space-y-4" data-once>

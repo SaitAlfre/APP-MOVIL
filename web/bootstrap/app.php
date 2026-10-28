@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return '/login';
             }
 
-            return $usuario->puede('dashboard') ? '/admin/dashboard' : '/admin/mapa-rutas';
+            return route($usuario->rutaInicioWeb());
         });
         $middleware->alias([
             'rol' => EnsureRol::class,

@@ -126,36 +126,55 @@ class ProveedorController extends Controller
 
         $pestanas = ['resumen', 'entregas', 'calidad', 'liquidaciones', 'auditoria'];
         $pestana = $request->string('tab')->toString();
+        $operador = auth('operador')->user();
+        $puedeVerCalidad = $operador->puede('calidad');
+        $puedeVerLiquidaciones = $operador->puede('liquidaciones');
+        $puedeVerAuditoria = $operador->puede('auditoria');
+        $pestanasPermitidas = ['resumen', 'entregas'];
+        foreach (['calidad' => $puedeVerCalidad, 'liquidaciones' => $puedeVerLiquidaciones, 'auditoria' => $puedeVerAuditoria] as $nombre => $permitida) {
+            if ($permitida) {
+                $pestanasPermitidas[] = $nombre;
+            }
+        }
+        abort_if(in_array($pestana, $pestanas, true) && ! in_array($pestana, $pestanasPermitidas, true), 403);
         $pestana = in_array($pestana, $pestanas, true) ? $pestana : 'resumen';
 
         $inicioSemana = new DateTimeImmutable('monday this week', new \DateTimeZone('America/Lima'));
         $hoy = new DateTimeImmutable('today', new \DateTimeZone('America/Lima'));
         $litrosSemana = $entregas->litrosPorProveedorEnRango($entidad->id, $inicioSemana, $hoy);
-        $tarifaVigente = TarifaLeche::whereDate('desde', '<=', $hoy->format('Y-m-d'))->whereDate('hasta', '>=', $hoy->format('Y-m-d'))->first();
-        $precioLitro = (float) ($tarifaVigente?->precio ?? 0);
-        $calcular = app(CalcularImporteTemporadas::class);
-        try {
-            $totalEstimado = $calcular->calcular($entidad->id, $inicioSemana, $hoy, $calcular->tarifas($inicioSemana, $hoy))['bruto'];
-        } catch (\RuntimeException) {
-            $totalEstimado = null;
+        $tarifaVigente = null;
+        $precioLitro = 0.0;
+        $totalEstimado = null;
+        if ($puedeVerLiquidaciones) {
+            $tarifaVigente = TarifaLeche::whereDate('desde', '<=', $hoy->format('Y-m-d'))->whereDate('hasta', '>=', $hoy->format('Y-m-d'))->first();
+            $precioLitro = (float) ($tarifaVigente?->precio ?? 0);
+            $calcular = app(CalcularImporteTemporadas::class);
+            try {
+                $totalEstimado = $calcular->calcular($entidad->id, $inicioSemana, $hoy, $calcular->tarifas($inicioSemana, $hoy))['bruto'];
+            } catch (\RuntimeException) {
+                $totalEstimado = null;
+            }
         }
 
         $ultimas = $entregas->ultimasDelProveedor($entidad->id, 20);
-        $controlesPorEntrega = collect($ultimas)
+        $controlesPorEntrega = $puedeVerCalidad ? collect($ultimas)
             ->mapWithKeys(fn ($entrega) => [$entrega->id => $controles->buscarPorEntregaId($entrega->id)])
-            ->all();
+            ->all() : [];
 
         return view('admin.proveedores.show', [
             'proveedor' => $entidad,
             'zona' => $zonas->buscarPorId($entidad->zonaId),
             'cuenta' => $entidad->usuarioId !== null ? $usuarios->buscarPorId($entidad->usuarioId) : null,
             'pestana' => $pestana,
+            'pestanasPermitidas' => $pestanasPermitidas,
+            'puedeVerCalidad' => $puedeVerCalidad,
+            'puedeVerLiquidaciones' => $puedeVerLiquidaciones,
             'litrosSemana' => $litrosSemana,
             'precioLitro' => $precioLitro, 'tarifaVigente' => $tarifaVigente, 'totalEstimado' => $totalEstimado,
             'entregas' => $ultimas,
             'controles' => $controlesPorEntrega,
-            'liquidaciones' => $liquidaciones->ultimasDelProveedor($entidad->id, 10),
-            'auditoria' => $auditoria->paginar(10, ['entidad' => 'proveedor', 'entidad_id' => $entidad->id]),
+            'liquidaciones' => $puedeVerLiquidaciones && $pestana === 'liquidaciones' ? $liquidaciones->ultimasDelProveedor($entidad->id, 10) : [],
+            'auditoria' => $puedeVerAuditoria && $pestana === 'auditoria' ? $auditoria->paginar(10, ['entidad' => 'proveedor', 'entidad_id' => $entidad->id]) : null,
         ]);
     }
 

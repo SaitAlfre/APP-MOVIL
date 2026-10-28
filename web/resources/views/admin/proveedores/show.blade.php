@@ -5,7 +5,7 @@
 @section('contenido')
     @php
         $usuario = auth('operador')->user();
-        $puedeGestionar = $usuario->puede('proveedores', 'gestionar');
+        $puedeGestionar = $usuario->puede('proveedores', 'editar');
 
         $pestanas = collect([
             ['key' => 'resumen', 'label' => 'Resumen'],
@@ -13,7 +13,7 @@
             ['key' => 'calidad', 'label' => 'Calidad'],
             ['key' => 'liquidaciones', 'label' => 'Liquidaciones'],
             ['key' => 'auditoria', 'label' => 'Auditoría'],
-        ])->map(fn ($tab) => $tab + ['url' => route('admin.proveedores.show', ['proveedor' => $proveedor->id, 'tab' => $tab['key']])])->all();
+        ])->filter(fn ($tab) => in_array($tab['key'], $pestanasPermitidas, true))->map(fn ($tab) => $tab + ['url' => route('admin.proveedores.show', ['proveedor' => $proveedor->id, 'tab' => $tab['key']])])->all();
 
         $ultimaEntrega = collect($entregas)->first();
     @endphp
@@ -29,11 +29,12 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div @class(['mb-6 grid grid-cols-1 gap-4', 'md:grid-cols-3' => $puedeVerLiquidaciones])>
         <x-ui.card padding="p-4">
             <p class="mb-1 text-xs text-eh-text-muted">Litros semana actual</p>
             <p class="mono text-2xl font-bold text-eh-text">{{ number_format($litrosSemana, 1) }} <span class="text-sm font-medium text-eh-text-muted">L</span></p>
         </x-ui.card>
+        @if($puedeVerLiquidaciones)
         <x-ui.card padding="p-4">
             <p class="mb-1 text-xs text-eh-text-muted">Precio vigente hoy</p>
             <p class="mono text-2xl font-bold text-eh-text">
@@ -55,6 +56,7 @@
             </p>
             <p class="mt-1 text-[11px] text-eh-text-muted">Importe bruto por fecha de entrega, antes de descuentos. La liquidación oficial se emite por separado.</p>
         </x-ui.card>
+        @endif
     </div>
 
     <x-ui.card>
@@ -98,8 +100,8 @@
                                     <div class="min-w-0">
                                         <p class="text-sm font-semibold text-eh-text">{{ $ultimaEntrega->registradoEn->format('d/m/Y H:i') }}</p>
                                         <p class="text-xs text-eh-text-muted">
-                                            <span class="mono">{{ number_format($ultimaEntrega->litros, 1) }} L</span> ·
-                                            Calidad: {{ $controlUltima?->resultado->value ? ucfirst($controlUltima->resultado->value) : 'Pendiente' }}
+                                            <span class="mono">{{ number_format($ultimaEntrega->litros, 1) }} L</span>
+                                            @if($puedeVerCalidad) · Calidad: {{ $controlUltima?->resultado->value ? ucfirst($controlUltima->resultado->value) : 'Pendiente' }} @endif
                                         </p>
                                     </div>
                                 </div>
@@ -114,19 +116,19 @@
                 @if (count($entregas) === 0)
                     <x-ui.empty icon="droplets" title="Sin entregas registradas" description="Cuando el acopiador registre una entrega de este proveedor aparecerá aquí." />
                 @else
-                    <x-ui.table :headers="['Fecha', 'Litros', 'Calidad', 'Observaciones']" caption="Últimas entregas del proveedor">
+                    <x-ui.table :headers="$puedeVerCalidad ? ['Fecha', 'Litros', 'Calidad', 'Observaciones'] : ['Fecha', 'Litros', 'Observaciones']" caption="Últimas entregas del proveedor">
                         @foreach ($entregas as $entrega)
                             @php $control = $controles[$entrega->id] ?? null; @endphp
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm text-eh-text">{{ $entrega->registradoEn->format('d/m/Y H:i') }}</td>
                                 <td class="mono px-4 py-3 text-sm font-medium text-eh-text">{{ number_format($entrega->litros, 1) }} L</td>
-                                <td class="px-4 py-3">
+                                @if($puedeVerCalidad)<td class="px-4 py-3">
                                     @if ($control)
                                         <x-ui.estado :estado="$control->resultado->value" />
                                     @else
                                         <x-ui.badge variant="yellow" label="Pendiente" />
                                     @endif
-                                </td>
+                                </td>@endif
                                 <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->observaciones ?: '—' }}</td>
                             </tr>
                         @endforeach

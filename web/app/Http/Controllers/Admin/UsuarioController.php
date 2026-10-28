@@ -33,7 +33,10 @@ class UsuarioController extends Controller
         $datos = $request->validate(['dni' => ['required', 'string', 'regex:/^[0-9]{8}$/'], 'excluir' => ['nullable', 'integer']]);
         $existente = Usuario::query()->where('dni', $datos['dni'])->first();
         if ($existente && $existente->id !== (int) ($datos['excluir'] ?? 0)) {
-            return response()->json(['estado' => 'registrado', 'mensaje' => 'Este DNI ya tiene una cuenta. Revisa el usuario existente antes de crear otra.', 'url' => route('admin.usuarios.edit', $existente->id)])->header('Cache-Control', 'no-store');
+            $operador = auth('operador')->user();
+            $puedeEditar = $operador->puede('usuarios', 'editar') && ($this->esAdministradorOficial() || ($existente->perfil_rol_id !== null && (int) $existente->perfil_rol_id === (int) $operador->perfil_rol_id && ! $existente->tieneRol('admin')));
+
+            return response()->json(['estado' => 'registrado', 'mensaje' => 'Este DNI ya tiene una cuenta. Revisa el usuario existente antes de crear otra.', 'url' => $puedeEditar ? route('admin.usuarios.edit', $existente->id) : route('admin.usuarios.index', ['buscar' => $datos['dni']])])->header('Cache-Control', 'no-store');
         }
 
         return response()->json($consultar->ejecutar($datos['dni']))->header('Cache-Control', 'no-store');
@@ -66,15 +69,21 @@ class UsuarioController extends Controller
 
     public function create(Request $request, ZonaRepositoryInterface $zonas): View|RedirectResponse
     {
+        $puedeAsignarRol = $this->esAdministradorOficial();
+        $perfiles = DB::table('perfiles_roles')->where('activo', true)
+            ->when(! $puedeAsignarRol, fn ($query) => $query->where('id', auth('operador')->user()->perfil_rol_id))
+            ->orderBy('nombre')->get();
         if (! $request->filled('base') && ! $request->filled('perfil_rol_id')) {
-            return view('admin.roles.seleccionar', ['roles' => array_values(array_filter(Rol::cases(), fn (Rol $rol) => ($rol !== Rol::Admin || (auth('operador')->user()->perfil_rol_id === null && auth('operador')->user()->tieneRol('admin'))))), 'perfiles' => DB::table('perfiles_roles')->where('activo', true)->orderBy('nombre')->get()]);
+            return view('admin.roles.seleccionar', ['roles' => $puedeAsignarRol ? Rol::cases() : [], 'perfiles' => $perfiles, 'puedeAsignarRol' => $puedeAsignarRol]);
         }
+        abort_if(! $puedeAsignarRol && (! $request->filled('perfil_rol_id') || $request->integer('perfil_rol_id') !== (int) auth('operador')->user()->perfil_rol_id), 403);
         $perfil = $request->filled('perfil_rol_id') ? DB::table('perfiles_roles')->where('activo', true)->find($request->integer('perfil_rol_id')) : null;
         abort_if($request->filled('perfil_rol_id') && ! $perfil, 422);
         $base = $perfil?->base ?? $request->string('base')->toString();
         abort_unless(Rol::tryFrom($base), 422);
+        abort_if($base === 'admin' && (auth('operador')->user()->perfil_rol_id !== null || ! auth('operador')->user()->tieneRol('admin')), 403);
 
-        return view('admin.usuarios.form', ['perfil' => $perfil, 'base' => $base, 'registro' => null, 'usuario' => null, 'roles' => Rol::cases(), 'zonas' => $zonas->activas()]);
+        return view('admin.usuarios.form', ['perfil' => $perfil, 'base' => $base, 'registro' => null, 'usuario' => null, 'roles' => Rol::cases(), 'zonas' => $zonas->activas(), 'puedeAsignarRol' => $puedeAsignarRol]);
     }
 
     public function store(Request $request, CrearUsuarioUseCase $crear): RedirectResponse
@@ -101,8 +110,9 @@ class UsuarioController extends Controller
         return redirect()->route('admin.usuarios.index')->with('estado', 'Usuario creado correctamente.');
     }
 
-    public function edit(int $usuario, UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas): View
+    public function edit(int $usuario, Request $request, UsuarioRepositoryInterface $usuarios, ZonaRepositoryInterface $zonas): View
     {
+        $registro = $this->cuentaGestionable($usuario);
         $entidad = $usuarios->buscarPorId($usuario);
         abort_if($entidad === null, 404);
 
@@ -114,11 +124,37 @@ class UsuarioController extends Controller
             }
         }
 
-        return view('admin.usuarios.form', ['registro' => Usuario::findOrFail($usuario), 'perfil' => DB::table('perfiles_roles')->find(Usuario::findOrFail($usuario)->perfil_rol_id), 'base' => null, 'usuario' => $entidad, 'roles' => Rol::cases(), 'zonas' => $zonasDisponibles]);
+        $puedeAsignarRol = $this->esAdministradorOficial();
+        $opcionesRol = [];
+        if ($puedeAsignarRol) {
+            foreach (Rol::cases() as $rol) {
+                $opcionesRol[$rol->value] = $rol->etiqueta();
+            }
+        }
+        $perfiles = DB::table('perfiles_roles')
+            ->when($puedeAsignarRol, fn ($query) => $query->where('activo', true)->orWhere('id', $registro->perfil_rol_id), fn ($query) => $query->where('id', $registro->perfil_rol_id))
+            ->orderBy('nombre')->get()->keyBy('id');
+        foreach ($perfiles as $perfil) {
+            if ($puedeAsignarRol) {
+                $opcionesRol['perfil:'.$perfil->id] = $perfil->nombre.($perfil->activo ? '' : ' (inactivo)');
+            }
+        }
+        $seleccionActual = $registro->perfil_rol_id ? 'perfil:'.$registro->perfil_rol_id : (count($registro->roles ?? []) === 1 ? $registro->roles[0] : 'actual');
+        abort_if(! $puedeAsignarRol && $request->filled('rol') && $request->query('rol') !== $seleccionActual, 403);
+        if ($puedeAsignarRol && ! isset($opcionesRol[$seleccionActual])) {
+            $opcionesRol[$seleccionActual] = 'Conservar rol actual';
+        }
+        $request->validate(['rol' => ['nullable', Rule::in($puedeAsignarRol ? array_keys($opcionesRol) : [$seleccionActual])]]);
+        $seleccionRol = $request->query('rol') ?: $seleccionActual;
+        $perfil = str_starts_with($seleccionRol, 'perfil:') ? $perfiles->get((int) substr($seleccionRol, 7)) : null;
+        $base = Rol::tryFrom($seleccionRol)?->value;
+
+        return view('admin.usuarios.form', ['registro' => $registro, 'perfil' => $perfil, 'base' => $base, 'usuario' => $entidad, 'roles' => Rol::cases(), 'zonas' => $zonasDisponibles, 'opcionesRol' => $opcionesRol, 'seleccionRol' => $seleccionRol, 'puedeAsignarRol' => $puedeAsignarRol]);
     }
 
     public function update(int $usuario, Request $request, ActualizarUsuarioUseCase $actualizar): RedirectResponse
     {
+        $this->cuentaGestionable($usuario);
         $datos = $this->validarDatos($request, exigirPin: false);
 
         try {
@@ -143,6 +179,7 @@ class UsuarioController extends Controller
 
     public function cambiarEstado(int $usuario, Request $request, CambiarEstadoUsuarioUseCase $cambiarEstado): RedirectResponse
     {
+        $this->cuentaGestionable($usuario);
         $request->validate(['activo' => ['required', 'boolean']]);
 
         try {
@@ -156,6 +193,7 @@ class UsuarioController extends Controller
 
     public function bloquear(int $usuario, Request $request, BloquearUsuarioUseCase $bloquear): RedirectResponse
     {
+        $this->cuentaGestionable($usuario);
         $request->validate(['motivo' => ['required', 'string', 'max:255']]);
 
         try {
@@ -169,6 +207,7 @@ class UsuarioController extends Controller
 
     public function desbloquear(int $usuario, DesbloquearUsuarioUseCase $desbloquear): RedirectResponse
     {
+        $this->cuentaGestionable($usuario);
         $desbloquear->ejecutar($usuario, auth('operador')->id());
 
         return redirect()->route('admin.usuarios.index')->with('estado', 'Usuario desbloqueado.');
@@ -176,6 +215,7 @@ class UsuarioController extends Controller
 
     public function restablecerCredenciales(int $usuario, Request $request, RestablecerCredencialesUsuarioUseCase $restablecer): RedirectResponse
     {
+        $this->cuentaGestionable($usuario);
         $request->validate(['pin' => ['required', 'string']]);
 
         $exceptoSessionId = $usuario === auth('operador')->id() ? $request->session()->getId() : null;
@@ -251,6 +291,14 @@ class UsuarioController extends Controller
     /** @return array{username: string, nombres: string, dni: string, roles: list<Rol>, pin: ?string, zona_id: ?int} */
     private function validarDatos(Request $request, bool $exigirPin): array
     {
+        $anterior = $exigirPin ? null : Usuario::findOrFail($request->route('usuario'));
+        if (! $this->esAdministradorOficial()) {
+            $perfilEsperado = $exigirPin ? auth('operador')->user()->perfil_rol_id : $anterior->perfil_rol_id;
+            $perfilSolicitado = $request->filled('perfil_rol_id') ? $request->integer('perfil_rol_id') : null;
+            if ($perfilSolicitado !== $perfilEsperado) {
+                throw ValidationException::withMessages(['perfil_rol_id' => 'Solo un administrador puede asignar o cambiar el rol de una cuenta.']);
+            }
+        }
         foreach (['nombres', 'dni'] as $campo) {
             if (is_string($request->input($campo))) {
                 $request->merge([$campo => trim($request->input($campo))]);
@@ -260,7 +308,6 @@ class UsuarioController extends Controller
             $request->merge(['username' => strtolower(trim($request->input('username')))]);
         }
         $datosFormulario = $this->validarFormulario($request);
-        $anterior = $exigirPin ? null : Usuario::findOrFail($request->route('usuario'));
         $reglas = [
             'nombres' => ['required', 'string', 'max:150'],
             'dni' => ['required', 'string', 'max:20'],
@@ -290,6 +337,16 @@ class UsuarioController extends Controller
             'pin.regex' => 'El PIN debe tener exactamente 4 dígitos numéricos.',
         ]);
 
+        if (! $this->esAdministradorOficial() && $anterior) {
+            $rolesAnteriores = $anterior->roles ?? [];
+            $rolesSolicitados = $validados['roles'];
+            sort($rolesAnteriores);
+            sort($rolesSolicitados);
+            if ($rolesAnteriores !== $rolesSolicitados) {
+                throw ValidationException::withMessages(['roles' => 'Solo un administrador puede asignar o cambiar el rol de una cuenta.']);
+            }
+        }
+
         return [
             'username' => isset($validados['username']) ? strtolower(trim($validados['username'])) : '',
             'datos_formulario' => $datosFormulario,
@@ -299,5 +356,21 @@ class UsuarioController extends Controller
             'pin' => $validados['pin'] ?? null,
             'zona_id' => isset($validados['zona_id']) ? (int) $validados['zona_id'] : null,
         ];
+    }
+
+    private function esAdministradorOficial(): bool
+    {
+        $operador = auth('operador')->user();
+
+        return $operador->perfil_rol_id === null && $operador->tieneRol('admin');
+    }
+
+    private function cuentaGestionable(int $id): Usuario
+    {
+        $cuenta = Usuario::findOrFail($id);
+        $operador = auth('operador')->user();
+        abort_if(! $this->esAdministradorOficial() && ($cuenta->perfil_rol_id === null || (int) $cuenta->perfil_rol_id !== (int) $operador->perfil_rol_id || $cuenta->tieneRol('admin')), 403, 'Solo puedes gestionar cuentas de tu mismo rol.');
+
+        return $cuenta;
     }
 }

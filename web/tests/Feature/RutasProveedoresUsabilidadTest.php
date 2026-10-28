@@ -120,10 +120,10 @@ class RutasProveedoresUsabilidadTest extends TestCase
         $this->assertSame($proveedores[1]->id, $ruta->fresh()->paradas[0]['proveedor_id']);
     }
 
-    public function test_inicio_muestra_tareas_y_busqueda_sin_perder_los_enlaces_importantes(): void
+    public function test_inicio_muestra_tareas_y_enlaces_sin_buscador_en_el_menu(): void
     {
-        $response = $this->get(route('admin.dashboard.index'))->assertOk()->assertSee('¿Qué necesitas hacer?')
-            ->assertSee('Preparar una ruta')->assertSee('Hacer una producción')->assertSee('data-menu-search', false);
+        $response = $this->get(route('admin.dashboard.index'))->assertOk()->assertDontSee('¿Qué necesitas hacer?')
+            ->assertSee('Preparar una ruta')->assertSee('Hacer una producción')->assertDontSee('data-menu-search', false);
         foreach (['usuarios', 'proveedores', 'mapa-rutas', 'jornadas', 'recepcion', 'entregas', 'calidad', 'sanciones', 'produccion', 'inventario', 'ventas', 'liquidaciones', 'comunicados', 'reportes', 'importaciones', 'auditoria', 'configuracion'] as $modulo) {
             $response->assertSee(route('admin.'.$modulo.'.index'), false);
         }
