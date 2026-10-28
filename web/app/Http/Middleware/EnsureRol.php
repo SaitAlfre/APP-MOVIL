@@ -10,7 +10,7 @@ class EnsureRol
 {
     public function handle(Request $request, Closure $next, string $rol): Response
     {
-        abort_unless(auth('operador')->user()?->tieneRol($rol), 403);
+        abort_unless(auth('operador')->user()?->tieneRol($rol) && auth('operador')->user()?->perfil_rol_id === null, 403);
 
         return $next($request);
     }

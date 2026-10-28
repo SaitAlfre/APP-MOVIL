@@ -1,117 +1,68 @@
 @extends('layouts.admin')
-
-@section('titulo', 'Usuarios y roles')
-
+@section('titulo', 'Usuarios y accesos')
 @section('contenido')
     @php
         $operador = auth('operador')->user();
-        $puedeGestionar = $operador->puede('usuarios', 'gestionar');
-        $hayFiltros = $busqueda || $rolFiltro || $activoFiltro !== null;
+        $puedeGestionar = $operador->perfil_rol_id ? $operador->puede('usuarios','editar') : $operador->puede('usuarios','gestionar');
+        $puedeCrear = $operador->perfil_rol_id ? $operador->puede('usuarios','crear') : $operador->puede('usuarios','gestionar');
+        $hayFiltros = filled($filtros['buscar'] ?? null) || filled($filtros['rol'] ?? null) || filled($filtros['estado'] ?? null);
     @endphp
-
-    <x-ui.page-header title="Usuarios y roles" description="Gestión de accesos al sistema">
-        @if ($puedeGestionar)
+    <x-ui.page-header title="Usuarios y accesos" description="Administra las cuentas, sus roles y el acceso al sistema.">
+        @if($puedeCrear)
             <x-slot:actions>
                 <x-ui.btn :href="route('admin.usuarios.create')" icon="plus">Nuevo usuario</x-ui.btn>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
 
-    <x-ui.card padding="p-4" class="mb-4">
-        <form method="GET" action="{{ route('admin.usuarios.index') }}" class="flex flex-col gap-3 sm:flex-row">
-            <div class="flex-1">
-                <x-ui.search name="buscar" :value="$busqueda" label="Buscar usuarios" placeholder="Buscar por nombre, usuario o DNI…" />
+    <x-ui.card padding="p-3 sm:p-4" class="mb-4">
+        <form id="filtros-usuarios" method="GET" action="{{ route('admin.usuarios.index') }}" data-directorio-filtros data-live-filter class="grid gap-3 sm:grid-cols-2 xl:flex xl:items-center">
+            <div class="min-w-0 sm:col-span-2 xl:flex-1">
+                <x-ui.search name="buscar" label="Buscar usuarios" :value="$filtros['buscar'] ?? ''" placeholder="Buscar por nombre, usuario o DNI…" maxlength="150" autocomplete="off" />
             </div>
-            <x-ui.select name="rol" placeholder="Todos los roles" class="sm:w-52" aria-label="Filtrar por rol"
-                :options="collect($roles)->mapWithKeys(fn ($rol) => [$rol->value => $rol->etiqueta()])->all()" :selected="$rolFiltro?->value" />
-            <x-ui.select name="activo" placeholder="Todos los estados" class="sm:w-44" aria-label="Filtrar por estado"
-                :options="['1' => 'Activos', '0' => 'Inactivos']" :selected="$activoFiltro === null ? null : ($activoFiltro ? '1' : '0')" />
-            <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
-            @if ($hayFiltros)
+            <x-ui.select name="rol" placeholder="Todos los roles" aria-label="Filtrar por rol" class="xl:w-48" :options="$opcionesRol" :selected="$filtros['rol'] ?? ''" />
+            <x-ui.select name="estado" placeholder="Todos los estados" aria-label="Filtrar por estado de cuenta" class="xl:w-44" :options="['activo'=>'Activo','inactivo'=>'Inactivo','bloqueado'=>'Bloqueado']" :selected="$filtros['estado'] ?? ''" />
+            <input type="hidden" name="orden" value="{{ $filtros['orden'] ?? 'recientes' }}">
+            <div class="flex items-center gap-2 sm:col-span-2">
+                <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
                 <x-ui.btn :href="route('admin.usuarios.index')" variant="ghost" icon="xMark">Limpiar</x-ui.btn>
-            @endif
+            </div>
         </form>
     </x-ui.card>
-
+    <p data-directorio-estado role="status" aria-live="polite" class="sr-only">{{ $filas->total() }} usuarios encontrados.</p>
     <x-ui.card>
-        @if ($usuarios->total() === 0)
-            <x-ui.empty icon="users"
-                :title="$hayFiltros ? 'No hay usuarios que coincidan con el filtro' : 'Aún no hay usuarios registrados'"
-                :description="$hayFiltros ? 'Prueba con otros filtros o limpia la búsqueda.' : 'Crea la primera cuenta con el botón «Nuevo usuario».'" />
+        @if($filas->isEmpty())
+            <x-ui.empty icon="users" :title="$hayFiltros ? 'No hay usuarios que coincidan con los filtros' : 'No hay usuarios en esta página'" description="Cambia los filtros o vuelve a la primera página." />
+            <div class="px-4 pb-4"><x-ui.btn :href="route('admin.usuarios.index', array_diff_key(request()->query(), ['page'=>true]))" variant="secondary">Volver a la primera página</x-ui.btn></div>
         @else
-            <x-ui.table :headers="['Usuario', 'Nombre', 'DNI', 'Roles', 'Estado', 'Acceso web', '']" caption="Cuentas con acceso al sistema">
-                @foreach ($usuarios as $usuario)
+            <x-ui.table :headers="['Usuario', 'Nombre completo', 'DNI', 'Rol', 'Estado', 'Acceso web', 'Acciones']" caption="Cuentas de usuarios y accesos al sistema">
+                @foreach($filas as $fila)
                     @php
-                        $bloqueoTemporal = $usuario->bloqueadoHasta && $usuario->bloqueadoHasta > now();
-                        $accesoWeb = collect($usuario->roles)->contains(fn ($rol) => $rol->accesoWeb());
+                        $usuario = $cuentasPagina->get($fila->usuario_id);
+                        $rolesFila = json_decode($fila->roles, true) ?? [];
+                        $rolesConocidos = array_filter(array_map(fn($valor)=>\App\Domain\Usuarios\Rol::tryFrom($valor), $rolesFila));
+                        $acceso = !$usuario->activo || $usuario->estaBloqueada() ? 'Deshabilitado' : ($usuario->accesoWeb() ? 'Sí' : ($rolesConocidos === [] ? 'Sin perfil asignado' : ($usuario->perfil_rol_id ? 'Sin permisos web' : 'Solo app móvil')));
                     @endphp
-                    <tr class="border-b border-eh-border align-top last:border-0 hover:bg-eh-surface-alt">
-                        <td class="px-4 py-3"><span class="mono text-xs font-medium text-eh-text">{{ $usuario->username }}</span></td>
-                        <td class="px-4 py-3 font-medium text-eh-text">{{ $usuario->nombres }}</td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $usuario->dni }}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-1">
-                                @forelse ($usuario->roles as $rol)
+                    <tr data-directorio-fila class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
+                        <td class="px-4 py-3 font-mono text-xs font-medium">{{ $fila->username }}</td>
+                        <td class="max-w-64 break-words px-4 py-3 text-sm font-medium">{{ $fila->nombre }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-eh-text-muted">{{ $fila->dni }}</td>
+                        <td class="px-4 py-3"><div class="flex flex-wrap gap-1">
+                            @if($fila->perfil)
+                                <x-ui.badge variant="blue" :label="$fila->perfil" />
+                            @else
+                                @forelse($rolesConocidos as $rol)
                                     <x-ui.badge variant="blue" :label="$rol->etiqueta()" />
                                 @empty
                                     <x-ui.badge variant="yellow" label="Requiere asignación" />
                                 @endforelse
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            @if (! $usuario->activo)
-                                <x-ui.badge variant="gray" label="Inactivo" />
-                            @elseif ($usuario->bloqueadoManualmente)
-                                <x-ui.badge variant="red" label="Bloqueado" />
-                                <p class="mt-1 max-w-44 break-words text-[11px] text-eh-text-muted">{{ $usuario->motivoBloqueo }}</p>
-                            @elseif ($bloqueoTemporal)
-                                <x-ui.badge variant="yellow" label="Bloqueo temporal" />
-                                <p class="mt-1 text-[11px] text-eh-text-muted">Hasta {{ $usuario->bloqueadoHasta->format('d/m H:i') }}</p>
-                            @else
-                                <x-ui.badge variant="green" label="Activo" />
                             @endif
-                        </td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $usuario->roles === [] ? 'Sin perfil asignado' : ($accesoWeb ? 'Sí' : 'Solo app móvil') }}</td>
+                        </div></td>
+                        <td class="px-4 py-3"><x-ui.badge :variant="match($fila->estado) {'activo'=>'green','bloqueado'=>'red',default=>'gray'}" :label="match($fila->estado) {'activo'=>'Activo','inactivo'=>'Inactivo',default=>'Bloqueado'}" /></td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $acceso }}</td>
                         <td class="px-4 py-3">
-                            @if ($puedeGestionar)
-                                <div data-row-actions class="flex min-w-56 flex-wrap items-center justify-end gap-1">
-                                    <a href="{{ route('admin.usuarios.edit', $usuario->id) }}" aria-label="Editar {{ $usuario->nombres }}"
-                                        class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="pencil" class="h-4 w-4" /><span>Editar</span>
-                                    </a>
-
-                                    <form method="POST" action="{{ route('admin.usuarios.estado', $usuario->id) }}"
-                                        data-confirm="{{ $usuario->activo ? '¿Desactivar la cuenta de '.$usuario->nombres.'? No podrá iniciar sesión hasta reactivarla.' : '¿Reactivar la cuenta de '.$usuario->nombres.'?' }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="activo" value="{{ $usuario->activo ? '0' : '1' }}">
-                                        <button type="submit" aria-label="{{ $usuario->activo ? 'Desactivar' : 'Activar' }} {{ $usuario->nombres }}"
-                                            class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                            <x-icon :name="$usuario->activo ? 'xMark' : 'check'" class="h-4 w-4" /><span>{{ $usuario->activo ? 'Desactivar' : 'Activar' }}</span>
-                                        </button>
-                                    </form>
-
-                                    @if ($usuario->bloqueadoManualmente)
-                                        <form method="POST" action="{{ route('admin.usuarios.desbloquear', $usuario->id) }}"
-                                            data-confirm="¿Desbloquear la cuenta de {{ $usuario->nombres }}?">
-                                            @csrf
-                                            <button type="submit" aria-label="Desbloquear {{ $usuario->nombres }}"
-                                                class="rounded-lg p-1.5 text-eh-primary hover:bg-eh-primary-soft">
-                                                <x-icon name="shield" class="h-4 w-4" /><span>Desbloquear</span>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button type="button" data-modal-open="bloquear-{{ $usuario->id }}" aria-label="Bloquear {{ $usuario->nombres }}"
-                                            class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-red-soft hover:text-eh-red">
-                                            <x-icon name="exclamation" class="h-4 w-4" /><span>Bloquear</span>
-                                        </button>
-                                    @endif
-
-                                    <button type="button" data-modal-open="pin-{{ $usuario->id }}" aria-label="Restablecer PIN de {{ $usuario->nombres }}"
-                                        class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="arrowPath" class="h-4 w-4" /><span>Cambiar PIN</span>
-                                    </button>
-                                </div>
+                            @if($puedeGestionar)
+                                @include('admin.usuarios.acciones')
                             @else
                                 <span class="text-xs text-eh-text-muted">Solo lectura</span>
                             @endif
@@ -119,60 +70,8 @@
                     </tr>
                 @endforeach
             </x-ui.table>
-
-            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
-                <span>Mostrando {{ $usuarios->count() }} de {{ $usuarios->total() }} usuarios</span>
-                <div>{{ $usuarios->onEachSide(1)->links() }}</div>
-            </div>
         @endif
+        <x-ui.table-pagination :paginator="$filas" form-id="filtros-usuarios" noun="usuarios" />
     </x-ui.card>
-
-    @if ($puedeGestionar)
-        @foreach ($usuarios as $usuario)
-            @if (! $usuario->bloqueadoManualmente)
-                <x-ui.modal :id="'bloquear-'.$usuario->id" title="Bloquear cuenta" size="sm">
-                    <form method="POST" action="{{ route('admin.usuarios.bloquear', $usuario->id) }}" class="space-y-4" data-once>
-                        @csrf
-                        <p class="text-sm text-eh-text-muted">
-                            Vas a bloquear la cuenta de <strong class="text-eh-text">{{ $usuario->nombres }}</strong>.
-                            No podrá iniciar sesión hasta que se desbloquee y la acción queda registrada en auditoría.
-                        </p>
-                        <div class="flex flex-col gap-1">
-                            <label for="motivo-{{ $usuario->id }}" class="text-sm font-medium text-eh-text">
-                                Motivo <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
-                            </label>
-                            <textarea id="motivo-{{ $usuario->id }}" name="motivo" required maxlength="255" rows="3"
-                                class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary"></textarea>
-                        </div>
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
-                            <x-ui.btn type="submit" variant="danger">Confirmar bloqueo</x-ui.btn>
-                        </div>
-                    </form>
-                </x-ui.modal>
-            @endif
-
-            <x-ui.modal :id="'pin-'.$usuario->id" title="Restablecer PIN" size="sm">
-                <form method="POST" action="{{ route('admin.usuarios.restablecer', $usuario->id) }}" class="space-y-4" data-once>
-                    @csrf
-                    <p class="text-sm text-eh-text-muted">
-                        Se asignará un PIN nuevo a <strong class="text-eh-text">{{ $usuario->nombres }}</strong> y se cerrarán sus sesiones abiertas.
-                        El PIN anterior no se muestra en ningún momento.
-                    </p>
-                    <div class="flex flex-col gap-1">
-                        <label for="pin-nuevo-{{ $usuario->id }}" class="text-sm font-medium text-eh-text">
-                            Nuevo PIN <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
-                        </label>
-                        <input id="pin-nuevo-{{ $usuario->id }}" type="password" inputmode="numeric" name="pin" required minlength="4" maxlength="4" pattern="\d{4}"
-                            class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
-                        <p class="text-xs text-eh-text-muted">Exactamente 4 dígitos numéricos.</p>
-                    </div>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
-                        <x-ui.btn type="submit">Restablecer PIN</x-ui.btn>
-                    </div>
-                </form>
-            </x-ui.modal>
-        @endforeach
-    @endif
+    @include('admin.usuarios.modales')
 @endsection

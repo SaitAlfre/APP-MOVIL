@@ -12,6 +12,7 @@ use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 /** El acceso web y sus módulos dependen del rol y la matriz de permisos. */
@@ -54,6 +55,14 @@ class LoginController extends Controller
 
         $usuario = auth('operador')->user();
         $inicio = $usuario->puede('dashboard') ? 'admin.dashboard.index' : 'admin.mapa-rutas.index';
+        if ($usuario->perfil_rol_id !== null) {
+            foreach (array_keys(config('permisos')) as $modulo) {
+                if ($usuario->puede($modulo) && Route::has('admin.'.str_replace('_', '-', $modulo).'.index')) {
+                    return redirect()->route('admin.'.str_replace('_', '-', $modulo).'.index');
+                }
+            }
+            abort(403, 'Este rol no tiene una página de inicio disponible.');
+        }
 
         return $usuario->puede('dashboard') ? redirect()->intended(route($inicio)) : redirect()->route($inicio);
     }

@@ -15,10 +15,13 @@ class EnsurePermiso
 {
     public function handle(Request $request, Closure $next, string $modulo, string $accion): Response
     {
-        $rolesPermitidos = config("permisos.{$modulo}.{$accion}", []);
         $usuario = auth('operador')->user();
-
-        abort_unless($usuario !== null && collect($usuario->roles ?? [])->intersect($rolesPermitidos)->isNotEmpty(), 403);
+        if ($accion === 'gestionar' && $usuario?->perfil_rol_id !== null) {
+            $accion = match ($request->method()) {
+                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer') ? 'editar' : 'crear', 'DELETE' => 'eliminar', default => $request->isMethod('GET') && str_ends_with($request->path(), '/nuevo') ? 'crear' : 'editar'
+            };
+        }
+        abort_unless($usuario !== null && $usuario->puede($modulo, $accion), 403);
 
         return $next($request);
     }

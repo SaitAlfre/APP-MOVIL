@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\ProveedorQrController;
 use App\Http\Controllers\Admin\RecepcionController;
 use App\Http\Controllers\Admin\RecetaController;
 use App\Http\Controllers\Admin\ReporteController;
+use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\SancionController;
 use App\Http\Controllers\Admin\TarifaLecheController;
 use App\Http\Controllers\Admin\UsuarioController;
@@ -61,11 +62,19 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
         });
 
+        Route::middleware('rol:admin')->group(function () {
+            Route::get('formularios', [RolController::class, 'formularios'])->name('formularios.index');
+            Route::get('formularios/{rol}/editar', [RolController::class, 'editarFormulario'])->whereNumber('rol')->name('formularios.edit');
+            Route::put('formularios/{rol}', [RolController::class, 'guardarFormulario'])->whereNumber('rol')->name('formularios.update');
+        });
+        Route::resource('roles', RolController::class)->except('show')->middleware('rol:admin');
+
         Route::middleware('permiso:usuarios,ver')->group(function () {
             Route::get('usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
             Route::get('usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
         });
         Route::middleware('permiso:usuarios,gestionar')->group(function () {
+            Route::post('usuarios/consultar-dni', [UsuarioController::class, 'consultarDni'])->middleware('throttle:10,1')->withoutMiddleware(TransaccionAdministrativa::class)->name('usuarios.consultar-dni');
             Route::get('usuarios/nuevo', [UsuarioController::class, 'create'])->name('usuarios.create');
             Route::post('usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
             Route::put('usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');

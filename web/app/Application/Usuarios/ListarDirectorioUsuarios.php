@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Application\Usuarios;
+
+use Illuminate\Database\Query\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+final class ListarDirectorioUsuarios
+{
+    public function ejecutar(array $filtros): LengthAwarePaginator
+    {
+        $cuentas = DB::table('usuarios as u')
+            ->leftJoin('perfiles_roles as r', 'r.id', '=', 'u.perfil_rol_id')
+            ->selectRaw("u.id as usuario_id, u.id, u.nombres as nombre, u.username, u.dni, u.roles, r.nombre as perfil, u.created_at as fecha, CASE WHEN u.activo = 0 THEN 'inactivo' WHEN u.bloqueado_manualmente = 1 OR u.bloqueado_hasta > ? THEN 'bloqueado' ELSE 'activo' END as estado", [now()]);
+        $rol = $filtros['rol'] ?? '';
+        if ($rol !== '') {
+            if (str_starts_with($rol, 'perfil:')) {
+                $cuentas->where('u.perfil_rol_id', (int) substr($rol, 7));
+            } else {
+                $cuentas->whereNull('u.perfil_rol_id')->whereJsonContains('u.roles', $rol);
+            }
+        }
+        $consulta = DB::query()->fromSub($cuentas, 'cuentas');
+        $busqueda = trim($filtros['buscar'] ?? '');
+        if ($busqueda !== '') {
+            $termino = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $busqueda).'%';
+            $consulta->where(function (Builder $query) use ($termino) {
+                foreach (['nombre', 'dni', 'username'] as $columna) {
+                    $query->orWhereRaw($columna." LIKE ? ESCAPE '!'", [$termino]);
+                }
+            });
+        }
+        if (($filtros['estado'] ?? '') !== '') {
+            $consulta->where('estado', $filtros['estado']);
+        }
+        match ($filtros['orden'] ?? 'recientes') {
+            'nombre_asc' => $consulta->orderBy('nombre'),
+            'nombre_desc' => $consulta->orderByDesc('nombre'),
+            default => $consulta->orderByDesc('fecha'),
+        };
+
+        return $consulta->orderByDesc('id')->paginate((int) ($filtros['por_pagina'] ?? 20))->withQueryString();
+    }
+}

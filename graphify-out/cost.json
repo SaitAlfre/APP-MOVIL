@@ -1,0 +1,13 @@
+{
+  "runs": [
+    {
+      "date": "2026-10-26T19:47:07.403603+00:00",
+      "input_tokens": null,
+      "output_tokens": null,
+      "files": 63
+    }
+  ],
+  "total_input_tokens": null,
+  "total_output_tokens": null,
+  "note": "Uso de tokens del anfitrion no disponible; no equivale a consumo cero."
+}

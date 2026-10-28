@@ -79,27 +79,31 @@ class ProveedorController extends Controller
             'q' => ['nullable', 'string', 'max:120'],
             'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
             'estado' => ['nullable', 'string', 'in:activo,suspendido,retirado'],
+            'por_pagina' => ['nullable', 'integer', 'in:10,20,50'],
+            'vista' => ['nullable', 'string', 'in:tabla,tarjetas'],
+            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
         ]);
 
         $busqueda = $validados['q'] ?? null;
         $zonaId = isset($validados['zona_id']) ? (int) $validados['zona_id'] : null;
         $estado = isset($validados['estado']) ? EstadoProveedor::from($validados['estado']) : null;
 
-        $paginador = $listar->ejecutar(15, $busqueda, $zonaId, $estado);
+        $paginador = $listar->ejecutar((int) ($validados['por_pagina'] ?? 20), $busqueda, $zonaId, $estado);
+        $vista = $validados['vista'] ?? 'tabla';
 
         // Litros y última entrega de la semana en curso, resueltos en una sola consulta.
         $inicioSemana = new DateTimeImmutable('monday this week', new \DateTimeZone('America/Lima'));
         $hoy = new DateTimeImmutable('today', new \DateTimeZone('America/Lima'));
         $ids = collect($paginador->items())->map(fn ($proveedor) => $proveedor->id)->filter()->values()->all();
-        $resumenSemana = $entregas->resumenPorProveedores($ids, $inicioSemana, $hoy);
+        $resumenSemana = $vista === 'tabla' ? $entregas->resumenPorProveedores($ids, $inicioSemana, $hoy) : [];
 
         return view('admin.proveedores.index', [
+            'vista' => $vista,
             'proveedores' => $paginador,
             'zonas' => collect($zonas->todas())->keyBy('id'),
             'zonasDisponibles' => $zonas->todas(),
             'resumenSemana' => $resumenSemana,
-            'cuentas' => collect($usuarios->conRol(Rol::Proveedor))->keyBy('id'),
-            'totalProveedores' => $proveedores->contarTodos(),
+            'cuentas' => $vista === 'tabla' ? collect($usuarios->conRol(Rol::Proveedor))->keyBy('id') : collect(),
             'busqueda' => $busqueda,
             'zonaId' => $zonaId,
             'estadoFiltro' => $estado,

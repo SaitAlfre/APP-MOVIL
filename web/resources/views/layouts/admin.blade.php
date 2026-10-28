@@ -23,6 +23,12 @@
             ->implode('');
 
         $navGroups = [
+            'Usuarios y proveedores' => [
+                ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y accesos', 'icono' => 'usuarios'],
+                ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'proveedores'],
+                ['ruta' => 'admin.roles.index', 'patron' => 'admin.roles.*', 'modulo' => 'usuarios', 'etiqueta' => 'Roles y permisos', 'icono' => 'shield', 'solo_admin' => true],
+                ['ruta' => 'admin.formularios.index', 'patron' => 'admin.formularios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Formularios', 'icono' => 'receta', 'solo_admin' => true],
+            ],
             'Inicio' => [
                 ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Resumen del día', 'icono' => 'home'],
             ],
@@ -30,9 +36,6 @@
                 ['ruta' => 'admin.jornadas.index', 'patron' => ['admin.jornadas.*', 'admin.acopiadores.jornadas.*'], 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'jornada'],
                 ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Entregas', 'icono' => 'droplets'],
                 ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'recepcion'],
-            ],
-            'Proveedores' => [
-                ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'proveedores'],
             ],
             'Calidad' => [
                 ['ruta' => 'admin.calidad.index', 'patron' => 'admin.calidad.*', 'modulo' => 'calidad', 'etiqueta' => 'Calidad', 'icono' => 'beaker'],
@@ -62,7 +65,6 @@
                 ['ruta' => 'admin.reportes.index', 'patron' => 'admin.reportes.*', 'modulo' => 'reportes', 'etiqueta' => 'Reportes', 'icono' => 'chartBar'],
             ],
             'Administración' => [
-                ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y accesos', 'icono' => 'usuarios'],
                 ['ruta' => 'admin.configuracion.index', 'patron' => 'admin.configuracion.*', 'modulo' => 'configuracion', 'etiqueta' => 'Configuración', 'icono' => 'cog'],
                 ['ruta' => 'admin.importaciones.index', 'patron' => 'admin.importaciones.*', 'modulo' => 'importaciones', 'etiqueta' => 'Importaciones', 'icono' => 'arrowUpTray'],
                 ['ruta' => 'admin.auditoria.index', 'patron' => 'admin.auditoria.*', 'modulo' => 'auditoria', 'etiqueta' => 'Auditoría', 'icono' => 'shield'],
@@ -108,7 +110,7 @@
                 <p data-menu-empty hidden role="status" class="px-3 text-sm text-eh-text-muted">No encontramos esa opción.</p>
                 @foreach ($navGroups as $grupo => $items)
                     @php
-                        $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']));
+                        $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']) && (! ($item['solo_admin'] ?? false) || ($operador->tieneRol('admin') && $operador->perfil_rol_id === null)));
                         $grupoActivo = $itemsVisibles->contains(fn ($item) => request()->routeIs(...(array) $item['patron']));
                     @endphp
                     @continue($itemsVisibles->isEmpty())

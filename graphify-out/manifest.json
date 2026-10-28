@@ -1,0 +1,380 @@
+{
+  "settings.gradle.kts": {
+    "mtime": 1792960640.2127635,
+    "seen": 1793044027.3874586,
+    "ast_hash": "a69624b67ca07a96dfdf52475de12e5d",
+    "semantic_hash": "a69624b67ca07a96dfdf52475de12e5d"
+  },
+  "build.gradle.kts": {
+    "mtime": 1792989218.2783916,
+    "seen": 1793044027.3874586,
+    "ast_hash": "3262d34ba9607cba24c65774d4a81966",
+    "semantic_hash": "3262d34ba9607cba24c65774d4a81966"
+  },
+  "shared/build.gradle.kts": {
+    "mtime": 1792989218.2793922,
+    "seen": 1793044027.3874586,
+    "ast_hash": "cc56aab4ee4ffc86f9a62553a1c5e88d",
+    "semantic_hash": "cc56aab4ee4ffc86f9a62553a1c5e88d"
+  },
+  "androidApp/build.gradle.kts": {
+    "mtime": 1793023192.370543,
+    "seen": 1793044027.3874586,
+    "ast_hash": "4d45ee4c9f4413b87ae08e3df55c3fec",
+    "semantic_hash": "4d45ee4c9f4413b87ae08e3df55c3fec"
+  },
+  "shared/src/commonMain/kotlin/pe/ecolecta/di/Koin.kt": {
+    "mtime": 1793023192.5023825,
+    "seen": 1793044027.3874586,
+    "ast_hash": "bcb3040c0cfa6de775b8045da8ea472d",
+    "semantic_hash": "bcb3040c0cfa6de775b8045da8ea472d"
+  },
+  "shared/src/iosMain/kotlin/pe/ecolecta/di/KoinIOS.kt": {
+    "mtime": 1792989218.334376,
+    "seen": 1793044027.3874586,
+    "ast_hash": "c6a19fc10392ec3c4f328cc4582eb2eb",
+    "semantic_hash": "c6a19fc10392ec3c4f328cc4582eb2eb"
+  },
+  "androidApp/src/main/kotlin/pe/ecolecta/EcolectaApp.kt": {
+    "mtime": 1793023192.3857105,
+    "seen": 1793044027.3874586,
+    "ast_hash": "e9fe33919938d68c0a9949a98b19a394",
+    "semantic_hash": "e9fe33919938d68c0a9949a98b19a394"
+  },
+  "web/routes/api.php": {
+    "mtime": 1792960640.5290298,
+    "seen": 1793044027.3874586,
+    "ast_hash": "305e9bcb2ebc1a1d080da19e345db174",
+    "semantic_hash": "305e9bcb2ebc1a1d080da19e345db174"
+  },
+  "web/routes/web.php": {
+    "mtime": 1793025262.2195802,
+    "seen": 1793044027.3874586,
+    "ast_hash": "4889129c8e5e215b5deec058309fa110",
+    "semantic_hash": "4889129c8e5e215b5deec058309fa110"
+  },
+  "README.md": {
+    "mtime": 1793023192.370543,
+    "seen": 1793044027.3874586,
+    "ast_hash": "246c0540b9d11704a3dde7237af14963",
+    "semantic_hash": "246c0540b9d11704a3dde7237af14963"
+  },
+  "docs/academico/archivos-documentacion.md": {
+    "mtime": 1792978354.0137327,
+    "seen": 1793044027.3874586,
+    "ast_hash": "5ee35872bef1f82a23dccab43e71a418",
+    "semantic_hash": "5ee35872bef1f82a23dccab43e71a418"
+  },
+  "docs/academico/ejercicio-delta.md": {
+    "mtime": 1792978354.0137327,
+    "seen": 1793044027.3874586,
+    "ast_hash": "cbc8cab988653ed4e167f190c979431a",
+    "semantic_hash": "cbc8cab988653ed4e167f190c979431a"
+  },
+  "docs/academico/entregables-y-validacion.md": {
+    "mtime": 1792978354.0152073,
+    "seen": 1793044027.3874586,
+    "ast_hash": "873228e47ab492e1df5daf6b6923c73e",
+    "semantic_hash": "873228e47ab492e1df5daf6b6923c73e"
+  },
+  "docs/academico/evidencias-pendientes.md": {
+    "mtime": 1792978354.0152073,
+    "seen": 1793044027.3874586,
+    "ast_hash": "01fc8b2da4246b8897bfbcd16932909c",
+    "semantic_hash": "01fc8b2da4246b8897bfbcd16932909c"
+  },
+  "docs/academico/fuentes-docentes.md": {
+    "mtime": 1792978354.0152073,
+    "seen": 1793044027.3874586,
+    "ast_hash": "acb0d6b5d2b193b4ba3a1396153d1e1f",
+    "semantic_hash": "acb0d6b5d2b193b4ba3a1396153d1e1f"
+  },
+  "docs/academico/matriz-cumplimiento.md": {
+    "mtime": 1792978354.0255728,
+    "seen": 1793044027.3874586,
+    "ast_hash": "cd68c85dd205fd3ce7a7351a495aa4c9",
+    "semantic_hash": "cd68c85dd205fd3ce7a7351a495aa4c9"
+  },
+  "docs/auditoria-documentacion.md": {
+    "mtime": 1792978354.0285714,
+    "seen": 1793044027.3874586,
+    "ast_hash": "206e6c975b05382af8aafb271d179dca",
+    "semantic_hash": "206e6c975b05382af8aafb271d179dca"
+  },
+  "docs/COMO-TRABAJAMOS.md": {
+    "mtime": 1792978354.0127347,
+    "seen": 1793044027.3874586,
+    "ast_hash": "c827fe970c10bb54f2d83ba06e7ea14d",
+    "semantic_hash": "c827fe970c10bb54f2d83ba06e7ea14d"
+  },
+  "docs/evidencias/README.md": {
+    "mtime": 1792978354.0296028,
+    "seen": 1793044027.3874586,
+    "ast_hash": "9083c4eb09fbfbe0fb02e8bc45b5b551",
+    "semantic_hash": "9083c4eb09fbfbe0fb02e8bc45b5b551"
+  },
+  "docs/guia-mantenimiento-documentacion.md": {
+    "mtime": 1792978354.0296028,
+    "seen": 1793044027.3874586,
+    "ast_hash": "81e889eea0b8f9b2c7091717d6e9e19e",
+    "semantic_hash": "81e889eea0b8f9b2c7091717d6e9e19e"
+  },
+  "docs/herramientas/README.md": {
+    "mtime": 1792978354.030603,
+    "seen": 1793044027.3874586,
+    "ast_hash": "63102aab5f7d8e50d74d2ee8b7701c00",
+    "semantic_hash": "63102aab5f7d8e50d74d2ee8b7701c00"
+  },
+  "docs/kanban/capturas/README.md": {
+    "mtime": 1792978354.0346034,
+    "seen": 1793044027.3874586,
+    "ast_hash": "a7fa532a98558430f838020ef5d452e8",
+    "semantic_hash": "a7fa532a98558430f838020ef5d452e8"
+  },
+  "docs/kanban/tablero.md": {
+    "mtime": 1792978354.037812,
+    "seen": 1793044027.3874586,
+    "ast_hash": "d581ce7acdb670610dd223fc8fbd2df2",
+    "semantic_hash": "d581ce7acdb670610dd223fc8fbd2df2"
+  },
+  "docs/kanban/wip-limits.md": {
+    "mtime": 1792978354.037812,
+    "seen": 1793044027.3874586,
+    "ast_hash": "185540f592746dda9aa6a7d9f03fee4c",
+    "semantic_hash": "185540f592746dda9aa6a7d9f03fee4c"
+  },
+  "docs/proceso-scrum-del-proyecto.md": {
+    "mtime": 1792978354.0440345,
+    "seen": 1793044027.3874586,
+    "ast_hash": "56f595a9c36737ba7ad8c64e51099296",
+    "semantic_hash": "56f595a9c36737ba7ad8c64e51099296"
+  },
+  "docs/pruebas/acceso-y-datos-de-prueba.md": {
+    "mtime": 1792978354.04504,
+    "seen": 1793044027.3874586,
+    "ast_hash": "1c79ddbd2c5ee5ba69c56c515dcc7884",
+    "semantic_hash": "1c79ddbd2c5ee5ba69c56c515dcc7884"
+  },
+  "docs/pruebas/casos/ejemplos-ecolactea.md": {
+    "mtime": 1792978354.0460403,
+    "seen": 1793044027.3874586,
+    "ast_hash": "24d0a9413773028111f6111273bf8075",
+    "semantic_hash": "24d0a9413773028111f6111273bf8075"
+  },
+  "docs/pruebas/cobertura-y-cierre.md": {
+    "mtime": 1792978354.0460403,
+    "seen": 1793044027.3874586,
+    "ast_hash": "00414c0e5770a9935d424bd73bf154cd",
+    "semantic_hash": "00414c0e5770a9935d424bd73bf154cd"
+  },
+  "docs/pruebas/defectos/README.md": {
+    "mtime": 1792978354.048572,
+    "seen": 1793044027.3874586,
+    "ast_hash": "f97fb1517c676e9c32d96a493f6674e6",
+    "semantic_hash": "f97fb1517c676e9c32d96a493f6674e6"
+  },
+  "docs/pruebas/ejecuciones/coder1-t12-manual.md": {
+    "mtime": 1793023192.3914478,
+    "seen": 1793044027.3874586,
+    "ast_hash": "ab8315bc51ab7fe3495d548ff43fd403",
+    "semantic_hash": "ab8315bc51ab7fe3495d548ff43fd403"
+  },
+  "docs/pruebas/ejecuciones/README.md": {
+    "mtime": 1792978354.048572,
+    "seen": 1793044027.3874586,
+    "ast_hash": "fb29bb6062d080e2278f36609bb0a041",
+    "semantic_hash": "fb29bb6062d080e2278f36609bb0a041"
+  },
+  "docs/pruebas/ejecuciones/resultados-2026-10-22.md": {
+    "mtime": 1792978354.177775,
+    "seen": 1793044027.3874586,
+    "ast_hash": "42459b371b3d871d18a4c31fa4eaa1e5",
+    "semantic_hash": "42459b371b3d871d18a4c31fa4eaa1e5"
+  },
+  "docs/pruebas/evidencias/README.md": {
+    "mtime": 1792978354.25388,
+    "seen": 1793044027.3874586,
+    "ast_hash": "3b08b6ef28fb6deb89df0ec66462a67b",
+    "semantic_hash": "3b08b6ef28fb6deb89df0ec66462a67b"
+  },
+  "docs/pruebas/README.md": {
+    "mtime": 1792978354.0440345,
+    "seen": 1793044027.3874586,
+    "ast_hash": "4833ffcc0f37207c316dd04122d53e00",
+    "semantic_hash": "4833ffcc0f37207c316dd04122d53e00"
+  },
+  "docs/README.md": {
+    "mtime": 1793023192.3857105,
+    "seen": 1793044027.3874586,
+    "ast_hash": "fae069f62100dc1d7086bd9ff678972b",
+    "semantic_hash": "fae069f62100dc1d7086bd9ff678972b"
+  },
+  "docs/requisitos/rf-fuente-y-cobertura.md": {
+    "mtime": 1793023192.4885702,
+    "seen": 1793044027.3874586,
+    "ast_hash": "9fab6b27dca34cafce9aac4cceacc73e",
+    "semantic_hash": "9fab6b27dca34cafce9aac4cceacc73e"
+  },
+  "docs/requisitos/rnf-fuente-y-cobertura.md": {
+    "mtime": 1792978354.2564006,
+    "seen": 1793044027.3874586,
+    "ast_hash": "db3ab0438f4ed38974d19305ba58315f",
+    "semantic_hash": "db3ab0438f4ed38974d19305ba58315f"
+  },
+  "docs/scrum/calendario-y-capacidad.md": {
+    "mtime": 1792978354.2669382,
+    "seen": 1793044027.3874586,
+    "ast_hash": "fbb95894de34fff9e7b0e19e2c3584b0",
+    "semantic_hash": "fbb95894de34fff9e7b0e19e2c3584b0"
+  },
+  "docs/scrum/definition-of-done.md": {
+    "mtime": 1792978354.2679396,
+    "seen": 1793044027.3874586,
+    "ast_hash": "ae14081201e8e570ff3acb3814cf974f",
+    "semantic_hash": "ae14081201e8e570ff3acb3814cf974f"
+  },
+  "docs/scrum/eventos-y-registros.md": {
+    "mtime": 1792978354.2689397,
+    "seen": 1793044027.3874586,
+    "ast_hash": "482fb22068438ad6ceccf6ba63b8bd30",
+    "semantic_hash": "482fb22068438ad6ceccf6ba63b8bd30"
+  },
+  "docs/scrum/evidencias-commits.md": {
+    "mtime": 1792978354.2694514,
+    "seen": 1793044027.3874586,
+    "ast_hash": "6017c54cfa3035eeae7f906ed0ac1d9a",
+    "semantic_hash": "6017c54cfa3035eeae7f906ed0ac1d9a"
+  },
+  "docs/scrum/flujo-git-y-revision.md": {
+    "mtime": 1792978354.270461,
+    "seen": 1793044027.3874586,
+    "ast_hash": "1fd2af45411a517b9070de5a8a740211",
+    "semantic_hash": "1fd2af45411a517b9070de5a8a740211"
+  },
+  "docs/scrum/metodologia.md": {
+    "mtime": 1792978354.2714603,
+    "seen": 1793044027.3874586,
+    "ast_hash": "7c813f492a68793d8a26a15cc2d17eb0",
+    "semantic_hash": "7c813f492a68793d8a26a15cc2d17eb0"
+  },
+  "docs/scrum/metricas.md": {
+    "mtime": 1792978354.2714603,
+    "seen": 1793044027.3874586,
+    "ast_hash": "e780c84a12c2c17971302c80b0d0fa58",
+    "semantic_hash": "e780c84a12c2c17971302c80b0d0fa58"
+  },
+  "docs/scrum/product-backlog.md": {
+    "mtime": 1792978354.2731805,
+    "seen": 1793044027.3874586,
+    "ast_hash": "80d27c60f49d429ca666611d68fb41c1",
+    "semantic_hash": "80d27c60f49d429ca666611d68fb41c1"
+  },
+  "docs/scrum/roles.md": {
+    "mtime": 1792978354.274915,
+    "seen": 1793044027.3874586,
+    "ast_hash": "fd58085c785f6656fb4ac31e0295919a",
+    "semantic_hash": "fd58085c785f6656fb4ac31e0295919a"
+  },
+  "docs/scrum/sprint-1.md": {
+    "mtime": 1792978354.274915,
+    "seen": 1793044027.3874586,
+    "ast_hash": "05d1e42051caf6d7f85f6962ae6a92f4",
+    "semantic_hash": "05d1e42051caf6d7f85f6962ae6a92f4"
+  },
+  "docs/scrum/sprint-10.md": {
+    "mtime": 1792978354.2759275,
+    "seen": 1793044027.3874586,
+    "ast_hash": "81ef3352a52a7a044662fb6942f62441",
+    "semantic_hash": "81ef3352a52a7a044662fb6942f62441"
+  },
+  "docs/scrum/sprint-2.md": {
+    "mtime": 1792978354.2769277,
+    "seen": 1793044027.3874586,
+    "ast_hash": "4a5d856499a66a12dc711b160db27e6d",
+    "semantic_hash": "4a5d856499a66a12dc711b160db27e6d"
+  },
+  "docs/scrum/sprint-3.md": {
+    "mtime": 1792978354.2769277,
+    "seen": 1793044027.3874586,
+    "ast_hash": "6e1ef53d0d72750961a53fc1ad35bb49",
+    "semantic_hash": "6e1ef53d0d72750961a53fc1ad35bb49"
+  },
+  "docs/scrum/sprint-4.md": {
+    "mtime": 1792978354.2779272,
+    "seen": 1793044027.3874586,
+    "ast_hash": "ae6af1e918e34145a95ec51498306312",
+    "semantic_hash": "ae6af1e918e34145a95ec51498306312"
+  },
+  "docs/scrum/sprint-5.md": {
+    "mtime": 1792978354.278927,
+    "seen": 1793044027.3874586,
+    "ast_hash": "3d75f49dec1de6a4ffbd834a8963b077",
+    "semantic_hash": "3d75f49dec1de6a4ffbd834a8963b077"
+  },
+  "docs/scrum/sprint-6.md": {
+    "mtime": 1792978354.2799416,
+    "seen": 1793044027.3874586,
+    "ast_hash": "6a6a7e325a70e0fde9ccdf96c154cadc",
+    "semantic_hash": "6a6a7e325a70e0fde9ccdf96c154cadc"
+  },
+  "docs/scrum/sprint-7.md": {
+    "mtime": 1792978354.2809563,
+    "seen": 1793044027.3874586,
+    "ast_hash": "ac421e7b629ae6897100f28553544204",
+    "semantic_hash": "ac421e7b629ae6897100f28553544204"
+  },
+  "docs/scrum/sprint-8.md": {
+    "mtime": 1792978354.2819512,
+    "seen": 1793044027.3874586,
+    "ast_hash": "4330c717c95a6e33e8a55a437d078f14",
+    "semantic_hash": "4330c717c95a6e33e8a55a437d078f14"
+  },
+  "docs/scrum/sprint-9.md": {
+    "mtime": 1792978354.2819512,
+    "seen": 1793044027.3874586,
+    "ast_hash": "68ce61f945e55796f26ba97314578136",
+    "semantic_hash": "68ce61f945e55796f26ba97314578136"
+  },
+  "docs/scrum/tareas.md": {
+    "mtime": 1792978354.282958,
+    "seen": 1793044027.3874586,
+    "ast_hash": "e77b0060afd9ab0b55cc357ff8d6a2cc",
+    "semantic_hash": "e77b0060afd9ab0b55cc357ff8d6a2cc"
+  },
+  "docs/scrum/trazabilidad.md": {
+    "mtime": 1792978354.283952,
+    "seen": 1793044027.3874586,
+    "ast_hash": "3fe0ff795e49ed491c4f55431d6b03b2",
+    "semantic_hash": "3fe0ff795e49ed491c4f55431d6b03b2"
+  },
+  "docs/tecnica/administracion-movil.md": {
+    "mtime": 1792978354.2849512,
+    "seen": 1793044027.3874586,
+    "ast_hash": "5e7ef1adf4bd0c9e5e31cb19c9a60bcf",
+    "semantic_hash": "5e7ef1adf4bd0c9e5e31cb19c9a60bcf"
+  },
+  "docs/tecnica/arquitectura-datos-y-sincronizacion.md": {
+    "mtime": 1793023192.4885702,
+    "seen": 1793044027.3874586,
+    "ast_hash": "fd40e90024cd1633a9041aad2feb2b87",
+    "semantic_hash": "fd40e90024cd1633a9041aad2feb2b87"
+  },
+  "docs/tecnica/calidad-movil.md": {
+    "mtime": 1792978354.2874358,
+    "seen": 1793044027.3874586,
+    "ast_hash": "082aa6d840a68a1a491f39c9d04aa38e",
+    "semantic_hash": "082aa6d840a68a1a491f39c9d04aa38e"
+  },
+  "docs/tecnica/coder1-implementacion.md": {
+    "mtime": 1793023192.4896576,
+    "seen": 1793044027.3874586,
+    "ast_hash": "776730a8ed53ae5c47670ac6d6eaf4d3",
+    "semantic_hash": "776730a8ed53ae5c47670ac6d6eaf4d3"
+  },
+  "docs/tecnica/portal-proveedor-movil.md": {
+    "mtime": 1792978354.2882013,
+    "seen": 1793044027.3874586,
+    "ast_hash": "f90cdd9b8a923c29a3f540509a4c9f79",
+    "semantic_hash": "f90cdd9b8a923c29a3f540509a4c9f79"
+  }
+}

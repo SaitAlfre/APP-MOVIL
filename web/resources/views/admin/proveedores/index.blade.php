@@ -1,102 +1,62 @@
 @extends('layouts.admin')
-
 @section('titulo', 'Proveedores')
-
 @section('contenido')
     @php
         $usuario = auth('operador')->user();
-        $puedeGestionar = $usuario->puede('proveedores', 'gestionar');
+        $puedeGestionar = $usuario->perfil_rol_id ? $usuario->puede('proveedores', 'editar') : $usuario->puede('proveedores', 'gestionar');
+        $puedeCrear = $usuario->perfil_rol_id ? $usuario->puede('proveedores', 'crear') : $usuario->puede('proveedores', 'gestionar');
+        $hayFiltros = filled($busqueda) || $zonaId !== null || $estadoFiltro !== null;
     @endphp
-
-    <x-ui.page-header title="Proveedores" description="Gestión de productores de leche registrados">
-        @if ($puedeGestionar)
+    <x-ui.page-header title="Proveedores" description="Consulta y gestiona los productores registrados.">
+        @if($puedeCrear)
             <x-slot:actions>
                 <x-ui.btn :href="route('admin.proveedores.create')" icon="plus">Nuevo proveedor</x-ui.btn>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
 
-    <x-ui.card padding="p-4" class="mb-4">
-        <form method="GET" action="{{ route('admin.proveedores.index') }}" class="flex flex-col gap-3 lg:flex-row lg:flex-wrap" data-proveedores-filtros>
-            <div class="min-w-0 flex-1 lg:min-w-64">
+    <div class="mb-4 space-y-3">
+        <form id="filtros-proveedores" method="GET" action="{{ route('admin.proveedores.index') }}" data-proveedores-filtros class="grid gap-3 sm:grid-cols-2 xl:flex xl:items-center">
+            <input type="hidden" name="vista" value="{{ $vista }}">
+            <div class="min-w-0 sm:col-span-2 xl:flex-1">
                 <x-ui.search name="q" :value="$busqueda" label="Buscar proveedores" maxlength="120" autocomplete="off" placeholder="Buscar por nombre, código o DNI…" />
             </div>
-            <x-ui.select name="zona_id" placeholder="Todas las zonas" class="sm:w-52" aria-label="Filtrar por zona"
-                :options="collect($zonasDisponibles)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" :selected="$zonaId" />
-            <x-ui.select name="estado" placeholder="Todos los estados" class="sm:w-48" aria-label="Filtrar por estado"
-                :options="['activo' => 'Activo', 'suspendido' => 'Suspendido', 'retirado' => 'Retirado']" :selected="$estadoFiltro?->value" />
-            <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
-                <x-ui.btn :href="route('admin.proveedores.index')" variant="ghost" icon="xMark" data-proveedores-limpiar>Limpiar</x-ui.btn>
+            <x-ui.select name="zona_id" placeholder="Todas las zonas" class="xl:w-48" aria-label="Filtrar por zona" :options="collect($zonasDisponibles)->mapWithKeys(fn($zona)=>[$zona->id=>$zona->nombre])->all()" :selected="$zonaId" />
+            <x-ui.select name="estado" placeholder="Todos los estados" class="xl:w-44" aria-label="Filtrar por estado" :options="['activo'=>'Activo','suspendido'=>'Suspendido','retirado'=>'Retirado']" :selected="$estadoFiltro?->value" />
+            <x-ui.btn type="submit" variant="secondary" icon="filter" data-filtros-aplicar>Filtrar</x-ui.btn>
         </form>
-    </x-ui.card>
-
-    <p data-proveedores-estado role="status" aria-live="polite" class="mb-3 text-sm text-eh-text-muted"></p>
-    <div data-proveedores-resultados aria-busy="false">
-    <x-ui.card>
-        @if ($proveedores->total() === 0)
-            <x-ui.empty icon="proveedores"
-                :title="$busqueda || $zonaId || $estadoFiltro ? 'No se encontraron proveedores' : 'Aún no hay proveedores registrados'"
-                :description="$busqueda || $zonaId || $estadoFiltro ? 'Prueba con otros filtros o limpia la búsqueda.' : 'Registra el primero con el botón «Nuevo proveedor».'">
-                @if ($puedeGestionar && ! ($busqueda || $zonaId || $estadoFiltro))
-                    <x-slot:action>
-                        <x-ui.btn :href="route('admin.proveedores.create')" icon="plus" size="sm">Nuevo proveedor</x-ui.btn>
-                    </x-slot:action>
-                @endif
-            </x-ui.empty>
-        @else
-            <x-ui.table :headers="['Código', 'Nombre', 'DNI', 'Zona', 'Estado', 'Litros sem.', 'Última entrega', 'Cuenta', '']"
-                caption="Listado de proveedores registrados">
-                @foreach ($proveedores as $proveedor)
-                    @php
-                        $resumen = $resumenSemana[$proveedor->id] ?? ['litros' => 0.0, 'ultima' => null];
-                        $cuenta = $proveedor->usuarioId !== null ? $cuentas->get($proveedor->usuarioId) : null;
-                    @endphp
-                    <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
-                        <td class="px-4 py-3"><span class="mono text-xs font-medium text-eh-text">{{ $proveedor->codigo }}</span></td>
-                        <td class="px-4 py-3 font-medium text-eh-text">
-                            <a href="{{ route('admin.proveedores.show', $proveedor->id) }}" class="hover:text-eh-primary hover:underline">{{ $proveedor->nombres }}</a>
-                        </td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $proveedor->dni }}</td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $zonas->get($proveedor->zonaId)?->nombre ?? '—' }}</td>
-                        <td class="px-4 py-3"><x-ui.estado :estado="$proveedor->estado->value" /></td>
-                        <td class="mono px-4 py-3 font-medium text-eh-text">{{ number_format($resumen['litros'], 1) }} L</td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">
-                            {{ $resumen['ultima'] ? \Illuminate\Support\Carbon::parse($resumen['ultima'])->format('d/m/Y H:i') : 'Sin entregas' }}
-                        </td>
-                        <td class="px-4 py-3 text-xs">
-                            @if ($cuenta)
-                                <span class="mono text-eh-primary">{{ $cuenta->username }}</span>
-                            @else
-                                <span class="text-eh-text-muted">Sin cuenta</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3">
-                            <div data-row-actions class="flex flex-wrap items-center justify-end gap-1">
-                                <a href="{{ route('admin.proveedores.show', $proveedor->id) }}" aria-label="Ver ficha de {{ $proveedor->nombres }}"
-                                    class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                    <x-icon name="eye" class="h-4 w-4" /><span>Ver ficha</span>
-                                </a>
-                                <a href="{{ route('admin.proveedores.qr', $proveedor->id) }}" target="_blank" rel="noopener" aria-label="Código QR de {{ $proveedor->nombres }}"
-                                    class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                    <x-icon name="qrCode" class="h-4 w-4" /><span>Ver QR</span>
-                                </a>
-                                @if ($puedeGestionar)
-                                    <a href="{{ route('admin.proveedores.edit', $proveedor->id) }}" aria-label="Editar {{ $proveedor->nombres }}"
-                                        class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="pencil" class="h-4 w-4" /><span>Editar</span>
-                                    </a>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <a href="{{ route('admin.proveedores.index',['vista'=>$vista]) }}" data-proveedores-limpiar @if(!$hayFiltros) hidden @endif class="rounded-lg py-2 text-xs text-eh-text-muted underline focus-visible:outline-2 focus-visible:outline-eh-primary">Limpiar filtros</a>
+            <nav aria-label="Vista de proveedores" class="ml-auto inline-flex rounded-xl border border-eh-border bg-eh-surface p-1 text-xs font-medium">
+                @foreach(['tabla'=>'Tabla','tarjetas'=>'Tarjetas'] as $modo=>$etiqueta)
+                    <a href="{{ route('admin.proveedores.index',array_replace(request()->query(),['vista'=>$modo])) }}" data-proveedores-vista="{{ $modo }}" data-activa="{{ $vista === $modo ? 'true' : 'false' }}" @if($vista === $modo) aria-current="true" @endif aria-controls="resultados-proveedores" class="rounded-lg px-4 py-2 text-eh-text-muted hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary data-[activa=true]:bg-eh-primary-soft data-[activa=true]:text-eh-primary">{{ $etiqueta }}</a>
                 @endforeach
-            </x-ui.table>
-
-            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
-                <span>Mostrando {{ $proveedores->count() }} de {{ $proveedores->total() }} proveedores{{ $proveedores->total() !== $totalProveedores ? ' (de '.$totalProveedores.' en total)' : '' }}</span>
-                <div>{{ $proveedores->onEachSide(1)->links() }}</div>
-            </div>
+            </nav>
+        </div>
+    </div>
+    <p data-proveedores-estado role="status" aria-live="polite" class="sr-only"></p>
+    <div id="resultados-proveedores" data-proveedores-resultados data-total-resultados="{{ $proveedores->total() }}" data-pagina-cantidad="{{ $proveedores->count() }}" aria-busy="false">
+        @if($proveedores->isEmpty())
+            <x-ui.card>
+                <x-ui.empty icon="proveedores" :title="$proveedores->total() > 0 ? 'No hay proveedores en esta página' : ($hayFiltros ? 'No se encontraron proveedores' : 'Aún no hay proveedores registrados')" :description="$hayFiltros ? 'Prueba con otros filtros o limpia la búsqueda.' : 'Registra un productor con el botón Nuevo proveedor.'">
+                    @if($proveedores->total() > 0)
+                        <x-slot:action>
+                            <x-ui.btn :href="route('admin.proveedores.index',array_diff_key(request()->query(),['page'=>true]))" variant="secondary">Volver a la primera página</x-ui.btn>
+                        </x-slot:action>
+                    @endif
+                </x-ui.empty>
+                <x-ui.table-pagination :paginator="$proveedores" form-id="filtros-proveedores" noun="proveedores" />
+            </x-ui.card>
+        @elseif($vista === 'tarjetas')
+            @include('admin.proveedores.tarjetas')
+            <x-ui.card class="mt-4">
+                <x-ui.table-pagination :bordered="false" :paginator="$proveedores" form-id="filtros-proveedores" noun="proveedores" />
+            </x-ui.card>
+        @else
+            <x-ui.card>
+                @include('admin.proveedores.tabla')
+                <x-ui.table-pagination :paginator="$proveedores" form-id="filtros-proveedores" noun="proveedores" />
+            </x-ui.card>
         @endif
-    </x-ui.card>
     </div>
 @endsection

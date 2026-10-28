@@ -14,7 +14,7 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
     {
         return ProveedorEloquent::query()
             ->with('zona')
-            ->orderBy('nombres')
+            ->orderByDesc('id')
             ->paginate($porPagina)
             ->through(fn (ProveedorEloquent $proveedor) => $this->aDominio($proveedor));
     }
@@ -55,17 +55,17 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
         return ProveedorEloquent::query()
             ->with('zona')
             ->when($busqueda !== null && $busqueda !== '', function ($query) use ($busqueda) {
-                $termino = '%'.str_replace(['%', '_'], ['\%', '\_'], $busqueda).'%';
+                $termino = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $busqueda).'%';
 
                 $query->where(function ($interno) use ($termino) {
-                    $interno->where('nombres', 'like', $termino)
-                        ->orWhere('codigo', 'like', $termino)
-                        ->orWhere('dni', 'like', $termino);
+                    $interno->whereRaw("nombres LIKE ? ESCAPE '!'", [$termino])
+                        ->orWhereRaw("codigo LIKE ? ESCAPE '!'", [$termino])
+                        ->orWhereRaw("dni LIKE ? ESCAPE '!'", [$termino]);
                 });
             })
             ->when($zonaId !== null, fn ($query) => $query->where('zona_id', $zonaId))
             ->when($estado !== null, fn ($query) => $query->where('estado', $estado->value))
-            ->orderBy('nombres')
+            ->orderByDesc('id')
             ->paginate($porPagina)
             ->withQueryString()
             ->through(fn (ProveedorEloquent $proveedor) => $this->aDominio($proveedor));

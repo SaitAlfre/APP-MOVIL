@@ -1,3 +1,6 @@
+import { iniciarDirectorioUsuarios } from './directorio-usuarios';
+import { iniciarUsuario } from './usuarios';
+import { iniciarEditorFormulario } from './formularios';
 import { bindThemeToggle } from './theme';
 import { iniciarNavegacion } from './navegacion';
 
@@ -7,6 +10,10 @@ function iniciarPagina() {
     pagina = new AbortController();
     const { signal } = pagina;
     bindThemeToggle(signal);
+    iniciarEditorFormulario(signal);
+    iniciarUsuario(signal);
+    iniciarDirectorioUsuarios(signal);
+
     if (document.querySelector('[data-proveedores-filtros], [data-proveedor-form]')) {
         import('./proveedores').then(({ iniciarProveedores }) => {
             if (!signal.aborted) iniciarProveedores(signal);

@@ -7,6 +7,37 @@ export function iniciarProveedores(signal) {
         let consulta;
         let demora;
         let revision = 0;
+        const limpiar = document.querySelector('[data-proveedores-limpiar]');
+        const aplicar = filtros.querySelector('[data-filtros-aplicar]');
+        const enlacesVista = Array.from(document.querySelectorAll('[data-proveedores-vista]'));
+        const mostrarLimpiar = () => {
+            if (limpiar) limpiar.hidden = !['q', 'zona_id', 'estado'].some(nombre => filtros.elements.namedItem(nombre).value.trim());
+        };
+        const sincronizar = (url) => {
+            const vista = url.searchParams.get('vista') || 'tabla';
+            filtros.elements.namedItem('vista').value = vista;
+            for (const enlace of enlacesVista) {
+                const activo = enlace.dataset.proveedoresVista === vista;
+                enlace.dataset.activa = String(activo);
+                if (activo) enlace.setAttribute('aria-current', 'true');
+                else enlace.removeAttribute('aria-current');
+                const destino = new URL(url);
+                destino.searchParams.set('vista', enlace.dataset.proveedoresVista);
+                enlace.href = destino.href;
+            }
+            if (limpiar) {
+                const destino = new URL(filtros.action);
+                destino.searchParams.set('vista', vista);
+                limpiar.href = destino.href;
+            }
+            if (aplicar) aplicar.hidden = true;
+            mostrarLimpiar();
+        };
+        const mismosFiltros = (url, referencia, compararVista = true) => {
+            const claves = ['q', 'zona_id', 'estado', 'por_pagina', ...(compararVista ? ['vista'] : [])];
+            const defecto = clave => clave === 'por_pagina' ? '20' : clave === 'vista' ? 'tabla' : '';
+            return claves.every(clave => (url.searchParams.get(clave) || defecto(clave)) === (referencia.searchParams.get(clave) || defecto(clave)));
+        };
         const cancelar = () => {
             clearTimeout(demora);
             consulta?.abort();
@@ -16,7 +47,7 @@ export function iniciarProveedores(signal) {
         const urlFiltros = () => {
             const url = new URL(filtros.action);
             for (const [clave, valor] of new FormData(filtros)) {
-                if (String(valor).trim()) { url.searchParams.set(clave, String(valor).trim()); }
+                if (String(valor).trim()) url.searchParams.set(clave, String(valor).trim());
             }
             return url;
         };
@@ -25,55 +56,82 @@ export function iniciarProveedores(signal) {
             const actual = revision;
             consulta = new AbortController();
             resultados.setAttribute('aria-busy', 'true');
-            estado.textContent = 'Buscando proveedores…';
+            estado.classList.add('sr-only');
+            estado.textContent = 'Actualizando proveedores…';
             try {
                 const respuesta = await fetch(url, { signal: consulta.signal, headers: { Accept: 'text/html' } });
                 if (respuesta.redirected) { window.location.assign(respuesta.url); return; }
-                if (!respuesta.ok) { throw new Error('consulta'); }
+                if (!respuesta.ok) throw new Error('consulta');
                 const documento = new DOMParser().parseFromString(await respuesta.text(), 'text/html');
                 const contenido = documento.querySelector('[data-proveedores-resultados]');
-                if (!contenido) { throw new Error('contenido'); }
-                if (actual !== revision) { return; }
+                if (!contenido) throw new Error('contenido');
+                if (actual !== revision) return;
+                const foco = document.activeElement;
+                const restaurarPaginacion = foco?.form === filtros && foco?.name === 'por_pagina';
+                const focoEnResultados = resultados.contains(foco);
                 resultados.replaceChildren(...contenido.childNodes);
-                if (historial === 'push') { history.pushState(null, '', url); }
-                else if (historial === 'replace') { history.replaceState(null, '', url); }
-                const total = resultados.querySelector('tbody')?.rows.length ?? 0;
-                estado.textContent = total ? `${total} ${total === 1 ? 'proveedor' : 'proveedores'} en esta página.` : 'No se encontraron proveedores con esos filtros.';
+                resultados.dataset.totalResultados = contenido.dataset.totalResultados;
+                resultados.dataset.paginaCantidad = contenido.dataset.paginaCantidad;
+                if (restaurarPaginacion) filtros.elements.namedItem('por_pagina')?.focus({ preventScroll: true });
+                else if (focoEnResultados) { resultados.tabIndex = -1; resultados.focus({ preventScroll: true }); }
+                if (historial === 'push') history.pushState(null, '', url);
+                else if (historial === 'replace') history.replaceState(null, '', url);
+                sincronizar(url);
+                const cantidad = Number(contenido.dataset.paginaCantidad || 0);
+                const total = Number(contenido.dataset.totalResultados || 0);
+                estado.textContent = cantidad ? `${cantidad} de ${total} ${total === 1 ? 'proveedor' : 'proveedores'} en esta página.` : total ? 'No hay proveedores en esta página. Vuelve a la primera página.' : 'No se encontraron proveedores con esos filtros.';
             } catch (error) {
                 if (error.name !== 'AbortError' && actual === revision) {
+                    sincronizar(new URL(location.href));
+                    estado.classList.remove('sr-only');
+                    estado.classList.add('mb-3', 'text-sm', 'text-eh-red');
                     estado.textContent = 'No se pudo actualizar la lista. Comprueba tu conexión y pulsa Filtrar para reintentar.';
+                    if (aplicar) aplicar.hidden = false;
                 }
             } finally {
-                if (actual === revision) { resultados.setAttribute('aria-busy', 'false'); }
+                if (actual === revision) resultados.setAttribute('aria-busy', 'false');
             }
         };
+        sincronizar(new URL(location.href));
         filtros.addEventListener('input', (event) => {
-            if (event.target.name !== 'q' || event.isComposing) { return; }
+            if (event.target.name !== 'q' || event.isComposing) return;
             cancelar();
+            mostrarLimpiar();
             demora = setTimeout(() => actualizar(urlFiltros()), 350);
-        });
-        filtros.addEventListener('change', (event) => {
-            if (event.target.matches('select')) { actualizar(urlFiltros()); }
-        });
-        filtros.addEventListener('submit', (event) => {
+        }, { signal });
+        filtros.addEventListener('compositionend', () => actualizar(urlFiltros()), { signal });
+        document.addEventListener('change', (event) => {
+            if (event.target.matches('select') && event.target.form === filtros) actualizar(urlFiltros());
+        }, { signal });
+        filtros.addEventListener('submit', (event) => { event.preventDefault(); actualizar(urlFiltros()); }, { signal });
+        limpiar?.addEventListener('click', (event) => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
             event.preventDefault();
-            actualizar(urlFiltros());
-        });
-        filtros.querySelector('[data-proveedores-limpiar]')?.addEventListener('click', (event) => {
-            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) { return; }
-            event.preventDefault();
-            for (const nombre of ['q', 'zona_id', 'estado']) { filtros.elements.namedItem(nombre).value = ''; }
-            actualizar(new URL(filtros.action));
-        });
+            for (const nombre of ['q', 'zona_id', 'estado']) filtros.elements.namedItem(nombre).value = '';
+            filtros.elements.namedItem('por_pagina').value = '20';
+            actualizar(new URL(limpiar.href));
+        }, { signal });
+        for (const enlace of enlacesVista) {
+            enlace.addEventListener('click', (event) => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+                event.preventDefault();
+                const anterior = new URL(location.href);
+                filtros.elements.namedItem('vista').value = enlace.dataset.proveedoresVista;
+                const url = urlFiltros();
+                if (mismosFiltros(url, anterior, false) && anterior.searchParams.has('page')) url.searchParams.set('page', anterior.searchParams.get('page'));
+                actualizar(url, 'push');
+            }, { signal });
+        }
         resultados.addEventListener('click', (event) => {
             const enlace = event.target.closest('a[href]');
-            if (!enlace || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) { return; }
+            if (!enlace || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
             const url = new URL(enlace.href);
-            if (url.origin === location.origin && url.pathname === new URL(filtros.action).pathname && url.searchParams.has('page')) {
+            if (url.origin === location.origin && url.pathname === new URL(filtros.action).pathname) {
                 event.preventDefault();
-                actualizar(url, 'push');
+                const pendientes = urlFiltros();
+                actualizar(mismosFiltros(pendientes, new URL(location.href)) ? url : pendientes, 'push');
             }
-        });
+        }, { signal });
         signal?.addEventListener('abort', cancelar, { once: true });
     }
 

@@ -48,7 +48,7 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
             })
             ->when($rol !== null, fn ($query) => $query->whereJsonContains('roles', $rol->value))
             ->when($activo !== null, fn ($query) => $query->where('activo', $activo))
-            ->orderBy('nombres')
+            ->orderByDesc('id')
             ->paginate($porPagina)
             ->through(fn (UsuarioEloquent $u) => $this->aDominio($u));
     }

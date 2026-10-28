@@ -29,6 +29,8 @@ export function iniciarNavegacion(iniciarPagina, desmontarPagina) {
     };
     async function visitar(url, { form, datos, method = 'GET', pop = false, scroll = 0 } = {}) {
         if (enviando) { if (pop) history.replaceState(history.state, '', urlMostrada); return; }
+        const filtroDinamico = form?.matches('[data-live-filter]');
+        const firmaFiltro = filtroDinamico ? JSON.stringify(Array.from(datos.entries())) : null;
         const permiso = new CustomEvent('ecolecta:before-visit', { cancelable: true });
         if (!document.dispatchEvent(permiso)) {
             if (pop) history.replaceState(history.state, '', urlMostrada);
@@ -65,12 +67,17 @@ export function iniciarNavegacion(iniciarPagina, desmontarPagina) {
             if (!local(destino) || !doc.querySelector('.admin-shell') || activos(doc) !== activos(document)) {
                 location.assign(response.url); return;
             }
+            if (filtroDinamico && JSON.stringify(Array.from(new FormData(form).entries())) !== firmaFiltro) return;
+            const campoFiltro = filtroDinamico && (form.contains(document.activeElement) || document.activeElement?.form === form) ? document.activeElement : null;
+            const focoFiltro = campoFiltro?.name ? { nombre: campoFiltro.name, inicio: campoFiltro.selectionStart, fin: campoFiltro.selectionEnd } : null;
+            const scrollFiltro = filtroDinamico ? document.querySelector('.admin-content')?.scrollTop ?? 0 : 0;
             const menuScroll = document.querySelector('[data-admin-menu] nav')?.scrollTop ?? 0;
             desmontarPagina();
             document.title = doc.title;
             document.body.replaceChildren(...doc.body.childNodes);
             document.body.className = doc.body.className;
             if (pop) history.replaceState({ ...history.state }, '', destino);
+            else if (filtroDinamico) history.replaceState({ ecoScroll: scrollFiltro }, '', destino);
             else if (form && method === 'GET') history.pushState({ ecoScroll: 0 }, '', destino);
             else if (destino.href !== location.href || method !== 'GET') history.pushState({ ecoScroll: 0 }, '', destino);
             urlMostrada = destino.href;
@@ -83,11 +90,16 @@ export function iniciarNavegacion(iniciarPagina, desmontarPagina) {
                 old.replaceWith(script);
             });
             const main = document.querySelector('.admin-content');
-            if (main) main.scrollTop = pop ? scroll : 0;
+            if (main) main.scrollTop = pop ? scroll : scrollFiltro;
             const nav = document.querySelector('[data-admin-menu] nav');
             if (nav) nav.scrollTop = menuScroll;
             const focus = document.querySelector('[data-form-errors],dialog[open] input:not([type="hidden"]),.admin-content h1');
-            if (focus) { if (!focus.hasAttribute('tabindex')) focus.tabIndex = -1; focus.focus({ preventScroll: true }); }
+            const restaurarFiltro = focoFiltro ? document.querySelector('[data-live-filter]')?.elements.namedItem(focoFiltro.nombre) : null;
+            if (restaurarFiltro) {
+                restaurarFiltro.focus({ preventScroll: true });
+                if (typeof focoFiltro.inicio === 'number' && restaurarFiltro.setSelectionRange) restaurarFiltro.setSelectionRange(focoFiltro.inicio, focoFiltro.fin);
+            }
+            if (focus && !restaurarFiltro) { if (!focus.hasAttribute('tabindex')) focus.tabIndex = -1; focus.focus({ preventScroll: true }); }
             document.documentElement.dataset.navigationVisits = String(Number(document.documentElement.dataset.navigationVisits ?? 0) + 1);
             document.dispatchEvent(new CustomEvent('ecolecta:navigated'));
         } catch (error) {

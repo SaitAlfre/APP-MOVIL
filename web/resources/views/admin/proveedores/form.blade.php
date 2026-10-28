@@ -10,7 +10,7 @@
             : null;
     @endphp
 
-    <x-ui.page-header :class="$esNuevo ? 'mx-auto max-w-2xl' : ''" :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
+    <x-ui.page-header :class="$esNuevo ? 'max-w-3xl' : ''" :title="$esNuevo ? 'Nuevo proveedor' : 'Editar proveedor'"
         description="Datos del productor y su zona de acopio."
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $esNuevo ? 'Nuevo proveedor' : $proveedor->nombres]]">
         @unless ($esNuevo)
@@ -20,7 +20,7 @@
         @endunless
     </x-ui.page-header>
 
-    <div @class(['grid grid-cols-1 gap-6', 'mx-auto w-full max-w-2xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
+    <div @class(['grid grid-cols-1 gap-6', 'w-full max-w-3xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
         <x-ui.card padding="p-5 sm:p-6" :class="$esNuevo ? '' : 'lg:col-span-2'">
             <form method="POST"
                 action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
@@ -39,11 +39,11 @@
                 </div>
                 <div class="grid grid-cols-1 items-start gap-5 sm:grid-cols-2">
                     <div class="space-y-2 sm:col-span-2">
-                        <div class="flex flex-wrap items-end gap-2">
+                        <div class="space-y-3">
                             <div class="min-w-0 flex-1 basis-48">
                                 <x-ui.field name="dni" label="DNI del proveedor" required maxlength="{{ $esNuevo ? 8 : 20 }}" inputmode="numeric" autocomplete="off" :value="$proveedor?->dni" placeholder="8 dígitos" />
                             </div>
-                            <x-ui.btn type="button" variant="outline" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar</x-ui.btn>
+                            <x-ui.btn type="button" variant="outline" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar DNI</x-ui.btn>
                         </div>
                         <p class="text-xs text-eh-text-muted">Al completar el DNI, buscamos sus nombres automáticamente. También puedes escribirlos.</p>
                         <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted">@if (! filled(config('services.decolecta.token')))Consulta no disponible. Puedes completar los nombres manualmente.@endif</div>

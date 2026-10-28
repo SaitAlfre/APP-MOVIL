@@ -7,6 +7,7 @@ use Database\Factories\UsuarioFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class Usuario extends Authenticatable
 {
@@ -20,6 +21,8 @@ class Usuario extends Authenticatable
     protected $table = 'usuarios';
 
     protected $fillable = [
+        'perfil_rol_id',
+        'datos_formulario',
         'username',
         'nombres',
         'dni',
@@ -43,6 +46,7 @@ class Usuario extends Authenticatable
     protected function casts(): array
     {
         return [
+            'datos_formulario' => 'array',
             'activo' => 'boolean',
             'roles' => 'array',
             'zona_id' => 'integer',
@@ -80,6 +84,10 @@ class Usuario extends Authenticatable
             return false;
         }
 
+        if ($this->perfil_rol_id !== null) {
+            return $this->puede('dashboard') || collect(array_keys(config('permisos')))->contains(fn ($modulo) => $this->puede($modulo));
+        }
+
         foreach ($this->roles ?? [] as $rolValor) {
             if (Rol::tryFrom($rolValor)?->accesoWeb()) {
                 return true;
@@ -92,6 +100,15 @@ class Usuario extends Authenticatable
     /** Para mostrar u ocultar enlaces de navegación; el control real está en la matriz `permiso:` de las rutas. */
     public function puede(string $modulo, string $accion = 'ver'): bool
     {
+        if ($this->perfil_rol_id !== null) {
+            $perfil = DB::table('perfiles_roles')->find($this->perfil_rol_id);
+            if (! $perfil || ! $perfil->activo) {
+                return false;
+            }
+            $acciones = json_decode($perfil->permisos, true)[$modulo] ?? [];
+
+            return $accion === 'gestionar' ? count(array_intersect($acciones, ['crear', 'editar', 'eliminar'])) > 0 : in_array($accion, $acciones, true);
+        }
         $rolesPermitidos = config("permisos.{$modulo}.{$accion}", []);
 
         $oficiales = array_map(fn (Rol $rol) => $rol->value, Rol::cases());
