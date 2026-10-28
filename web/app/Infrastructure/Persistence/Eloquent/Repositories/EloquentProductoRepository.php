@@ -96,10 +96,11 @@ final class EloquentProductoRepository implements ProductoRepositoryInterface
             unidadProduccion: $producto->unidad_produccion,
             contenidoPorUnidad: $producto->contenido_por_unidad !== null ? (float) $producto->contenido_por_unidad : null,
             unidadContenido: $producto->unidad_contenido,
-            litrosPorUnidad: (float) $producto->litros_por_unidad,
+            litrosPorUnidad: $producto->litros_por_unidad !== null ? (float) $producto->litros_por_unidad : null,
             otrosInsumos: $producto->otros_insumos,
             existencia: (float) $producto->existencia,
             activo: $producto->activo,
+            recetaActiva: $producto->receta_activa ?? true,
         );
     }
 }

@@ -364,6 +364,9 @@ class AplicarCambioMovilUseCase
         if ($estado !== 'pendiente') {
             throw new CambioMovilRechazadoException('Primero envía el reclamo pendiente antes de resolverlo.', 'esperando', 409, false);
         }
+        if ($autor->tieneRol('admin') || ! $autor->tieneRol('proveedor')) {
+            throw CambioMovilRechazadoException::sinPermiso();
+        }
         $entrega = $this->entregaDe((string) ($datos['entregaUuid'] ?? ''));
         if (! empty($datos['entregaUuid']) && $entrega === null) {
             throw CambioMovilRechazadoException::esperando('El reclamo se enviará cuando el panel tenga la entrega reclamada.');

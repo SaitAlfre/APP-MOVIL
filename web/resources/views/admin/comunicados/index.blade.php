@@ -79,7 +79,7 @@
                         class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ old('contenido') }}</textarea>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <x-ui.select name="audiencia" label="Audiencia" required :options="$opcionesAudiencia" />
+                    <x-ui.select name="audiencia" label="¿Quién recibirá el aviso?" required :options="$opcionesAudiencia" />
                     <x-ui.select name="estado" label="Estado" required :options="$opcionesEstado" />
                     <x-ui.field name="publicar_en" label="Publicar el" type="datetime-local"
                         hint="Obligatorio si el estado es «Programado»." />
@@ -100,7 +100,7 @@
                         <label for="titulo-{{ $comunicado->id }}" class="text-sm font-medium text-eh-text">
                             Título <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
                         </label>
-                        <input id="titulo-{{ $comunicado->id }}" name="titulo" value="{{ $comunicado->titulo }}" required maxlength="180"
+                        <input id="titulo-{{ $comunicado->id }}" name="titulo" value="{{ old('_modal_id') === 'comunicado-'.$comunicado->id ? old('titulo', $comunicado->titulo) : $comunicado->titulo }}" required maxlength="180"
                             class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
                     </div>
                     <div class="flex flex-col gap-1">
@@ -108,15 +108,15 @@
                             Contenido <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
                         </label>
                         <textarea id="contenido-{{ $comunicado->id }}" name="contenido" required maxlength="5000" rows="5"
-                            class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ $comunicado->contenido }}</textarea>
+                            class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ old('_modal_id') === 'comunicado-'.$comunicado->id ? old('contenido', $comunicado->contenido) : $comunicado->contenido }}</textarea>
                     </div>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div class="flex flex-col gap-1">
-                            <label for="audiencia-{{ $comunicado->id }}" class="text-sm font-medium text-eh-text">Audiencia</label>
+                            <label for="audiencia-{{ $comunicado->id }}" class="text-sm font-medium text-eh-text">¿Quién recibirá el aviso?</label>
                             <select id="audiencia-{{ $comunicado->id }}" name="audiencia" required
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
                                 @foreach ($opcionesAudiencia as $valor => $etiqueta)
-                                    <option value="{{ $valor }}" @selected($comunicado->audiencia === $valor)>{{ $etiqueta }}</option>
+                                    <option value="{{ $valor }}" @selected((old('_modal_id') === 'comunicado-'.$comunicado->id ? old('audiencia', $comunicado->audiencia) : $comunicado->audiencia) === $valor)>{{ $etiqueta }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -125,14 +125,14 @@
                             <select id="estado-{{ $comunicado->id }}" name="estado" required
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
                                 @foreach ($opcionesEstado as $valor => $etiqueta)
-                                    <option value="{{ $valor }}" @selected($comunicado->estado === $valor)>{{ $etiqueta }}</option>
+                                    <option value="{{ $valor }}" @selected((old('_modal_id') === 'comunicado-'.$comunicado->id ? old('estado', $comunicado->estado) : $comunicado->estado) === $valor)>{{ $etiqueta }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label for="publicar-{{ $comunicado->id }}" class="text-sm font-medium text-eh-text">Publicar el</label>
                             <input id="publicar-{{ $comunicado->id }}" name="publicar_en" type="datetime-local"
-                                value="{{ $comunicado->publicar_en?->format('Y-m-d\TH:i') }}"
+                                value="{{ old('_modal_id') === 'comunicado-'.$comunicado->id ? old('publicar_en', $comunicado->publicar_en?->format('Y-m-d\TH:i')) : $comunicado->publicar_en?->format('Y-m-d\TH:i') }}"
                                 class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
                         </div>
                     </div>

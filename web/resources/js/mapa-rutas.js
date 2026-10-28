@@ -274,8 +274,8 @@ export function iniciarMapasRutas() {
         let trace = config.trazado ?? [];
         let summary = config.resumen && ['manual', 'carretera'].includes(config.resumen.fuente) ? config.resumen : null;
         if (summary && summary.firma_paradas !== firmaParadas(stops)) { trace = []; summary = null; }
-        let selected = -1, editing = -1, mode = 'parada', dirty = false, submitted = false;
-        let calculating = false, pendingRequest, draggedIndex = null, draftSnapshot = '';
+        let selected = -1, editing = -1, mode = 'parada', dirty = Boolean(config.cambios_pendientes), submitted = false;
+        let calculating = false, pendingRequest, draggedIndex = null, draftSnapshot = '', pendingPlacement = null;
         const status = root.querySelector('[data-map-status]');
         const list = root.querySelector('[data-stop-list]');
         const template = root.querySelector('[data-stop-template]');
@@ -296,7 +296,7 @@ export function iniciarMapasRutas() {
             if (saveStatus) saveStatus.textContent = 'Cambios pendientes de guardar';
         }
         function snapshot() { return JSON.stringify(Object.values(fields).map((field) => field.value)); }
-        function draftChanged() { return dialog?.open && snapshot() !== draftSnapshot; }
+        function draftChanged() { return Boolean(pendingPlacement) || (dialog?.open && snapshot() !== draftSnapshot); }
         function manualSummary() {
             summary = trace.length >= 2 ? { fuente: 'manual', distancia_m: longitudCamino(trace), duracion_s: null, firma_paradas: firmaParadas(stops) } : null;
         }
@@ -315,8 +315,13 @@ export function iniciarMapasRutas() {
         }
         function fillProviders(value = '') {
             const options = config.proveedores.filter((provider) => provider.zona_id === sector && provider.estado === 'activo');
-            fields.proveedor_id.replaceChildren(new Option('Punto de recojo sin proveedor asociado', ''));
-            options.forEach((provider) => fields.proveedor_id.add(new Option((provider.codigo ? provider.codigo + ' · ' : '') + provider.nombres, provider.id)));
+            fields.proveedor_id.replaceChildren(new Option('Otro punto: planta, reunión o referencia', ''));
+            options.forEach((provider) => {
+                const used = stops.some((stop, index) => index !== editing && Number(stop.proveedor_id) === provider.id);
+                const option = new Option((provider.codigo ? provider.codigo + ' · ' : '') + provider.nombres + (used ? ' (ya agregado)' : ''), provider.id);
+                option.disabled = used;
+                fields.proveedor_id.add(option);
+            });
             if (value && !options.some((provider) => provider.id === Number(value))) {
                 const oldProvider = config.proveedores.find((provider) => provider.id === Number(value));
                 fields.proveedor_id.add(new Option((oldProvider?.nombres ?? 'Proveedor anterior') + ' (no disponible)', value));
@@ -324,8 +329,9 @@ export function iniciarMapasRutas() {
             fields.proveedor_id.value = value;
             root.querySelector('[data-provider-field]').hidden = options.length === 0 && !value;
         }
-        function openEditor(index = -1, point = null) {
+        function openEditor(index = -1, point = null, providerId = null, draft = null) {
             if (!editor) return;
+            if (pendingPlacement) { notify('Marca la ubicación en el mapa o pulsa Volver a los datos.'); return; }
             if (!sector) {
                 notify('Elige primero el sector de la ruta.');
                 sectorField?.focus();
@@ -335,18 +341,27 @@ export function iniciarMapasRutas() {
             editing = index;
             editor.reset();
             const stop = stops[index];
-            fillProviders(stop?.proveedor_id ?? '');
-            fields.nombre.value = stop?.nombre ?? 'Parada ' + (stops.length + 1);
-            fields.referencia.value = stop?.referencia ?? '';
+            const provider = config.proveedores.find((item) => item.id === Number(providerId));
+            fillProviders(draft?.proveedor_id ?? stop?.proveedor_id ?? provider?.id ?? '');
+            fields.nombre.value = draft?.nombre ?? stop?.nombre ?? provider?.nombres ?? 'Parada ' + (stops.length + 1);
+            fields.referencia.value = draft?.referencia ?? stop?.referencia ?? provider?.direccion ?? '';
             const location = stop ? [stop.latitud, stop.longitud] : point;
-            fields.ubicacion.value = location ? location.map((value) => Number(value).toFixed(6)).join(', ') : '';
+            fields.ubicacion.value = point ? point.map((value) => Number(value).toFixed(6)).join(', ') : draft?.ubicacion ?? (location ? location.map((value) => Number(value).toFixed(6)).join(', ') : '');
             root.querySelector('[data-stop-error]').hidden = true;
             root.querySelector('[data-stop-dialog-title]').textContent = stop ? 'Editar parada ' + (index + 1) : 'Nueva parada';
             root.querySelector('[data-stop-submit]').textContent = stop ? 'Guardar parada' : 'Agregar parada';
             draftSnapshot = snapshot();
             dialog.showModal();
-            (location ? fields.nombre : fields.ubicacion).focus();
+            (location ? fields.nombre : root.querySelector('[data-stop-pick-location]')).focus();
             if (location) fields.nombre.select();
+        }
+        function restorePlacement(point = null) {
+            const pending = pendingPlacement;
+            if (!pending) return;
+            pendingPlacement = null;
+            root.querySelector('[data-placement-banner]').hidden = true;
+            openEditor(pending.index, point, null, pending.fields);
+            refreshControls();
         }
         function select(index) {
             selected = index;
@@ -360,6 +375,7 @@ export function iniciarMapasRutas() {
         const map = new MapaAcopio(root.querySelector('[data-map-canvas]'), config, (point) => {
             if (!editor) return;
             if (!sector) { notify('Elige primero el sector de la ruta.'); sectorField.focus(); return; }
+            if (pendingPlacement) { restorePlacement(point); return; }
             if (mode === 'trazado') {
                 if (trace.length >= 2000) { notify('El trazado admite hasta 2000 puntos.'); return; }
                 trace.push({ latitud: Number(point[0].toFixed(6)), longitud: Number(point[1].toFixed(6)) });
@@ -392,13 +408,57 @@ export function iniciarMapasRutas() {
             const ready = root.querySelector('[data-route-ready]');
             const inactiveSector = config.sectores?.some((item) => item.id === sector && !item.activo);
             ready.textContent = !stops.length ? 'Elige el sector y marca la primera parada.' : inactiveSector ? 'El sector está desactivado; activa el sector para habilitar el recorrido.' : !saveForm.elements.namedItem('acopiador_id').value ? 'Recorrido preparado; falta asignar un acopiador.' : saveForm.elements.namedItem('activo').value === '0' ? 'La ruta está desactivada y no aparecerá al acopiador.' : 'El acopiador podrá consultar estas paradas cuando guardes.';
-            submitButton.disabled = stops.length === 0 || calculating;
-            root.querySelector('[data-stops-reverse]').disabled = stops.length < 2;
-            root.querySelector('[data-trace-undo]').disabled = trace.length === 0 || summary?.fuente === 'carretera';
-            root.querySelector('[data-trace-clear]').disabled = trace.length === 0;
-            if (calculateButton) calculateButton.disabled = stops.length < 2 || calculating;
-            root.querySelector('[data-map-hint]').textContent = !sector ? 'Elige un sector para comenzar.' : mode === 'trazado' ? 'Marca las vías y los giros para dibujar el camino.' : 'Pulsa en el mapa para agregar una parada. Arrastra un punto para moverlo.';
+            submitButton.disabled = stops.length === 0 || calculating || Boolean(pendingPlacement);
+            root.querySelector('[data-stops-reverse]').disabled = stops.length < 2 || Boolean(pendingPlacement);
+            root.querySelector('[data-trace-undo]').disabled = trace.length === 0 || summary?.fuente === 'carretera' || Boolean(pendingPlacement);
+            root.querySelector('[data-trace-clear]').disabled = trace.length === 0 || Boolean(pendingPlacement);
+            root.querySelectorAll('[data-map-mode], [data-stop-add]').forEach((button) => { button.disabled = Boolean(pendingPlacement); });
+            Array.from(list.children).forEach((row, index) => {
+                row.querySelectorAll('[data-stop-edit], [data-stop-remove]').forEach((button) => { button.disabled = Boolean(pendingPlacement); });
+                row.querySelector('[data-stop-up]').disabled = index === 0 || Boolean(pendingPlacement);
+                row.querySelector('[data-stop-down]').disabled = index === stops.length - 1 || Boolean(pendingPlacement);
+                row.draggable = !pendingPlacement;
+            });
+            if (calculateButton) calculateButton.disabled = stops.length < 2 || calculating || Boolean(pendingPlacement);
+            root.querySelector('[data-map-hint]').textContent = pendingPlacement ? 'Pulsa donde se recoge la leche de ' + pendingPlacement.fields.nombre + '.' : !sector ? 'Elige un sector para comenzar.' : mode === 'trazado' ? 'Marca las vías y los giros para dibujar el camino.' : 'Pulsa en el mapa para agregar una parada. Arrastra un punto para moverlo.';
         }
+        }
+
+        function refreshProviders() {
+            const catalog = root.querySelector('[data-provider-list]');
+            if (!catalog) return;
+            const normalize = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+            const search = normalize(root.querySelector('[data-provider-search]').value.trim());
+            const providers = config.proveedores.filter((provider) => provider.zona_id === sector && provider.estado === 'activo');
+            const matching = providers.filter((provider) => normalize([provider.codigo, provider.nombres, provider.direccion].join(' ')).includes(search));
+            root.querySelector('[data-provider-count]').textContent = String(new Set(stops.map((stop) => stop.proveedor_id).filter(Boolean)).size);
+            const empty = root.querySelector('[data-provider-empty]');
+            empty.textContent = !sector ? 'Primero elige el sector para ver sus proveedores.' : !providers.length ? 'Este sector todavía no tiene proveedores activos. Puedes registrar uno o agregar un punto de reunión en el mapa.' : !matching.length ? 'No encontramos ese proveedor. Prueba con otro nombre o código.' : '';
+            empty.hidden = Boolean(matching.length);
+            const rows = document.createDocumentFragment();
+            matching.forEach((provider) => {
+                const index = stops.findIndex((stop) => Number(stop.proveedor_id) === provider.id);
+                const row = document.createElement('li');
+                row.className = 'flex items-center justify-between gap-3 rounded-xl border border-eh-border p-3';
+                const info = document.createElement('div');
+                info.className = 'min-w-0';
+                const name = document.createElement('p');
+                name.className = 'break-words text-sm font-semibold';
+                name.textContent = provider.nombres;
+                const code = document.createElement('p');
+                code.className = 'mt-1 text-xs text-eh-text-muted';
+                code.textContent = provider.codigo + (index >= 0 ? ' · Vinculado' : '');
+                info.append(name, code);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'shrink-0 rounded-lg bg-eh-primary-soft px-3 py-2 text-sm font-semibold text-eh-primary focus-visible:outline-2 focus-visible:outline-eh-primary';
+                button.textContent = index >= 0 ? 'Ver parada ' + (index + 1) : 'Agregar';
+                button.setAttribute('aria-label', (index >= 0 ? 'Ver parada de ' : 'Agregar a ') + provider.nombres);
+                button.addEventListener('click', () => index >= 0 ? select(index) : openEditor(-1, null, provider.id));
+                row.append(info, button);
+                rows.append(row);
+            });
+            catalog.replaceChildren(rows);
         }
 
         function refresh() {
@@ -413,6 +473,8 @@ export function iniciarMapasRutas() {
                 reference.hidden = !stop.referencia;
                 row.querySelector('[data-stop-position]').textContent = stops.length === 1 ? 'Punto de recojo' : index === 0 ? 'Inicio del recorrido' : index === stops.length - 1 ? 'Última parada' : '';
                 const provider = config.proveedores.find((item) => item.id === Number(stop.proveedor_id));
+                const providerLabel = row.querySelector('[data-stop-provider]');
+                providerLabel.textContent = stop.proveedor_id ? 'Proveedor: ' + (provider ? provider.codigo + ' · ' + provider.nombres : 'No disponible') : 'Punto de referencia · sin proveedor';
                 const warning = row.querySelector('[data-stop-warning]');
                 if (stop.proveedor_id && (!provider || provider.estado !== 'activo' || provider.zona_id !== sector)) {
                     warning.hidden = false;
@@ -474,6 +536,7 @@ export function iniciarMapasRutas() {
             credit.hidden = summary?.fuente !== 'carretera';
             credit.textContent = ' · ' + config.credito_ruteo;
             refreshControls();
+            refreshProviders();
             map.setRoute(stops, trace, selected);
         }
 
@@ -503,12 +566,25 @@ export function iniciarMapasRutas() {
             const provider = config.proveedores.find((item) => item.id === Number(fields.proveedor_id.value));
             if (provider) { fields.nombre.value = provider.nombres; fields.referencia.value = provider.direccion ?? ''; }
         });
+        root.querySelector('[data-provider-search]')?.addEventListener('input', refreshProviders);
+        root.querySelector('[data-stop-pick-location]')?.addEventListener('click', () => {
+            pendingPlacement = { index: editing, fields: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, field.value])) };
+            dialog.close();
+            root.querySelector('[data-placement-banner]').hidden = false;
+            root.querySelector('[data-placement-message]').textContent = 'Pulsa en el mapa donde recogerás la leche de ' + fields.nombre.value + '.';
+            refreshControls();
+            root.querySelector('[data-map-canvas]').scrollIntoView({ block: 'center', behavior: 'smooth' });
+            root.querySelector('[data-map-canvas]').focus({ preventScroll: true });
+            notify('Elige el punto de recojo en el mapa. Después podrás confirmar la parada.');
+        });
+        root.querySelector('[data-placement-cancel]')?.addEventListener('click', () => restorePlacement());
         root.querySelectorAll('[data-stop-close]').forEach((button) => button.addEventListener('click', () => closeEditor()));
         dialog?.addEventListener('cancel', (event) => { event.preventDefault(); closeEditor(); });
         root.querySelector('[data-stop-add]')?.addEventListener('click', () => openEditor());
         sectorField?.addEventListener('change', () => {
             const next = Number(sectorField.value);
             if (next === sector) return;
+            if (pendingPlacement) { sectorField.value = String(sector); notify('Termina de ubicar la parada antes de cambiar de sector.'); return; }
             if ((stops.length || trace.length) && !window.confirm('Cambiar de sector vaciará las paradas y el camino de este editor. ¿Continuar?')) { sectorField.value = sector ? String(sector) : ''; return; }
             sector = next;
             stops = [];
@@ -599,9 +675,9 @@ export function iniciarMapasRutas() {
         });
         saveForm?.addEventListener('input', () => { markDirty(); refreshControls(); });
         saveForm?.addEventListener('submit', (event) => {
-            if (!stops.length || calculating || dialog.open) {
+            if (!stops.length || calculating || dialog.open || pendingPlacement) {
                 event.preventDefault();
-                notify(calculating ? 'Espera a que termine el cálculo del recorrido.' : dialog.open ? 'Guarda o cancela la edición de la parada antes de guardar la ruta.' : 'Agrega al menos una parada antes de guardar.');
+                notify(calculating ? 'Espera a que termine el cálculo del recorrido.' : dialog.open || pendingPlacement ? 'Guarda o cancela la edición de la parada antes de guardar la ruta.' : 'Agrega al menos una parada antes de guardar.');
                 return;
             }
             saveForm.elements.namedItem('paradas_json').value = JSON.stringify(stops);

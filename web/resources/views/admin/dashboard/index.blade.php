@@ -94,12 +94,14 @@
             ] : null,
         ])->filter()->filter(fn ($alerta) => $usuario->puede($alerta['permiso']))->values();
 
-        $accesosRapidos = collect([
-            ['label' => 'Nueva entrega', 'icono' => 'droplets', 'url' => route('admin.entregas.index'), 'permiso' => 'entregas'],
-            ['label' => 'Control calidad', 'icono' => 'beaker', 'url' => route('admin.calidad.create'), 'permiso' => 'calidad'],
-            ['label' => 'Iniciar jornada', 'icono' => 'play', 'url' => route('admin.acopiadores.jornadas.create'), 'permiso' => 'acopiadores'],
-            ['label' => 'Generar liquidación', 'icono' => 'liquidacion', 'url' => route('admin.liquidaciones.create'), 'permiso' => 'liquidaciones'],
-        ])->filter(fn ($acceso) => $usuario->puede($acceso['permiso'], 'gestionar'))->values();
+        $atajos = collect([
+            ['titulo' => 'Preparar una ruta', 'ruta' => 'admin.mapa-rutas.create', 'permiso' => 'mapa_rutas', 'icono' => 'map'],
+            ['titulo' => 'Iniciar jornada', 'ruta' => 'admin.acopiadores.jornadas.create', 'permiso' => 'acopiadores', 'icono' => 'truck'],
+            ['titulo' => 'Recibir leche', 'ruta' => 'admin.recepcion.index', 'permiso' => 'recepcion', 'icono' => 'droplets'],
+            ['titulo' => 'Control calidad', 'ruta' => 'admin.calidad.create', 'permiso' => 'calidad', 'icono' => 'beaker'],
+            ['titulo' => 'Hacer una producción', 'ruta' => 'admin.produccion.producir.index', 'permiso' => 'produccion', 'icono' => 'factory'],
+            ['titulo' => 'Generar liquidación', 'ruta' => 'admin.liquidaciones.create', 'permiso' => 'liquidaciones', 'icono' => 'banknotes'],
+        ])->filter(fn ($atajo) => $usuario->puede($atajo['permiso'], 'gestionar'))->values();
 
         // Presentación: saludo según la hora y periodo rápido activo.
         $saludo = $ahora->hour < 12 ? 'Buenos días' : ($ahora->hour < 19 ? 'Buenas tardes' : 'Buenas noches');
@@ -117,6 +119,33 @@
             </x-slot:actions>
         @endif
     </x-ui.page-header>
+
+    @if ($usuario->puede('liquidaciones'))
+        <x-ui.card padding="p-5" class="mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="grid h-12 w-12 place-items-center rounded-2xl bg-eh-primary-soft text-eh-primary"><x-icon name="droplets" class="h-6 w-6" /></span>
+                    <div><p class="text-xs font-semibold text-eh-text-muted">Precio de la leche hoy</p><p class="mono mt-1 text-2xl font-bold text-eh-primary">{{ $tarifaActual ? 'S/ '.number_format((float) $tarifaActual->precio, 3) : 'Sin configurar' }} @if ($tarifaActual)<span class="text-sm font-normal">/ litro</span>@endif</p></div>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    @if ($proximaTarifa)<p class="text-sm text-eh-text-muted">Desde {{ $proximaTarifa->desde->format('d/m') }}: <strong>S/ {{ number_format((float) $proximaTarifa->precio, 3) }}</strong></p>@endif
+                    <x-ui.btn :href="route('admin.tarifas.index')" variant="secondary" icon="pencil">Precios y temporadas</x-ui.btn>
+                </div>
+            </div>
+        </x-ui.card>
+    @endif
+
+    @if ($atajos->isNotEmpty())
+        <nav aria-label="Acciones rápidas" class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            @foreach ($atajos as $atajo)
+                <a data-action-card href="{{ route($atajo['ruta']) }}" class="action-card">
+                    <span class="action-card-icon"><x-icon :name="$atajo['icono']" class="h-5 w-5" /></span>
+                    <span class="text-sm font-semibold">{{ $atajo['titulo'] }}</span>
+                    <x-icon name="arrowRight" class="action-card-arrow h-4 w-4" />
+                </a>
+            @endforeach
+        </nav>
+    @endif
 
     {{-- Filtros del periodo --}}
     <x-ui.card padding="p-5 md:p-6" class="mb-3">
@@ -144,12 +173,7 @@
             <x-ui.select name="agrupacion" label="Tendencia por" :options="['dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes']" :selected="$agrupacion" />
             <x-ui.btn type="submit" icon="filter">Aplicar</x-ui.btn>
         </form>
-        <p class="mt-4 border-t border-eh-border pt-4 text-[11px] leading-relaxed text-eh-text-muted">
-            La zona filtra litros recolectados, recibidos, merma, calidad pendiente y los gráficos por zona y acopiador.
-            @if ($usuario->puede('produccion') && $usuario->puede('liquidaciones'))
-            Leche habilitada, disponible, producción y liquidaciones son globales: una vez recepcionada, la leche se acumula en una sola pila sin importar la zona de origen.
-            @endif
-        </p>
+
     </x-ui.card>
 
     {{-- Indicadores del día --}}
@@ -184,7 +208,7 @@
     </section>
 
     {{-- Tendencia y calidad --}}
-    <section class="mb-3 grid gap-3 xl:grid-cols-[1.65fr_1fr]">
+    <section class="mb-3">
         <x-ui.card padding="p-5 md:p-6">
             <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -216,8 +240,8 @@
         </article>
     </section>
 
-    {{-- Zonas y accesos rápidos --}}
-    <section class="mb-3 grid gap-3 xl:grid-cols-[1.65fr_1fr]">
+    {{-- Acopio por sector --}}
+    <section class="mb-3">
         <x-ui.card padding="p-5 md:p-6">
             <h2 class="font-semibold tracking-[-.02em] text-eh-text">Litros por zona — periodo filtrado</h2>
             <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Volumen y número de entregas por zona</p>
@@ -225,27 +249,7 @@
                 description="Litros recolectados por zona." empty="Sin datos por zona para mostrar." />
         </x-ui.card>
 
-        <article class="min-w-0 rounded-2xl border border-eh-border bg-eh-surface p-5 text-eh-text md:p-6">
-            <h2 class="font-semibold tracking-[-.02em]">Accesos rápidos</h2>
-            <p class="mt-1 text-[11px] text-eh-text-muted">Acciones frecuentes de tu rol</p>
-            @if ($accesosRapidos->isEmpty())
-                <p class="mt-5 rounded-2xl border border-eh-border bg-eh-surface-alt px-4 py-6 text-center text-xs text-eh-text-muted">Tu rol no tiene acciones rápidas disponibles.</p>
-            @else
-                <div class="stagger mt-5 grid grid-cols-2 gap-2">
-                    @foreach ($accesosRapidos as $acceso)
-                        <a href="{{ $acceso['url'] }}" class="group flex flex-col gap-3 rounded-2xl border border-eh-border bg-eh-surface-alt p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:bg-eh-text/10">
-                            <span class="grid h-9 w-9 place-items-center rounded-xl bg-eh-primary-soft text-eh-primary">
-                                <x-icon :name="$acceso['icono']" class="h-[18px] w-[18px]" />
-                            </span>
-                            <span class="flex items-center justify-between gap-2 text-xs font-medium leading-tight">
-                                {{ $acceso['label'] }}
-                                <x-icon name="arrowRight" class="h-3.5 w-3.5 shrink-0 opacity-40 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
-                            </span>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </article>
+
     </section>
 
     {{-- Colas de trabajo --}}

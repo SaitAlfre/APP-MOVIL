@@ -8,8 +8,8 @@
 
 @php
     $tamanos = [
-        'sm' => 'text-[11px] px-3 py-2',
-        'md' => 'text-xs px-4 py-3',
+        'sm' => 'min-h-9 text-xs px-3 py-2',
+        'md' => 'min-h-11 text-sm px-4 py-3',
     ];
     $variantes = [
         'primary' => 'bg-eh-primary text-eh-on-primary shadow-[var(--eh-shadow-ink)] hover:bg-eh-primary-dark',

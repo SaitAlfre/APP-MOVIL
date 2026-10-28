@@ -42,6 +42,7 @@
                     <div class="mb-4 flex items-start justify-between gap-3"><div class="min-w-0"><p class="text-xs text-eh-text-muted">{{ $ruta->zona?->nombre }}</p><h2 class="mt-1 break-words text-lg font-semibold">{{ $ruta->nombre }}</h2></div><x-ui.estado :estado="$estadoRuta" /></div>
                     <p class="text-sm font-semibold">{{ count($paradas) }} {{ count($paradas) === 1 ? 'parada' : 'paradas' }}
                     @if (($resumen['distancia_m'] ?? null) !== null) · {{ number_format($resumen['distancia_m'] / 1000, 1) }} km @endif</p>
+                    <p class="mt-1 text-sm text-eh-text-muted">{{ collect($paradas)->pluck('proveedor_id')->filter()->unique()->count() }} proveedores vinculados</p>
                     @if ($completa)<p class="mt-2 text-xs text-eh-text-muted">{{ $paradas[0]['nombre'] }} @if(count($paradas) > 1) → {{ $paradas[count($paradas) - 1]['nombre'] }} @endif</p>
                     @else<p class="mt-2 text-xs text-eh-text-muted">Agrega puntos de recojo para completar esta ruta.</p>
                     @endif

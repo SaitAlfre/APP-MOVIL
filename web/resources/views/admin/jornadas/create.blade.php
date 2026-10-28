@@ -18,6 +18,15 @@
                 @endif
             </x-ui.empty>
         </x-ui.card>
+    @elseif (empty($zonas) || empty($vehiculos))
+        <x-ui.card padding="p-6" class="max-w-2xl">
+            <h2 class="text-lg font-semibold">Falta preparar el viaje</h2>
+            <p class="mt-2 text-sm text-eh-text-muted">Para iniciar una jornada necesitas un sector activo y un vehículo disponible.</p>
+            <div class="mt-4 flex flex-wrap gap-3">
+                @if (empty($zonas))<x-ui.btn :href="route('admin.zonas.create')" icon="plus">Registrar un sector</x-ui.btn>@endif
+                @if (empty($vehiculos))<x-ui.btn :href="route('admin.vehiculos.create')" icon="plus">Registrar un vehículo</x-ui.btn>@endif
+            </div>
+        </x-ui.card>
     @else
         <x-ui.card padding="p-6" class="max-w-2xl">
             <form method="POST" action="{{ route('admin.acopiadores.jornadas.store') }}" class="space-y-6" data-once>
@@ -26,7 +35,7 @@
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <x-ui.select name="usuario_id" label="Acopiador" required placeholder="Selecciona un acopiador" class="sm:col-span-2"
                         :options="collect($acopiadores)->mapWithKeys(fn ($acopiador) => [$acopiador->id => $acopiador->nombres])->all()" />
-                    <x-ui.select name="zona_id" label="Zona" required placeholder="Selecciona una zona"
+                    <x-ui.select name="zona_id" label="Sector del recojo" required placeholder="Selecciona un sector"
                         :options="collect($zonas)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
                     <x-ui.select name="vehiculo_id" label="Vehículo" required placeholder="Selecciona un vehículo"
                         :options="collect($vehiculos)->mapWithKeys(fn ($vehiculo) => [$vehiculo->id => $vehiculo->nombre.' · '.$vehiculo->placa])->all()" />

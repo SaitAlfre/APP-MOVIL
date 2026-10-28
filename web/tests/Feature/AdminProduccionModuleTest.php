@@ -31,14 +31,12 @@ class AdminProduccionModuleTest extends TestCase
     private function crearReceta(): Producto
     {
         $this->post('/admin/produccion/productos', [
-            'nombre' => 'Queso fresco',
-            'presentacion' => '1 kg',
-            'unidad_produccion' => 'unidad',
-            'litros_por_unidad' => 10,
-            'otros_insumos' => 'Cuajo 2 mL, Sal 20 g',
-        ])->assertRedirect(route('admin.produccion.productos.index'));
+            'nombre' => 'Queso fresco', 'presentacion' => '1 kg', 'unidad_produccion' => 'unidad',
+        ])->assertSessionHasNoErrors();
+        $producto = Producto::where('nombre', 'Queso fresco')->firstOrFail();
+        $this->post(route('admin.recetas.store'), ['producto_id' => $producto->id, 'litros_por_unidad' => 10, 'otros_insumos' => 'Cuajo 2 mL, Sal 20 g'])->assertSessionHasNoErrors();
 
-        return Producto::query()->where('nombre', 'Queso fresco')->firstOrFail();
+        return $producto->refresh();
     }
 
     private function registrarEntregaEvaluada(Vehiculo $vehiculo, float $litros, EstadoCalidad $resultado, string $fecha): Entrega
@@ -98,15 +96,10 @@ class AdminProduccionModuleTest extends TestCase
     {
         $this->comoAdmin();
 
-        $response = $this->post('/admin/produccion/productos', [
-            'nombre' => 'Queso sin receta',
-            'presentacion' => '1 kg',
-            'unidad_produccion' => 'unidad',
-            'litros_por_unidad' => 0,
-        ]);
-
+        $producto = Producto::factory()->create(['litros_por_unidad' => null]);
+        $response = $this->post(route('admin.recetas.store'), ['producto_id' => $producto->id, 'litros_por_unidad' => 0]);
         $response->assertSessionHasErrors('litros_por_unidad');
-        $this->assertDatabaseCount('productos', 0);
+        $this->assertNull($producto->fresh()->litros_por_unidad);
     }
 
     // --- Creación de lotes y saldo compartido del día ---

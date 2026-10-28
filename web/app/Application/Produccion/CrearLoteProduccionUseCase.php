@@ -24,6 +24,10 @@ final class CrearLoteProduccionUseCase
             throw LoteProduccionInvalidoException::productoNoExiste();
         }
 
+        if ($producto->litrosPorUnidad === null || ! $producto->recetaActiva) {
+            throw new LoteProduccionInvalidoException('El producto necesita una receta activa para producir.');
+        }
+
         LoteProduccion::validarAsignacion($litrosAsignados);
 
         $acopio = $this->obtenerAcopio->ejecutar($fecha);

@@ -41,19 +41,6 @@ class SancionController extends Controller
         return back()->with('estado', 'Propuesta de sanción '.$datos['estado'].'.');
     }
 
-    public function storeReclamo(Request $request): RedirectResponse
-    {
-        $datos = $request->validate([
-            'entrega_id' => ['required', 'integer', 'exists:entregas,id'],
-            'litros_solicitados' => ['required', 'numeric', 'gt:0', 'max:18500', 'decimal:0,2'],
-            'motivo' => ['required', 'string', 'max:255'],
-        ]);
-        $entrega = Entrega::findOrFail($datos['entrega_id']);
-        ReclamoProveedor::create($datos + ['proveedor_id' => $entrega->proveedor_id, 'litros_originales' => $entrega->litros]);
-
-        return back()->with('estado', 'Reclamo registrado correctamente.');
-    }
-
     public function resolverReclamo(Request $request, ReclamoProveedor $reclamo, ResolverReclamoProveedorUseCase $resolver): RedirectResponse
     {
         abort_unless(auth('operador')->user()->tieneRol('admin'), 403, 'Solo administración puede resolver reclamos de volumen.');

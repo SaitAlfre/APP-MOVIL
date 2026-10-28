@@ -19,7 +19,7 @@ final class ActualizarProductoUseCase
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
-        float $litrosPorUnidad,
+        ?float $litrosPorUnidad,
         ?string $otrosInsumos,
     ): Producto {
         $producto = $this->productos->buscarPorId($id);

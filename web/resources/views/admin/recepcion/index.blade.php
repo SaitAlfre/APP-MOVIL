@@ -33,6 +33,7 @@
             <x-ui.select name="estado" label="Estado" placeholder="Todos" class="sm:w-44"
                 :options="['pendiente' => 'Pendientes', 'registrada' => 'Registradas']" :selected="$estado" />
             <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
+            @if (request()->hasAny(['desde', 'hasta', 'estado']))<x-ui.btn :href="route('admin.recepcion.index')" variant="ghost">Quitar filtros</x-ui.btn>@endif
         </form>
     </x-ui.card>
 

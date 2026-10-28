@@ -121,13 +121,15 @@ class AdminLiquidacionDetalleTest extends TestCase
     public function test_una_liquidacion_pendiente_ofrece_marcarla_pagada_y_una_pagada_no(): void
     {
         $pendiente = $this->liquidacion();
-        $this->get("/admin/liquidaciones/{$pendiente->id}")->assertSee('Marcar pagada');
+        $this->get("/admin/liquidaciones/{$pendiente->id}")->assertSee('Registrar pago realizado')
+            ->assertSee('action="'.route('admin.liquidaciones.pagar', $pendiente->id).'"', false);
 
         $pagada = $this->liquidacion(['estado' => 'pagada', 'pagada_en' => now()]);
         $respuesta = $this->get("/admin/liquidaciones/{$pagada->id}");
 
         $respuesta->assertSee('Marcada como pagada');
         $respuesta->assertDontSee('Pendiente de pago');
+        $respuesta->assertDontSee('action="'.route('admin.liquidaciones.pagar', $pagada->id).'"', false);
     }
 
     public function test_una_liquidacion_inexistente_devuelve_404(): void

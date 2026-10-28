@@ -56,14 +56,14 @@
                             <div class="flex items-center justify-end gap-1">
                                 <a href="{{ route('admin.liquidaciones.show', $liquidacion->id) }}" aria-label="Ver detalle de la liquidación"
                                     class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                    <x-icon name="eye" class="h-4 w-4" />
+                                    <x-icon name="eye" class="h-4 w-4" /><span class="ml-1 text-xs">Ver cálculo</span>
                                 </a>
                                 @if ($puedeGestionar && $liquidacion->estado->value === 'pendiente')
                                     <form method="POST" action="{{ route('admin.liquidaciones.pagar', $liquidacion->id) }}"
                                         data-confirm="¿Marcar como pagada la liquidación de {{ $fila['proveedor']?->nombres }} por S/ {{ number_format($liquidacion->montoTotal, 2) }}? La acción queda registrada en auditoría.">
                                         @csrf
                                         @method('PATCH')
-                                        <x-ui.btn type="submit" size="sm" variant="secondary">Marcar pagada</x-ui.btn>
+                                    <x-ui.btn type="submit" size="sm" variant="secondary">Registrar pago realizado</x-ui.btn>
                                     </form>
                                 @endif
                             </div>

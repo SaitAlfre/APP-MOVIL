@@ -31,7 +31,7 @@
         $hayFiltros = collect($filtros)->filter()->isNotEmpty();
     @endphp
 
-    <x-ui.page-header title="Auditoría" description="Historial de acciones sensibles del negocio, separado de los logs técnicos" />
+    <x-ui.page-header title="Auditoría" description="Consulta quién creó, corrigió o anuló información y el motivo de cada cambio." />
 
     <x-ui.card padding="p-4" class="mb-4">
         <form method="GET" action="{{ route('admin.auditoria.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,7 +75,7 @@
                         <td class="px-4 py-3 text-right">
                             <a href="{{ route('admin.auditoria.show', ['auditoria' => $registro->id] + $filtros) }}" aria-label="Ver cambios del registro #{{ $registro->id }}"
                                 class="inline-flex rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                <x-icon name="eye" class="h-4 w-4" />
+                                <x-icon name="eye" class="h-4 w-4" /><span class="ml-1 text-xs">Ver cambios</span>
                             </a>
                         </td>
                     </tr>

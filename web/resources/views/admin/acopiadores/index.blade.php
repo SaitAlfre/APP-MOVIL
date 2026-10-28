@@ -52,17 +52,17 @@
                             @endif
                         </td>
                         <td class="px-4 py-3">
-                            <div class="flex items-center justify-end gap-1">
+                            <div data-row-actions class="flex flex-wrap items-center justify-end gap-1">
                                 @if ($jornada)
                                     <a href="{{ route('admin.acopiadores.jornadas.show', $jornada->id) }}" aria-label="Ver jornada de {{ $acopiador->nombres }}"
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="eye" class="h-4 w-4" />
+                                        <x-icon name="eye" class="h-4 w-4" /><span>Ver jornada</span>
                                     </a>
                                 @endif
                                 @if ($operador->puede('usuarios', 'gestionar'))
                                     <a href="{{ route('admin.usuarios.edit', $acopiador->id) }}" aria-label="Editar cuenta de {{ $acopiador->nombres }}"
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="pencil" class="h-4 w-4" />
+                                        <x-icon name="pencil" class="h-4 w-4" /><span>Editar cuenta</span>
                                     </a>
                                 @endif
                             </div>

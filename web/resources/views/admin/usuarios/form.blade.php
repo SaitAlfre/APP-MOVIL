@@ -45,7 +45,7 @@
 
             <fieldset>
                 <legend class="mb-2 block text-sm font-medium text-eh-text">
-                    Roles <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
+                    ¿Qué trabajo realizará esta persona? <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
                 </legend>
                 @error('roles')
                     <p class="mb-2 text-xs text-eh-red">{{ $message }}</p>
@@ -55,7 +55,13 @@
                         <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-eh-border p-2.5 transition-colors hover:bg-eh-surface-alt">
                             <input type="{{ $esNuevo || $rolesMarcados->count() <= 1 ? 'radio' : 'checkbox' }}" name="roles[]" value="{{ $rol->value }}" @checked($rolesMarcados->contains($rol->value))
                                 class="rounded border-eh-border text-eh-primary focus:ring-eh-primary">
-                            <span class="text-sm text-eh-text">{{ $rol->etiqueta() }}</span>
+                            <span><span class="block text-sm font-semibold text-eh-text">{{ $rol->etiqueta() }}</span><span class="mt-1 block text-xs leading-relaxed text-eh-text-muted">{{ match ($rol->value) {
+                                'admin' => 'Administra cuentas, recojos, producción y pagos.',
+                                'acopiador' => 'Registra recojos en la app y consulta sus rutas en la web.',
+                                'calidad' => 'Registra análisis de leche y revisa los resultados de calidad.',
+                                'proveedor' => 'Consulta sus entregas y pagos, y envía solicitudes desde la app.',
+                                default => 'Revisa los permisos de este perfil antes de asignarlo.',
+                            } }}</span></span>
                         </label>
                     @endforeach
                 </div>

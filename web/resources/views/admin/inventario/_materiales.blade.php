@@ -1,52 +1,50 @@
-<div class="mb-5 grid gap-4 lg:grid-cols-3">
-    <x-ui.card padding="p-5" class="lg:col-span-1">
-        <h2 class="text-sm font-semibold">Leche disponible del acopio</h2>
-        <p class="mono mt-2 text-2xl font-bold text-eh-primary">{{ number_format(collect($lecheDisponible)->sum('litrosDisponibles'), 3) }} L</p>
-        <p class="mt-2 text-xs text-eh-text-muted">Saldo no asignado de los últimos 14 días, según acopio y producción. Los borradores reservan leche; al finalizar se libera el sobrante.</p>
-        @foreach ($lecheDisponible as $dia)
-            <p class="mt-2 flex justify-between text-xs"><span>{{ $dia['fecha']->format('d/m/Y') }}</span><span>{{ number_format($dia['litrosDisponibles'], 3) }} L</span></p>
-        @endforeach
-    </x-ui.card>
-    <x-ui.card padding="p-5" class="lg:col-span-2">
-        <h2 class="mb-3 text-sm font-semibold">Materiales para tus recetas</h2>
-        <x-ui.table :headers="['Material', 'Existencia', 'Unidad', 'Estado']">
-            @forelse ($materiales as $material)
-                <tr class="border-b border-eh-border">
-                    <td class="p-3 text-sm font-medium">{{ $material->nombre }}</td>
-                    <td class="p-3 mono">{{ number_format($material->existencia, 3) }}</td>
-                    <td class="p-3 text-sm">{{ $material->unidad }}</td>
-                    <td class="p-3"><x-ui.badge :variant="$material->existencia > 0 ? 'green' : 'yellow'" :label="$material->existencia > 0 ? 'Disponible' : 'Sin stock'" /></td>
-                </tr>
+<x-ui.card padding="p-5" class="mb-4">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-eh-primary-soft text-eh-primary"><x-icon name="droplets" class="h-6 w-6" /></span>
+            <div><h2 class="text-sm font-medium text-eh-text-muted">Leche disponible</h2><p class="mono mt-1 text-2xl font-bold text-eh-primary">{{ number_format(collect($lecheDisponible)->sum('litrosDisponibles'), 3) }} <span class="text-sm font-medium">L</span></p></div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            @forelse ($lecheDisponible as $dia)
+                <span class="rounded-xl bg-eh-surface-alt px-3 py-2 text-xs"><span class="text-eh-text-muted">{{ $dia['fecha']->format('d/m') }}</span><strong class="mono ml-2">{{ number_format($dia['litrosDisponibles'], 3) }} L</strong></span>
             @empty
-                <tr><td colspan="4" class="p-5 text-sm text-eh-text-muted">Crea materiales como sal, cuajo, azúcar o cultivos para agregarlos a tus recetas.</td></tr>
+                <span class="text-sm text-eh-text-muted">Sin leche disponible</span>
             @endforelse
-        </x-ui.table>
-    </x-ui.card>
-</div>
-@if ($puedeGestionar)
-    <div class="grid gap-4 lg:grid-cols-2">
-        <x-ui.card padding="p-5">
-            <h2 class="mb-4 text-sm font-semibold">Crear material</h2>
-            <form method="POST" action="{{ route('admin.inventario.materiales.store') }}" class="space-y-4" data-once>
-                @csrf
-                <x-ui.field name="nombre" label="Nombre del material" placeholder="Sal, cuajo, azúcar…" maxlength="100" required />
-                <x-ui.select name="unidad" label="Unidad de inventario y receta" required :options="['kg' => 'Kilogramos (kg)', 'g' => 'Gramos (g)', 'L' => 'Litros (L)', 'mL' => 'Mililitros (mL)', 'unidad' => 'Unidades']" />
-                <p class="text-xs text-eh-text-muted">El stock empieza en cero. Elige una unidad y úsala también en las entradas y recetas de este material. La leche ya está vinculada al acopio.</p>
-                <x-ui.btn type="submit">Crear material</x-ui.btn>
-            </form>
-        </x-ui.card>
-        <x-ui.card padding="p-5">
-            <h2 class="mb-4 text-sm font-semibold">Registrar entrada o salida de material</h2>
-            <form method="POST" action="{{ route('admin.inventario.materiales.movimientos.store') }}" class="space-y-4" data-once>
-                @csrf
-                <x-ui.select name="material_id" label="Material" placeholder="Selecciona un material" required :options="$materiales->mapWithKeys(fn ($m) => [$m->id => $m->nombre.' · '.$m->unidad])->all()" />
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.select name="operacion" label="Operación" required :options="['entrada' => 'Entrada / reposición', 'salida' => 'Salida / merma']" />
-                    <x-ui.field name="cantidad" label="Cantidad en la unidad del material" type="number" min="0.001" max="999999999" step="0.001" required />
-                </div>
-                <x-ui.field name="motivo" label="Motivo o referencia" placeholder="Compra, inventario inicial, merma…" maxlength="200" required />
-                <x-ui.btn type="submit" :disabled="$materiales->isEmpty()">Guardar movimiento</x-ui.btn>
-            </form>
-        </x-ui.card>
+            <span class="self-center px-2 text-xs text-eh-text-muted">Últimos 14 días</span>
+        </div>
     </div>
-@endif
+    @if ($productoFiltro && $productoFiltro->litros_por_unidad !== null)<p class="mt-4 border-t border-eh-border pt-3 text-sm text-eh-text-muted">{{ $productoFiltro->nombre }}: <strong>{{ number_format((float) $productoFiltro->litros_por_unidad, 3) }} L</strong> de leche por {{ $productoFiltro->unidad_produccion }}</p>@endif
+</x-ui.card>
+
+<x-ui.card class="overflow-hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-eh-border p-5">
+        <h2 class="text-base font-semibold">Ingredientes <span class="ml-1 text-sm font-normal text-eh-text-muted">{{ $materiales->count() }}</span></h2>
+        @if ($puedeGestionar)<x-ui.btn icon="plus" data-modal-open="nuevo-ingrediente">Nuevo ingrediente</x-ui.btn>@endif
+    </div>
+    @if ($materiales->isEmpty())
+        <x-ui.empty icon="cube" :title="$productoFiltro ? 'Este producto no tiene ingredientes configurados' : 'Aún no hay ingredientes'">
+            @if ($puedeGestionar)
+                <x-slot:action>
+                    <x-ui.btn icon="plus" data-modal-open="nuevo-ingrediente">Agregar ingrediente</x-ui.btn>
+                </x-slot:action>
+            @endif
+        </x-ui.empty>
+    @else
+        <x-ui.table :headers="['Ingrediente', 'Disponible', 'Estado', '']" caption="Ingredientes disponibles">
+            @foreach ($materiales as $material)
+                <tr class="border-b border-eh-border last:border-0">
+                    <td class="px-5 py-4 text-sm font-semibold">{{ $material->nombre }}</td>
+                    <td class="mono px-5 py-4 text-base font-semibold">{{ number_format($material->existencia, 3) }} <span class="text-xs font-normal text-eh-text-muted">{{ $material->unidad }}</span></td>
+                    <td class="px-5 py-4"><x-ui.badge :variant="$material->existencia > 0 ? 'green' : 'yellow'" :label="$material->existencia > 0 ? 'Disponible' : 'Sin stock'" /></td>
+                    <td class="px-5 py-4">
+                        @if ($puedeGestionar)
+                            <div class="flex justify-end gap-2">
+                                <x-ui.btn size="sm" variant="secondary" data-modal-open="movimiento-ingrediente" :data-material-id="$material->id" data-stock-operation="entrada" :aria-label="'Registrar entrada de '.$material->nombre">+ Entrada</x-ui.btn>
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        </x-ui.table>
+    @endif
+</x-ui.card>

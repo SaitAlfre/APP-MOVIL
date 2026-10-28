@@ -74,10 +74,10 @@
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $usuario->roles === [] ? 'Sin perfil asignado' : ($accesoWeb ? 'Sí' : 'Solo app móvil') }}</td>
                         <td class="px-4 py-3">
                             @if ($puedeGestionar)
-                                <div class="flex items-center justify-end gap-1">
+                                <div data-row-actions class="flex min-w-56 flex-wrap items-center justify-end gap-1">
                                     <a href="{{ route('admin.usuarios.edit', $usuario->id) }}" aria-label="Editar {{ $usuario->nombres }}"
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="pencil" class="h-4 w-4" />
+                                        <x-icon name="pencil" class="h-4 w-4" /><span>Editar</span>
                                     </a>
 
                                     <form method="POST" action="{{ route('admin.usuarios.estado', $usuario->id) }}"
@@ -87,7 +87,7 @@
                                         <input type="hidden" name="activo" value="{{ $usuario->activo ? '0' : '1' }}">
                                         <button type="submit" aria-label="{{ $usuario->activo ? 'Desactivar' : 'Activar' }} {{ $usuario->nombres }}"
                                             class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                            <x-icon :name="$usuario->activo ? 'xMark' : 'check'" class="h-4 w-4" />
+                                            <x-icon :name="$usuario->activo ? 'xMark' : 'check'" class="h-4 w-4" /><span>{{ $usuario->activo ? 'Desactivar' : 'Activar' }}</span>
                                         </button>
                                     </form>
 
@@ -97,19 +97,19 @@
                                             @csrf
                                             <button type="submit" aria-label="Desbloquear {{ $usuario->nombres }}"
                                                 class="rounded-lg p-1.5 text-eh-primary hover:bg-eh-primary-soft">
-                                                <x-icon name="shield" class="h-4 w-4" />
+                                                <x-icon name="shield" class="h-4 w-4" /><span>Desbloquear</span>
                                             </button>
                                         </form>
                                     @else
                                         <button type="button" data-modal-open="bloquear-{{ $usuario->id }}" aria-label="Bloquear {{ $usuario->nombres }}"
                                             class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-red-soft hover:text-eh-red">
-                                            <x-icon name="exclamation" class="h-4 w-4" />
+                                            <x-icon name="exclamation" class="h-4 w-4" /><span>Bloquear</span>
                                         </button>
                                     @endif
 
                                     <button type="button" data-modal-open="pin-{{ $usuario->id }}" aria-label="Restablecer PIN de {{ $usuario->nombres }}"
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
-                                        <x-icon name="arrowPath" class="h-4 w-4" />
+                                        <x-icon name="arrowPath" class="h-4 w-4" /><span>Cambiar PIN</span>
                                     </button>
                                 </div>
                             @else

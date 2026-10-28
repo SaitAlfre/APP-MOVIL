@@ -23,4 +23,11 @@ class TarifaLeche extends Model
     {
         return TarifaLecheFactory::new();
     }
+
+    public static function vigenteEn(?string $fecha = null): ?self
+    {
+        $fecha ??= today('America/Lima')->toDateString();
+
+        return self::whereDate('desde', '<=', $fecha)->whereDate('hasta', '>=', $fecha)->orderByDesc('desde')->first();
+    }
 }

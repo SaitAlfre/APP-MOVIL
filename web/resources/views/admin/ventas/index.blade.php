@@ -8,8 +8,8 @@
 
         $pestanas = collect([
             ['key' => 'ventas', 'label' => 'Ventas'],
-            ['key' => 'clientes', 'label' => 'Clientes'],
-        ])->map(fn ($item) => $item + ['url' => route('admin.ventas.index', ['tab' => $item['key']])])->all();
+            ['key' => 'clientes', 'label' => 'Compradores'],
+        ])->map(fn ($item) => $item + ['url' => $item['key'] === 'clientes' ? route('admin.compradores.index') : route('admin.ventas.index')])->all();
 
         $pendientes = $ventas->getCollection()->where('estado', 'pendiente')->count();
     @endphp
@@ -46,13 +46,13 @@
                     @endif
                 </x-ui.empty>
             @else
-                <x-ui.table :headers="['Código', 'Fecha', 'Cliente', 'Tipo', 'Productos', 'Subtotal', 'Descuento', 'Total', 'Estado', '']" caption="Ventas registradas">
+                <x-ui.table :headers="['Código', 'Fecha', 'Comprador', 'Tipo', 'Productos', 'Subtotal', 'Descuento', 'Total', 'Estado', '']" caption="Ventas registradas">
                     @foreach ($ventas as $venta)
                         <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                             <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ $venta->codigo }}</td>
                             <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $venta->vendida_en->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $venta->cliente?->nombre ?? '—' }}</td>
-                            <td class="px-4 py-3"><x-ui.badge variant="blue" :label="ucfirst($venta->cliente?->tipo ?? '—')" /></td>
+                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $venta->proveedor?->nombres ?? $venta->cliente?->nombre ?? '—' }}</td>
+                            <td class="px-4 py-3"><x-ui.badge variant="blue" :label="ucfirst($venta->tipo_comprador)" /></td>
                             <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $venta->detalles->count() }} ítem(s)</td>
                             <td class="mono px-4 py-3 text-xs text-eh-text">S/ {{ number_format((float) $venta->subtotal, 2) }}</td>
                             <td class="mono px-4 py-3 text-xs {{ (float) $venta->descuento > 0 ? 'text-eh-red' : 'text-eh-text-muted' }}">
@@ -68,7 +68,7 @@
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="estado" value="completada">
-                                            <x-ui.btn type="submit" size="sm" variant="secondary">Completar</x-ui.btn>
+                                    <x-ui.btn type="submit" size="sm" variant="secondary">Completar y despachar</x-ui.btn>
                                         </form>
                                         <form method="POST" action="{{ route('admin.ventas.estado', $venta) }}"
                                             data-confirm="¿Anular la venta {{ $venta->codigo }}?">
@@ -126,14 +126,33 @@
 
     @if ($puedeGestionar)
         <x-ui.modal id="nueva-venta" title="Nueva venta" size="lg">
-            <form method="POST" action="{{ route('admin.ventas.store') }}" class="space-y-4" data-once>
+            <form method="POST" action="{{ route('admin.ventas.store') }}" class="space-y-4" data-sale-editor data-once>
                 @csrf
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <x-ui.select name="cliente_id" label="Cliente" required placeholder="Seleccionar cliente"
-                        :options="$clientesActivos->mapWithKeys(fn ($cliente) => [$cliente->id => $cliente->nombre])->all()" />
-                    <x-ui.field name="descuento" label="Descuento (S/)" type="number" min="0" step="0.01" :value="0" />
-                    <x-ui.select name="estado" label="Estado" required :options="['completada' => 'Completada (descuenta stock)', 'pendiente' => 'Pendiente']" />
+                @if ($clientesActivos->isEmpty() && $proveedoresActivos->isEmpty())
+                    <x-ui.alert type="info">No hay compradores registrados. <a class="font-semibold underline" href="{{ route('admin.compradores.index') }}">Registrar comprador</a>.</x-ui.alert>
+                @endif
+                @if ($productos->isEmpty())
+                    <x-ui.alert type="info">Primero necesitas un producto activo. <a class="font-semibold underline" href="{{ route('admin.produccion.productos.index') }}">Ir a Productos</a>.</x-ui.alert>
+                @endif
+                <fieldset>
+                    <legend class="mb-2 text-sm font-semibold">Vender a</legend>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (['cliente' => 'Cliente', 'mayorista' => 'Mayorista', 'proveedor' => 'Proveedor'] as $tipo => $etiqueta)
+                            <label class="choice-pill"><input type="radio" name="tipo_comprador" value="{{ $tipo }}" @checked(old('tipo_comprador', 'cliente') === $tipo)>{{ $etiqueta }}</label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                <div data-sale-buyer="cliente">
+                    <x-ui.select name="cliente_id" label="Comprador" required placeholder="Seleccionar comprador">
+                        @foreach ($clientesActivos as $cliente)
+                            <option value="{{ $cliente->id }}" data-buyer-type="{{ $cliente->tipo === 'mayorista' ? 'mayorista' : 'cliente' }}" @selected((string) old('cliente_id') === (string) $cliente->id)>{{ $cliente->nombre }} · {{ $cliente->ciudad ?: $cliente->codigo }}</option>
+                        @endforeach
+                    </x-ui.select>
                 </div>
+                <div data-sale-buyer="proveedor" hidden>
+                    <x-ui.select name="proveedor_id" label="Proveedor" required placeholder="Seleccionar proveedor" :options="$proveedoresActivos->mapWithKeys(fn ($p) => [$p->id => $p->nombres.' · '.$p->codigo])->all()" />
+                </div>
+                <x-ui.select name="estado" label="¿Ya se entregaron los productos?" required placeholder="Elige una opción" :options="['completada' => 'Sí, completar y despachar', 'pendiente' => 'Todavía no, guardar pendiente']" />
 
                 <div class="overflow-x-auto rounded-xl border border-eh-border">
                     <table class="w-full min-w-[560px] text-sm">
@@ -142,51 +161,33 @@
                             <tr class="border-b border-eh-border bg-eh-surface-alt">
                                 <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Producto</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Cantidad</th>
-                                <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Precio unitario (S/)</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-eh-text-muted">Precio unitario (S/)</th><th><span class="sr-only">Quitar</span></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @for ($i = 0; $i < 4; $i++)
-                                <tr class="border-b border-eh-border last:border-0">
-                                    <td class="px-4 py-2">
-                                        <label class="sr-only" for="venta-producto-{{ $i }}">Producto de la fila {{ $i + 1 }}</label>
-                                        <select id="venta-producto-{{ $i }}" name="productos[{{ $i }}][producto_id]" @if ($i === 0) required @endif
-                                            class="min-w-52 w-full rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
-                                            <option value="">Seleccionar…</option>
-                                            @foreach ($productos as $producto)
-                                                <option value="{{ $producto->id }}">{{ $producto->nombre }} ({{ number_format((float) $producto->existencia, 2) }} {{ $producto->unidad_produccion }})</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <label class="sr-only" for="venta-cantidad-{{ $i }}">Cantidad de la fila {{ $i + 1 }}</label>
-                                        <input id="venta-cantidad-{{ $i }}" name="productos[{{ $i }}][cantidad]" type="number" min="0.001" step="0.001" @if ($i === 0) required @endif
-                                            class="w-24 rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <label class="sr-only" for="venta-precio-{{ $i }}">Precio unitario de la fila {{ $i + 1 }}</label>
-                                        <input id="venta-precio-{{ $i }}" name="productos[{{ $i }}][precio_unitario]" type="number" min="0.01" step="0.01" @if ($i === 0) required @endif
-                                            class="w-28 rounded-lg border border-eh-border bg-eh-surface px-2 py-1 text-sm text-eh-text focus:border-eh-primary focus:outline-none">
-                                    </td>
-                                </tr>
-                            @endfor
+                        <tbody data-sale-lines>
+                            @foreach (array_slice(old('productos', [[]]), 0, 20, true) as $i => $fila)
+                                @include('admin.ventas._linea', ['indice' => $i])
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
 
+                <template data-sale-template>@include('admin.ventas._linea', ['indice' => '__INDEX__'])</template>
+                <x-ui.btn type="button" variant="ghost" size="sm" icon="plus" data-sale-add>Agregar producto</x-ui.btn>
                 <div class="flex flex-col gap-1">
                     <label for="venta-observaciones" class="text-sm font-medium text-eh-text">Observaciones</label>
                     <textarea id="venta-observaciones" name="observaciones" maxlength="500" rows="2"
                         class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary"></textarea>
                 </div>
 
-                <x-ui.alert type="warning">
-                    Una venta completada descuenta stock de inmediato. Si una línea falla, no se guarda ninguna.
-                </x-ui.alert>
+                <div class="grid items-end gap-4 rounded-xl bg-eh-surface-alt p-4 sm:grid-cols-2">
+                    <x-ui.field name="descuento" label="Descuento" type="number" min="0" max="999999999" step="0.01" :value="0" unit="S/" />
+                    <div class="text-right" aria-live="polite"><span class="text-xs text-eh-text-muted">Total</span><p class="mono text-2xl font-semibold text-eh-primary" data-sale-total>S/ 0.00</p></div>
+                </div>
 
                 <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
-                    <x-ui.btn type="submit">Registrar venta</x-ui.btn>
+                    <x-ui.btn type="submit" :disabled="($clientesActivos->isEmpty() && $proveedoresActivos->isEmpty()) || $productos->isEmpty()">Registrar venta</x-ui.btn>
                 </div>
             </form>
         </x-ui.modal>

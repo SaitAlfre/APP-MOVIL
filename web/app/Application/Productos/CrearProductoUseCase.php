@@ -17,7 +17,7 @@ final class CrearProductoUseCase
         string $unidadProduccion,
         ?float $contenidoPorUnidad,
         ?string $unidadContenido,
-        float $litrosPorUnidad,
+        ?float $litrosPorUnidad,
         ?string $otrosInsumos,
     ): Producto {
         return $this->productos->guardar(Producto::crear($nombre, $presentacion, $unidadProduccion, $contenidoPorUnidad, $unidadContenido, $litrosPorUnidad, $otrosInsumos));

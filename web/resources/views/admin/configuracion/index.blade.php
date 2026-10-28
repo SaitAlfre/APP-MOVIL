@@ -31,7 +31,7 @@
         </x-ui.card>
 
         <x-ui.card padding="p-6">
-            <h2 class="mb-4 text-sm font-semibold text-eh-text">Parámetros operativos</h2>
+            <h2 class="mb-4 text-base font-semibold text-eh-text">Calendario de trabajo y moneda</h2>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-ui.select name="moneda" label="Moneda" required :options="['PEN' => 'PEN (S/)']"
                     :selected="$configuracion['moneda']" :disabled="! $puedeGestionar" />

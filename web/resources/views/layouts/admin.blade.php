@@ -40,10 +40,13 @@
             ],
             'Liquidaciones y pagos' => [
                 ['ruta' => 'admin.liquidaciones.index', 'patron' => 'admin.liquidaciones.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Liquidaciones y pagos', 'icono' => 'liquidacion'],
-                ['ruta' => 'admin.tarifas.index', 'patron' => 'admin.tarifas.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Precios de leche', 'icono' => 'tarifa'],
+                ['ruta' => 'admin.tarifas.index', 'patron' => 'admin.tarifas.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Precio de la leche', 'icono' => 'tarifa'],
             ],
             'Planta' => [
-                ['ruta' => 'admin.produccion.index', 'patron' => 'admin.produccion.*', 'modulo' => 'produccion', 'etiqueta' => 'Producción', 'icono' => 'factory'],
+                ['ruta' => 'admin.produccion.productos.index', 'patron' => 'admin.produccion.productos.*', 'modulo' => 'productos', 'etiqueta' => 'Productos', 'icono' => 'cube'],
+                ['ruta' => 'admin.recetas.index', 'patron' => 'admin.recetas.*', 'modulo' => 'recetas', 'etiqueta' => 'Recetas', 'icono' => 'receta'],
+                ['ruta' => 'admin.compradores.index', 'patron' => 'admin.compradores.*', 'modulo' => 'ventas', 'etiqueta' => 'Compradores', 'icono' => 'users'],
+                ['ruta' => 'admin.produccion.index', 'patron' => ['admin.produccion.index', 'admin.produccion.producir.*', 'admin.produccion.historial.*'], 'modulo' => 'produccion', 'etiqueta' => 'Producción', 'icono' => 'factory'],
                 ['ruta' => 'admin.inventario.index', 'patron' => 'admin.inventario.*', 'modulo' => 'inventario', 'etiqueta' => 'Inventario', 'icono' => 'cube'],
                 ['ruta' => 'admin.ventas.index', 'patron' => 'admin.ventas.*', 'modulo' => 'ventas', 'etiqueta' => 'Ventas', 'icono' => 'shoppingCart'],
             ],
@@ -97,7 +100,12 @@
                 </button>
             </div>
 
-            <nav aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
+            <div class="sidebar-label mb-4 shrink-0">
+                <label for="buscar-menu" class="mb-2 block px-1 text-xs font-semibold text-eh-text-muted">¿Qué necesitas hacer?</label>
+                <input id="buscar-menu" type="search" data-menu-search autocomplete="off" placeholder="Buscar: rutas, pagos, leche…" class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2.5 text-sm text-eh-text placeholder:text-eh-text-muted focus:outline-2 focus:outline-eh-primary" aria-controls="opciones-menu">
+            </div>
+            <nav id="opciones-menu" aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
+                <p data-menu-empty hidden role="status" class="px-3 text-sm text-eh-text-muted">No encontramos esa opción.</p>
                 @foreach ($navGroups as $grupo => $items)
                     @php
                         $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']));
@@ -105,7 +113,7 @@
                     @endphp
                     @continue($itemsVisibles->isEmpty())
                     @if ($itemsVisibles->count() > 1)
-                        <details data-nav-group="{{ $loop->index }}" data-active="{{ $grupoActivo ? 'true' : 'false' }}" @if ($grupoActivo) open @endif>
+                        <details data-menu-group data-nav-group="{{ $loop->index }}" data-active="{{ $grupoActivo ? 'true' : 'false' }}" @if ($grupoActivo) open @endif>
                             <summary class="sidebar-group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-eh-text hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary" title="{{ $grupo }}">
                                 <x-icon :name="$iconosGrupo[$grupo] ?? $itemsVisibles->first()['icono']" class="h-[18px] w-[18px] shrink-0" />
                                 <span class="sidebar-label flex-1">{{ $grupo }}</span>
@@ -113,9 +121,10 @@
                             </summary>
                             <div class="sidebar-children ml-5 mt-1 space-y-1 border-l border-eh-border pl-2">
                     @endif
+                    @if ($itemsVisibles->count() === 1)<div data-menu-group>@endif
                     @foreach ($itemsVisibles as $item)
                         @php $activo = request()->routeIs(...(array) $item['patron']); @endphp
-                        <a href="{{ route($item['ruta']) }}" title="{{ $item['etiqueta'] }}" aria-label="{{ $item['etiqueta'] }}" @class([
+                        <a data-menu-link data-menu-keywords="{{ $grupo }} {{ ['mapa_rutas' => 'mapa recorrido paradas recojo', 'liquidaciones' => 'pagar pago dinero proveedor precio leche', 'acopiadores' => 'recoger leche viaje jornada', 'entregas' => 'leche litros recojo', 'calidad' => 'analisis escaner leche', 'inventario' => 'stock existencias insumos ingredientes', 'produccion' => 'hacer queso yogur lotes', 'productos' => 'catalogo precios productos', 'recetas' => 'receta ingredientes formula', 'ventas' => 'venta comprador clientes mayoristas'][ $item['modulo'] ] ?? '' }}" href="{{ route($item['ruta']) }}" title="{{ $item['etiqueta'] }}" aria-label="{{ $item['etiqueta'] }}" @class([
                             'sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-eh-primary',
                             'bg-eh-sidebar-active font-semibold text-eh-primary' => $activo,
                             'text-eh-sidebar-muted hover:bg-eh-surface-alt hover:text-eh-text' => ! $activo,
@@ -124,6 +133,7 @@
                             <span class="sidebar-label flex-1">{{ $item['etiqueta'] }}</span>
                         </a>
                     @endforeach
+                    @if ($itemsVisibles->count() === 1)</div>@endif
                     @if ($itemsVisibles->count() > 1)
                             </div>
                         </details>
@@ -209,7 +219,7 @@
                     @endif
 
                     @if ($errors->any())
-                        <x-ui.alert type="error" title="Revisa los datos ingresados." class="mb-5">
+                        <x-ui.alert type="error" title="Falta corregir algunos datos para guardar." class="mb-5" tabindex="-1" data-form-errors>
                             <ul class="mt-1 list-disc space-y-0.5 pl-5">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>

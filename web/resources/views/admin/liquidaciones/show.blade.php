@@ -20,7 +20,7 @@
                     data-confirm="¿Marcar como pagada esta liquidación por S/ {{ number_format($liquidacion->montoTotal, 2) }}? La acción queda registrada en auditoría.">
                     @csrf
                     @method('PATCH')
-                    <x-ui.btn type="submit" size="sm" variant="accent">Marcar pagada</x-ui.btn>
+                    <x-ui.btn type="submit" size="sm" variant="accent">Registrar pago realizado</x-ui.btn>
                 </form>
             @endif
             <x-ui.btn type="button" size="sm" variant="secondary" icon="printer" onclick="window.print()">Imprimir</x-ui.btn>

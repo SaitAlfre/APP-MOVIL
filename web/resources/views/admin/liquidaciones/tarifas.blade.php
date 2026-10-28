@@ -1,18 +1,32 @@
 @extends('layouts.admin')
-@section('titulo', 'Precios por temporada')
+@section('titulo', 'Precio de la leche')
 @section('contenido')
-<x-ui.page-header title="Precios por temporada" description="Precio general para todos los proveedores, en soles por litro. Las fechas de inicio y fin están incluidas y se interpretan en hora de Perú.">
+<x-ui.page-header title="Precio de la leche">
     <x-slot:actions><x-ui.btn :href="route('admin.liquidaciones.index')" variant="ghost">Ver liquidaciones</x-ui.btn></x-slot:actions>
 </x-ui.page-header>
+<x-ui.card padding="p-5" class="mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div><p class="text-sm text-eh-text-muted">Vigente hoy · {{ \Carbon\Carbon::parse($hoy)->format('d/m/Y') }}</p><p class="mono mt-2 text-3xl font-bold text-eh-primary">{{ $actual ? 'S/ '.number_format((float) $actual->precio, 3) : 'Sin configurar' }}<span class="text-sm font-normal"> / litro</span></p></div>
+        <x-ui.btn icon="pencil" data-modal-open="precio-actual">Cambiar desde hoy</x-ui.btn>
+    </div>
+</x-ui.card>
+<x-ui.modal id="precio-actual" title="Cambiar precio desde hoy">
+    <form method="POST" action="{{ route('admin.tarifas.actual') }}" class="space-y-4" data-once>
+        @csrf
+        <x-ui.field name="precio" id="precio-hoy" label="Nuevo precio por litro" unit="S/" type="number" min="0.001" max="9999999" step="0.001" required :value="$actual?->precio" />
+        <x-ui.field name="hasta" id="precio-hoy-hasta" label="Vigente hasta" type="date" required :min="$actual?->hasta->toDateString() ?? $hoy" :value="$actual?->hasta->toDateString() ?? today('America/Lima')->endOfYear()->toDateString()" />
+        <div class="rounded-xl bg-eh-primary-soft p-3 text-sm text-eh-primary">Se aplica desde hoy. Los días anteriores conservan su precio.</div>
+        <div class="flex justify-end gap-2"><x-ui.btn variant="ghost" data-modal-close>Cancelar</x-ui.btn><x-ui.btn type="submit">Guardar precio de hoy</x-ui.btn></div>
+    </form>
+</x-ui.modal>
 @if(auth('operador')->user()->puede('liquidaciones', 'gestionar'))
 <x-ui.card padding="p-6" class="mb-6">
     <h2 class="mb-4 font-semibold">Programar un precio</h2>
     <form autocomplete="off" method="POST" action="{{ route('admin.tarifas.store') }}" class="grid gap-4 sm:grid-cols-3" data-once>
         @csrf
-        <x-ui.field name="precio" label="Precio por litro (S/)" inputmode="decimal" type="number" min="0.001" max="9999999" step="0.001" required hint="Hasta tres decimales. Ejemplo: 1.850" />
+        <x-ui.field name="precio" label="Precio por litro (S/)" inputmode="decimal" type="number" min="0.001" max="9999999" step="0.001" required />
         <x-ui.field name="desde" label="Vigente desde" type="date" required />
         <x-ui.field name="hasta" label="Vigente hasta" type="date" required />
-        <p class="text-sm text-eh-text-muted sm:col-span-3">No se asigna un precio automáticamente. Si cambia a mitad de una liquidación, cada entrega usa el precio de su fecha.</p>
         <x-ui.btn type="submit">Guardar precio</x-ui.btn>
     </form>
 </x-ui.card>

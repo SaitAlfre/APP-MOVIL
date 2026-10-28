@@ -74,7 +74,7 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
             $codigo = $this->generarCodigo($lote->fecha);
 
             $producto = ProductoEloquent::whereKey($lote->productoId)->lockForUpdate()->firstOrFail();
-            if (! $producto->activo) {
+            if (! $producto->activo || ! $producto->receta_activa || $producto->litros_por_unidad === null) {
                 throw ValidationException::withMessages(['producto_id' => 'La receta está inactiva. Selecciona una receta activa.']);
             }
             $unidadesEstimadas = (int) floor(round($lote->litrosAsignados / (float) $producto->litros_por_unidad, 9));

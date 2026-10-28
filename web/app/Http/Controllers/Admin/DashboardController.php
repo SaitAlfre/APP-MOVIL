@@ -8,6 +8,7 @@ use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Domain\Usuarios\UsuarioRepositoryInterface;
 use App\Domain\Zonas\ZonaRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
 use DateTimeImmutable;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -87,6 +88,8 @@ class DashboardController extends Controller
             'zonaId' => $zonaId,
             'agrupacion' => $agrupacion,
             'zonasDisponibles' => $zonas->todas(),
+            'tarifaActual' => $request->user('operador')->puede('liquidaciones') ? TarifaLeche::vigenteEn() : null,
+            'proximaTarifa' => $request->user('operador')->puede('liquidaciones') ? TarifaLeche::whereDate('desde', '>', today('America/Lima')->toDateString())->orderBy('desde')->first() : null,
         ]));
     }
 }

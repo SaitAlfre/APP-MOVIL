@@ -62,7 +62,7 @@
                 @enderror
             </x-ui.card>
 
-            <x-ui.btn type="submit" class="w-full">Validar archivo</x-ui.btn>
+                    <x-ui.btn type="submit" class="w-full">Revisar archivo</x-ui.btn>
         </form>
     @endif
 

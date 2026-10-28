@@ -80,19 +80,20 @@ class MapaRutaController extends Controller
         $proveedoresSector = $puedeGestionar
             ? Proveedor::where('estado', 'activo')->orderBy('nombres')->get(['id', 'codigo', 'nombres', 'direccion', 'zona_id', 'estado'])
             : collect();
-        $paradas = $this->puntosParaMapa($puedeGestionar ? old('paradas', $ruta->paradas) : $ruta->paradas, true);
-        $trazado = $this->puntosParaMapa($puedeGestionar ? old('trazado', $ruta->trazado) : $ruta->trazado, false);
+        $paradas = $this->puntosParaMapa($puedeGestionar ? $this->datosAnteriores('paradas', $ruta->paradas) : $ruta->paradas, true);
+        $trazado = $this->puntosParaMapa($puedeGestionar ? $this->datosAnteriores('trazado', $ruta->trazado) : $ruta->trazado, false);
         $proveedores = Proveedor::whereIn('id', collect($paradas)->pluck('proveedor_id')->filter())
             ->get(['id', 'codigo', 'nombres', 'direccion', 'zona_id', 'estado']);
         $zonasCatalogo = $puedeGestionar ? Zona::where('activo', true)->orWhere('id', $ruta->zona_id)->orderBy('nombre')->get() : collect();
         $configMapa = [
             'paradas' => $paradas, 'trazado' => $trazado, 'zona_id' => $sectorSeleccionado,
+            'cambios_pendientes' => $puedeGestionar && session()->hasOldInput('paradas_json'),
             'teselas' => config('mapas.teselas'), 'centro' => config('mapas.centro'),
             'ruteo' => $puedeGestionar ? config('mapas.ruteo') : null,
             'credito_ruteo' => str_contains((string) config('mapas.ruteo'), 'openstreetmap.de') ? 'OSRM / FOSSGIS' : 'OSRM',
-            'resumen' => $puedeGestionar ? old('resumen_recorrido', $ruta->resumen_recorrido) : $ruta->resumen_recorrido,
+            'resumen' => $puedeGestionar ? $this->datosAnteriores('resumen_recorrido', $ruta->resumen_recorrido) : $ruta->resumen_recorrido,
             'sectores' => $zonasCatalogo->map(fn (Zona $zona) => ['id' => (int) $zona->id, 'activo' => $zona->activo])->values()->all(),
-            'proveedores' => $proveedoresSector->merge($proveedores)->map(fn (Proveedor $proveedor) => [
+            'proveedores' => $proveedoresSector->merge($proveedores)->unique('id')->map(fn (Proveedor $proveedor) => [
                 'id' => (int) $proveedor->id, 'codigo' => $proveedor->codigo, 'nombres' => $proveedor->nombres, 'direccion' => $proveedor->direccion,
                 'zona_id' => (int) $proveedor->zona_id, 'estado' => $proveedor->estado->value,
             ])->values()->all(),
@@ -134,6 +135,13 @@ class MapaRutaController extends Controller
             'indicaciones' => $datos['indicaciones'] ?? null,
             'resumen_recorrido' => $datos['resumen_recorrido'] ?? null,
         ];
+    }
+
+    private function datosAnteriores(string $campo, mixed $actual): mixed
+    {
+        $json = old($campo.'_json');
+
+        return is_string($json) ? json_decode($json, true) : old($campo, $actual);
     }
 
     /** @return list<array<string, mixed>> */

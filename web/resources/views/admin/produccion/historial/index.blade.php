@@ -110,14 +110,14 @@
                                             data-confirm="¿Iniciar el lote {{ $lote->codigo }}? Se verificará el stock y se descontarán los ingredientes de su receta.">
                                             @csrf
                                             @method('PATCH')
-                                            <x-ui.btn type="submit" size="sm" variant="accent">Iniciar</x-ui.btn>
+                                            <x-ui.btn type="submit" size="sm" variant="accent">Iniciar producción</x-ui.btn>
                                         </form>
                                     @endif
                                     @if ($lote->estado === $Estado::EnProceso)
-                                        <x-ui.btn type="button" size="sm" variant="secondary" data-modal-open="finalizar-{{ $lote->id }}">Finalizar</x-ui.btn>
+                                        <x-ui.btn type="button" size="sm" variant="secondary" data-modal-open="finalizar-{{ $lote->id }}">Registrar resultado final</x-ui.btn>
                                     @endif
                                     @if (in_array($lote->estado, [$Estado::Borrador, $Estado::EnProceso], true))
-                                        <x-ui.btn type="button" size="sm" variant="ghost" data-modal-open="cancelar-{{ $lote->id }}">Cancelar</x-ui.btn>
+                                        <x-ui.btn type="button" size="sm" variant="ghost" data-modal-open="cancelar-{{ $lote->id }}">Cancelar lote</x-ui.btn>
                                     @endif
                                 </div>
                             @endif

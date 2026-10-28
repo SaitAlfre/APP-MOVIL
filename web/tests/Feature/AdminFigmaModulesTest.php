@@ -41,11 +41,11 @@ class AdminFigmaModulesTest extends TestCase
 
     public function test_venta_completada_descuenta_stock_y_registra_movimiento(): void
     {
-        $producto = Producto::factory()->create(['existencia' => 20, 'unidad_produccion' => 'kg']);
+        $producto = Producto::factory()->create(['existencia' => 20, 'unidad_produccion' => 'kg', 'precio_mayorista' => 12]);
         $cliente = Cliente::create(['codigo' => 'CLI-001', 'tipo' => 'mayorista', 'nombre' => 'Mercado Huata', 'documento' => '20123456789']);
 
         $this->post('/admin/ventas', [
-            'cliente_id' => $cliente->id, 'descuento' => 5, 'estado' => 'completada',
+            'tipo_comprador' => 'mayorista', 'cliente_id' => $cliente->id, 'descuento' => 5, 'estado' => 'completada',
             'productos' => [['producto_id' => $producto->id, 'cantidad' => 3, 'precio_unitario' => 12]],
         ])->assertRedirect();
 
@@ -60,7 +60,7 @@ class AdminFigmaModulesTest extends TestCase
 
         $this->post('/admin/inventario/ajustes', [
             'producto_id' => $producto->id, 'operacion' => 'salida', 'cantidad' => 3, 'motivo' => 'Merma',
-        ])->assertStatus(422);
+        ])->assertNotFound();
 
         $this->assertEquals(2.0, (float) $producto->fresh()->existencia);
         $this->assertSame(0, MovimientoProducto::count());

@@ -60,10 +60,9 @@ class AdminPestanasModulosTest extends TestCase
 
         $movimientos = $this->get('/admin/inventario?tab=movimientos');
         $movimientos->assertOk();
-        $movimientos->assertViewHas('tab', 'movimientos');
-        $movimientos->assertSee('Lote LP-0920-01');
-        $movimientos->assertSee('+86.00 kg');
-        $movimientos->assertSee('-2.00 kg');
+        $movimientos->assertViewHas('tab', 'resumen');
+        $movimientos->assertDontSee('Entradas y salidas de productos');
+        $this->assertDatabaseCount('movimientos_producto', 2);
     }
 
     public function test_sin_productos_el_inventario_remite_a_produccion(): void
@@ -72,7 +71,7 @@ class AdminPestanasModulosTest extends TestCase
 
         $respuesta->assertOk();
         $respuesta->assertSee('Aún no hay productos activos');
-        $respuesta->assertSee('Ir a Producción', false);
+        $respuesta->assertSee('Ver productos', false);
     }
 
     public function test_el_total_de_ventas_de_hoy_solo_cuenta_las_completadas(): void
@@ -147,7 +146,6 @@ class AdminPestanasModulosTest extends TestCase
             '/admin/produccion' => 'acopio',
             '/admin/produccion/producir' => 'producir',
             '/admin/produccion/historial' => 'historial',
-            '/admin/produccion/productos' => 'recetas',
         ];
 
         foreach ($rutas as $ruta => $clave) {

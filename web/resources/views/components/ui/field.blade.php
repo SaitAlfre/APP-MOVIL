@@ -14,7 +14,7 @@
 @php
     $campoId = $id ?? $name;
     $mensaje = $error ?? ($name ? $errors->first($name) : null);
-    $valor = old($name, $value);
+    $valor = $name !== null ? old($name, $value) : $value;
 @endphp
 
 <div {{ $attributes->only('class')->class('ui-field flex min-w-0 flex-col gap-1.5') }}>

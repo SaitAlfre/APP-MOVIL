@@ -18,7 +18,7 @@
 
             <div class="flex justify-end gap-2 border-t border-eh-border pt-4">
                 <x-ui.btn :href="route('admin.zonas-vehiculos.index')" variant="ghost">Cancelar</x-ui.btn>
-                <x-ui.btn type="submit">Guardar</x-ui.btn>
+                <x-ui.btn type="submit">Guardar sector</x-ui.btn>
             </div>
         </form>
     </x-ui.card>

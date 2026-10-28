@@ -32,6 +32,7 @@ class ProduccionController extends Controller
             'producto_id' => ['nullable', 'integer', 'exists:productos,id'],
             'litros_asignados' => ['nullable', 'numeric', 'min:0.001', 'max:999999999', 'decimal:0,3'],
             'cantidad_producir' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'modo_calculo' => ['nullable', 'in:unidades,litros'],
         ]);
         $dias = $listarDias->ejecutar();
 
@@ -40,25 +41,26 @@ class ProduccionController extends Controller
         $litrosAsignados = $request->filled('litros_asignados') ? (float) $request->input('litros_asignados') : null;
 
         $producto = $productoId !== null ? $productos->buscarPorId($productoId) : null;
-        if ($producto !== null && $request->filled('cantidad_producir')) {
+        if ($producto?->litrosPorUnidad !== null && $request->filled('cantidad_producir') && $request->input('modo_calculo') !== 'litros') {
             $litrosAsignados = round($request->integer('cantidad_producir') * $producto->litrosPorUnidad, 3);
         }
         $saldo = $fecha !== null ? $obtenerSaldo->ejecutar($fecha) : null;
-        $unidadesEstimadas = ($producto !== null && $fecha !== null && $litrosAsignados !== null && $litrosAsignados > 0)
+        $unidadesEstimadas = ($producto?->litrosPorUnidad !== null && $fecha !== null && $litrosAsignados !== null && $litrosAsignados > 0)
             ? (int) floor(round($litrosAsignados / $producto->litrosPorUnidad, 9))
             : null;
         $necesarios = $unidadesEstimadas !== null ? $ingredientes->calcular($productoId, $litrosAsignados / $producto->litrosPorUnidad) : [];
 
         return view('admin.produccion.produccion.index', [
             'dias' => $dias,
-            'productos' => $productos->todosActivos(),
+            'productos' => array_values(array_filter($productos->todosActivos(), fn ($p) => $p->litrosPorUnidad !== null && $p->recetaActiva)),
             'fechaSeleccionada' => $fecha,
             'productoSeleccionadoId' => $productoId,
             'litrosAsignadosSeleccionados' => $litrosAsignados,
             'saldo' => $saldo,
             'unidadesEstimadas' => $unidadesEstimadas,
             'ingredientesNecesarios' => $necesarios,
-            'puedeCrear' => $unidadesEstimadas !== null && $unidadesEstimadas > 0 && $producto->activo
+            'recetaActiva' => $producto !== null && $producto->activo && $producto->recetaActiva && $producto->litrosPorUnidad !== null,
+            'puedeCrear' => $unidadesEstimadas !== null && $unidadesEstimadas > 0 && $producto->activo && $producto->recetaActiva
                 && $litrosAsignados <= ($saldo?->litrosDisponibles() ?? 0)
                 && ! collect($necesarios)->contains(fn ($i) => $i['faltante'] > 0),
         ]);

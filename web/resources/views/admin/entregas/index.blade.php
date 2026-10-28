@@ -12,7 +12,7 @@
     <x-ui.page-header title="Entregas de leche" description="Registro de entregas diarias de proveedores">
         @if ($puedeGestionar)
             <x-slot:actions>
-                <x-ui.btn type="button" variant="secondary" icon="tableCells" data-modal-open="registro-lote">Registro por lote</x-ui.btn>
+                <x-ui.btn type="button" variant="secondary" icon="tableCells" data-modal-open="registro-lote">Registrar varias entregas</x-ui.btn>
                 @if ($jornadas->isNotEmpty())
                     <x-ui.btn :href="route('admin.jornadas.index')" icon="plus">Elegir jornada</x-ui.btn>
                 @else
@@ -69,7 +69,7 @@
                         <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->proveedor?->zona?->nombre ?? '—' }}</td>
                         <td class="px-4 py-3 text-xs text-eh-text">{{ $entrega->jornada?->usuario?->nombres ?? '—' }}</td>
                         <td class="mono px-4 py-3 text-sm font-bold text-eh-text">{{ number_format($entrega->litros, 1) }} L</td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->lote_id ? 'Registro por lote' : 'Individual' }}</td>
+                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->lote_id ? 'Registrada en grupo' : 'Individual' }}</td>
                         <td class="px-4 py-3"><x-ui.estado :estado="$entrega->anulada ? 'anulada' : 'registrada'" /></td>
                     </tr>
                 @endforeach
@@ -86,13 +86,13 @@
     </x-ui.card>
 
     @if ($puedeGestionar)
-        <x-ui.modal id="registro-lote" title="Registro por lote" size="lg">
+        <x-ui.modal id="registro-lote" title="Registrar varias entregas" size="lg">
             <form method="POST" action="{{ route('admin.entregas.lote.store') }}" class="space-y-4" data-once>
                 @csrf
 
                 @if ($jornadas->isEmpty())
                     <x-ui.alert type="warning">
-                        No hay jornadas abiertas. Abre una jornada de acopio antes de registrar entregas por lote.
+                        No hay jornadas abiertas. Inicia el viaje de un acopiador antes de registrar sus entregas.
                     </x-ui.alert>
                 @else
                     <x-ui.select name="jornada_id" label="Jornada abierta" required placeholder="Seleccionar jornada"
@@ -132,14 +132,14 @@
                     </div>
 
                     <x-ui.alert type="warning">
-                        Si una fila falla, ninguna entrega del lote será guardada. Completa solo las filas que necesites.
+                        Si una fila tiene errores, no se guarda ninguna de estas entregas. Corrige esa fila y vuelve a guardar. Completa solo las filas que necesites.
                     </x-ui.alert>
                 @endif
 
                 <div class="flex flex-wrap items-center justify-end gap-2">
                     <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
                     @if ($jornadas->isNotEmpty())
-                        <x-ui.btn type="submit">Registrar lote</x-ui.btn>
+                        <x-ui.btn type="submit">Guardar estas entregas</x-ui.btn>
                     @endif
                 </div>
             </form>

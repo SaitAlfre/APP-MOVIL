@@ -76,6 +76,9 @@ return [
         'gestionar' => ['admin'],
     ],
 
+    'productos' => ['ver' => ['admin'], 'gestionar' => ['admin']],
+    'recetas' => ['ver' => ['admin'], 'gestionar' => ['admin']],
+
     'inventario' => [
         'ver' => ['admin'],
         'gestionar' => ['admin'],

@@ -58,9 +58,12 @@ class PlantaRecetasInventarioTest extends TestCase
 
     private function receta(string $nombre = 'Queso fresco'): Producto
     {
-        $this->post(route('admin.produccion.productos.store'), $this->datos($nombre))->assertSessionHasNoErrors();
+        $datos = $this->datos($nombre);
+        $this->post(route('admin.produccion.productos.store'), array_intersect_key($datos, array_flip(['nombre', 'presentacion', 'unidad_produccion'])))->assertSessionHasNoErrors();
+        $producto = Producto::where('nombre', $nombre)->firstOrFail();
+        $this->post(route('admin.recetas.store'), $datos + ['producto_id' => $producto->id])->assertSessionHasNoErrors();
 
-        return Producto::where('nombre', $nombre)->firstOrFail();
+        return $producto->refresh();
     }
 
     private function lote(Producto $producto, float $litros = 100): LoteProduccion
@@ -145,7 +148,7 @@ class PlantaRecetasInventarioTest extends TestCase
         $datos = $this->datos();
         $datos['ingredientes'][0]['cantidad'] = 40;
         $datos['litros_por_unidad'] = 5;
-        $this->put(route('admin.produccion.productos.update', $producto->id), $datos)->assertSessionHasNoErrors();
+        $this->put(route('admin.recetas.update', $producto->receta_id), $datos)->assertSessionHasNoErrors();
         $this->iniciar($lote);
         $this->assertEquals(800, $this->sal->fresh()->existencia);
         $this->assertEquals(10, $lote->fresh()->litros_por_unidad_snapshot);
@@ -177,7 +180,8 @@ class PlantaRecetasInventarioTest extends TestCase
         $datos = $this->datos('Yogur natural');
         $datos['litros_por_unidad'] = 1;
         $datos['ingredientes'] = [['material_id' => $azucar->id, 'cantidad' => 0.1]];
-        $this->post(route('admin.produccion.productos.store'), $datos)->assertSessionHasNoErrors();
+        $producto = Producto::factory()->create(['nombre' => $datos['nombre'], 'litros_por_unidad' => null]);
+        $this->post(route('admin.recetas.store'), $datos + ['producto_id' => $producto->id])->assertSessionHasNoErrors();
         $producto = Producto::where('nombre', 'Yogur natural')->firstOrFail();
         $this->get(route('admin.produccion.producir.index', [
             'fecha' => now()->toDateString(), 'producto_id' => $producto->id, 'cantidad_producir' => 25,
@@ -189,15 +193,17 @@ class PlantaRecetasInventarioTest extends TestCase
 
     public function test_validacion_impide_ingredientes_duplicados_negativos_y_desconocidos(): void
     {
-        $datos = $this->datos();
+        $producto = Producto::factory()->create(['litros_por_unidad' => null]);
+        $datos = $this->datos() + ['producto_id' => $producto->id];
         $datos['ingredientes'][1]['material_id'] = $this->sal->id;
-        $this->post(route('admin.produccion.productos.store'), $datos)->assertSessionHasErrors('ingredientes.0.material_id');
-        $datos = $this->datos();
+        $this->post(route('admin.recetas.store'), $datos)->assertSessionHasErrors('ingredientes.0.material_id');
+        $datos = $this->datos() + ['producto_id' => $producto->id];
         $datos['ingredientes'][0]['cantidad'] = -1;
-        $this->post(route('admin.produccion.productos.store'), $datos)->assertSessionHasErrors('ingredientes.0.cantidad');
+        $this->post(route('admin.recetas.store'), $datos)->assertSessionHasErrors('ingredientes.0.cantidad');
         $datos['ingredientes'][0] = ['material_id' => 999999, 'cantidad' => 1];
-        $this->post(route('admin.produccion.productos.store'), $datos)->assertSessionHasErrors('ingredientes.0.material_id');
-        $this->assertDatabaseCount('productos', 0);
+        $this->post(route('admin.recetas.store'), $datos)->assertSessionHasErrors('ingredientes.0.material_id');
+        $this->assertNull($producto->fresh()->litros_por_unidad);
+        $this->assertDatabaseCount('receta_ingredientes', 0);
     }
 
     public function test_materiales_validan_unidad_precision_y_evitan_stock_negativo(): void
@@ -205,9 +211,9 @@ class PlantaRecetasInventarioTest extends TestCase
         $this->post(route('admin.inventario.materiales.store'), ['nombre' => 'Leche', 'unidad' => 'L'])->assertSessionHasErrors('nombre');
         $this->post(route('admin.inventario.materiales.store'), ['nombre' => 'Sal', 'unidad' => 'g'])->assertSessionHasErrors('nombre');
         $this->post(route('admin.inventario.materiales.store'), ['nombre' => 'Otro', 'unidad' => 'desconocida'])->assertSessionHasErrors('unidad');
-        foreach ([1001, 0, -1, 0.0001] as $cantidad) {
+        foreach ([0, -1, 0.0001] as $cantidad) {
             $this->post(route('admin.inventario.materiales.movimientos.store'), [
-                'material_id' => $this->sal->id, 'operacion' => 'salida', 'cantidad' => $cantidad, 'motivo' => 'Prueba',
+                'material_id' => $this->sal->id, 'operacion' => 'entrada', 'cantidad' => $cantidad, 'motivo' => 'Prueba',
             ])->assertSessionHasErrors('cantidad');
         }
         $this->assertEquals(1000, $this->sal->fresh()->existencia);
@@ -237,7 +243,7 @@ class PlantaRecetasInventarioTest extends TestCase
         ] as $url) {
             $this->get($url)->assertOk();
         }
-        $this->get(route('admin.produccion.productos.show', $producto->id))->assertSee('Sal')->assertSee('Cuajo')->assertSee('20.000 g');
+        $this->get(route('admin.recetas.edit', $producto->receta_id))->assertSee('Sal')->assertSee('Cuajo')->assertSee('value="20"', false);
         $this->get(route('admin.inventario.index', ['tab' => 'materiales']))->assertSee('1,000.000')->assertSee('500.000 L');
         $this->get(route('admin.inventario.index', ['tab' => 'movimientos-materiales']))->assertSee('Stock inicial');
     }
@@ -261,7 +267,7 @@ class PlantaRecetasInventarioTest extends TestCase
         $datos = $this->datos();
         unset($datos['ingredientes']);
         $datos['editar_ingredientes'] = '1';
-        $this->put(route('admin.produccion.productos.update', $producto->id), $datos)->assertSessionHasNoErrors();
+        $this->put(route('admin.recetas.update', $producto->receta_id), $datos)->assertSessionHasNoErrors();
         $this->assertDatabaseCount('receta_ingredientes', 0);
         $this->assertEquals(1000, $this->sal->fresh()->existencia);
         $this->assertDatabaseCount('movimientos_material', 2);

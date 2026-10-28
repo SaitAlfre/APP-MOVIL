@@ -3,7 +3,7 @@
     'caption' => null,
 ])
 
-<div {{ $attributes->class('ui-table min-w-0 max-w-full overflow-x-auto') }}>
+<div data-responsive-table tabindex="0" role="region" aria-label="{{ $caption ?? 'Tabla de resultados' }}" {{ $attributes->class('ui-table min-w-0 max-w-full overflow-x-auto focus-visible:outline-2 focus-visible:outline-eh-primary') }}>
     <table class="w-full text-xs">
         @if ($caption)
             <caption class="sr-only">{{ $caption }}</caption>

@@ -6,16 +6,11 @@
     @php
         $operador = auth('operador')->user();
         $puedeGestionar = $operador->puede('sanciones', 'gestionar');
+        $puedeResolverReclamos = $operador->tieneRol('admin');
         $severidades = ['alta' => 'red', 'media' => 'yellow', 'baja' => 'gray'];
     @endphp
 
-    <x-ui.page-header title="Sanciones y reclamos" description="Gestión de sanciones por calidad y reclamos de proveedores">
-        @if ($puedeGestionar)
-            <x-slot:actions>
-                <x-ui.btn type="button" icon="plus" data-modal-open="nuevo-reclamo">Nuevo reclamo</x-ui.btn>
-            </x-slot:actions>
-        @endif
-    </x-ui.page-header>
+    <x-ui.page-header title="Sanciones y reclamos" description="Sanciones por calidad y reclamos enviados por proveedores" />
 
     <div class="space-y-6">
         <section>
@@ -48,14 +43,14 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="estado" value="aprobada">
-                                                <x-ui.btn type="submit" size="sm" variant="secondary">Aprobar</x-ui.btn>
+                                                <x-ui.btn type="submit" size="sm" variant="secondary">Aprobar descuento</x-ui.btn>
                                             </form>
                                             <form method="POST" action="{{ route('admin.sanciones.resolver', $sancion) }}"
                                                 data-confirm="¿Rechazar esta propuesta de sanción?">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="estado" value="rechazada">
-                                                <x-ui.btn type="submit" size="sm" variant="ghost">Rechazar</x-ui.btn>
+                                                <x-ui.btn type="submit" size="sm" variant="ghost">Rechazar descuento</x-ui.btn>
                                             </form>
                                         </div>
                                     @endif
@@ -76,14 +71,7 @@
             <h2 class="mb-3 text-sm font-semibold text-eh-text">Reclamos de proveedores</h2>
             <x-ui.card>
                 @if ($reclamos->total() === 0)
-                    <x-ui.empty icon="documentText" title="Sin reclamos registrados"
-                        description="Registra un reclamo cuando un proveedor discuta los litros anotados en una entrega.">
-                        @if ($puedeGestionar)
-                            <x-slot:action>
-                                <x-ui.btn type="button" icon="plus" size="sm" data-modal-open="nuevo-reclamo">Nuevo reclamo</x-ui.btn>
-                            </x-slot:action>
-                        @endif
-                    </x-ui.empty>
+                    <x-ui.empty icon="documentText" title="Sin reclamos pendientes de revisión" />
                 @else
                     <x-ui.table :headers="['Código', 'Proveedor', 'Entrega', 'L. originales', 'L. solicitados', 'Motivo', 'Estado', '']" caption="Reclamos de proveedores">
                         @foreach ($reclamos as $reclamo)
@@ -108,8 +96,8 @@
                                 </td>
                                 <td class="px-4 py-3"><x-ui.estado :estado="$reclamo->estado" /></td>
                                 <td class="px-4 py-3 text-right">
-                                    @if ($puedeGestionar && $reclamo->estado === 'pendiente')
-                                        <x-ui.btn type="button" size="sm" variant="secondary" data-modal-open="reclamo-{{ $reclamo->id }}">Resolver</x-ui.btn>
+                                    @if ($puedeResolverReclamos && $reclamo->estado === 'pendiente')
+                                        <x-ui.btn type="button" size="sm" variant="secondary" data-modal-open="reclamo-{{ $reclamo->id }}">Revisar y responder</x-ui.btn>
                                     @endif
                                 </td>
                             </tr>
@@ -126,24 +114,8 @@
     </div>
 
     @if ($puedeGestionar)
-        <x-ui.modal id="nuevo-reclamo" title="Nuevo reclamo de proveedor">
-            <form method="POST" action="{{ route('admin.sanciones.reclamos.store') }}" class="space-y-4" data-once>
-                @csrf
-                <x-ui.select name="entrega_id" label="Entrega reclamada" required placeholder="Seleccionar entrega"
-                    :options="$entregas->mapWithKeys(fn ($entrega) => [
-                        $entrega->id => 'E-'.$entrega->id.' · '.($entrega->proveedor?->nombres ?? 'Proveedor').' · '.number_format((float) $entrega->litros, 1).' L · '.$entrega->registrado_en->format('d/m/Y'),
-                    ])->all()" />
-                <x-ui.field name="litros_solicitados" label="Litros solicitados por el proveedor" type="number" step="0.01" min="0.01" required unit="L" />
-                <x-ui.field name="motivo" label="Motivo del reclamo" required maxlength="255" placeholder="Ej. diferencia en los litros registrados" />
-                <div class="flex flex-wrap items-center justify-end gap-2">
-                    <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
-                    <x-ui.btn type="submit">Registrar reclamo</x-ui.btn>
-                </div>
-            </form>
-        </x-ui.modal>
-
         @foreach ($reclamos as $reclamo)
-            @if ($reclamo->estado === 'pendiente')
+            @if ($puedeResolverReclamos && $reclamo->estado === 'pendiente')
                 <x-ui.modal :id="'reclamo-'.$reclamo->id" title="Resolver reclamo">
                     <form method="POST" action="{{ route('admin.sanciones.reclamos.resolver', $reclamo) }}" class="space-y-4" data-once>
                         @csrf

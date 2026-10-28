@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AcopiadorController;
 use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Admin\CalidadController;
+use App\Http\Controllers\Admin\CompradorController;
 use App\Http\Controllers\Admin\ComunicadoController;
 use App\Http\Controllers\Admin\ConfiguracionController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Admin\Produccion\ProductoController;
 use App\Http\Controllers\Admin\ProveedorController;
 use App\Http\Controllers\Admin\ProveedorQrController;
 use App\Http\Controllers\Admin\RecepcionController;
+use App\Http\Controllers\Admin\RecetaController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\SancionController;
 use App\Http\Controllers\Admin\TarifaLecheController;
@@ -159,7 +161,6 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         Route::middleware('permiso:sanciones,gestionar')->group(function () {
             Route::patch('sanciones/{sancion}', [SancionController::class, 'resolver'])->name('sanciones.resolver');
             Route::patch('sanciones/traslados/{traslado}', [SancionController::class, 'resolverTraslado'])->name('sanciones.traslados.resolver');
-            Route::post('sanciones/reclamos', [SancionController::class, 'storeReclamo'])->name('sanciones.reclamos.store');
             Route::patch('sanciones/reclamos/{reclamo}', [SancionController::class, 'resolverReclamo'])->name('sanciones.reclamos.resolver');
         });
 
@@ -168,20 +169,38 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
                 Route::get('/', [AcopioController::class, 'index'])->name('index');
                 Route::get('producir', [ProduccionController::class, 'index'])->name('producir.index');
                 Route::get('historial', [HistorialController::class, 'index'])->name('historial.index');
-                Route::get('productos', [ProductoController::class, 'index'])->name('productos.index');
-                Route::get('productos/{producto}', [ProductoController::class, 'show'])->whereNumber('producto')->name('productos.show');
             });
             Route::middleware('permiso:produccion,gestionar')->group(function () {
                 Route::post('producir', [ProduccionController::class, 'store'])->name('producir.store');
                 Route::patch('lotes/{lote}/iniciar', [ProduccionController::class, 'iniciar'])->name('lotes.iniciar');
                 Route::post('lotes/{lote}/finalizar', [ProduccionController::class, 'finalizar'])->name('lotes.finalizar');
                 Route::post('lotes/{lote}/cancelar', [ProduccionController::class, 'cancelar'])->name('lotes.cancelar');
-                Route::get('productos/nuevo', [ProductoController::class, 'create'])->name('productos.create');
-                Route::post('productos', [ProductoController::class, 'store'])->name('productos.store');
-                Route::get('productos/{producto}/editar', [ProductoController::class, 'edit'])->name('productos.edit');
-                Route::put('productos/{producto}', [ProductoController::class, 'update'])->name('productos.update');
-                Route::patch('productos/{producto}/estado', [ProductoController::class, 'cambiarEstado'])->name('productos.estado');
             });
+        });
+
+        Route::prefix('produccion/productos')->name('produccion.productos.')->group(function () {
+            Route::middleware('permiso:productos,ver')->group(function () {
+                Route::get('/', [ProductoController::class, 'index'])->name('index');
+                Route::get('{producto}', [ProductoController::class, 'show'])->whereNumber('producto')->name('show');
+            });
+            Route::middleware('permiso:productos,gestionar')->group(function () {
+                Route::get('nuevo', [ProductoController::class, 'create'])->name('create');
+                Route::post('/', [ProductoController::class, 'store'])->name('store');
+                Route::get('{producto}/editar', [ProductoController::class, 'edit'])->whereNumber('producto')->name('edit');
+                Route::put('{producto}', [ProductoController::class, 'update'])->whereNumber('producto')->name('update');
+                Route::patch('{producto}/estado', [ProductoController::class, 'cambiarEstado'])->whereNumber('producto')->name('estado');
+            });
+        });
+
+        Route::middleware('permiso:recetas,ver')->group(function () {
+            Route::get('recetas', [RecetaController::class, 'index'])->name('recetas.index');
+        });
+        Route::middleware('permiso:recetas,gestionar')->group(function () {
+            Route::get('recetas/nueva', [RecetaController::class, 'create'])->name('recetas.create');
+            Route::post('recetas', [RecetaController::class, 'store'])->name('recetas.store');
+            Route::get('recetas/{receta}/editar', [RecetaController::class, 'edit'])->whereNumber('receta')->name('recetas.edit');
+            Route::put('recetas/{receta}', [RecetaController::class, 'update'])->whereNumber('receta')->name('recetas.update');
+            Route::patch('recetas/{receta}/estado', [RecetaController::class, 'estado'])->whereNumber('receta')->name('recetas.estado');
         });
 
         Route::middleware('permiso:inventario,ver')->group(function () {
@@ -190,13 +209,16 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         Route::middleware('permiso:inventario,gestionar')->group(function () {
             Route::post('inventario/materiales', [InventarioController::class, 'storeMaterial'])->name('inventario.materiales.store');
             Route::post('inventario/materiales/movimientos', [InventarioController::class, 'storeMovimientoMaterial'])->name('inventario.materiales.movimientos.store');
-            Route::post('inventario/ajustes', [InventarioController::class, 'storeAjuste'])->name('inventario.ajustes.store');
         });
 
         Route::middleware('permiso:ventas,ver')->group(function () {
+            Route::get('compradores', [CompradorController::class, 'index'])->name('compradores.index');
             Route::get('ventas', [VentaController::class, 'index'])->name('ventas.index');
         });
         Route::middleware('permiso:ventas,gestionar')->group(function () {
+            Route::post('compradores', [CompradorController::class, 'store'])->name('compradores.store');
+            Route::put('compradores/{cliente}', [CompradorController::class, 'update'])->name('compradores.update');
+            Route::patch('compradores/{cliente}/estado', [CompradorController::class, 'estado'])->name('compradores.estado');
             Route::post('ventas', [VentaController::class, 'store'])->name('ventas.store');
             Route::patch('ventas/{venta}/estado', [VentaController::class, 'updateEstado'])->name('ventas.estado');
             Route::post('ventas/clientes', [VentaController::class, 'storeCliente'])->name('ventas.clientes.store');
@@ -217,6 +239,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         });
         Route::middleware('permiso:liquidaciones,gestionar')->group(function () {
             Route::post('precios-leche', [TarifaLecheController::class, 'store'])->name('tarifas.store');
+            Route::post('precios-leche/actual', [TarifaLecheController::class, 'cambiarActual'])->name('tarifas.actual');
             Route::put('precios-leche/{tarifa}', [TarifaLecheController::class, 'update'])->whereNumber('tarifa')->name('tarifas.update');
             Route::get('liquidaciones/nueva', [LiquidacionController::class, 'create'])->name('liquidaciones.create');
             Route::post('liquidaciones', [LiquidacionController::class, 'store'])->name('liquidaciones.store');

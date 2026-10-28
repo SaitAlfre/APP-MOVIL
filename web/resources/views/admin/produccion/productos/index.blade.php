@@ -1,24 +1,22 @@
 @extends('layouts.admin')
 
-@section('titulo', 'Producción')
+@section('titulo', 'Productos')
 
 @section('contenido')
-    @php $puedeGestionar = auth('operador')->user()->puede('produccion', 'gestionar'); @endphp
+    @php $puedeGestionar = auth('operador')->user()->puede('productos', 'gestionar'); @endphp
 
-    <x-ui.page-header title="Producción" description="Productos y recetas que se fabrican en planta">
+    <x-ui.page-header title="Productos">
         @if ($puedeGestionar)
             <x-slot:actions>
-                    <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus">Nuevo producto y receta</x-ui.btn>
+                    <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus">Nuevo producto</x-ui.btn>
             </x-slot:actions>
         @endif
     </x-ui.page-header>
 
-    @include('admin.produccion._nav')
 
     <x-ui.card>
         @if ($productos->total() === 0)
-            <x-ui.empty icon="cube" title="Aún no hay productos ni recetas"
-                description="Guarda la leche y los otros ingredientes necesarios para cada unidad del producto. Reutiliza la receta en tus lotes.">
+            <x-ui.empty icon="cube" title="Aún no hay productos">
                 @if ($puedeGestionar)
                     <x-slot:action>
                         <x-ui.btn :href="route('admin.produccion.productos.create')" icon="plus" size="sm">Nuevo producto</x-ui.btn>
@@ -26,19 +24,18 @@
                 @endif
             </x-ui.empty>
         @else
-            <x-ui.table :headers="['Producto', 'Presentación', 'Unidad de producción', 'Contenido por unidad', 'Litros por unidad', 'Existencia', 'Estado', '']"
-                caption="Productos y recetas de producción">
+            <x-ui.table :headers="['Producto', 'Proveedor (S/)', 'Cliente (S/)', 'Mayorista (S/)', 'Existencia', 'Estado', 'Acciones']"
+                caption="Catálogo de productos">
                 @foreach ($productos as $producto)
                     <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
-                        <td class="px-4 py-3 text-sm font-medium text-eh-text">
-                            <a href="{{ route('admin.produccion.productos.show', $producto->id) }}" class="hover:text-eh-primary hover:underline">{{ $producto->nombre }}</a>
+                        <td class="min-w-48 px-4 py-3 text-sm">
+                            <a href="{{ route('admin.produccion.productos.show', $producto->id) }}" class="font-semibold hover:text-eh-primary hover:underline">{{ $producto->nombre }}</a>
+                            <p class="mt-1 text-xs text-eh-text-muted">{{ $producto->presentacion }} · {{ $producto->unidadProduccion }}@if ($producto->contenidoPorUnidad !== null) · {{ number_format($producto->contenidoPorUnidad, 3).' '.$producto->unidadContenido }}@endif</p>
+                            <a class="mt-2 inline-block text-xs font-semibold text-eh-primary hover:underline" href="{{ $tarifas[$producto->id]->receta_id !== null ? route('admin.recetas.edit', $tarifas[$producto->id]->receta_id) : route('admin.recetas.create', ['producto_id' => $producto->id]) }}">{{ $tarifas[$producto->id]->receta_id !== null ? 'Ver receta' : 'Crear receta' }}</a>
                         </td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $producto->presentacion }}</td>
-                        <td class="px-4 py-3 text-xs text-eh-text">{{ $producto->unidadProduccion }}</td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text-muted">
-                            {{ $producto->contenidoPorUnidad !== null ? number_format($producto->contenidoPorUnidad, 3).' '.$producto->unidadContenido : '—' }}
-                        </td>
-                        <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ number_format($producto->litrosPorUnidad, 2) }} L/{{ $producto->unidadProduccion }}</td>
+                        @foreach (['proveedor', 'cliente', 'mayorista'] as $tipo)
+                            <td class="mono px-4 py-3 text-sm font-semibold">{{ $tarifas[$producto->id]->{'precio_'.$tipo} !== null ? number_format((float) $tarifas[$producto->id]->{'precio_'.$tipo}, 2) : '—' }}</td>
+                        @endforeach
                         <td class="mono px-4 py-3 text-xs text-eh-text">{{ number_format($producto->existencia, 2) }} {{ $producto->unidadProduccion }}</td>
                         <td class="px-4 py-3"><x-ui.estado :estado="$producto->activo ? 'activa' : 'inactiva'" /></td>
                         <td class="px-4 py-3">
@@ -53,7 +50,7 @@
                                         <x-icon name="pencil" class="h-4 w-4" />
                                     </a>
                                     <form method="POST" action="{{ route('admin.produccion.productos.estado', $producto->id) }}"
-                                        data-confirm="{{ $producto->activo ? '¿Desactivar la receta '.$producto->nombre.'? No se podrán abrir nuevos lotes con ella.' : '¿Reactivar la receta '.$producto->nombre.'?' }}">
+                                        data-confirm="{{ $producto->activo ? '¿Desactivar el producto '.$producto->nombre.'? No se podrá vender ni producir.' : '¿Reactivar el producto '.$producto->nombre.'?' }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="activo" value="{{ $producto->activo ? '0' : '1' }}">

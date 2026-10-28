@@ -3,7 +3,7 @@
     'active' => null,
 ])
 
-<div {{ $attributes->class('mb-6 max-w-full overflow-x-auto') }}>
+<div data-ui-tabs {{ $attributes->class('mb-6 max-w-full overflow-x-auto') }}>
     <div class="inline-flex min-w-max gap-1 rounded-xl bg-eh-surface-alt p-1">
         @foreach ($tabs as $tab)
             @php $esActivo = ($tab['key'] ?? $tab['label']) === $active; @endphp

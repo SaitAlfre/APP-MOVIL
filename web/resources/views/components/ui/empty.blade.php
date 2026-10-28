@@ -10,7 +10,7 @@
     </span>
     <p class="text-sm font-semibold text-eh-text">{{ $title }}</p>
     @if ($description)
-        <p class="mt-1 max-w-sm text-xs text-eh-text-muted">{{ $description }}</p>
+        <p class="mt-2 max-w-md text-sm leading-relaxed text-eh-text-muted">{{ $description }}</p>
     @endif
     @isset($action)
         <div class="mt-4">{{ $action }}</div>
