@@ -30,9 +30,9 @@
     "Inicio real",
     "Fin real"
   ],
-  "cards": 113,
+  "cards": 114,
   "stories": 41,
-  "actionable_tasks": 72,
+  "actionable_tasks": 73,
   "source": "product-backlog.md + tareas.md; CSV derivado, no editar estados aquí",
   "credentials": "No incluidas. Crear recursos requiere sesión/autorización y comprobar que no existen.",
   "csv": "importacion-propuesta.csv"

@@ -2,7 +2,7 @@
 
 Trazabilidad: RF-USU-04 / RF-USU-05 → [HU-24](../scrum/product-backlog.md#hu-24) → [CA-HU-24-03](../scrum/product-backlog.md#ca-hu-24-03) → [T-92](../scrum/tareas.md#t-92) → código y pruebas de esta nota → evidencia de ejecución local abajo.
 
-**Estado:** implementado y probado en el entorno local el 28-10-2026. Sin commit ni despliegue. No cumple todavía la Definition of Done: faltan revisión de par, compilación frontend (`npm run build`) y recorrido manual en navegador de escritorio y móvil.
+**Estado:** implementado y probado en el entorno local el 28-10-2026; publicado en `main` (commit 21eb819), sin despliegue. No cumple todavía la Definition of Done: faltan revisión de par, compilación frontend (`npm run build`) y recorrido manual en navegador de escritorio y móvil.
 
 ## Problema resuelto
 

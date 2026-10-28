@@ -112,3 +112,4 @@ T-88,Tarea,Integrar y comprobar la versión de liquidación en ambiente local de
 T-89,Tarea,Completar el registro y consulta del lote mínimo según campos confirmados,HU-16-A,Dubcek Leonel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-89
 T-90,Tarea,"Revisar PR del lote, CA y documentación como compañero distinto",HU-16-A,Medina Paye Jhosue Daniel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-90
 T-91,Tarea,Integrar y comprobar la versión de lotes en ambiente local de pruebas,HU-16-A,Dubcek Leonel,Must,,0.5,S09,Backlog,docs/scrum/tareas.md#t-91
+T-92,Tarea,Unificar el registro de proveedores (ficha productiva + cuenta móvil opcional) con detección de duplicados y vinculación supervisada,HU-24,Dubcek Leonel,Must,,Sin estimar,Sin selección,Backlog,docs/scrum/tareas.md#t-92
