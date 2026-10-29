@@ -93,14 +93,32 @@ final class OpenRouteServiceRuteo
         $segmentos = $ruta['properties']['segments'] ?? [];
         $tramos = [];
         for ($i = 0; $i < count($cortes) - 1; $i++) {
-            $tramos[] = [
-                'coordenadas' => array_slice($coordenadas, $cortes[$i], $cortes[$i + 1] - $cortes[$i] + 1),
-                'distancia' => (float) ($segmentos[$i]['distance'] ?? 0),
-                'duracion' => (float) ($segmentos[$i]['duration'] ?? 0),
-            ];
+            $tramos[] = ['coordenadas' => array_slice($coordenadas, $cortes[$i], $cortes[$i + 1] - $cortes[$i] + 1)];
+        }
+        // Sin instrucciones ORS no detalla cada tramo: se reparte el total según el largo de cada uno.
+        $largos = array_map(fn (array $tramo) => $this->largo($tramo['coordenadas']), $tramos);
+        $sumaLargos = array_sum($largos) ?: 1.0;
+        $distancia = (float) ($ruta['properties']['summary']['distance'] ?? $sumaLargos);
+        $duracion = (float) ($ruta['properties']['summary']['duration'] ?? 0);
+
+        return array_map(fn (array $tramo, int $i) => $tramo + [
+            'distancia' => (float) ($segmentos[$i]['distance'] ?? $distancia * $largos[$i] / $sumaLargos),
+            'duracion' => (float) ($segmentos[$i]['duration'] ?? $duracion * $largos[$i] / $sumaLargos),
+        ], $tramos, array_keys($tramos));
+    }
+
+    /** @param  list<array{float, float}>  $coordenadas  Pares [longitud, latitud]. */
+    private function largo(array $coordenadas): float
+    {
+        $metros = 0.0;
+        for ($i = 1; $i < count($coordenadas); $i++) {
+            [$lon1, $lat1] = array_map('deg2rad', $coordenadas[$i - 1]);
+            [$lon2, $lat2] = array_map('deg2rad', $coordenadas[$i]);
+            $h = sin(($lat2 - $lat1) / 2) ** 2 + cos($lat1) * cos($lat2) * sin(($lon2 - $lon1) / 2) ** 2;
+            $metros += 6371000 * 2 * asin(min(1.0, sqrt($h)));
         }
 
-        return $tramos;
+        return $metros;
     }
 
     /**

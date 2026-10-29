@@ -58,6 +58,42 @@ class OrganizacionAcopioTest extends TestCase
         Http::assertSent(fn (ClientRequest $request) => str_contains($request->url(), '/v2/directions/driving-car/geojson'));
     }
 
+    public function test_el_camino_sale_y_vuelve_a_la_planta_y_devuelve_cada_tramo(): void
+    {
+        config(['mapas.planta' => ['nombre' => 'Planta', 'latitud' => -15.6137, 'longitud' => -69.9762]]);
+        Http::fake(['api.openrouteservice.org/*' => Http::response(['features' => [[
+            'geometry' => ['coordinates' => [[-69.9762, -15.6137], [-69.974, -15.61], [-69.972, -15.604], [-69.971, -15.6034], [-69.973, -15.609], [-69.9762, -15.6137]]],
+            'properties' => ['summary' => ['distance' => 3000, 'duration' => 600], 'way_points' => [0, 2, 3, 5]],
+        ]]])]);
+
+        $this->postJson(route('admin.mapa-rutas.trazar'), ['tipo_vehiculo' => 'camion', 'paradas' => $this->paradas()])->assertOk()
+            ->assertJsonCount(3, 'routes.0.legs')
+            ->assertJsonPath('routes.0.legs.0.coordinates.0', [-69.9762, -15.6137])
+            ->assertJsonPath('routes.0.distance', 3000);
+        Http::assertSent(fn (ClientRequest $request) => count($request['coordinates']) === 4
+            && $request['coordinates'][0] === [-69.9762, -15.6137] && $request['coordinates'][3] === [-69.9762, -15.6137]);
+    }
+
+    public function test_los_tramos_dibujados_a_mano_se_guardan_con_la_ruta(): void
+    {
+        $zona = Zona::factory()->create(['activo' => true]);
+        $paradas = [['nombre' => 'A', 'proveedor_id' => null, 'latitud' => -15.6041, 'longitud' => -69.9722, 'referencia' => ''],
+            ['nombre' => 'B', 'proveedor_id' => null, 'latitud' => -15.6050, 'longitud' => -69.9700, 'referencia' => '']];
+        $firma = '-15.604100,-69.972200;-15.605000,-69.970000';
+        $trocha = [['latitud' => -15.6041, 'longitud' => -69.9722], ['latitud' => -15.6046, 'longitud' => -69.9715], ['latitud' => -15.6050, 'longitud' => -69.9700]];
+
+        $this->post(route('admin.mapa-rutas.store'), [
+            'nombre' => 'Ruta con trocha', 'zona_id' => $zona->id, 'activo' => 1, 'tipo_vehiculo' => 'motocarga',
+            'paradas_json' => json_encode($paradas), 'trazado_json' => json_encode($trocha),
+            'resumen_recorrido_json' => json_encode(['fuente' => 'manual', 'distancia_m' => 260, 'duracion_s' => 62, 'firma_paradas' => $firma,
+                'tramos_manuales' => [['clave' => '-15.604100,-69.972200>-15.605000,-69.970000', 'puntos' => $trocha]]]),
+        ])->assertSessionHasNoErrors();
+
+        $resumen = Ruta::query()->sole()->resumen_recorrido;
+        $this->assertSame('manual', $resumen['fuente']);
+        $this->assertCount(3, $resumen['tramos_manuales'][0]['puntos']);
+    }
+
     public function test_sin_clave_o_sin_camino_responde_un_mensaje_claro(): void
     {
         config(['mapas.ors.clave' => null]);

@@ -311,7 +311,8 @@ export function iniciarMapasRutas(signal) {
         const nombreCampo = form?.elements.namedItem('nombre');
         let zona = Number(zonaCampo?.value || config.zona_id || 0);
         const vehiculo = () => form?.querySelector('input[name="tipo_vehiculo"]:checked')?.value ?? 'camion';
-        const secuencia = () => (planta ? [planta, ...stops, planta] : [...stops]);
+        const soloCoordenadas = (punto) => ({ latitud: Number(punto.latitud), longitud: Number(punto.longitud) });
+        const secuencia = () => (planta ? [planta, ...stops, planta] : [...stops]).map(soloCoordenadas);
         const nombrePunto = (index, total) => (planta && (index === 0 || index === total - 1) ? 'Planta' : String(planta ? index : index + 1));
 
         const avisar = (mensaje, tipo = 'normal') => {
