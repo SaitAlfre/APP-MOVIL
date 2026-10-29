@@ -38,7 +38,7 @@ class IniciarSesionUseCase(
         val respuesta = withTimeoutOrNull(8_000) { servidor.autenticar(username.trim(), pin) }
         val sesion = (respuesta ?: Result.failure(SinConexionRemotaException(IllegalStateException("Tiempo de espera agotado")))).getOrElse { remoto ->
             if (remoto is SinConexionRemotaException) return inicioLocal(local)
-            if (remoto is RechazoServidorException && remoto.codigo in setOf("credenciales", "cuenta_bloqueada", "perfil_no_disponible")) {
+            if (remoto is RechazoServidorException && remoto.codigo in setOf("credenciales", "cuenta_bloqueada", "cuenta_suspendida", "perfil_no_disponible", "token_invalido")) {
                 usuarios.obtenerPorUsername(username.trim())?.let { datosLocales.requerirVerificacion(it.id) }
             }
             return Result.failure(remoto)

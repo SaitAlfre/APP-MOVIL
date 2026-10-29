@@ -25,7 +25,11 @@ final class Usuario
         public readonly ?int $zonaId = null,
     ) {}
 
-    /** @param list<Rol> $roles */
+    /**
+     * @param  list<Rol>  $roles
+     * @param  bool  $rolFuncionalOpcional  true solo para cuentas con rol personalizado: sus permisos web vienen del rol
+     *                                      personalizado y pueden no tener funciones móviles (sin rol oficial).
+     */
     public static function crear(
         string $username,
         string $nombres,
@@ -33,8 +37,9 @@ final class Usuario
         string $pinHash,
         array $roles,
         bool $activo = true,
+        bool $rolFuncionalOpcional = false,
     ): self {
-        self::validar($username, $nombres, $dni, $roles);
+        self::validar($username, $nombres, $dni, $roles, $rolFuncionalOpcional);
 
         return new self(
             id: null,
@@ -120,16 +125,17 @@ final class Usuario
     }
 
     /** @param list<Rol> $roles */
-    public function conRoles(array $roles): self
+    public function conRoles(array $roles, bool $rolFuncionalOpcional = false): self
     {
-        self::validar($this->username, $this->nombres, $this->dni, $roles);
+        self::validar($this->username, $this->nombres, $this->dni, $roles, $rolFuncionalOpcional);
 
         return new self($this->id, $this->username, $this->nombres, $this->dni, $this->pinHash, $this->activo, $roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
 
     public function conDatosDePerfil(string $nombres, string $dni): self
     {
-        self::validar($this->username, $nombres, $dni, $this->roles);
+        // Los roles no cambian aquí; ya se validaron al asignarlos.
+        self::validar($this->username, $nombres, $dni, $this->roles, true);
 
         return new self($this->id, $this->username, trim($nombres), trim($dni), $this->pinHash, $this->activo, $this->roles, $this->intentosFallidos, $this->bloqueadoHasta, $this->bloqueadoManualmente, $this->motivoBloqueo, $this->bloqueadoPorId, $this->bloqueadoManualEn, $this->zonaId);
     }
@@ -164,7 +170,7 @@ final class Usuario
     }
 
     /** @param list<Rol> $roles */
-    private static function validar(string $username, string $nombres, string $dni, array $roles): void
+    private static function validar(string $username, string $nombres, string $dni, array $roles, bool $rolFuncionalOpcional = false): void
     {
         if (trim($username) === '') {
             throw UsuarioInvalidoException::usernameVacio();
@@ -178,7 +184,7 @@ final class Usuario
             throw UsuarioInvalidoException::dniVacio();
         }
 
-        if ($roles === []) {
+        if ($roles === [] && ! $rolFuncionalOpcional) {
             throw UsuarioInvalidoException::sinRoles();
         }
     }

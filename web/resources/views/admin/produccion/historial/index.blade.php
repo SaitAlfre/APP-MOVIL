@@ -117,7 +117,7 @@
                                         <x-ui.btn type="button" size="sm" variant="secondary" data-modal-open="finalizar-{{ $lote->id }}">Registrar resultado final</x-ui.btn>
                                     @endif
                                     @if (in_array($lote->estado, [$Estado::Borrador, $Estado::EnProceso], true))
-                                        <x-ui.btn type="button" size="sm" variant="ghost" data-modal-open="cancelar-{{ $lote->id }}">Cancelar lote</x-ui.btn>
+                                        @if(auth('operador')->user()->puede('produccion', 'eliminar'))<x-ui.btn type="button" size="sm" variant="ghost" data-modal-open="cancelar-{{ $lote->id }}">Cancelar lote</x-ui.btn>@endif
                                     @endif
                                 </div>
                             @endif

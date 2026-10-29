@@ -19,6 +19,17 @@ interface UsuarioRepositoryInterface
     /** @return LengthAwarePaginator<int, Usuario> */
     public function paginar(?string $busqueda = null, ?Rol $rol = null, ?bool $activo = null, int $porPagina = 20): LengthAwarePaginator;
 
+    /** La cuenta se suspendió al suspender o retirar su ficha de proveedor; se restaura al reactivarla. */
+    public const ORIGEN_FICHA_PROVEEDOR = 'ficha_proveedor';
+
+    /** Origen de la suspensión vigente; null si fue directa o anterior a este registro. */
+    public function origenSuspension(int $usuarioId): ?string;
+
+    public function marcarOrigenSuspension(int $usuarioId, ?string $origen): void;
+
+    /** La cuenta tiene un rol personalizado: sus permisos del panel web vienen de ese rol, aunque no tenga rol oficial. */
+    public function tieneRolPersonalizado(int $usuarioId): bool;
+
     /** Administradores activos y no bloqueados; usado para no dejar el sistema sin ninguno. */
     public function contarAdminsDisponibles(?int $excluyendoId = null): int;
 

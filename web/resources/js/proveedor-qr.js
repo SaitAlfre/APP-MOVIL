@@ -159,7 +159,7 @@ export function iniciarQrProveedor(signal) {
         modal.querySelector('h2').focus({ preventScroll: true });
     }, { signal });
     modal.addEventListener('keydown', event => {
-        if (event.key !== 'Tab') return;
+        if (event.key !== 'Tab' || event.defaultPrevented) return;
         const botones = [...modal.querySelectorAll('button:not([disabled])')].filter(boton => boton.getClientRects().length);
         const indice = botones.indexOf(document.activeElement);
         if ((event.shiftKey && indice <= 0) || (!event.shiftKey && (indice < 0 || indice === botones.length - 1))) {

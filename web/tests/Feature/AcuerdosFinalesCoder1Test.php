@@ -174,10 +174,10 @@ class AcuerdosFinalesCoder1Test extends TestCase
     {
         $admin = $this->admin();
         $zona = Zona::factory()->create();
-        $web = ['codigo' => str_repeat('C', 50), 'nombres' => str_repeat('N', 150), 'dni' => str_repeat('D', 20), 'telefono' => str_repeat('T', 30), 'direccion' => str_repeat('A', 255), 'zona_id' => $zona->id, 'tachos' => 1000, 'capacidad_tacho_l' => 200.01];
+        $web = ['codigo' => str_repeat('C', 50), 'nombres' => str_repeat('N', 150), 'dni' => '12345678', 'telefono' => str_repeat('T', 30), 'direccion' => str_repeat('A', 255), 'zona_id' => $zona->id, 'tachos' => 1000, 'capacidad_tacho_l' => 200.01];
         $this->post('/admin/proveedores', $web)->assertSessionHasNoErrors();
         $this->assertDatabaseHas('proveedores', ['codigo' => $web['codigo'], 'dni' => $web['dni'], 'tachos' => 1000]);
-        $this->post('/admin/proveedores', [...$web, 'codigo' => 'EXCESO', 'dni' => 'OTRO', 'tachos' => 1001])->assertSessionHasErrors('tachos');
+        $this->post('/admin/proveedores', [...$web, 'codigo' => 'EXCESO', 'dni' => '87654321', 'tachos' => 1001])->assertSessionHasErrors('tachos');
         $token = $this->postJson('/api/movil/sesion', ['username' => $admin->username, 'pin' => '2468'])->assertOk()->json('token');
         $api = ['codigo' => 'QA API', 'nombres' => 'Ficha ficticia', 'dni' => 'FICHA-API', 'zonaId' => $zona->id, 'zonaNombre' => $zona->nombre, 'tachos' => 1000, 'capacidadTachoL' => 0.01, 'estado' => 'ACTIVO', 'usuarioUsername' => null];
         $this->withToken($token)->putJson('/api/movil/cambios/proveedor', $api)->assertOk();

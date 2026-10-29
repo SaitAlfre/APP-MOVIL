@@ -20,11 +20,11 @@
                         <td class="px-4 py-3"><x-ui.estado :estado="$receta->activo ? 'activa' : 'inactiva'" /></td>
                         <td class="px-4 py-3"><div class="flex justify-end gap-2">
                             <x-ui.btn variant="secondary" size="sm" icon="pencil" :href="route('admin.recetas.edit', $receta)">Editar receta</x-ui.btn>
-                            <form method="POST" action="{{ route('admin.recetas.estado', $receta) }}" data-once>
+                            @if(! $receta->activo || auth('operador')->user()->puede('recetas', 'eliminar'))<form method="POST" action="{{ route('admin.recetas.estado', $receta) }}" data-once>
                                 @csrf @method('PATCH')
                                 <input type="hidden" name="receta_activa" value="{{ $receta->activo ? 0 : 1 }}">
                                 <x-ui.btn type="submit" variant="ghost" size="sm">{{ $receta->activo ? 'Desactivar receta' : 'Activar receta' }}</x-ui.btn>
-                            </form>
+                            </form>@endif
                         </div></td>
                     </tr>
                 @endforeach

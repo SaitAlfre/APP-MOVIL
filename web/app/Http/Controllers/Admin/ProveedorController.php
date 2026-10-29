@@ -13,6 +13,7 @@ use App\Application\Proveedores\CredencialesCuentaMovil;
 use App\Application\Proveedores\DesvincularUsuarioProveedorUseCase;
 use App\Application\Proveedores\ListarProveedoresUseCase;
 use App\Application\Proveedores\RegistrarProveedorUseCase;
+use App\Application\Proveedores\SituacionRegistroProveedor;
 use App\Application\Proveedores\VincularUsuarioProveedorUseCase;
 use App\Domain\Auditoria\AuditoriaRepositoryInterface;
 use App\Domain\Calidad\ControlCalidadRepositoryInterface;
@@ -30,22 +31,33 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProveedorRequest;
 use App\Http\Requests\Admin\UpdateProveedorRequest;
 use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
+use App\Infrastructure\Persistence\Eloquent\Usuario;
 use DateTimeImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProveedorController extends Controller
 {
-    public function consultarDni(Request $request, ConsultarDniUseCase $consultar, ProveedorRepositoryInterface $proveedores): JsonResponse
+    /** Primero los registros internos (fichas y cuentas); RENIEC solo si el DNI no existe en el sistema. */
+    public function consultarDni(Request $request, ConsultarDniUseCase $consultar, ProveedorRepositoryInterface $proveedores, AnalizarRegistroProveedorUseCase $analizar): JsonResponse
     {
-        $datos = $request->validate(['dni' => ['required', 'string', 'regex:/^[0-9]{8}$/']]);
-        $existente = $proveedores->buscarPorDni($datos['dni']);
-        $resultado = $existente !== null
-            ? ['estado' => 'registrado', 'mensaje' => 'Este documento ya tiene una ficha de proveedor.', 'url' => route('admin.proveedores.show', $existente->id)]
-            : $consultar->ejecutar($datos['dni']);
+        $datos = $request->validate(['dni' => ['required', 'string', 'regex:/^[0-9]{8}$/'], 'excluir' => ['nullable', 'integer', 'min:1']]);
+        if (! empty($datos['excluir'])) {
+            $existente = $proveedores->buscarPorDni($datos['dni']);
+            $resultado = $existente !== null && $existente->id !== (int) $datos['excluir']
+                ? ['estado' => 'registrado', 'mensaje' => 'Este documento ya tiene una ficha de proveedor.', 'url' => route('admin.proveedores.show', $existente->id)]
+                : $consultar->ejecutar($datos['dni']);
+
+            return response()->json($resultado)->header('Cache-Control', 'no-store');
+        }
+        $analisis = $analizar->ejecutar($datos['dni']);
+        $resultado = $analisis->situacion === SituacionRegistroProveedor::Nuevo
+            ? $consultar->ejecutar($datos['dni'])
+            : ['estado' => 'registrado', 'mensaje' => 'Este DNI ya está en los registros internos; no se consultó RENIEC. Revisa el aviso del registro.', 'registro' => $this->describirRegistro($analisis)];
 
         return response()->json($resultado)->header('Cache-Control', 'no-store');
     }
@@ -80,7 +92,9 @@ class ProveedorController extends Controller
     /**
      * Resumen para el formulario unificado; solo expone nombre, usuario y enlaces, nunca credenciales.
      *
-     * @return array{situacion: string, mensaje: string, accion: ?string, etiqueta_accion: ?string, bloquea: bool, ficha: ?array{codigo: string, nombre: string, url: string}, cuenta: ?array{username: string, nombre: string, url: ?string}}
+     * `datos` permite recuperar en el formulario la información ya registrada, solo cuando el registro puede continuar.
+     *
+     * @return array{situacion: string, mensaje: string, accion: ?string, etiqueta_accion: ?string, bloquea: bool, ficha: ?array{codigo: string, nombre: string, url: string}, cuenta: ?array{username: string, nombre: string, url: ?string}, datos: ?array{nombres: string, telefono: ?string, zona_id: ?int}}
      */
     private function describirRegistro(AnalisisRegistroProveedor $analisis): array
     {
@@ -96,6 +110,11 @@ class ProveedorController extends Controller
             'bloquea' => $analisis->situacion->bloqueaRegistro(),
             'ficha' => $ficha ? ['codigo' => $ficha->codigo, 'nombre' => $ficha->nombres, 'url' => route('admin.proveedores.show', $ficha->id)] : null,
             'cuenta' => $cuenta ? ['username' => $cuenta->username, 'nombre' => $cuenta->nombres, 'url' => $operador->puede('usuarios', 'gestionar') && $this->esAdministradorOficial() ? route('admin.usuarios.edit', $cuenta->id) : null] : null,
+            'datos' => $analisis->situacion->bloqueaRegistro() || ($ficha === null && $cuenta === null) ? null : [
+                'nombres' => $ficha?->nombres ?? $cuenta->nombres,
+                'telefono' => $ficha?->telefono,
+                'zona_id' => $ficha?->zonaId,
+            ],
         ];
     }
 
@@ -135,7 +154,7 @@ class ProveedorController extends Controller
             'zonas' => collect($zonas->todas())->keyBy('id'),
             'zonasDisponibles' => $zonas->todas(),
             'resumenSemana' => $resumenSemana,
-            'cuentas' => $vista === 'tabla' ? collect($usuarios->conRol(Rol::Proveedor))->keyBy('id') : collect(),
+            'cuentas' => collect($usuarios->conRol(Rol::Proveedor))->keyBy('id'),
             'busqueda' => $busqueda,
             'zonaId' => $zonaId,
             'estadoFiltro' => $estado,
@@ -299,24 +318,48 @@ class ProveedorController extends Controller
 
     public function update(int $proveedor, UpdateProveedorRequest $request, ActualizarProveedorUseCase $actualizar): RedirectResponse
     {
+        $cuentaAntes = $this->cuentaVinculadaSuspendida($proveedor);
         try {
-            $actualizar->ejecutar($proveedor, $request->aDatosProveedor());
+            $actualizar->ejecutar($proveedor, $request->aDatosProveedor(), $request->has('estado') ? EstadoProveedor::from($request->input('estado')) : null,
+                $request->input('motivo_estado'), auth('operador')->id());
         } catch (ProveedorInvalidoException $e) {
             return back()->withErrors(['codigo' => $this->mensajeSeguro($e)])->withInput();
         }
 
-        return redirect()->route('admin.proveedores.index')->with('estado', 'Proveedor actualizado correctamente.');
+        return redirect()->route('admin.proveedores.index')->with('estado', 'Proveedor actualizado correctamente.'.$this->mensajeCuenta($proveedor, $cuentaAntes));
     }
 
     public function cambiarEstado(int $proveedor, Request $request, CambiarEstadoProveedorUseCase $cambiarEstado): RedirectResponse
     {
         $request->validate([
             'estado' => ['required', 'string', 'in:activo,suspendido,retirado'],
+            'motivo_estado' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $cambiarEstado->ejecutar($proveedor, EstadoProveedor::from($request->string('estado')->toString()));
+        $cuentaAntes = $this->cuentaVinculadaSuspendida($proveedor);
+        $cambiarEstado->ejecutar($proveedor, EstadoProveedor::from($request->string('estado')->toString()), $request->input('motivo_estado'), auth('operador')->id());
 
-        return redirect()->route('admin.proveedores.index')->with('estado', 'Estado del proveedor actualizado.');
+        // Vuelve a la misma página y filtros desde donde se cambió el estado.
+        return redirect()->back(fallback: route('admin.proveedores.index'))->with('estado', 'Estado del proveedor actualizado.'.$this->mensajeCuenta($proveedor, $cuentaAntes));
+    }
+
+    /** null = sin cuenta vinculada. */
+    private function cuentaVinculadaSuspendida(int $proveedorId): ?bool
+    {
+        $cuenta = Usuario::query()->whereKey(DB::table('proveedores')->where('id', $proveedorId)->value('usuario_id'))->first();
+
+        return $cuenta?->suspendidaAdministrativamente();
+    }
+
+    private function mensajeCuenta(int $proveedorId, ?bool $suspendidaAntes): string
+    {
+        $despues = $this->cuentaVinculadaSuspendida($proveedorId);
+
+        return match (true) {
+            $suspendidaAntes === false && $despues === true => ' Su cuenta móvil vinculada también quedó Suspendida y se cerraron sus sesiones.',
+            $suspendidaAntes === true && $despues === false => ' Su cuenta móvil vinculada volvió a estar Activa; deberá iniciar sesión de nuevo.',
+            default => '',
+        };
     }
 
     public function vincularUsuario(int $proveedor, Request $request, VincularUsuarioProveedorUseCase $vincular): RedirectResponse

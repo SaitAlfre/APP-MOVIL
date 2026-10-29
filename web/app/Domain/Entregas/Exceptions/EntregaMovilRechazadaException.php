@@ -27,6 +27,11 @@ final class EntregaMovilRechazadaException extends DomainException
         return new self('Una entrega ya enviada no puede cambiar de proveedor.', 'cambio_de_proveedor');
     }
 
+    public static function proveedorNoActivo(string $estado): self
+    {
+        return new self("La ficha del proveedor está {$estado}. No se permiten nuevas entregas; el registro del celular debe conservarse para revisión administrativa.", 'proveedor_no_activo', 403);
+    }
+
     public static function reactivacion(): self
     {
         return new self('La entrega ya está anulada en el servidor y no se puede reactivar desde el celular.', 'reactivacion');

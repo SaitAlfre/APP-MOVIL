@@ -83,7 +83,7 @@ class RolesConfigurablesTest extends TestCase
         $this->assertDatabaseMissing('perfiles_roles', ['id' => $id]);
     }
 
-    public function test_formulario_de_roles_muestra_controles_para_las_cuatro_columnas_y_todos_los_modulos(): void
+    public function test_formulario_de_roles_muestra_solo_columnas_admitidas_y_todos_los_modulos(): void
     {
         $this->admin();
         $contenido = $this->get(route('admin.roles.create'))->assertOk()->getContent();
@@ -93,6 +93,15 @@ class RolesConfigurablesTest extends TestCase
         foreach (['ver', 'crear', 'editar', 'eliminar'] as $accion) {
             $this->assertStringContainsString('data-permission-toggle="'.$accion.'"', $contenido);
         }
+        $modulosConEliminar = collect(config('modulos_roles'))->filter(fn ($modulo) => in_array('eliminar', $modulo['acciones'], true));
+        $this->assertSame($modulosConEliminar->count(), substr_count($contenido, 'data-permission-action="eliminar"'));
+        $this->assertStringContainsString('Disponible en '.$modulosConEliminar->count().' de '.count(config('modulos_roles')).' módulos', $contenido);
+        $this->assertStringContainsString('Protegido: '.config('modulos_roles.liquidaciones.protegido'), $contenido);
+        $this->assertStringNotContainsString('Perfil base', $contenido);
+        $this->assertStringNotContainsString('name="base"', $contenido);
+        $this->assertStringNotContainsString('Consultar todos', $contenido);
+        $this->assertStringContainsString('Todos los permisos', $contenido);
+        $this->assertStringContainsString('Ver todos los módulos', $contenido);
         foreach (config('modulos_roles') as $modulo => $config) {
             foreach ($config['acciones'] as $accion) {
                 $this->assertStringContainsString('id="permiso-'.$modulo.'-'.$accion.'"', $contenido);
@@ -100,7 +109,7 @@ class RolesConfigurablesTest extends TestCase
         }
         $this->assertStringContainsString('aria-controls="permisos-matriz-cuerpo"', $contenido);
         $this->assertStringContainsString('aria-label="Matriz de permisos; desplázate horizontalmente en pantallas pequeñas"', $contenido);
-        $this->assertStringContainsString('incluidos los ocultos por los filtros o al desplazarte.', $contenido);
+        $this->assertStringContainsString('Los botones de columna aplican a todos los módulos', $contenido);
     }
 
     public function test_editar_rol_guarda_permisos_y_conserva_campos_personalizados(): void
@@ -204,10 +213,12 @@ class RolesConfigurablesTest extends TestCase
     public function test_permisos_dependientes_incluyen_consulta_y_no_ofrecen_acciones_inexistentes(): void
     {
         $this->admin();
-        $this->get(route('admin.roles.create'))->assertOk()->assertDontSee('value="eliminar"', false);
-        $this->post(route('admin.roles.store'), ['nombre' => '  Editor de proveedores  ', 'base' => 'acopiador', 'activo' => 1, 'permisos' => ['proveedores' => ['editar']]])->assertSessionHasNoErrors();
+        $this->get(route('admin.roles.create'))->assertOk()->assertDontSee('id="permiso-liquidaciones-eliminar"', false)->assertSee('id="permiso-proveedores-eliminar"', false);
+        $this->post(route('admin.roles.store'), ['nombre' => '  Editor de proveedores  ', 'base' => 'acopiador', 'activo' => 1, 'permisos' => ['proveedores' => ['editar'], 'productos' => ['eliminar'], 'liquidaciones' => ['ver', 'eliminar']]])->assertSessionHasNoErrors();
         $perfil = DB::table('perfiles_roles')->where('nombre', 'Editor de proveedores')->first();
         $this->assertSame(['editar', 'ver'], json_decode($perfil->permisos, true)['proveedores']);
+        $this->assertSame(['eliminar', 'ver'], json_decode($perfil->permisos, true)['productos']);
+        $this->assertSame(['ver'], json_decode($perfil->permisos, true)['liquidaciones']);
     }
 
     public function test_quitar_permisos_no_los_restaura_al_volver_de_un_error(): void
@@ -221,13 +232,13 @@ class RolesConfigurablesTest extends TestCase
         $this->assertSame([], json_decode(DB::table('perfiles_roles')->where('id', $id)->value('permisos'), true));
     }
 
-    public function test_rol_asignado_valida_base_sin_pagina_de_error_y_conserva_datos(): void
+    public function test_editar_un_rol_anterior_ignora_base_enviada_y_conserva_la_suya(): void
     {
         $this->admin();
         $id = $this->perfil();
         Usuario::factory()->create(['perfil_rol_id' => $id]);
-        $this->put(route('admin.roles.update', $id), ['nombre' => 'Auxiliar', 'base' => 'proveedor', 'activo' => 1])->assertSessionHasErrors('base');
-        $this->assertDatabaseHas('perfiles_roles', ['id' => $id, 'base' => 'acopiador']);
+        $this->put(route('admin.roles.update', $id), ['nombre' => 'Auxiliar', 'base' => 'proveedor', 'activo' => 1])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('perfiles_roles', ['id' => $id, 'nombre' => 'Auxiliar', 'base' => 'acopiador']);
     }
 
     public function test_listados_de_roles_y_formularios_filtran_y_paginan(): void

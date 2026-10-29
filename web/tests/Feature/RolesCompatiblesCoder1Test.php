@@ -42,7 +42,10 @@ class RolesCompatiblesCoder1Test extends TestCase
         $cuenta = Usuario::factory()->create(['roles' => ['calidad']]);
         foreach (['/admin/usuarios/nuevo', route('admin.usuarios.edit', $cuenta->id)] as $url) {
             $respuesta = $this->get($url)->assertOk();
-            $this->assertSame(4, substr_count($respuesta->getContent(), 'name="roles[]"'));
+            // El alta elige el rol en un selector previo; la edición conserva los roles como campos ocultos.
+            preg_match_all('/(?:name="roles\[\]" value="|[?&](?:amp;)?base=)([a-z_]+)/', $respuesta->getContent(), $roles);
+            $this->assertNotEmpty($roles[1]);
+            $this->assertSame([], array_values(array_diff($roles[1], array_map(fn (Rol $rol) => $rol->value, Rol::cases()))));
             foreach (self::RETIRADOS as $retirado) {
                 $respuesta->assertDontSee('value="'.$retirado.'"', false);
             }

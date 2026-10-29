@@ -82,8 +82,13 @@
                                 </div>
                             @endforeach
                             <div class="flex justify-between gap-4 border-b border-eh-surface-alt pb-2 text-sm">
-                                <dt class="text-eh-text-muted">Estado</dt>
+                                <dt class="text-eh-text-muted">Estado productivo</dt>
                                 <dd><x-ui.estado :estado="$proveedor->estado->value" /></dd>
+                            </div>
+                            <div class="flex flex-wrap justify-between gap-3 text-sm">
+                                <dt class="text-eh-text-muted">Acceso de la cuenta</dt>
+                                <dd><x-ui.estado-cuenta :usuario="$cuenta" :productivo="$proveedor->estado->value" />
+                                @if($cuenta && $usuario->puede('usuarios', 'editar'))<a href="{{ route('admin.usuarios.edit', $cuenta->id) }}" class="mt-2 block text-xs text-eh-primary underline">Ver cuenta vinculada</a>@endif</dd>
                             </div>
                         </dl>
                     </div>

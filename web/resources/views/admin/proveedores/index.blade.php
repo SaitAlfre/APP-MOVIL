@@ -63,4 +63,7 @@
         @endif
     </div>
     @include('admin.proveedores.qr-modal')
+    @if(auth('operador')->user()->puede('proveedores', 'editar') || auth('operador')->user()->puede('proveedores', 'eliminar'))
+        @include('admin.proveedores.estado-modal')
+    @endif
 @endsection

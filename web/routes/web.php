@@ -79,6 +79,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::post('usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
             Route::put('usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
             Route::patch('usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
+            Route::post('usuarios/{usuario}/acceso', [UsuarioController::class, 'gestionarAcceso'])->whereNumber('usuario')->name('usuarios.acceso');
             Route::post('usuarios/{usuario}/bloquear', [UsuarioController::class, 'bloquear'])->name('usuarios.bloquear');
             Route::post('usuarios/{usuario}/desbloquear', [UsuarioController::class, 'desbloquear'])->name('usuarios.desbloquear');
             Route::post('usuarios/{usuario}/restablecer-credenciales', [UsuarioController::class, 'restablecerCredenciales'])->name('usuarios.restablecer');

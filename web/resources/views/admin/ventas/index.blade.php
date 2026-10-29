@@ -70,13 +70,13 @@
                                             <input type="hidden" name="estado" value="completada">
                                     <x-ui.btn type="submit" size="sm" variant="secondary">Completar y despachar</x-ui.btn>
                                         </form>
-                                        <form method="POST" action="{{ route('admin.ventas.estado', $venta) }}"
+                                        @if(auth('operador')->user()->puede('ventas', 'eliminar'))<form method="POST" action="{{ route('admin.ventas.estado', $venta) }}"
                                             data-confirm="¿Anular la venta {{ $venta->codigo }}?">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="estado" value="anulada">
                                             <x-ui.btn type="submit" size="sm" variant="ghost">Anular</x-ui.btn>
-                                        </form>
+                                        </form>@endif
                                     </div>
                                 @endif
                             </td>

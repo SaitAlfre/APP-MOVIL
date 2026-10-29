@@ -113,3 +113,5 @@ T-89,Tarea,Completar el registro y consulta del lote mínimo según campos confi
 T-90,Tarea,"Revisar PR del lote, CA y documentación como compañero distinto",HU-16-A,Medina Paye Jhosue Daniel,Must,,1,S09,Backlog,docs/scrum/tareas.md#t-90
 T-91,Tarea,Integrar y comprobar la versión de lotes en ambiente local de pruebas,HU-16-A,Dubcek Leonel,Must,,0.5,S09,Backlog,docs/scrum/tareas.md#t-91
 T-92,Tarea,Unificar el registro de proveedores (ficha productiva + cuenta móvil opcional) con detección de duplicados y vinculación supervisada,HU-24,Dubcek Leonel,Must,,Sin estimar,Sin selección,Backlog,docs/scrum/tareas.md#t-92
+T-93,Tarea,"Unificar Suspender/Restaurar acceso, guardar el estado productivo del proveedor con sus datos y coordinar ambos estados en web y móvil",HU-24,Dubcek Leonel,Must,,Sin estimar,Sin selección,Backlog,docs/scrum/tareas.md#t-93
+T-94,Tarea,"Separar los roles personalizados (permisos del panel web) de las funciones móviles: retirar «Perfil base», asignar funciones móviles explícitas y corregir filtros y selección masiva de permisos",HU-24,Dubcek Leonel,Must,,Sin estimar,Sin selección,Backlog,docs/scrum/tareas.md#t-94

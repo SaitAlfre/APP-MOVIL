@@ -26,7 +26,7 @@ class AuditarCambiosOperativos
         Ruta::class => ['ruta', ['codigo', 'nombre', 'zona_id', 'activo', 'acopiador_id', 'paradas', 'trazado', 'indicaciones', 'mapa_version', 'resumen_recorrido']],
         Zona::class => ['zona', ['nombre', 'activo']],
         Vehiculo::class => ['vehiculo', ['nombre', 'placa', 'activo']],
-        Proveedor::class => ['proveedor', ['codigo', 'nombres', 'zona_id', 'estado', 'tachos', 'capacidad_tacho_l', 'usuario_id']],
+        Proveedor::class => ['proveedor', ['codigo', 'nombres', 'dni', 'telefono', 'direccion', 'dueno', 'zona_id', 'estado', 'suspension_origen', 'tachos', 'capacidad_tacho_l', 'usuario_id']],
         SinRecojo::class => ['sin_recojo', ['uuid_movil', 'jornada_id', 'proveedor_id', 'usuario_id', 'zona_id', 'fecha', 'motivo', 'detalle', 'deshecha', 'deshecha_en']],
         Jornada::class => ['jornada', ['usuario_id', 'vehiculo_id', 'zona_id', 'fecha', 'abierta_en', 'cerrada_en']],
     ];
@@ -59,7 +59,9 @@ class AuditarCambiosOperativos
             accion: $creado ? AccionAuditoria::Crear : AccionAuditoria::Actualizar,
             valorAntes: $antes === null ? null : json_encode($antes, JSON_UNESCAPED_UNICODE),
             valorDespues: json_encode($despues, JSON_UNESCAPED_UNICODE),
-            motivo: $modelo->getAttribute('motivo') ?? $modelo->getAttribute('observaciones'),
+            motivo: $modelo instanceof Proveedor && in_array('estado', $campos, true)
+                ? (request()->input('motivo_estado') ?: null)
+                : ($modelo->getAttribute('motivo') ?? $modelo->getAttribute('observaciones')),
             usuarioId: (int) $actorId, ocurridoEn: new DateTimeImmutable,
         ));
     }

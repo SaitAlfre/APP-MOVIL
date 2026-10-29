@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Application\Proveedores\ConsultarDniUseCase;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class ConsultaDniProveedorTest extends TestCase
@@ -41,18 +44,82 @@ class ConsultaDniProveedorTest extends TestCase
         config(['services.decolecta.token' => '']);
         Http::fake();
         $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
-            ->assertOk()->assertJsonPath('estado', 'no_disponible');
+            ->assertOk()->assertJsonPath('estado', 'no_configurado')->assertJsonPath('mensaje', ConsultarDniUseCase::MENSAJE_SIN_CONFIGURAR);
         Http::assertNothingSent();
+        $this->get(route('admin.proveedores.create'))->assertOk()
+            ->assertSee(ConsultarDniUseCase::MENSAJE_SIN_CONFIGURAR)->assertDontSee('data-consultar-dni disabled', false)
+            ->assertDontSee('Consulta no disponible. Puedes completar los nombres manualmente.');
     }
 
-    public function test_un_documento_existente_no_consume_la_api(): void
+    public function test_un_documento_existente_no_consume_la_api_y_ofrece_recuperar_sus_datos(): void
     {
-        $proveedor = Proveedor::factory()->create(['dni' => '00000001']);
+        $proveedor = Proveedor::factory()->create(['dni' => '00000001', 'nombres' => 'Ficha interna', 'telefono' => '900111222']);
         Http::fake();
         $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
             ->assertOk()->assertJsonPath('estado', 'registrado')
-            ->assertJsonPath('url', route('admin.proveedores.show', $proveedor->id));
+            ->assertJsonPath('registro.situacion', 'ficha_sin_cuenta')
+            ->assertJsonPath('registro.ficha.url', route('admin.proveedores.show', $proveedor->id))
+            ->assertJsonPath('registro.datos', ['nombres' => 'Ficha interna', 'telefono' => '900111222', 'zona_id' => $proveedor->zona_id]);
         Http::assertNothingSent();
+    }
+
+    public function test_una_cuenta_sin_ficha_se_detecta_antes_de_consultar_reniec(): void
+    {
+        Usuario::factory()->create(['dni' => '00000001', 'nombres' => 'Cuenta interna', 'roles' => ['proveedor'], 'pin_hash' => '2468']);
+        Http::fake();
+        $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
+            ->assertOk()->assertJsonPath('estado', 'registrado')->assertJsonPath('registro.situacion', 'cuenta_sin_ficha')
+            ->assertJsonPath('registro.accion', 'asociar_cuenta')->assertJsonPath('registro.datos.nombres', 'Cuenta interna')
+            ->assertDontSee('2468')->assertDontSee('pin_hash');
+        Http::assertNothingSent();
+    }
+
+    public function test_una_coincidencia_bloqueante_no_ofrece_recuperar_datos(): void
+    {
+        Usuario::factory()->create(['dni' => '00000001', 'roles' => ['acopiador']]);
+        Http::fake();
+        $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
+            ->assertOk()->assertJsonPath('registro.situacion', 'cuenta_de_otro_rol')
+            ->assertJsonPath('registro.bloquea', true)->assertJsonPath('registro.datos', null);
+        Http::assertNothingSent();
+    }
+
+    public function test_al_editar_el_propio_dni_no_cuenta_como_duplicado(): void
+    {
+        $proveedor = Proveedor::factory()->create(['dni' => '00000001']);
+        Http::fake(['api.decolecta.com/*' => Http::response($this->respuesta())]);
+        $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001', 'excluir' => $proveedor->id])
+            ->assertOk()->assertJsonPath('estado', 'encontrado');
+        $otro = Proveedor::factory()->create(['dni' => '00000002']);
+        $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001', 'excluir' => $otro->id])
+            ->assertOk()->assertJsonPath('estado', 'registrado');
+    }
+
+    public function test_credencial_rechazada_y_limite_se_distinguen_sin_exponer_el_token(): void
+    {
+        Log::spy();
+        Http::fake(['api.decolecta.com/*' => Http::sequence()->push(['error' => 'Apikey Required / Limit Exceeded'], 401)
+            ->push(['error' => 'Apikey Required / Limit Exceeded'], 403)->push(['error' => 'Apikey Required / Limit Exceeded'], 429)]);
+        foreach ([401 => 'no_autorizado', 403 => 'no_autorizado', 429 => 'limite'] as $esperado) {
+            $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
+                ->assertOk()->assertJsonPath('estado', $esperado)
+                ->assertDontSee('Apikey Required')->assertDontSee('token-ficticio-solo-test');
+        }
+        Log::shouldHaveReceived('warning')->withArgs(fn (string $mensaje, array $contexto) => $contexto === ['estado' => 401])->once();
+        Log::shouldNotHaveReceived('warning', [\Mockery::any(), \Mockery::on(fn ($contexto) => str_contains(json_encode($contexto), 'token-ficticio'))]);
+    }
+
+    public function test_usuarios_detecta_una_ficha_existente_y_respeta_permisos(): void
+    {
+        Proveedor::factory()->create(['dni' => '00000001', 'nombres' => 'Ficha interna', 'codigo' => 'PRV-INT-1']);
+        Http::fake(['api.decolecta.com/*' => Http::response($this->respuesta())]);
+        $this->postJson(route('admin.usuarios.consultar-dni'), ['dni' => '00000001'])
+            ->assertOk()->assertJsonPath('estado', 'ficha_existente')->assertJsonPath('nombre', 'Ficha interna');
+        Http::assertNothingSent();
+        $perfil = DB::table('perfiles_roles')->insertGetId(['nombre' => 'Solo usuarios', 'base' => 'acopiador', 'activo' => true, 'permisos' => '{"usuarios":["ver","crear","editar"]}', 'campos' => '{}']);
+        $this->actingAs(Usuario::factory()->create(['roles' => ['acopiador'], 'perfil_rol_id' => $perfil]), 'operador');
+        $this->postJson(route('admin.usuarios.consultar-dni'), ['dni' => '00000001'])
+            ->assertOk()->assertJsonPath('estado', 'encontrado')->assertDontSee('Ficha interna');
     }
 
     public function test_documentos_invalidos_no_llegan_al_servicio_externo(): void
@@ -75,10 +142,11 @@ class ConsultaDniProveedorTest extends TestCase
 
     public function test_los_errores_remotos_no_exponen_respuestas_ni_secretos(): void
     {
+        Http::fake(['api.decolecta.com/*' => Http::sequence()->push(['error' => 'detalle-privado'], 401)->push(['error' => 'detalle-privado'], 403)
+            ->push(['error' => 'detalle-privado'], 429)->push(['error' => 'detalle-privado'], 500)]);
         foreach ([401, 403, 429, 500] as $estado) {
-            Http::fake(['api.decolecta.com/*' => Http::response(['error' => 'detalle-privado'], $estado)]);
             $this->postJson(route('admin.proveedores.consultar-dni'), ['dni' => '00000001'])
-                ->assertOk()->assertJsonPath('estado', 'no_disponible')
+                ->assertOk()->assertJsonPath('estado', ['401' => 'no_autorizado', '403' => 'no_autorizado', '429' => 'limite', '500' => 'no_disponible'][(string) $estado])
                 ->assertDontSee('detalle-privado')->assertDontSee('token-ficticio-solo-test');
         }
     }

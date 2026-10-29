@@ -31,7 +31,7 @@
 
     <div @class(['grid grid-cols-1 gap-6', 'w-full max-w-3xl' => $esNuevo, 'max-w-6xl lg:grid-cols-3' => ! $esNuevo])>
         <x-ui.card padding="p-5 sm:p-6" :class="$esNuevo ? '' : 'lg:col-span-2'">
-            <form method="POST"
+            <form id="proveedor-formulario" method="POST"
                 action="{{ $esNuevo ? route('admin.proveedores.store') : route('admin.proveedores.update', $proveedor->id) }}"
                 class="space-y-6" data-once data-proveedor-form @if ($esNuevo) data-registro-proveedor @endif
                 data-dni-url="{{ route('admin.proveedores.consultar-dni') }}"
@@ -66,10 +66,11 @@
                             <div class="min-w-0 flex-1 basis-48">
                                 <x-ui.field name="dni" label="DNI del proveedor" required maxlength="{{ $esNuevo ? 8 : 20 }}" inputmode="numeric" autocomplete="off" :value="$proveedor?->dni ?? ($dniInicial ?? null)" placeholder="8 dígitos" />
                             </div>
-                            <x-ui.btn type="button" variant="outline" icon="search" data-consultar-dni :disabled="! filled(config('services.decolecta.token'))">Consultar DNI</x-ui.btn>
+                            <x-ui.btn type="button" variant="outline" icon="search" data-consultar-dni>Consultar DNI</x-ui.btn>
                         </div>
-                        <p class="text-xs text-eh-text-muted">Al completar el DNI, buscamos sus nombres y comprobamos si ya tiene ficha o cuenta.</p>
-                        <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted">@if (! filled(config('services.decolecta.token')))Consulta no disponible. Puedes completar los nombres manualmente.@endif</div>
+                        <p class="text-xs text-eh-text-muted">Al completar el DNI, comprobamos primero si ya tiene ficha o cuenta en el sistema{{ filled(config('services.decolecta.token')) ? ' y, si no existe, buscamos sus nombres en RENIEC' : '' }}.</p>
+                        @if (! filled(config('services.decolecta.token')))<p class="text-xs text-eh-gold" data-dni-sin-configurar>{{ \App\Application\Proveedores\ConsultarDniUseCase::MENSAJE_SIN_CONFIGURAR }}</p>@endif
+                        <div data-dni-resultado role="status" aria-live="polite" class="space-y-2 text-sm text-eh-text-muted"></div>
                         <div data-proveedor-duplicados role="status" aria-live="polite" @if ($esNuevo) hidden @endif></div>
                         @if ($esNuevo)
                             <div data-registro-situacion role="status" aria-live="polite" class="space-y-3" hidden></div>
@@ -152,13 +153,24 @@
                 <x-ui.card padding="p-4">
                     <h2 class="mb-3 text-sm font-semibold text-eh-text">Estado del proveedor</h2>
                     <p class="mb-3"><x-ui.estado :estado="$proveedor->estado->value" /></p>
-                    <form method="POST" action="{{ route('admin.proveedores.estado', $proveedor->id) }}" class="space-y-3" data-once>
-                        @csrf
-                        @method('PATCH')
+                    <div class="space-y-3">
                         <x-ui.select name="estado" label="Cambiar a" :selected="$proveedor->estado->value"
-                            :options="collect(\App\Domain\Proveedores\EstadoProveedor::cases())->mapWithKeys(fn ($estado) => [$estado->value => $estado->etiqueta()])->all()" />
-                        <x-ui.btn type="submit" variant="secondary" class="w-full">Actualizar estado</x-ui.btn>
-                    </form>
+                            form="proveedor-formulario" :data-estado-original="$proveedor->estado->value"
+                            :options="collect(\App\Domain\Proveedores\EstadoProveedor::cases())->reject(fn ($estado) => $estado === \App\Domain\Proveedores\EstadoProveedor::Retirado && $proveedor->estado !== $estado && ! auth('operador')->user()->puede('proveedores', 'eliminar'))->mapWithKeys(fn ($estado) => [$estado->value => $estado->etiqueta()])->all()" />
+                        @if($proveedor->estado !== \App\Domain\Proveedores\EstadoProveedor::Retirado && ! auth('operador')->user()->puede('proveedores', 'eliminar'))<p class="text-xs text-eh-text-muted">Retirar un proveedor requiere el permiso Eliminar de Proveedores.</p>@endif
+                        <label for="motivo-estado" class="block text-xs font-medium">Motivo administrativo (opcional)</label>
+                        <textarea id="motivo-estado" name="motivo_estado" form="proveedor-formulario" maxlength="1000" rows="3" class="w-full rounded-lg border border-eh-border bg-eh-surface p-3 text-sm">{{ old('motivo_estado') }}</textarea>
+                        @error('motivo_estado')<p class="text-xs text-eh-red">{{ $message }}</p>@enderror
+                        <p class="text-xs text-eh-text-muted">El estado se guardará junto con los datos al pulsar «Guardar cambios».</p>
+                        @if(($cuentaVinculada ?? null) && $cuentaVinculada->roles === [\App\Domain\Usuarios\Rol::Proveedor])
+                            <p class="text-xs text-eh-text-muted" data-estado-enlazado>Estado enlazado con la cuenta «{{ $cuentaVinculada->username }}»: Suspendido o Retirado también suspende la cuenta, y Activo la restaura.</p>
+                        @elseif($cuentaVinculada ?? null)
+                            <p class="text-xs text-eh-text-muted">La cuenta «{{ $cuentaVinculada->username }}» tiene además otros roles: conserva su acceso y solo pierde las operaciones de proveedor.</p>
+                        @endif
+                        @if($proveedor->estado->value === 'suspendido' && \App\Infrastructure\Persistence\Eloquent\Proveedor::query()->whereKey($proveedor->id)->value('suspension_origen') === \App\Domain\Proveedores\ProveedorRepositoryInterface::ORIGEN_ACCESO_CUENTA)
+                            <p class="text-xs text-eh-gold">Suspendido junto con el acceso de su cuenta. Se reactivará al usar «Restaurar acceso» en Usuarios y accesos; si cambias el estado aquí, la decisión pasa a ser independiente.</p>
+                        @endif
+                    </div>
                     <p class="mt-3 text-xs text-eh-text-muted">
                         Es el estado productivo de la ficha; no bloquea ni desactiva su cuenta móvil. Un proveedor suspendido o retirado deja de aparecer al registrar entregas nuevas.
                     </p>
@@ -176,7 +188,7 @@
                                 <p class="truncate text-xs text-eh-text-muted">{{ $cuentaVinculada->nombres ?? 'Acceso propio del proveedor' }}</p>
                             </div>
                             @if ($cuentaVinculada)
-                                <x-ui.estado :estado="$cuentaVinculada->activo ? 'activo' : 'inactivo'" />
+                                <x-ui.estado-cuenta :usuario="$cuentaVinculada" :productivo="$proveedor->estado->value" />
                             @endif
                         </div>
                         @if ($cuentaVinculada && $cuentaVinculada->nombres !== $proveedor->nombres)
@@ -225,5 +237,13 @@
     </div>
     @unless ($esNuevo)
         @include('admin.proveedores.qr-modal')
+        <x-ui.modal id="proveedor-estado-modal" title="Confirmar estado productivo" size="md">
+            <p data-estado-confirmacion class="text-sm text-eh-text"></p>
+            <p class="mt-3 text-xs text-eh-text-muted">Proveedor: {{ $proveedor->nombres }} · {{ $proveedor->codigo }}. Se guardarán juntos los datos y el estado.@if(($cuentaVinculada ?? null) && $cuentaVinculada->roles === [\App\Domain\Usuarios\Rol::Proveedor]) Su cuenta móvil «{{ $cuentaVinculada->username }}» cambiará de estado con la ficha.@endif</p>
+            <div class="mt-5 flex flex-wrap justify-end gap-3">
+                <x-ui.btn type="button" variant="secondary" data-modal-close>Cancelar</x-ui.btn>
+                <x-ui.btn type="button" data-estado-confirmar>Confirmar y guardar</x-ui.btn>
+            </div>
+        </x-ui.modal>
     @endunless
 @endsection

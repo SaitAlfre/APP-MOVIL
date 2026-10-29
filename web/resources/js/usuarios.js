@@ -18,13 +18,14 @@ export function iniciarUsuario(signal) {
     const zonaVacia = form.querySelector('[data-usuario-zona-vacia]');
     let peticion;
     const actualizarZona = () => {
-        const rol = form.querySelector('[name="roles[]"]:checked')?.value || form.querySelector('[name="roles[]"]')?.value || form.dataset.base;
+        const funcionMovil = form.querySelector('[data-funcion-movil]');
+        const rol = funcionMovil ? funcionMovil.value : form.querySelector('[name="roles[]"]:checked')?.value || form.querySelector('[name="roles[]"]')?.value || form.dataset.base;
         zona.hidden = !['calidad', 'acopiador'].includes(rol);
         zonaInput.disabled = zona.hidden;
         zonaVacia.disabled = !zona.hidden;
         zonaInput.required = rol === 'calidad' && !form.dataset.usuarioId;
     };
-    form.querySelectorAll('[name="roles[]"]').forEach(input => input.addEventListener('change', actualizarZona, { signal }));
+    form.querySelectorAll('[name="roles[]"], [data-funcion-movil]').forEach(input => input.addEventListener('change', actualizarZona, { signal }));
     actualizarZona();
     const actualizarConsulta = () => { boton.disabled = !/^[0-9]{8}$/.test(dni.value.trim()); };
     dni.addEventListener('input', () => {
@@ -71,6 +72,12 @@ export function iniciarUsuario(signal) {
                 resultado.textContent = datos.mensaje || 'Puedes completar los datos manualmente.';
                 if (datos.estado === 'registrado' && datos.url) {
                     const enlace = document.createElement('a'); enlace.href = datos.url; enlace.textContent = ' Revisar cuenta existente'; enlace.className = 'underline font-semibold text-eh-primary'; resultado.append(enlace);
+                }
+                if (datos.estado === 'ficha_existente') {
+                    const usar = document.createElement('button'); usar.type = 'button'; usar.textContent = ' Usar el nombre de la ficha'; usar.className = 'underline font-semibold text-eh-primary';
+                    usar.addEventListener('click', () => { nombre.value = datos.nombre; nombre.dispatchEvent(new Event('input', { bubbles: true })); resultado.textContent = 'Nombre de la ficha aplicado. Verifica los datos antes de guardar.'; }, { signal });
+                    const enlace = document.createElement('a'); enlace.href = datos.url; enlace.textContent = ' Ver ficha'; enlace.className = 'underline font-semibold text-eh-primary';
+                    resultado.append(usar, enlace);
                 }
             }
         } catch {

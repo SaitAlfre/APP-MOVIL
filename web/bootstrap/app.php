@@ -54,6 +54,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Log::error('Error de persistencia', [
                 'tipo' => $error::class,
                 'codigo' => (string) $error->getCode(),
+                // Mensaje del motor (p. ej. «no such column: x»); no incluye la consulta ni los valores enlazados.
+                'detalle' => is_array($error->errorInfo) ? ($error->errorInfo[2] ?? null) : null,
                 'ruta' => request()->route()?->getName(),
             ]);
 

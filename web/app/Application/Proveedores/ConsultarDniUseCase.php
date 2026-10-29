@@ -4,15 +4,24 @@ namespace App\Application\Proveedores;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
+/** Consulta externa de RENIEC mediante Decolecta. Solo se usa cuando el DNI no existe en los registros internos. */
 final class ConsultarDniUseCase
 {
+    public const MENSAJE_SIN_CONFIGURAR = 'La consulta externa de DNI (RENIEC) requiere que el administrador del sistema configure el servicio. Puedes completar los datos manualmente.';
+
+    public function configurado(): bool
+    {
+        return trim((string) config('services.decolecta.token')) !== '';
+    }
+
     /** @return array{estado: string, mensaje?: string, nombre?: string} */
     public function ejecutar(string $dni): array
     {
         $token = trim((string) config('services.decolecta.token'));
         if ($token === '') {
-            return ['estado' => 'no_disponible', 'mensaje' => 'La consulta de DNI no está disponible. Completa los datos manualmente.'];
+            return ['estado' => 'no_configurado', 'mensaje' => self::MENSAJE_SIN_CONFIGURAR];
         }
 
         try {
@@ -22,6 +31,15 @@ final class ConsultarDniUseCase
             return ['estado' => 'no_disponible', 'mensaje' => 'El servicio no respondió. Puedes reintentar o completar los datos manualmente.'];
         }
 
+        if (in_array($respuesta->status(), [401, 403], true)) {
+            // Decolecta responde 401 «Apikey Required / Limit Exceeded» tanto por credencial inválida como por límite agotado.
+            Log::warning('Consulta DNI rechazada por el servicio externo', ['estado' => $respuesta->status()]);
+
+            return ['estado' => 'no_autorizado', 'mensaje' => 'El servicio de DNI rechazó la credencial configurada o se agotó su límite de consultas. Un administrador debe revisar la cuenta del servicio. Puedes completar los datos manualmente.'];
+        }
+        if ($respuesta->status() === 429) {
+            return ['estado' => 'limite', 'mensaje' => 'El servicio de DNI alcanzó su límite de consultas. Reintenta más tarde o completa los datos manualmente.'];
+        }
         if ($respuesta->status() === 404) {
             return ['estado' => 'sin_resultado', 'mensaje' => 'No se encontraron datos para este DNI. Verifica el número o completa los datos manualmente.'];
         }

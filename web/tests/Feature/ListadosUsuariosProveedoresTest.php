@@ -110,7 +110,44 @@ class ListadosUsuariosProveedoresTest extends TestCase
         Usuario::factory()->create(['nombres' => 'Cuenta bloqueada', 'bloqueado_manualmente' => true]);
         Proveedor::factory()->create(['nombres' => 'Ficha retirada', 'estado' => 'retirado']);
         $this->get(route('admin.usuarios.index', ['estado' => 'inactivo']))->assertOk()->assertSee('Cuenta inactiva')->assertDontSee('Ficha retirada');
-        $this->get(route('admin.usuarios.index', ['estado' => 'bloqueado']))->assertOk()->assertSee('Cuenta bloqueada')->assertDontSee('Cuenta inactiva');
+        Usuario::factory()->create(['nombres' => 'Cuenta bloqueo temporal', 'bloqueado_hasta' => now()->addMinutes(15)]);
+        $this->get(route('admin.usuarios.index', ['estado' => 'suspendido']))->assertOk()->assertSee('Cuenta bloqueada')->assertSee('Cuenta inactiva');
+        $this->get(route('admin.usuarios.index', ['estado' => 'bloqueado']))->assertOk()->assertSee('Cuenta bloqueo temporal')->assertDontSee('Cuenta bloqueada')->assertDontSee('Cuenta inactiva');
+    }
+
+    public function test_pestanas_principales_y_bloqueo_temporal_como_filtro_avanzado(): void
+    {
+        Usuario::factory()->create(['nombres' => 'Cuenta habilitada']);
+        Usuario::factory()->create(['nombres' => 'Cuenta suspendida', 'bloqueado_manualmente' => true, 'motivo_bloqueo' => 'Motivo ficticio']);
+        Usuario::factory()->create(['nombres' => 'Cuenta con intentos', 'bloqueado_hasta' => now()->addMinutes(15)]);
+        $todos = $this->get(route('admin.usuarios.index'))->assertOk()->assertDontSee('Bloqueos temporales')->assertSee('name="bloqueo"', false)->getContent();
+        $this->assertSame(3, substr_count($todos, 'data-status-tab'));
+        $this->get(route('admin.usuarios.index', ['estado' => 'activo']))->assertOk()
+            ->assertSee('Cuenta habilitada')->assertSee('Cuenta con intentos')->assertSee('Bloqueado temporalmente')->assertDontSee('Cuenta suspendida');
+        $this->get(route('admin.usuarios.index', ['estado' => 'suspendido']))->assertOk()
+            ->assertSee('Cuenta suspendida')->assertSee('Suspensión administrativa: Motivo ficticio')->assertDontSee('Suspendido administrativamente')->assertDontSee('Cuenta habilitada');
+        $this->get(route('admin.usuarios.index', ['bloqueo' => 'temporal']))->assertOk()
+            ->assertSee('Cuenta con intentos')->assertDontSee('Cuenta habilitada')->assertDontSee('Cuenta suspendida')->assertSee('Filtros · 1');
+        $this->get(route('admin.usuarios.index', ['bloqueo' => 'otro']))->assertSessionHasErrors('bloqueo');
+    }
+
+    public function test_columna_estado_no_muestra_la_ficha_y_el_menu_conserva_el_acceso(): void
+    {
+        $cuenta = Usuario::factory()->create(['nombres' => 'Cuenta con ficha', 'roles' => ['proveedor']]);
+        $ficha = Proveedor::factory()->create(['usuario_id' => $cuenta->id, 'estado' => 'retirado']);
+        $this->get(route('admin.usuarios.index'))->assertOk()->assertDontSee('Ficha: ')->assertDontSee('restringido por retiro')
+            ->assertSee('Ver ficha de proveedor')->assertSee(route('admin.proveedores.show', $ficha->id), false)->assertSee('Suspender acceso')->assertSee('Restablecer PIN');
+        $this->get(route('admin.usuarios.edit', $cuenta->id))->assertOk()->assertSee('Ver ficha productiva');
+    }
+
+    public function test_suspender_y_restaurar_cambian_la_etiqueta_corta(): void
+    {
+        $cuenta = Usuario::factory()->create(['nombres' => 'Cuenta ciclo', 'roles' => ['acopiador']]);
+        $this->post(route('admin.usuarios.acceso', $cuenta->id), ['suspender' => 1, 'motivo' => 'Prueba ficticia'])->assertSessionHasNoErrors();
+        $this->get(route('admin.usuarios.index', ['estado' => 'suspendido']))->assertOk()->assertSee('Cuenta ciclo')->assertSee('Restaurar acceso');
+        $this->post(route('admin.usuarios.acceso', $cuenta->id), ['suspender' => 0])->assertSessionHasNoErrors();
+        $this->get(route('admin.usuarios.index', ['estado' => 'activo', 'buscar' => 'Cuenta ciclo']))->assertOk()
+            ->assertSee('Cuenta ciclo')->assertSee('>Activo', false)->assertDontSee('Bloqueado temporalmente')->assertSee('Suspender acceso');
     }
 
     public function test_parametros_invalidos_se_rechazan(): void

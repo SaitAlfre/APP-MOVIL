@@ -5,7 +5,8 @@
     $operador = auth('operador')->user();
     $puedeGestionar = $operador->puede('usuarios','editar');
     $puedeCrear = $operador->puede('usuarios','crear');
-    $hayFiltros = filled($filtros['buscar'] ?? null) || filled($filtros['rol'] ?? null) || filled($filtros['estado'] ?? null);
+    $hayFiltros = filled($filtros['buscar'] ?? null) || filled($filtros['rol'] ?? null) || filled($filtros['estado'] ?? null) || filled($filtros['bloqueo'] ?? null);
+    $filtrosAvanzados = collect([$filtros['rol'] ?? null, $filtros['bloqueo'] ?? null])->filter()->count();
     $orden = $filtros['orden'] ?? 'recientes';
 @endphp
 <x-ui.page-header title="Usuarios y accesos" description="Gestiona las cuentas del equipo, sus roles y el acceso al sistema." :breadcrumbs="[['label'=>'Usuarios y proveedores'],['label'=>'Usuarios y accesos']]">
@@ -14,15 +15,16 @@
     @endif
 </x-ui.page-header>
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-    <x-ui.status-tabs name="estado" :options="[''=>'Todos','activo'=>'Activos','inactivo'=>'Inactivos','bloqueado'=>'Bloqueados']" :value="$filtros['estado'] ?? ''" form-id="filtros-usuarios" />
+    <x-ui.status-tabs name="estado" :options="[''=>'Todos','activo'=>'Activos','suspendido'=>'Suspendidos']" :value="$filtros['estado'] ?? ''" form-id="filtros-usuarios" />
     <p class="text-xs text-eh-text-muted">{{ $filas->total() }} {{ $filas->total() === 1 ? 'usuario' : 'usuarios' }}</p>
 </div>
 <div class="gestion-toolbar mb-4">
     <form id="filtros-usuarios" method="GET" action="{{ route('admin.usuarios.index') }}" data-directorio-filtros data-live-filter class="flex flex-1 flex-wrap items-center gap-3">
         <input type="hidden" name="estado" value="{{ $filtros['estado'] ?? '' }}">
         <div class="w-full sm:max-w-sm"><x-ui.search name="buscar" label="Buscar usuarios" :value="$filtros['buscar'] ?? ''" placeholder="Buscar por nombre, usuario o DNI…" maxlength="150" autocomplete="off" /></div>
-        <details class="gestion-columns gestion-filters"><summary>Filtros{{ filled($filtros['rol'] ?? null) ? ' · 1' : '' }}</summary><div>
+        <details class="gestion-columns gestion-filters"><summary>Filtros{{ $filtrosAvanzados ? ' · '.$filtrosAvanzados : '' }}</summary><div>
             <x-ui.select name="rol" label="Rol del usuario" placeholder="Todos los roles" :options="$opcionesRol" :selected="$filtros['rol'] ?? ''" />
+            <x-ui.select name="bloqueo" label="Seguridad" placeholder="Todas las cuentas" :options="['temporal'=>'Bloqueo temporal']" :selected="$filtros['bloqueo'] ?? ''" />
             <x-ui.select name="orden" label="Ordenar por" :options="['recientes'=>'Más recientes','nombre_asc'=>'Nombre: A a Z','nombre_desc'=>'Nombre: Z a A']" :selected="$orden" />
             <x-ui.btn type="submit" variant="secondary" size="sm">Filtrar</x-ui.btn>
         </div></details>
@@ -62,7 +64,26 @@
                         @if($fila->perfil)<x-ui.badge variant="blue" :label="$fila->perfil" />
                         @else @forelse($rolesConocidos as $rol)<x-ui.badge :variant="match($rol->value) {'admin'=>'red','calidad'=>'yellow','proveedor'=>'gray',default=>'blue'}" :label="$rol->etiqueta()" />@empty<x-ui.badge variant="yellow" label="Requiere asignación" />@endforelse @endif
                     </div></td>
-                    <td data-column="estado"><x-ui.badge :variant="match($fila->estado) {'activo'=>'green','bloqueado'=>'red',default=>'gray'}" :label="match($fila->estado) {'activo'=>'Activo','inactivo'=>'Inactivo',default=>'Bloqueado'}" /></td>
+                    @php
+                        $bloqueoTemporal = $usuario->bloqueado_hasta?->isFuture();
+                        $detalleEstado = match ($fila->estado) {
+                            'suspendido' => $usuario->bloqueado_manualmente
+                                ? 'Suspensión administrativa'.($usuario->motivo_bloqueo ? ': '.$usuario->motivo_bloqueo : '').($usuario->bloqueado_manual_en ? ' ('.$usuario->bloqueado_manual_en->timezone('America/Lima')->format('d/m/Y H:i').')' : '')
+                                : 'Cuenta desactivada con el estado anterior; usa «Restaurar acceso» para habilitarla.',
+                            'bloqueado' => 'Bloqueo automático por intentos fallidos hasta las '.$usuario->bloqueado_hasta->timezone('America/Lima')->format('H:i').'. La cuenta sigue habilitada.',
+                            default => null,
+                        };
+                    @endphp
+                    <td data-column="estado" data-export-value="{{ match($fila->estado) {'activo'=>'Activo','suspendido'=>'Suspendido',default=>'Bloqueado temporalmente'} }}"><div class="flex flex-wrap gap-1">
+                        @php
+                            $suspendidaFila = $fila->estado === 'suspendido';
+                            $opcionesEstado = $gestionable && $fila->estado !== 'bloqueado' ? [$suspendidaFila
+                                ? ['etiqueta' => 'Restaurar acceso', 'descripcion' => 'Permite volver a iniciar sesión.', 'modal' => 'acceso-'.$usuario->id, 'icono' => 'arrowPath']
+                                : ['etiqueta' => 'Suspender acceso', 'descripcion' => 'Cierra sus sesiones web y móvil.', 'modal' => 'acceso-'.$usuario->id, 'icono' => 'shield']] : [];
+                        @endphp
+                        <x-ui.estado-menu :label="match($fila->estado) {'activo'=>'Activo','suspendido'=>'Suspendido',default=>'Bloqueado temporalmente'}" :variant="match($fila->estado) {'activo'=>'green','bloqueado'=>'yellow',default=>'red'}" :nombre="$fila->nombre" :detalle="$detalleEstado" :opciones="$opcionesEstado" />
+                        @if($fila->estado === 'suspendido' && $bloqueoTemporal)<x-ui.badge variant="yellow" label="Bloqueado temporalmente" />@endif
+                    </div></td>
                     <td data-column="acceso" class="text-eh-text-muted">{{ $acceso }}</td>
                     <td data-column="acciones">@if($gestionable) @include('admin.usuarios.acciones') @else<span class="text-xs text-eh-text-muted">{{ $puedeGestionar ? 'Cuenta protegida' : 'Solo lectura' }}</span>@endif</td>
                 </tr>

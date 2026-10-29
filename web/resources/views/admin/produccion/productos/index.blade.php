@@ -49,7 +49,7 @@
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                         <x-icon name="pencil" class="h-4 w-4" />
                                     </a>
-                                    <form method="POST" action="{{ route('admin.produccion.productos.estado', $producto->id) }}"
+                                    @if(! $producto->activo || auth('operador')->user()->puede('productos', 'eliminar'))<form method="POST" action="{{ route('admin.produccion.productos.estado', $producto->id) }}"
                                         data-confirm="{{ $producto->activo ? '¿Desactivar el producto '.$producto->nombre.'? No se podrá vender ni producir.' : '¿Reactivar el producto '.$producto->nombre.'?' }}">
                                         @csrf
                                         @method('PATCH')
@@ -58,7 +58,7 @@
                                             class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                             <x-icon :name="$producto->activo ? 'xMark' : 'check'" class="h-4 w-4" />
                                         </button>
-                                    </form>
+                                    </form>@endif
                                 @endif
                             </div>
                         </td>

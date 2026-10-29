@@ -214,6 +214,9 @@
                     @if (session('error'))
                         <x-ui.alert type="error" class="mb-5">{{ session('error') }}</x-ui.alert>
                     @endif
+                    @if (session('aviso'))
+                        <x-ui.alert type="warning" class="mb-5">{{ session('aviso') }}</x-ui.alert>
+                    @endif
 
                     @if ($errors->any())
                         <x-ui.alert type="error" title="Falta corregir algunos datos para guardar." class="mb-5" tabindex="-1" data-form-errors>

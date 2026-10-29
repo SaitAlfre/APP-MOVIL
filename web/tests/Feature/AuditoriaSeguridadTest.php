@@ -118,7 +118,7 @@ class AuditoriaSeguridadTest extends TestCase
     {
         $admin = $this->admin();
         $usuario = Usuario::factory()->create(['roles' => ['calidad']]);
-        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678'])->assertSessionHasNoErrors();
+        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678', 'pin_confirmation' => '5678'])->assertSessionHasNoErrors();
         $this->assertEquals(1, $usuario->fresh()->version_sesion);
         $this->actingAs($usuario->fresh(), 'operador')->withSession(['version_sesion' => [$usuario->id => 0]])
             ->get(route('admin.dashboard.index'))->assertRedirect(route('login'));

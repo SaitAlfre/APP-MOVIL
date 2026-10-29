@@ -47,7 +47,7 @@
                                             class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                             <x-icon name="pencil" class="h-4 w-4" />
                                         </a>
-                                        <form method="POST" action="{{ route('admin.zonas.estado', $fila['zona']->id) }}"
+                                        @if(! $fila['zona']->activo || auth('operador')->user()->puede('zonas_vehiculos', 'eliminar'))<form method="POST" action="{{ route('admin.zonas.estado', $fila['zona']->id) }}"
                                             data-confirm="{{ $fila['zona']->activo ? '¿Desactivar la zona '.$fila['zona']->nombre.'? No se podrán abrir jornadas nuevas en ella.' : '¿Reactivar la zona '.$fila['zona']->nombre.'?' }}">
                                             @csrf
                                             @method('PATCH')
@@ -56,7 +56,7 @@
                                                 class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                                 <x-icon :name="$fila['zona']->activo ? 'xMark' : 'check'" class="h-4 w-4" />
                                             </button>
-                                        </form>
+                                        </form>@endif
                                     </div>
                                 @endif
                             </td>
@@ -82,7 +82,7 @@
                                             class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                             <x-icon name="pencil" class="h-4 w-4" />
                                         </a>
-                                        <form method="POST" action="{{ route('admin.vehiculos.estado', $vehiculo->id) }}"
+                                        @if(! $vehiculo->activo || auth('operador')->user()->puede('zonas_vehiculos', 'eliminar'))<form method="POST" action="{{ route('admin.vehiculos.estado', $vehiculo->id) }}"
                                             data-confirm="{{ $vehiculo->activo ? '¿Desactivar el vehículo '.$vehiculo->nombre.'?' : '¿Reactivar el vehículo '.$vehiculo->nombre.'?' }}">
                                             @csrf
                                             @method('PATCH')
@@ -91,7 +91,7 @@
                                                 class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
                                                 <x-icon :name="$vehiculo->activo ? 'xMark' : 'check'" class="h-4 w-4" />
                                             </button>
-                                        </form>
+                                        </form>@endif
                                     </div>
                                 @endif
                             </td>

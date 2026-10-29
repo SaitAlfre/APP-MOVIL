@@ -42,6 +42,19 @@ Antes existían dos altas independientes: *Usuarios y accesos → Nuevo usuario 
 
 El servidor revalida la situación al guardar: una confirmación que ya no corresponde se rechaza.
 
+## Consultar DNI: registros internos primero (ajuste del 28-10-2026)
+
+1. **Registros internos.** `POST admin/proveedores/consultar-dni` usa `AnalizarRegistroProveedorUseCase` y revisa fichas **y** cuentas. Si el DNI existe, responde `registrado` con el resumen de la situación y no llama al servicio externo. Cuando el registro puede continuar, el aviso ofrece «Usar los datos registrados», que copia nombre, celular y zona de la ficha (o el nombre de la cuenta) solo al pulsarlo, y mantiene la confirmación para vincular sin duplicar. Las situaciones bloqueantes no ofrecen datos. Al editar, `excluir` evita contar la propia ficha.
+2. **Usuarios y accesos.** `POST admin/usuarios/consultar-dni` detecta además una ficha de proveedor con ese DNI (`ficha_existente`) y ofrece usar su nombre. Esto solo ocurre si el operador tiene permiso para ver Proveedores; si no, no se revela la ficha.
+3. **RENIEC mediante Decolecta**, solo si no hay coincidencia interna: `GET https://api.decolecta.com/v1/reniec/dni?numero=…` con `Authorization: Bearer` (contrato verificado en la documentación del proveedor). Estados que se devuelven:
+   - `encontrado`, `sin_resultado` (404).
+   - `no_autorizado` (401/403). Decolecta usa el mismo 401 «Apikey Required / Limit Exceeded» para una credencial inválida y para el límite agotado; se registra un aviso en el log solo con el estado HTTP.
+   - `limite` (429), `no_disponible` (otros errores, tiempo de espera o respuesta inválida).
+   - `no_configurado`, si `DECOLECTA_TOKEN` está vacío.
+4. **Sin configuración**, el botón sigue habilitado para revisar los registros internos. Los formularios muestran que la consulta externa requiere configuración y el registro manual nunca se bloquea.
+
+**Verificado el 28-10-2026:** PHPUnit completo 579/579 (`ConsultaDniProveedorTest` con respuestas simuladas, 15 pruebas). Petición real a Decolecta con un token inválido y ficticio: `no_autorizado`, y el log sin el token. **No verificado:** una consulta exitosa real, porque requiere el token del equipo, ni el comportamiento en el navegador, porque falta Node.js en el entorno.
+
 ## Permisos y seguridad
 
 - Crear cuentas de proveedor: solo administrador oficial con `usuarios.gestionar` (misma regla que Usuarios y accesos). Un perfil con `proveedores.crear` registra solo la ficha.

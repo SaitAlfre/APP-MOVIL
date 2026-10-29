@@ -28,7 +28,7 @@
                         </dd></div>
                     @endif
                 </dl>
-                <div class="mt-4"><x-ui.estado :estado="$proveedor->estado->value" /></div>
+                <div class="mt-4 flex flex-wrap gap-1"><x-ui.estado :estado="$proveedor->estado->value" /><x-ui.estado-cuenta :usuario="$cuentas->get($proveedor->usuarioId)" :productivo="$proveedor->estado->value" /></div>
                 <div class="mt-auto pt-5"><div class="flex items-center justify-between gap-3 border-t border-eh-border pt-3 text-xs">
                     <a href="{{ route('admin.proveedores.show',$proveedor->id) }}" aria-label="Ver ficha de {{ $proveedor->nombres }}" class="inline-flex min-h-9 items-center rounded-lg font-semibold text-eh-primary hover:underline focus-visible:outline-2 focus-visible:outline-eh-primary">Ver ficha</a>
                     @if($puedeGestionar)

@@ -1096,7 +1096,7 @@ Escenario: HU-12-B rechazo o ausencia de datos
 - **MoSCoW / tamaño inicial:** Must / 5 SP hipotéticos, Poker pendiente.
 - **Dependencias:** [HU-01](product-backlog.md#hu-01).
 - **Responsable propuesto:** Dubcek Leonel. **Estado:** hereda estado por defecto del catálogo.
-- **Selección:** S06, solo si es dependencia bloqueante; [calendario](calendario-y-capacidad.md). **Tareas:** [T-19](tareas.md#t-19), [T-25](tareas.md#t-25), [T-42](tareas.md#t-42).
+- **Selección:** S06, solo si es dependencia bloqueante; [calendario](calendario-y-capacidad.md). **Tareas:** [T-19](tareas.md#t-19), [T-25](tareas.md#t-25), [T-42](tareas.md#t-42), [T-93](tareas.md#t-93).
 - **Evidencia técnica actual:** [T-19](tareas.md#t-19); acredita archivos/cambios, no estos CA. Aceptación: **EVIDENCIA PENDIENTE**. Pruebas relacionadas del 22-10: [ejecuciones y límites](../pruebas/ejecuciones/resultados-2026-10-22.md); no equivalen a todos los CA/DoD.
 
 **Criterios de aceptación propuestos**
@@ -1748,8 +1748,8 @@ Escenario: HU-23 rechazo o ausencia de datos
 - **MoSCoW / tamaño inicial:** Must / 8 SP hipotéticos, Poker pendiente.
 - **Dependencias:** [HU-01](product-backlog.md#hu-01).
 - **Responsable propuesto:** Dubcek Leonel. **Estado:** hereda estado por defecto del catálogo.
-- **Selección:** Sin selección; refinamiento posterior; [calendario](calendario-y-capacidad.md). **Tareas:** [T-77](tareas.md#t-77), [T-92](tareas.md#t-92).
-- **Evidencia técnica actual:** ver cobertura por RF; registro unificado de proveedores implementado y probado en local ([T-92](tareas.md#t-92), [nota técnica](../tecnica/registro-unificado-proveedores.md)). Aceptación: **EVIDENCIA PENDIENTE**.
+- **Selección:** Sin selección; refinamiento posterior; [calendario](calendario-y-capacidad.md). **Tareas:** [T-77](tareas.md#t-77), [T-92](tareas.md#t-92), [T-93](tareas.md#t-93), [T-94](tareas.md#t-94).
+- **Evidencia técnica actual:** ver cobertura por RF; registro unificado de proveedores implementado y probado en local ([T-92](tareas.md#t-92), [nota técnica](../tecnica/registro-unificado-proveedores.md)); Suspender/Restaurar acceso y estado productivo de proveedores implementados y probados en local ([T-93](tareas.md#t-93), [nota técnica](../tecnica/estados-usuarios-proveedores.md)); roles personalizados sin perfil base, con funciones móviles explícitas, implementados y probados en local ([T-94](tareas.md#t-94), [nota técnica](../tecnica/roles-personalizados-sin-perfil-base.md)). Aceptación: **EVIDENCIA PENDIENTE**.
 
 **Criterios de aceptación propuestos**
 

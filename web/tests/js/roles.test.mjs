@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
     cambiarColumnaPermisos,
     estadoColumnaPermisos,
+    mensajeFiltroVacio,
     sincronizarDependenciasPermiso,
 } from '../../resources/js/roles.js';
 
@@ -112,4 +113,41 @@ test('solo selecciona acciones ofrecidas por cada módulo y deja inactiva una co
         total: 0, seleccionados: 0, completa: false, parcial: false,
     });
     assert.equal(cambiarColumnaPermisos(matriz, 'eliminar'), false);
+});
+
+test('el filtro Sin acceso vacío explica que todos los módulos tienen permisos', () => {
+    assert.equal(mensajeFiltroVacio('sin-acceso', '', 21, 21), 'Todos los módulos tienen al menos un permiso habilitado.');
+});
+
+test('el filtro Habilitados vacío indica que aún no hay permisos', () => {
+    assert.match(mensajeFiltroVacio('habilitados', '', 0, 21), /^Ningún módulo tiene permisos todavía/);
+});
+
+test('una búsqueda sin coincidencias nombra el texto buscado', () => {
+    assert.equal(mensajeFiltroVacio('todos', 'xyz', 3, 21), 'Ningún módulo coincide con «xyz».');
+    assert.equal(mensajeFiltroVacio('habilitados', 'xyz', 3, 21), 'Ningún módulo coincide con «xyz» en este filtro.');
+});
+
+test('Seleccionar todo en Crear no marca acciones que el módulo no admite', () => {
+    const matriz = [
+        { dataset: { permissionModule: 'reportes', permissionAction: 'ver' }, checked: false, disabled: false },
+        { dataset: { permissionModule: 'proveedores', permissionAction: 'ver' }, checked: false, disabled: false },
+        { dataset: { permissionModule: 'proveedores', permissionAction: 'crear' }, checked: false, disabled: false },
+    ];
+    cambiarColumnaPermisos(matriz, 'crear');
+    assert.equal(matriz[0].checked, false);
+    assert.equal(matriz[1].checked, true);
+    assert.equal(matriz[2].checked, true);
+});
+
+test('Quitar todo en Eliminar no modifica Ver, Crear ni Editar', () => {
+    const matriz = crearMatriz(['proveedores', 'productos'], [
+        'proveedores:ver', 'proveedores:crear', 'proveedores:editar', 'proveedores:eliminar',
+        'productos:ver', 'productos:editar', 'productos:eliminar',
+    ]);
+    assert.equal(cambiarColumnaPermisos(matriz, 'eliminar'), false);
+    assert.equal(estadoColumnaPermisos(matriz, 'eliminar').seleccionados, 0);
+    assert.equal(estadoColumnaPermisos(matriz, 'crear').seleccionados, 1);
+    assert.equal(estadoColumnaPermisos(matriz, 'editar').seleccionados, 2);
+    assert.equal(estadoColumnaPermisos(matriz, 'ver').seleccionados, 2);
 });

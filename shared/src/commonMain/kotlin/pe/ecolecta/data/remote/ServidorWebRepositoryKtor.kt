@@ -211,7 +211,7 @@ class ServidorWebRepositoryKtor(
     private suspend fun renovarToken(usuarioId: String): String {
         val fila = withContext(io) { db.tokenServidorQueries.porUsuario(usuarioId).executeAsOneOrNull() }
         if (fila?.refresh_token == null || (fila.refresh_expira_en ?: 0) <= reloj.ahora().toEpochMilliseconds()) {
-            withContext(io) { db.tokenServidorQueries.borrar(usuarioId) }
+            invalidarSesionLocal(usuarioId)
             throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres, revocada = true)
         }
         val respuesta = http.post("$api/sesion/refresh") {
@@ -227,17 +227,22 @@ class ServidorWebRepositoryKtor(
     /** 401 = el servidor ya no reconoce el token (vencido, revocado o cuenta desactivada): se borra. */
     private suspend fun verificar(usuarioId: String, respuesta: HttpResponse) {
         if (respuesta.status.isSuccess()) return
-        if (respuesta.status == HttpStatusCode.Unauthorized) {
-            withContext(io) {
-                db.transaction {
-                    db.tokenServidorQueries.borrar(usuarioId)
-                    db.usuarioQueries.requerirVerificacion(usuarioId)
-                    db.sesionQueries.limpiarDeUsuario(usuarioId)
-                }
-            }
+        val error = rechazo(respuesta)
+        if (respuesta.status == HttpStatusCode.Unauthorized ||
+            (respuesta.status == HttpStatusCode.Forbidden && error.codigo in setOf("cuenta_bloqueada", "cuenta_suspendida", "perfil_no_disponible", "token_invalido"))
+        ) {
+            invalidarSesionLocal(usuarioId)
             throw SinSesionServidorException(usuarios.obtenerPorId(usuarioId)?.nombres, revocada = true)
         }
-        throw rechazo(respuesta)
+        throw error
+    }
+
+    private suspend fun invalidarSesionLocal(usuarioId: String) = withContext(io) {
+        db.transaction {
+            db.tokenServidorQueries.borrar(usuarioId)
+            db.usuarioQueries.requerirVerificacion(usuarioId)
+            db.sesionQueries.limpiarDeUsuario(usuarioId)
+        }
     }
 
     private suspend fun rechazo(respuesta: HttpResponse): RechazoServidorException {

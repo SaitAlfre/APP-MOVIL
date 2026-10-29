@@ -38,7 +38,8 @@ final class AutenticarOperadorUseCase
         if ($usuario === null) {
             return false;
         }
-        if ($usuario->roles === []) {
+        // Sin rol oficial solo entra una cuenta con rol personalizado: el panel aplica sus permisos y la app la rechaza.
+        if ($usuario->roles === [] && ! $this->usuarios->tieneRolPersonalizado($usuario->id)) {
             return false;
         }
 

@@ -9,13 +9,13 @@
             <x-ui.empty title="No hay roles para mostrar" description="Crea un rol o cambia los filtros de búsqueda." />
         @else
         <div class="overflow-x-auto"><table data-roles-table class="gestion-table"><caption class="sr-only">Roles personalizados y usuarios asignados</caption>
-            <thead><tr>@foreach(['Rol','Perfil base','Estado','Usuarios','Acciones'] as $columna)<th scope="col">{{ $columna }}</th>@endforeach</tr></thead>
+            <thead><tr>@foreach(['Rol','App móvil','Estado','Usuarios','Acciones'] as $columna)<th scope="col">{{ $columna }}</th>@endforeach</tr></thead>
             <tbody>@foreach($perfiles as $perfil)
                 @php
                     $modulosCantidad = collect(json_decode($perfil->permisos,true))->filter(fn($acciones)=>in_array('ver',$acciones,true))->count();
                     $iniciales = collect(preg_split('/\s+/u', trim($perfil->nombre)))->take(2)->map(fn($palabra)=>mb_strtoupper(mb_substr($palabra,0,1)))->implode('');
                 @endphp
-                <tr><th scope="row"><div class="flex min-w-0 items-center gap-3"><span class="gestion-avatar" aria-hidden="true">{{ $iniciales }}</span><div class="min-w-0"><a href="{{ route('admin.roles.edit',$perfil->id) }}" class="gestion-row-title">{{ $perfil->nombre }}</a><p class="gestion-row-subtitle">{{ $modulosCantidad }} {{ $modulosCantidad === 1 ? 'módulo habilitado' : 'módulos habilitados' }}</p></div></div></th><td>{{ \App\Domain\Usuarios\Rol::from($perfil->base)->etiqueta() }}</td><td><x-ui.estado :estado="$perfil->activo ? 'activo' : 'inactivo'" /></td><td class="tabular-nums">{{ $perfil->usuarios_count }}</td><td><div class="flex flex-wrap items-center justify-end gap-1">
+                <tr><th scope="row"><div class="flex min-w-0 items-center gap-3"><span class="gestion-avatar" aria-hidden="true">{{ $iniciales }}</span><div class="min-w-0"><a href="{{ route('admin.roles.edit',$perfil->id) }}" class="gestion-row-title">{{ $perfil->nombre }}</a><p class="gestion-row-subtitle">{{ $modulosCantidad }} {{ $modulosCantidad === 1 ? 'módulo habilitado' : 'módulos habilitados' }}</p></div></div></th><td>{{ $perfil->base ? 'Heredada: '.\App\Domain\Usuarios\Rol::from($perfil->base)->etiqueta() : 'Solo panel web' }}</td><td><x-ui.estado :estado="$perfil->activo ? 'activo' : 'inactivo'" /></td><td class="tabular-nums">{{ $perfil->usuarios_count }}</td><td><div class="flex flex-wrap items-center justify-end gap-1">
                     <x-ui.btn :href="route('admin.roles.edit',$perfil->id)" variant="ghost" size="sm" :aria-label="'Editar rol '.$perfil->nombre">Editar rol</x-ui.btn>
                     <details class="gestion-action-menu"><summary aria-label="Más acciones para {{ $perfil->nombre }}" title="Más acciones">•••</summary><div>
                         <a href="{{ route('admin.formularios.edit',$perfil->id) }}">Editar formulario</a>

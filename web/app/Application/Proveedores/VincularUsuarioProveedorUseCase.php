@@ -2,6 +2,7 @@
 
 namespace App\Application\Proveedores;
 
+use App\Domain\Proveedores\EstadoProveedor;
 use App\Domain\Proveedores\Exceptions\ProveedorInvalidoException;
 use App\Domain\Proveedores\Proveedor;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
@@ -14,6 +15,7 @@ final class VincularUsuarioProveedorUseCase
     public function __construct(
         private readonly ProveedorRepositoryInterface $proveedores,
         private readonly UsuarioRepositoryInterface $usuarios,
+        private readonly SincronizarCuentaConFichaUseCase $sincronizarCuenta,
     ) {}
 
     public function ejecutar(int $proveedorId, int $usuarioId): Proveedor
@@ -41,6 +43,12 @@ final class VincularUsuarioProveedorUseCase
             throw ProveedorInvalidoException::dniNoCoincideConCuenta();
         }
 
-        return $this->proveedores->guardar($proveedor->vincularUsuario($usuarioId));
+        $vinculado = $this->proveedores->guardar($proveedor->vincularUsuario($usuarioId));
+        // Una cuenta nueva o existente adopta el estado de la ficha: no queda activa junto a una ficha suspendida o retirada.
+        if ($vinculado->estado !== EstadoProveedor::Activo) {
+            $this->sincronizarCuenta->ejecutar($vinculado, $vinculado->estado, null, 'Vinculada a una ficha que no está activa.', null);
+        }
+
+        return $vinculado;
     }
 }

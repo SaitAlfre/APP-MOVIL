@@ -63,12 +63,28 @@ final class EloquentUsuarioRepository implements UsuarioRepositoryInterface
             ->through(fn (UsuarioEloquent $u) => $this->aDominio($u));
     }
 
+    public function origenSuspension(int $usuarioId): ?string
+    {
+        return UsuarioEloquent::query()->whereKey($usuarioId)->value('suspension_origen');
+    }
+
+    public function marcarOrigenSuspension(int $usuarioId, ?string $origen): void
+    {
+        UsuarioEloquent::query()->whereKey($usuarioId)->update(['suspension_origen' => $origen]);
+    }
+
+    public function tieneRolPersonalizado(int $usuarioId): bool
+    {
+        return UsuarioEloquent::query()->whereKey($usuarioId)->whereNotNull('perfil_rol_id')->exists();
+    }
+
     public function contarAdminsDisponibles(?int $excluyendoId = null): int
     {
         $ahora = now();
 
         return UsuarioEloquent::query()
             ->whereJsonContains('roles', Rol::Admin->value)
+            ->whereNull('perfil_rol_id')
             ->where('activo', true)
             ->where('bloqueado_manualmente', false)
             ->where(fn ($q) => $q->whereNull('bloqueado_hasta')->orWhere('bloqueado_hasta', '<=', $ahora))

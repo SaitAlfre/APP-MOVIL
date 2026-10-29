@@ -12,6 +12,7 @@ use App\Domain\Auth\Exceptions\CuentaInactivaException;
 use App\Domain\Entregas\Exceptions\EntregaMovilRechazadaException;
 use App\Domain\Liquidaciones\EstadoLiquidacion;
 use App\Domain\Movil\CambioMovilRechazadoException;
+use App\Domain\Proveedores\EstadoProveedor;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
@@ -98,6 +99,8 @@ class MovilController extends Controller
                 'roles' => array_values(array_intersect(ExportarDatosMovilQuery::ROLES_MOVIL, $usuario->roles ?? [])),
                 'zonaId' => $usuario->zona_id, 'asignacionZonaIncluida' => true,
                 'bloqueado' => $usuario->estaBloqueada(),
+                'estadoProductivoProveedor' => $usuario->fichaProveedor?->estado->value,
+                'accesoOperativoProveedor' => $usuario->fichaProveedor?->estado === EstadoProveedor::Activo,
             ],
         ])->header('Cache-Control', 'no-store')->header('Pragma', 'no-cache');
     }

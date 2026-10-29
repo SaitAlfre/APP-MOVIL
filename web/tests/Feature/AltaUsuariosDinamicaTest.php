@@ -47,7 +47,7 @@ class AltaUsuariosDinamicaTest extends TestCase
     {
         config(['services.decolecta.token' => '']);
         Http::fake();
-        $this->postJson(route('admin.usuarios.consultar-dni'), ['dni' => '00000001'])->assertOk()->assertJsonPath('estado', 'no_disponible');
+        $this->postJson(route('admin.usuarios.consultar-dni'), ['dni' => '00000001'])->assertOk()->assertJsonPath('estado', 'no_configurado');
         $this->post(route('admin.usuarios.store'), $this->datos())->assertSessionHasNoErrors()->assertRedirect(route('admin.usuarios.index'));
         Http::assertNothingSent();
     }

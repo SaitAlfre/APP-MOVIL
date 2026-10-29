@@ -22,8 +22,11 @@ final class CrearUsuarioUseCase
         private readonly ZonaRepositoryInterface $zonas,
     ) {}
 
-    /** @param list<Rol> $roles */
-    public function ejecutar(string $username, string $nombres, string $dni, string $pinPlano, array $roles, bool $actorEsAdmin, int $actorId, ?int $zonaId = null): UsuarioDominio
+    /**
+     * @param  list<Rol>  $roles
+     * @param  bool  $rolFuncionalOpcional  cuenta con rol personalizado sin funciones móviles asignadas
+     */
+    public function ejecutar(string $username, string $nombres, string $dni, string $pinPlano, array $roles, bool $actorEsAdmin, int $actorId, ?int $zonaId = null, bool $rolFuncionalOpcional = false): UsuarioDominio
     {
         $username = strtolower(trim($username));
         $dni = trim($dni);
@@ -37,7 +40,7 @@ final class CrearUsuarioUseCase
         $this->validarZonaAsignada($zonaId, $roles);
         $this->validarPin($pinPlano);
 
-        $usuario = UsuarioDominio::crear($username, $nombres, $dni, $pinPlano, $roles)->conZonaAsignada($zonaId);
+        $usuario = UsuarioDominio::crear($username, $nombres, $dni, $pinPlano, $roles, rolFuncionalOpcional: $rolFuncionalOpcional)->conZonaAsignada($zonaId);
         $guardado = $this->usuarios->guardar($usuario);
 
         $this->auditorias->registrar(new Auditoria(

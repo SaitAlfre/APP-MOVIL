@@ -4,5 +4,11 @@ namespace App\Http\Requests\Admin;
 
 class UpdateProveedorRequest extends StoreProveedorRequest
 {
-    // Mismas reglas que el registro; el use case valida duplicados excluyendo al propio proveedor.
+    public function rules(): array
+    {
+        return [...parent::rules(),
+            'estado' => ['sometimes', 'required', 'in:activo,suspendido,retirado'],
+            'motivo_estado' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
 }

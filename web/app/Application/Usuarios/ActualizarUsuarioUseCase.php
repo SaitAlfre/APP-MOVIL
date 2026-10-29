@@ -25,8 +25,11 @@ final class ActualizarUsuarioUseCase
         private readonly ProveedorRepositoryInterface $proveedores,
     ) {}
 
-    /** @param list<Rol> $roles */
-    public function ejecutar(int $id, string $nombres, string $dni, array $roles, bool $actorEsAdmin, int $actorId, ?int $zonaId = null, bool $actualizarZona = false): UsuarioDominio
+    /**
+     * @param  list<Rol>  $roles
+     * @param  bool  $rolFuncionalOpcional  cuenta con rol personalizado sin funciones móviles asignadas
+     */
+    public function ejecutar(int $id, string $nombres, string $dni, array $roles, bool $actorEsAdmin, int $actorId, ?int $zonaId = null, bool $actualizarZona = false, bool $rolFuncionalOpcional = false): UsuarioDominio
     {
         $usuario = $this->usuarios->buscarPorId($id);
 
@@ -62,7 +65,7 @@ final class ActualizarUsuarioUseCase
         $rolesNuevos = array_map(fn (Rol $r) => $r->value, $roles);
         $cambiaronRoles = $rolesAnteriores !== $rolesNuevos;
 
-        $actualizado = $usuario->conDatosDePerfil($nombres, $dni)->conRoles($roles);
+        $actualizado = $usuario->conDatosDePerfil($nombres, $dni)->conRoles($roles, $rolFuncionalOpcional);
         if ($actualizarZona) {
             $actualizado = $actualizado->conZonaAsignada($zonaId);
         }

@@ -15,6 +15,8 @@ use Illuminate\View\View;
 
 class RolController extends Controller
 {
+    private const ACCIONES = ['ver', 'crear', 'editar', 'eliminar'];
+
     public function index(Request $request): View
     {
         return view('admin.roles.index', ['perfiles' => $this->listar($request), 'rolesSistema' => Rol::cases()]);
@@ -129,12 +131,17 @@ class RolController extends Controller
 
     private function formulario(?object $perfil): View
     {
-        return view('admin.roles.form', ['perfil' => $perfil, 'bases' => array_values(array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)), 'modulos' => config('modulos_roles'), 'asignado' => $perfil && DB::table('usuarios')->where('perfil_rol_id', $perfil->id)->exists()]);
+        $modulos = config('modulos_roles');
+        // Solo se muestran las columnas de acciones que algún módulo admite de verdad (hoy ninguno admite «eliminar»).
+        $acciones = array_values(array_filter(self::ACCIONES, fn (string $accion) => collect($modulos)->contains(fn (array $modulo) => in_array($accion, $modulo['acciones'], true))));
+
+        return view('admin.roles.form', ['perfil' => $perfil, 'modulos' => $modulos, 'acciones' => $acciones]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        DB::table('perfiles_roles')->insert($this->datos($request) + ['created_at' => now()]);
+        // Un rol personalizado nuevo solo define permisos del panel web: no hereda funciones móviles de ningún rol oficial.
+        DB::table('perfiles_roles')->insert($this->datos($request) + ['base' => null, 'created_at' => now()]);
 
         return to_route('admin.roles.index')->with('estado', 'Rol creado.');
     }
@@ -142,12 +149,8 @@ class RolController extends Controller
     public function update(Request $request, int $rol): RedirectResponse
     {
         abort_unless(DB::table('perfiles_roles')->where('id', $rol)->exists(), 404);
-        $datos = $this->datos($request, $rol);
-        $anterior = DB::table('perfiles_roles')->find($rol);
-        if ($anterior->base !== $datos['base'] && DB::table('usuarios')->where('perfil_rol_id', $rol)->exists()) {
-            throw ValidationException::withMessages(['base' => 'Este rol ya tiene usuarios. Conserva su perfil base o crea otro rol.']);
-        }
-        DB::table('perfiles_roles')->where('id', $rol)->update($datos);
+        // La base de un rol anterior no se edita: conserva las funciones móviles de sus cuentas.
+        DB::table('perfiles_roles')->where('id', $rol)->update($this->datos($request, $rol));
 
         return to_route('admin.roles.index')->with('estado', 'Rol actualizado.');
     }
@@ -170,15 +173,13 @@ class RolController extends Controller
         }
         $datos = $request->validate([
             'nombre' => ['required', 'string', 'max:100', Rule::unique('perfiles_roles')->ignore($id)],
-            'base' => ['required', Rule::in(array_map(fn (Rol $r) => $r->value, array_filter(Rol::cases(), fn (Rol $rol) => $rol !== Rol::Admin)))],
             'activo' => ['required', 'boolean'],
             'permisos' => ['nullable', 'array'],
             'permisos.*' => ['array'],
-            'permisos.*.*' => ['string', Rule::in(['ver', 'crear', 'editar', 'eliminar'])],
+            'permisos.*.*' => ['string', Rule::in(self::ACCIONES)],
             'campos_texto' => ['nullable', 'string', 'max:10000'],
         ], [
             'nombre.unique' => 'Ya existe un rol con este nombre. Escribe otro nombre.',
-            'base.in' => 'Selecciona un perfil base válido.',
         ]);
         $permisos = $datos['permisos'] ?? ($id && ! $request->exists('permisos_presentes') ? json_decode(DB::table('perfiles_roles')->where('id', $id)->value('permisos'), true) : []);
         foreach ($permisos as $modulo => $acciones) {
@@ -208,6 +209,6 @@ class RolController extends Controller
             $campos[$clave] = ['etiqueta' => trim($partes[1] ?? $clave), 'tipo' => $tipo, 'obligatorio' => trim($partes[3] ?? '') === 'si'];
         }
 
-        return ['nombre' => $datos['nombre'], 'base' => $datos['base'], 'activo' => $datos['activo'], 'permisos' => json_encode($permisos), 'campos' => json_encode($campos), 'updated_at' => now()];
+        return ['nombre' => $datos['nombre'], 'activo' => $datos['activo'], 'permisos' => json_encode($permisos), 'campos' => json_encode($campos), 'updated_at' => now()];
     }
 }

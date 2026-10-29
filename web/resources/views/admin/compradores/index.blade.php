@@ -36,10 +36,10 @@
                                 <x-ui.btn :href="route('admin.proveedores.show', $comprador)" variant="secondary" size="sm">Ver proveedor</x-ui.btn>
                             @else
                                 <x-ui.btn variant="secondary" size="sm" icon="pencil" :data-modal-open="'comprador-'.$comprador->id">Editar</x-ui.btn>
-                                <form method="POST" action="{{ route('admin.compradores.estado', $comprador) }}" data-once>
+                                @if(! $activo || auth('operador')->user()->puede('ventas', 'eliminar'))<form method="POST" action="{{ route('admin.compradores.estado', $comprador) }}" data-once>
                                     @csrf @method('PATCH')<input type="hidden" name="activo" value="{{ $activo ? 0 : 1 }}">
                                     <x-ui.btn type="submit" variant="ghost" size="sm">{{ $activo ? 'Desactivar' : 'Activar' }}</x-ui.btn>
-                                </form>
+                                </form>@endif
                             @endif
                         </div></td>
                     </tr>

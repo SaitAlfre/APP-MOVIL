@@ -359,4 +359,43 @@ class SincronizacionMovilTest extends TestCase
             ->assertStatus(409)->assertJsonPath('codigo', 'conflicto');
         $this->assertEquals(35, (float) $entrega->fresh()->litros);
     }
+
+    public function test_ficha_no_activa_rechaza_entregas_nuevas_sin_crear_jornadas_y_conserva_historial(): void
+    {
+        $token = $this->token();
+        $this->enviar($token, $this->entrega())->assertCreated();
+        foreach (['suspendido', 'retirado'] as $estado) {
+            $this->proveedor->update(['estado' => $estado]);
+            $this->enviar($token, $this->entrega(['jornadaId' => 'no-crear-jornada']), 'rechazada-'.$estado)
+                ->assertForbidden()->assertJsonPath('codigo', 'proveedor_no_activo');
+            $this->enviar($token, $this->entrega())->assertOk()->assertJsonPath('estado', 'sin_cambios');
+            $this->assertDatabaseCount('entregas', 1);
+            $this->assertDatabaseCount('jornadas', 1);
+        }
+    }
+
+    public function test_suspender_acceso_desde_el_panel_rechaza_entregas_nuevas_y_restaurar_las_admite(): void
+    {
+        $admin = Usuario::factory()->create(['roles' => ['admin']]);
+        $cuenta = Usuario::factory()->create(['roles' => ['proveedor']]);
+        $this->proveedor->update(['usuario_id' => $cuenta->id, 'dni' => $cuenta->dni]);
+        $token = $this->token();
+        $this->enviar($token, $this->entrega())->assertCreated();
+        $this->actingAs($admin, 'operador')->post(route('admin.usuarios.acceso', $cuenta->id), ['suspender' => 1, 'motivo' => 'Prueba ficticia'])->assertSessionHasNoErrors();
+        $this->enviar($token, $this->entrega(['litros' => 10]), 'ent-local-2')->assertForbidden()->assertJsonPath('codigo', 'proveedor_no_activo');
+        $this->enviar($token, $this->entrega())->assertOk()->assertJsonPath('estado', 'sin_cambios');
+        $this->assertDatabaseCount('entregas', 1);
+        $this->assertDatabaseHas('entregas', ['proveedor_id' => $this->proveedor->id, 'litros' => 38.5]);
+        $this->post(route('admin.usuarios.acceso', $cuenta->id), ['suspender' => 0])->assertSessionHasNoErrors();
+        $this->enviar($token, $this->entrega(['litros' => 10]), 'ent-local-2')->assertCreated();
+        $this->assertDatabaseCount('entregas', 2);
+    }
+
+    public function test_suspendida_la_cuenta_del_proveedor_su_ficha_activa_admite_acopio_por_otro_usuario(): void
+    {
+        $cuenta = Usuario::factory()->create(['roles' => ['proveedor'], 'bloqueado_manualmente' => true]);
+        $this->proveedor->update(['usuario_id' => $cuenta->id, 'dni' => $cuenta->dni]);
+        $this->enviar($this->token(), $this->entrega())->assertCreated();
+        $this->assertDatabaseCount('entregas', 1);
+    }
 }

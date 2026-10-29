@@ -57,7 +57,7 @@
                         <td class="px-4 py-3 text-sm">{{ $fila['ultimo']?->jornada?->usuario?->nombres ?? '—' }}@if($fila['ultimo'])<span class="mono block text-xs text-eh-text-muted">{{ $fila['ultimo']->registrado_en->timezone('America/Lima')->format('H:i') }}</span>
 @endif
 </td>
-                        <td class="px-4 py-3">@if($fila['estado'] === 'no_acopiado' && $puedeGestionar)<x-ui.btn variant="outline" size="sm" data-modal-open="deshacer-marca-{{ $fila['marca']->id }}">Revisar marca</x-ui.btn>
+                        <td class="px-4 py-3">@if($fila['estado'] === 'no_acopiado' && $puedeGestionar && auth('operador')->user()->puede('acopiadores', 'eliminar'))<x-ui.btn variant="outline" size="sm" data-modal-open="deshacer-marca-{{ $fila['marca']->id }}">Revisar marca</x-ui.btn>
 @endif
 </td>
                     </tr>
@@ -80,7 +80,7 @@
                 <x-ui.table :headers="['Proveedor', 'Litros', 'Hora (Perú)', 'Estado', '']" caption="Recojos de la jornada">
                     @foreach($recientes as $entrega)<tr class="border-b border-eh-border last:border-0">
                         <td class="px-4 py-3 text-sm">{{ $entrega->proveedor?->nombres ?? 'Proveedor' }}</td><td class="mono px-4 py-3 text-sm font-semibold">{{ number_format($entrega->litros, 1) }} L</td><td class="mono px-4 py-3 text-sm">{{ $entrega->registrado_en->timezone('America/Lima')->format('H:i') }}</td><td class="px-4 py-3 text-sm">{{ $entrega->anulada ? 'Anulado' : 'Registrado' }}</td>
-                        <td class="px-4 py-3">@if($puedeGestionar && !$entrega->anulada)<div class="flex gap-2"><x-ui.btn variant="outline" size="sm" data-modal-open="corregir-{{ $entrega->id }}">Corregir</x-ui.btn><x-ui.btn variant="ghost" size="sm" data-modal-open="anular-{{ $entrega->id }}">Anular</x-ui.btn></div>
+                        <td class="px-4 py-3">@if($puedeGestionar && !$entrega->anulada)<div class="flex gap-2"><x-ui.btn variant="outline" size="sm" data-modal-open="corregir-{{ $entrega->id }}">Corregir</x-ui.btn>@if(auth('operador')->user()->puede('acopiadores', 'eliminar'))<x-ui.btn variant="ghost" size="sm" data-modal-open="anular-{{ $entrega->id }}">Anular</x-ui.btn>@endif</div>
 @endif
 </td>
                     </tr>

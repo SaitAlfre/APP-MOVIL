@@ -101,3 +101,7 @@ a.gestion-row-title:hover { color: var(--eh-primary); text-decoration: underline
     .gestion-form-panel { padding: 1.25rem; }
     .gestion-export-panel { left: auto; right: 0; min-width: min(17.5rem,85vw); }
 }
+
+/* Columna Estado: la insignia abre un menú con los cambios permitidos. */
+.gestion-action-menu.gestion-estado-menu > summary { width: auto; height: auto; min-height: 2rem; padding: 0; border-radius: 9999px; }
+div.gestion-estado-opciones :is(a, button) { align-items: flex-start; white-space: normal; max-width: 16rem; }

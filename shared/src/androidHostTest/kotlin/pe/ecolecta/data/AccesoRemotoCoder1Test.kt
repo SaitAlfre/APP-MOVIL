@@ -125,4 +125,18 @@ class AccesoRemotoCoder1Test {
         assertTrue(offline("coder1", "1234").isFailure)
     }
 
+    @Test
+    fun suspensionAdministrativaConocidaImpideFallbackYConservaPendientes() = runTest {
+        val id = preparar()
+        db.sesionQueries.establecer(id, "ADMIN")
+        db.cambioPendienteQueries.marcar("usuario", id, id, null, 1)
+        val rechazo = ingreso(Result.failure(RechazoServidorException("Acceso suspendido", "cuenta_suspendida")))
+        assertTrue(rechazo("coder1", "1234").isFailure)
+        val sinRed = ingreso(Result.failure(SinConexionRemotaException()))
+        assertIs<PinInvalidoException.RequiereConexion>(sinRed("coder1", "1234").exceptionOrNull())
+        assertNull(db.sesionQueries.obtener().executeAsOneOrNull())
+        assertNotNull(db.cambioPendienteQueries.porClave("usuario", id).executeAsOneOrNull())
+        assertTrue(auditoria.insertados.isEmpty())
+    }
+
 }

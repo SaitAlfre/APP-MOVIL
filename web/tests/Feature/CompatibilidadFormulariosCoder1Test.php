@@ -65,7 +65,7 @@ class CompatibilidadFormulariosCoder1Test extends TestCase
         $hash = $cuenta->pin_hash;
         $this->postJson('/api/movil/sesion', ['username' => $cuenta->username, 'pin' => '12345678'])->assertOk();
         $this->assertSame($hash, $cuenta->fresh()->pin_hash);
-        $this->actingAs($admin, 'operador')->post(route('admin.usuarios.restablecer', $cuenta->id), ['pin' => '1357'])->assertSessionHasNoErrors();
+        $this->actingAs($admin, 'operador')->post(route('admin.usuarios.restablecer', $cuenta->id), ['pin' => '1357', 'pin_confirmation' => '1357'])->assertSessionHasNoErrors();
         $this->postJson('/api/movil/sesion', ['username' => $cuenta->username, 'pin' => '12345678'])->assertUnauthorized();
         $this->postJson('/api/movil/sesion', ['username' => $cuenta->username, 'pin' => '1357'])->assertOk();
     }

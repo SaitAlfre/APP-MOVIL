@@ -4,7 +4,10 @@
 @php
 $esNuevo = $usuario === null;
 $rolesMarcados = collect(old('roles', $base ? [$base] : ($usuario ? array_map(fn($rol) => $rol->value, $usuario->roles) : [])));
-$rolBase = $perfil?->base ?? $rolesMarcados->first();
+$funcionesMoviles = ['acopiador' => 'Acopiador', 'calidad' => 'Calidad'];
+$perfilSinBase = $perfil !== null && $perfil->base === null;
+$funcionActual = $perfilSinBase ? old('funcion_movil', collect($usuario?->roles ?? [])->map(fn($rol) => $rol->value)->first(fn($valor) => isset($funcionesMoviles[$valor]))) : null;
+$rolBase = $perfilSinBase ? $funcionActual : ($perfil?->base ?? $rolesMarcados->first());
 $rolNombre = $perfil?->nombre ?? \App\Domain\Usuarios\Rol::tryFrom($rolBase)?->etiqueta();
 $camposPersonalizados = $perfil ? json_decode($perfil->campos, true) : [];
 $identidadPersonalizada = \App\Application\Usuarios\CamposIdentidadFormulario::reconocer($camposPersonalizados);
@@ -27,7 +30,11 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
 @if($errors->any())<div role="alert" tabindex="-1" data-usuario-errores class="rounded-xl border border-eh-red p-4 text-sm text-eh-red">Revisa los campos marcados antes de guardar. @error('roles')<p>{{ $message }}</p>@enderror @error('perfil_rol_id')<p>{{ $message }}</p>@enderror</div>@endif
 <section aria-labelledby="rol-titulo" class="rounded-xl border border-eh-border bg-eh-surface-alt p-4">
 <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 id="rol-titulo" class="text-sm font-medium text-eh-text-muted">Rol del usuario</h2><p class="mt-1 font-semibold">{{ $rolNombre }}</p></div>@if($esNuevo && $puedeAsignarRol)<x-ui.btn :href="route('admin.usuarios.create')" variant="ghost">Cambiar rol</x-ui.btn>@endif</div>
-@if($perfil)<input type="hidden" name="perfil_rol_id" value="{{ $perfil->id }}"><input type="hidden" name="roles[]" value="{{ $perfil->base }}">
+@if($perfil)<input type="hidden" name="perfil_rol_id" value="{{ $perfil->id }}">
+@if(! $perfilSinBase)<input type="hidden" name="roles[]" value="{{ $perfil->base }}"><p class="mt-2 text-xs text-eh-text-muted">Rol creado antes de separar los permisos web: conserva las funciones móviles de {{ \App\Domain\Usuarios\Rol::from($perfil->base)->etiqueta() }}.</p>
+@elseif($puedeAsignarRol)<div class="mt-4"><x-ui.select name="funcion_movil" label="Funciones en la app móvil" placeholder="Ninguna (solo panel web)" :options="$funcionesMoviles" :selected="$funcionActual" hint="El rol personalizado solo define permisos del panel web. Asigna una función móvil únicamente si esta persona trabajará con la app." data-funcion-movil /></div>
+@else<p class="mt-2 text-xs text-eh-text-muted">Funciones en la app móvil: {{ $funcionActual ? $funcionesMoviles[$funcionActual] : 'ninguna' }}. Solo un administrador puede cambiarlas.</p>
+@endif
 @elseif($esNuevo)<input type="hidden" name="roles[]" value="{{ $rolBase }}">
 @else
 @foreach($rolesMarcados as $rol)<input type="hidden" name="roles[]" value="{{ $rol }}">@endforeach
@@ -87,7 +94,7 @@ $usaZona = in_array($rolBase, ['calidad','acopiador'], true);
 <label class="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" data-mostrar-pin> Mostrar PIN mientras lo reviso</label>
 <p class="text-sm text-eh-text-muted">La cuenta se creará ACTIVA. Podrás desactivarla o restablecer su PIN desde Usuarios.</p>
 @else
-<div class="flex flex-wrap items-center gap-3"><span class="font-medium">{{ $usuario->username }}</span><x-ui.estado :estado="$usuario->activo ? 'activo' : 'inactivo'" /></div><p class="text-sm text-eh-text-muted">Para cambiar el PIN o el estado de la cuenta, usa las acciones del listado de Usuarios.</p>
+<div class="flex flex-wrap items-center gap-3"><span class="font-medium">{{ $usuario->username }}</span><x-ui.estado-cuenta :usuario="$usuario" :productivo="($fichaProveedor ?? null)?->estado->value" /></div><p class="text-sm text-eh-text-muted">Para cambiar el PIN o el estado de la cuenta, usa las acciones del listado de Usuarios.</p>
 @endif
 </section>
 <div class="flex flex-wrap justify-end gap-3 border-t border-eh-border pt-4"><x-ui.btn :href="route('admin.usuarios.index')" variant="ghost">Cancelar</x-ui.btn><x-ui.btn type="submit">{{ $esNuevo ? 'Crear usuario' : 'Guardar cambios' }}</x-ui.btn></div>

@@ -86,6 +86,18 @@ export function estadoColumnaPermisos(permisos, accion) {
     };
 }
 
+/**
+ * Mensaje cuando el filtro no deja filas visibles; distingue el resultado lógico de una selección masiva
+ * (p. ej., ningún módulo sin acceso) de una búsqueda sin coincidencias.
+ */
+export function mensajeFiltroVacio(filtro, busqueda, totalHabilitados, totalModulos) {
+    if (busqueda) return `Ningún módulo coincide con «${busqueda}»${filtro === 'todos' ? '' : ' en este filtro'}.`;
+    if (filtro === 'sin-acceso' && totalHabilitados === totalModulos) return 'Todos los módulos tienen al menos un permiso habilitado.';
+    if (filtro === 'habilitados' && totalHabilitados === 0) return 'Ningún módulo tiene permisos todavía. Marca Ver en los módulos que este rol debe consultar.';
+
+    return 'Ningún módulo coincide con este filtro.';
+}
+
 export function iniciarRoles(signal) {
     const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
     const selector = document.querySelector('[data-roles-selector]');
@@ -104,18 +116,33 @@ export function iniciarRoles(signal) {
     const permisos = [...editor.querySelectorAll('input[data-permission-module][data-permission-action]')];
     const botonesColumna = [...editor.querySelectorAll('[data-permission-toggle]')];
     const buscar = editor.querySelector('[data-permisos-buscar]');
+    const vacio = editor.querySelector('[data-permisos-vacio]');
     let filtro = 'todos';
     editor.querySelectorAll('[data-permisos-js]').forEach(control => { control.hidden = false; });
+    const elegirFiltro = valor => {
+        filtro = valor;
+        editor.querySelectorAll('[data-permisos-filtro]').forEach(control => control.setAttribute('aria-pressed', String(control.dataset.permisosFiltro === valor)));
+    };
     const filtrar = () => {
-        const texto = normalizar(buscar.value.trim());
+        const busqueda = buscar.value.trim();
+        const texto = normalizar(busqueda);
         let visibles = 0;
+        let habilitados = 0;
         filas.forEach(fila => {
             const habilitado = Boolean(fila.querySelector('input:checked'));
+            if (habilitado) habilitados++;
             const coincideEstado = filtro === 'todos' || (filtro === 'habilitados' ? habilitado : !habilitado);
             fila.hidden = !coincideEstado || !normalizar(fila.querySelector('[data-permiso-nombre]').textContent).includes(texto);
             if (!fila.hidden) visibles++;
         });
-        editor.querySelector('[data-permisos-vacio]').hidden = visibles > 0;
+        vacio.hidden = visibles > 0;
+        editor.querySelector('[data-permisos-tabla]').hidden = visibles === 0;
+        if (!visibles) vacio.querySelector('[data-permisos-vacio-texto]').textContent = mensajeFiltroVacio(filtro, busqueda, habilitados, filas.length);
+        editor.querySelectorAll('[data-permisos-filtro]').forEach(control => {
+            const base = { todos: 'Todos los módulos', habilitados: 'Habilitados', 'sin-acceso': 'Sin acceso' }[control.dataset.permisosFiltro];
+            const cantidad = { todos: filas.length, habilitados, 'sin-acceso': filas.length - habilitados }[control.dataset.permisosFiltro];
+            control.textContent = `${base} (${cantidad})`;
+        });
     };
     const actualizar = () => {
         const cantidad = filas.filter(fila => fila.querySelector('input:checked')).length;
@@ -125,7 +152,7 @@ export function iniciarRoles(signal) {
             const completos = campos.length > 0 && campos.every(campo => campo.checked);
             const boton = fila.querySelector('[data-permiso-todos]');
             boton.setAttribute('aria-pressed', completos ? 'true' : campos.some(campo => campo.checked) ? 'mixed' : 'false');
-            boton.textContent = completos ? 'Quitar' : 'Todos';
+            boton.textContent = completos ? 'Quitar todos' : 'Todos los permisos';
             boton.setAttribute('aria-label', `${completos ? 'Quitar' : 'Seleccionar'} todos los permisos de ${fila.querySelector('[data-permiso-nombre]').textContent.trim()}`);
         });
         botonesColumna.forEach(boton => {
@@ -136,9 +163,10 @@ export function iniciarRoles(signal) {
             boton.disabled = estado.total === 0;
             boton.textContent = !estado.total ? 'No disponible' : estado.completa ? 'Quitar todo' : 'Seleccionar todo';
             boton.dataset.allSelected = String(estado.completa);
+            boton.title = `${etiqueta}: ${estado.seleccionados} de ${estado.total} módulos que lo admiten`;
             boton.setAttribute('aria-pressed', estado.completa ? 'true' : estado.parcial ? 'mixed' : 'false');
             boton.setAttribute('aria-label', estado.total
-                ? `${estado.completa ? 'Quitar' : 'Seleccionar'} todos los permisos de ${etiqueta} en todos los módulos`
+                ? `${estado.completa ? 'Quitar' : 'Seleccionar'} ${etiqueta} en los ${estado.total} módulos que lo admiten (${estado.seleccionados} marcados)`
                 : `No hay permisos de ${etiqueta} disponibles en estos módulos`);
         });
         filtrar();
@@ -155,16 +183,20 @@ export function iniciarRoles(signal) {
         const boton = event.target.closest('button');
         if (!boton) return;
         if (boton.matches('[data-permisos-filtro]')) {
-            filtro = boton.dataset.permisosFiltro;
-            editor.querySelectorAll('[data-permisos-filtro]').forEach(control => control.setAttribute('aria-pressed', String(control === boton)));
+            elegirFiltro(boton.dataset.permisosFiltro);
             filtrar();
+            return;
+        }
+        if (boton.matches('[data-permisos-ver-todos]')) {
+            buscar.value = '';
+            elegirFiltro('todos');
+            filtrar();
+            editor.querySelector('[data-permisos-filtro="todos"]')?.focus();
             return;
         }
         if (boton.matches('[data-permission-toggle]')) {
             event.preventDefault();
             cambiarColumnaPermisos(permisos, boton.dataset.permissionToggle);
-        } else if (boton.matches('[data-permisos-consultar]')) {
-            filas.forEach(fila => { fila.querySelector('[value="ver"]').checked = true; });
         } else if (boton.matches('[data-permisos-limpiar]')) {
             if (!editor.querySelector('[data-permisos-tabla] input:checked') || !window.confirm('¿Quitar todos los permisos seleccionados? Los cambios se aplicarán cuando guardes el rol.')) return;
             filas.forEach(fila => fila.querySelectorAll('input').forEach(campo => { campo.checked = false; }));

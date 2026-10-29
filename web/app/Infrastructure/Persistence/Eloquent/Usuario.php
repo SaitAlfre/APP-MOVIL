@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Eloquent;
 use App\Domain\Usuarios\Rol;
 use Database\Factories\UsuarioFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,21 @@ class Usuario extends Authenticatable
         return $this->bloqueado_manualmente || ($this->bloqueado_hasta !== null && $this->bloqueado_hasta->isFuture());
     }
 
+    public function fichaProveedor(): HasOne
+    {
+        return $this->hasOne(Proveedor::class, 'usuario_id');
+    }
+
+    public function suspendidaAdministrativamente(): bool
+    {
+        return ! $this->activo || $this->bloqueado_manualmente;
+    }
+
+    public function estadoAdministrativo(): string
+    {
+        return $this->suspendidaAdministrativamente() ? 'suspendido' : ($this->estaBloqueada() ? 'bloqueado' : 'activo');
+    }
+
     public function accesoWeb(): bool
     {
         if (! $this->activo || $this->estaBloqueada()) {
@@ -121,7 +137,8 @@ class Usuario extends Authenticatable
             if (! $perfil || ! $perfil->activo) {
                 return false;
             }
-            $acciones = json_decode($perfil->permisos, true)[$modulo] ?? [];
+            // Solo cuentan las acciones que el módulo admite: un permiso guardado fuera de la matriz no concede nada.
+            $acciones = array_intersect(json_decode($perfil->permisos, true)[$modulo] ?? [], config("modulos_roles.{$modulo}.acciones", []));
 
             return $accion === 'gestionar' ? count(array_intersect($acciones, ['crear', 'editar', 'eliminar'])) > 0 : in_array($accion, $acciones, true);
         }

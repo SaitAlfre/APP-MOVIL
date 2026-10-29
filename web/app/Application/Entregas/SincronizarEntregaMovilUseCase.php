@@ -4,6 +4,7 @@ namespace App\Application\Entregas;
 
 use App\Domain\Auditoria\AccionAuditoria;
 use App\Domain\Entregas\Exceptions\EntregaMovilRechazadaException;
+use App\Domain\Proveedores\EstadoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
@@ -55,10 +56,14 @@ final class SincronizarEntregaMovilUseCase
             ?? throw EntregaMovilRechazadaException::noExiste('El acopiador', $datos['acopiadorUsername']);
 
         return DB::transaction(function () use ($autor, $acopiador, $datos, $proveedor, $zona, $vehiculo): array {
-            $jornada = $this->jornada($acopiador, $datos, $zona, $vehiculo);
             $existente = $this->porIdMovil(Entrega::query(), 'web-entrega-', $datos['id'])->lockForUpdate()->first();
 
             if ($existente === null) {
+                if ($proveedor->estado !== EstadoProveedor::Activo) {
+                    throw EntregaMovilRechazadaException::proveedorNoActivo($proveedor->estado->value);
+                }
+                $jornada = $this->jornada($acopiador, $datos, $zona, $vehiculo);
+
                 return ['estado' => self::CREADA, 'entrega' => $this->crear($autor, $datos, $jornada, $proveedor, $zona, $vehiculo)];
             }
 

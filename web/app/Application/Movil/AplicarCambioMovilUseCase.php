@@ -58,6 +58,12 @@ class AplicarCambioMovilUseCase
     public function ejecutar(Usuario $autor, string $entidad, array $datos): ?int
     {
         $this->autorizar($autor, $entidad);
+        if (in_array($entidad, ['traslado', 'reclamo'], true) && ! $autor->tieneRol('admin') && $autor->tieneRol('proveedor')) {
+            $ficha = $autor->fichaProveedor;
+            if ($ficha !== null && $ficha->estado !== EstadoProveedor::Activo) {
+                throw new CambioMovilRechazadoException('La ficha productiva no está activa. Puedes consultar tu historial, pero no registrar nuevas solicitudes operativas.', 'proveedor_no_activo', 403);
+            }
+        }
 
         return DB::transaction(function () use ($autor, $entidad, $datos) {
             if (in_array($entidad, ['zona', 'vehiculo', 'usuario', 'proveedor'], true) && ($datos['controlVersion'] ?? false)) {
@@ -191,7 +197,7 @@ class AplicarCambioMovilUseCase
         $estado = EstadoProveedor::from(strtolower($datos['estado']));
         $actual = Proveedor::query()->findOrFail($id);
         if ($actual->estado !== $estado) {
-            app(CambiarEstadoProveedorUseCase::class)->ejecutar($id, $estado);
+            app(CambiarEstadoProveedorUseCase::class)->ejecutar($id, $estado, 'Cambio desde la app de administración.', $autor->id);
         }
         $cuenta = isset($datos['usuarioUsername']) ? Usuario::query()->where('username', $datos['usuarioUsername'])->first() : null;
         if ($cuenta !== null && $actual->usuario_id !== $cuenta->id) {
@@ -494,6 +500,7 @@ class AplicarCambioMovilUseCase
     private function zonaDe(array $datos): Zona
     {
         return $this->porServidorId(Zona::class, $datos, 'zonaId')
+            ?? Zona::query()->where('nombre', (string) ($datos['zonaNombre'] ?? ''))->first()
             ?? Zona::query()->whereRaw('UPPER(nombre) = ?', [mb_strtoupper((string) ($datos['zonaNombre'] ?? ''))])->first()
             ?? throw CambioMovilRechazadoException::noExiste('La zona', (string) ($datos['zonaNombre'] ?? ''));
     }

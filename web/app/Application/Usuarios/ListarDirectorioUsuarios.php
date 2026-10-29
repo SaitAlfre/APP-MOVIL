@@ -12,7 +12,7 @@ final class ListarDirectorioUsuarios
     {
         $cuentas = DB::table('usuarios as u')
             ->leftJoin('perfiles_roles as r', 'r.id', '=', 'u.perfil_rol_id')
-            ->selectRaw("u.id as usuario_id, u.id, u.nombres as nombre, u.username, u.dni, u.roles, r.nombre as perfil, u.created_at as fecha, CASE WHEN u.activo = 0 THEN 'inactivo' WHEN u.bloqueado_manualmente = 1 OR u.bloqueado_hasta > ? THEN 'bloqueado' ELSE 'activo' END as estado", [now()]);
+            ->selectRaw("u.id as usuario_id, u.id, u.nombres as nombre, u.username, u.dni, u.roles, r.nombre as perfil, u.created_at as fecha, CASE WHEN u.activo = 0 OR u.bloqueado_manualmente = 1 THEN 'suspendido' WHEN u.bloqueado_hasta > ? THEN 'bloqueado' ELSE 'activo' END as estado, CASE WHEN u.bloqueado_hasta > ? THEN 1 ELSE 0 END as bloqueo_temporal", [now(), now()]);
         $rol = $filtros['rol'] ?? '';
         if ($rol !== '') {
             if (str_starts_with($rol, 'perfil:')) {
@@ -31,8 +31,15 @@ final class ListarDirectorioUsuarios
                 }
             });
         }
-        if (($filtros['estado'] ?? '') !== '') {
-            $consulta->where('estado', $filtros['estado']);
+        // «Activos» son las cuentas habilitadas administrativamente, aunque tengan un bloqueo temporal por intentos fallidos.
+        match ($filtros['estado'] ?? '') {
+            'activo' => $consulta->whereIn('estado', ['activo', 'bloqueado']),
+            'suspendido', 'inactivo' => $consulta->where('estado', 'suspendido'),
+            'bloqueado' => $consulta->where('bloqueo_temporal', 1),
+            default => null,
+        };
+        if (($filtros['bloqueo'] ?? '') === 'temporal') {
+            $consulta->where('bloqueo_temporal', 1);
         }
         match ($filtros['orden'] ?? 'recientes') {
             'nombre_asc' => $consulta->orderBy('nombre'),

@@ -344,7 +344,7 @@ function iniciarPagina() {
         .filter((field) => !['hidden', 'password'].includes(field.type))
         .map((field) => [field.name, field.value, field.checked]));
     const closeModal = (dialog) => {
-        if (modalSnapshots.has(dialog) && modalSnapshots.get(dialog) !== modalSnapshot(dialog)
+        if (!dialog.querySelector('[data-descartar-al-cerrar]') && modalSnapshots.has(dialog) && modalSnapshots.get(dialog) !== modalSnapshot(dialog)
             && !window.confirm('¿Salir sin guardar los cambios de este formulario?')) return;
         dialog.close();
     };
@@ -373,6 +373,17 @@ function iniciarPagina() {
     });
 
     document.querySelectorAll('[data-modal]').forEach((dialog) => {
+        dialog.addEventListener('keydown', event => {
+            if (event.key !== 'Tab' || event.defaultPrevented) return;
+            const controles = [...dialog.querySelectorAll('a[href], button, input, select, textarea, [tabindex="0"]')]
+                .filter(elemento => !elemento.disabled && elemento.tabIndex >= 0 && elemento.getClientRects().length);
+            if (!controles.length) return;
+            const indice = controles.indexOf(document.activeElement);
+            if ((event.shiftKey && indice <= 0) || (!event.shiftKey && (indice < 0 || indice === controles.length - 1))) {
+                event.preventDefault();
+                (event.shiftKey ? controles.at(-1) : controles[0]).focus({ preventScroll: true });
+            }
+        }, { signal });
         const restored = dialog.querySelector('[data-modal-values]');
         if (restored) {
             const values = JSON.parse(restored.textContent);

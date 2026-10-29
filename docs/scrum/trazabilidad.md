@@ -30,7 +30,7 @@ No replica estados, horas ni descripciones de tareas. Cada fila relaciona histor
 | [HU-11-C](product-backlog.md#hu-11-c) | CA-HU-11-C-01, CA-HU-11-C-02 | [T-64](tareas.md#t-64) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-12-A](product-backlog.md#hu-12-a) | CA-HU-12-A-01, CA-HU-12-A-02 | [T-65](tareas.md#t-65) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-12-B](product-backlog.md#hu-12-b) | CA-HU-12-B-01, CA-HU-12-B-02 | [T-11](tareas.md#t-11), [T-38](tareas.md#t-38) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
-| [HU-13](product-backlog.md#hu-13) | CA-HU-13-01, CA-HU-13-02 | [T-19](tareas.md#t-19), [T-25](tareas.md#t-25), [T-42](tareas.md#t-42) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
+| [HU-13](product-backlog.md#hu-13) | CA-HU-13-01, CA-HU-13-02 | [T-19](tareas.md#t-19), [T-25](tareas.md#t-25), [T-42](tareas.md#t-42), [T-93](tareas.md#t-93) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-15-A](product-backlog.md#hu-15-a) | CA-HU-15-A-01, CA-HU-15-A-02 | [T-40](tareas.md#t-40) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-16-A](product-backlog.md#hu-16-a) | CA-HU-16-A-01, CA-HU-16-A-02 | [T-22](tareas.md#t-22), [T-47](tareas.md#t-47), [T-48](tareas.md#t-48), [T-89](tareas.md#t-89), [T-90](tareas.md#t-90), [T-91](tareas.md#t-91) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-16-B](product-backlog.md#hu-16-b) | CA-HU-16-B-01, CA-HU-16-B-02 | [T-30](tareas.md#t-30) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
@@ -46,7 +46,7 @@ No replica estados, horas ni descripciones de tareas. Cada fila relaciona histor
 | [HU-21](product-backlog.md#hu-21) | CA-HU-21-01, CA-HU-21-02 | [T-74](tareas.md#t-74) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-22](product-backlog.md#hu-22) | CA-HU-22-01, CA-HU-22-02 | [T-75](tareas.md#t-75) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 | [HU-23](product-backlog.md#hu-23) | CA-HU-23-01, CA-HU-23-02 | [T-76](tareas.md#t-76) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
-| [HU-24](product-backlog.md#hu-24) | CA-HU-24-01, CA-HU-24-02, CA-HU-24-03 | [T-77](tareas.md#t-77), [T-92](tareas.md#t-92) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
+| [HU-24](product-backlog.md#hu-24) | CA-HU-24-01, CA-HU-24-02, CA-HU-24-03 | [T-77](tareas.md#t-77), [T-92](tareas.md#t-92), [T-93](tareas.md#t-93), [T-94](tareas.md#t-94) | EA-02; EA-03 si seleccionada; EA-04 con evidencia; EA-06 con inspección real |
 
 ## Evidencia por eslabón
 

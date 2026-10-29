@@ -9,8 +9,10 @@ use App\Application\Usuarios\CambiarEstadoUsuarioUseCase;
 use App\Application\Usuarios\CamposIdentidadFormulario;
 use App\Application\Usuarios\CrearUsuarioUseCase;
 use App\Application\Usuarios\DesbloquearUsuarioUseCase;
+use App\Application\Usuarios\GestionarAccesoUsuarioUseCase;
 use App\Application\Usuarios\ListarDirectorioUsuarios;
 use App\Application\Usuarios\RestablecerCredencialesUsuarioUseCase;
+use App\Application\Usuarios\ResultadoAccesoUsuario;
 use App\Domain\Proveedores\ProveedorRepositoryInterface;
 use App\Domain\Usuarios\Exceptions\UsuarioInvalidoException;
 use App\Domain\Usuarios\Rol;
@@ -29,7 +31,10 @@ use RuntimeException;
 
 class UsuarioController extends Controller
 {
-    public function consultarDni(Request $request, ConsultarDniUseCase $consultar): JsonResponse
+    /** Funciones de la app móvil que un administrador puede asignar a una cuenta con rol personalizado sin base. */
+    private const FUNCIONES_MOVILES_DE_ROLES_PERSONALIZADOS = ['acopiador', 'calidad'];
+
+    public function consultarDni(Request $request, ConsultarDniUseCase $consultar, ProveedorRepositoryInterface $proveedores): JsonResponse
     {
         $datos = $request->validate(['dni' => ['required', 'string', 'regex:/^[0-9]{8}$/'], 'excluir' => ['nullable', 'integer']]);
         $existente = Usuario::query()->where('dni', $datos['dni'])->first();
@@ -38,6 +43,11 @@ class UsuarioController extends Controller
             $puedeEditar = $operador->puede('usuarios', 'editar') && ($this->esAdministradorOficial() || ($existente->perfil_rol_id !== null && (int) $existente->perfil_rol_id === (int) $operador->perfil_rol_id && ! $existente->tieneRol('admin')));
 
             return response()->json(['estado' => 'registrado', 'mensaje' => 'Este DNI ya tiene una cuenta. Revisa el usuario existente antes de crear otra.', 'url' => $puedeEditar ? route('admin.usuarios.edit', $existente->id) : route('admin.usuarios.index', ['buscar' => $datos['dni']])])->header('Cache-Control', 'no-store');
+        }
+        $ficha = auth('operador')->user()->puede('proveedores') ? $proveedores->buscarPorDni($datos['dni']) : null;
+        if ($ficha !== null) {
+            return response()->json(['estado' => 'ficha_existente', 'nombre' => $ficha->nombres, 'url' => route('admin.proveedores.show', $ficha->id),
+                'mensaje' => "Este DNI tiene una ficha de proveedor ({$ficha->codigo}) sin cuenta en este formulario; no se consultó RENIEC."])->header('Cache-Control', 'no-store');
         }
 
         return response()->json($consultar->ejecutar($datos['dni']))->header('Cache-Control', 'no-store');
@@ -53,7 +63,8 @@ class UsuarioController extends Controller
         $filtros = $request->validate([
             'buscar' => ['nullable', 'string', 'max:150'],
             'rol' => ['nullable', Rule::in(array_keys($opcionesRol))],
-            'estado' => ['nullable', Rule::in(['activo', 'inactivo', 'bloqueado'])],
+            'estado' => ['nullable', Rule::in(['activo', 'inactivo', 'suspendido', 'bloqueado'])],
+            'bloqueo' => ['nullable', Rule::in(['temporal'])],
             'activo' => ['nullable', 'boolean'],
             'orden' => ['nullable', Rule::in(['recientes', 'nombre_asc', 'nombre_desc'])],
             'por_pagina' => ['nullable', Rule::in([10, 20, 50])],
@@ -62,8 +73,13 @@ class UsuarioController extends Controller
         if (! $request->filled('estado') && $request->filled('activo')) {
             $filtros['estado'] = $request->boolean('activo') ? 'activo' : 'inactivo';
         }
+        if (($filtros['estado'] ?? '') === 'bloqueado') {
+            // Enlaces anteriores a la pestaña «Bloqueos temporales»: ahora es un filtro avanzado.
+            $filtros['estado'] = '';
+            $filtros['bloqueo'] = 'temporal';
+        }
         $filas = $listar->ejecutar($filtros);
-        $cuentasPagina = Usuario::query()->whereIn('id', collect($filas->items())->pluck('usuario_id')->filter())->get()->keyBy('id');
+        $cuentasPagina = Usuario::query()->with('fichaProveedor')->whereIn('id', collect($filas->items())->pluck('usuario_id')->filter())->get()->keyBy('id');
 
         return view('admin.usuarios.index', compact('filas', 'cuentasPagina', 'opcionesRol', 'filtros'));
     }
@@ -80,8 +96,9 @@ class UsuarioController extends Controller
         abort_if(! $puedeAsignarRol && (! $request->filled('perfil_rol_id') || $request->integer('perfil_rol_id') !== (int) auth('operador')->user()->perfil_rol_id), 403);
         $perfil = $request->filled('perfil_rol_id') ? DB::table('perfiles_roles')->where('activo', true)->find($request->integer('perfil_rol_id')) : null;
         abort_if($request->filled('perfil_rol_id') && ! $perfil, 422);
-        $base = $perfil?->base ?? $request->string('base')->toString();
-        abort_unless(Rol::tryFrom($base), 422);
+        // Un rol personalizado nuevo no tiene base: sus funciones móviles se asignan explícitamente en el formulario.
+        $base = $perfil !== null ? $perfil->base : $request->string('base')->toString();
+        abort_unless($perfil !== null || Rol::tryFrom($base), 422);
         abort_if($base === 'admin' && (auth('operador')->user()->perfil_rol_id !== null || ! auth('operador')->user()->tieneRol('admin')), 403);
         if ($base === Rol::Proveedor->value) {
             // Un único registro de proveedores: ficha productiva y cuenta móvil en el mismo formulario.
@@ -109,6 +126,7 @@ class UsuarioController extends Controller
                 actorEsAdmin: auth('operador')->user()->perfil_rol_id === null && auth('operador')->user()->tieneRol('admin'),
                 actorId: auth('operador')->id(),
                 zonaId: $datos['zona_id'],
+                rolFuncionalOpcional: $datos['rol_funcional_opcional'],
             );
         } catch (UsuarioInvalidoException $e) {
             return back()->withErrors(['username' => $this->mensajeSeguro($e)])->withInput($request->only('username', 'nombres', 'dni', 'roles', 'zona_id', 'perfil_rol_id', 'datos_formulario'));
@@ -176,6 +194,7 @@ class UsuarioController extends Controller
                 actorId: auth('operador')->id(),
                 zonaId: $datos['zona_id'],
                 actualizarZona: $request->exists('zona_id'),
+                rolFuncionalOpcional: $datos['rol_funcional_opcional'],
             );
         } catch (UsuarioInvalidoException $e) {
             return back()->withErrors(['roles' => $this->mensajeSeguro($e)])->withInput($request->only('nombres', 'dni', 'roles', 'zona_id', 'perfil_rol_id', 'datos_formulario'));
@@ -198,6 +217,36 @@ class UsuarioController extends Controller
         }
 
         return redirect()->route('admin.usuarios.index')->with('estado', 'Estado del usuario actualizado.');
+    }
+
+    public function gestionarAcceso(int $usuario, Request $request, GestionarAccesoUsuarioUseCase $gestionar): RedirectResponse
+    {
+        $this->cuentaGestionable($usuario);
+        $request->validate([
+            'suspender' => ['required', 'boolean'],
+            'motivo' => ['required_if:suspender,1', 'nullable', 'string', 'max:255'],
+        ]);
+        try {
+            $resultado = $gestionar->ejecutar($usuario, $request->boolean('suspender'), $request->input('motivo'), auth('operador')->id());
+        } catch (UsuarioInvalidoException|RuntimeException $e) {
+            return back()->withErrors(['motivo' => $this->mensajeSeguro($e)]);
+        }
+        $mensaje = $request->boolean('suspender') ? 'Acceso suspendido. Se cerraron las sesiones web y móvil.'
+            : 'Acceso restaurado. Se requiere una nueva autenticación; se conservan los bloqueos temporales.';
+        $mensaje .= match ($resultado->ficha) {
+            ResultadoAccesoUsuario::FICHA_SUSPENDIDA => ' Su ficha de proveedor también quedó Suspendida.',
+            ResultadoAccesoUsuario::FICHA_RESTAURADA => ' Su ficha de proveedor volvió a estar Activa.',
+            ResultadoAccesoUsuario::SIN_FICHA => ' La cuenta no tiene una ficha de proveedor vinculada; solo se cambió la cuenta.',
+            default => '',
+        };
+        $aviso = match ($resultado->ficha) {
+            ResultadoAccesoUsuario::FICHA_RETIRADA => 'La ficha de proveedor vinculada está Retirada y conserva ese estado.',
+            ResultadoAccesoUsuario::FICHA_YA_SUSPENDIDA => 'La ficha de proveedor ya estaba Suspendida por otra causa; se conserva esa suspensión.',
+            ResultadoAccesoUsuario::FICHA_SUSPENSION_INDEPENDIENTE => 'La ficha de proveedor sigue Suspendida: esa suspensión no la originó «Suspender acceso» (sanción independiente o registro anterior sin origen conocido). Revísala en Proveedores si corresponde reactivarla.',
+            default => null,
+        };
+
+        return back()->with('estado', $mensaje)->with('aviso', $aviso);
     }
 
     public function bloquear(int $usuario, Request $request, BloquearUsuarioUseCase $bloquear): RedirectResponse
@@ -225,7 +274,7 @@ class UsuarioController extends Controller
     public function restablecerCredenciales(int $usuario, Request $request, RestablecerCredencialesUsuarioUseCase $restablecer): RedirectResponse
     {
         $this->cuentaGestionable($usuario);
-        $request->validate(['pin' => ['required', 'string']]);
+        $request->validate(['pin' => ['required', 'string', 'regex:/\A[0-9]{4}\z/'], 'pin_confirmation' => ['required', 'same:pin']]);
 
         $exceptoSessionId = $usuario === auth('operador')->id() ? $request->session()->getId() : null;
 
@@ -249,7 +298,8 @@ class UsuarioController extends Controller
         if (! $perfil || (! $perfil->activo && $anterior?->perfil_rol_id != $perfil->id)) {
             throw ValidationException::withMessages(['perfil_rol_id' => 'Selecciona un rol activo para registrar al usuario.']);
         }
-        $request->merge(['roles' => [$perfil->base]]);
+        $request->merge(['roles' => $this->rolesDelPerfil($request, $perfil)]);
+        $request->attributes->set('rol_funcional_opcional', $perfil->base === null);
         $campos = json_decode($perfil->campos, true);
         $identidad = CamposIdentidadFormulario::reconocer($campos);
         $adicionales = $request->input('datos_formulario', []);
@@ -285,6 +335,30 @@ class UsuarioController extends Controller
         return array_replace(array_fill_keys(array_keys(json_decode($perfil->campos, true)), null), $validados);
     }
 
+    /**
+     * Rol personalizado anterior (con base): conserva las funciones móviles de esa base, como hasta ahora.
+     * Rol personalizado nuevo (sin base): sin funciones móviles salvo asignación explícita de un administrador oficial.
+     *
+     * @return list<string>
+     */
+    private function rolesDelPerfil(Request $request, object $perfil): array
+    {
+        if ($perfil->base !== null) {
+            return [$perfil->base];
+        }
+        if (! $this->esAdministradorOficial()) {
+            $anterior = Usuario::find($request->route('usuario'));
+
+            return $anterior !== null && (int) $anterior->perfil_rol_id === (int) $perfil->id ? ($anterior->roles ?? []) : [];
+        }
+        $funcion = $request->validate(
+            ['funcion_movil' => ['nullable', 'string', Rule::in(self::FUNCIONES_MOVILES_DE_ROLES_PERSONALIZADOS)]],
+            ['funcion_movil.in' => 'Elige una función móvil válida: Acopiador, Calidad o ninguna.'],
+        )['funcion_movil'] ?? null;
+
+        return $funcion !== null ? [$funcion] : [];
+    }
+
     private function guardarFormulario(Request $request, int $id, array $datos): void
     {
         $registro = Usuario::findOrFail($id);
@@ -297,7 +371,7 @@ class UsuarioController extends Controller
         }
     }
 
-    /** @return array{username: string, nombres: string, dni: string, roles: list<Rol>, pin: ?string, zona_id: ?int} */
+    /** @return array{username: string, nombres: string, dni: string, roles: list<Rol>, pin: ?string, zona_id: ?int, rol_funcional_opcional: bool, datos_formulario: array<string, mixed>} */
     private function validarDatos(Request $request, bool $exigirPin): array
     {
         $anterior = $exigirPin ? null : Usuario::findOrFail($request->route('usuario'));
@@ -320,7 +394,7 @@ class UsuarioController extends Controller
         $reglas = [
             'nombres' => ['required', 'string', 'max:150'],
             'dni' => ['required', 'string', 'max:20'],
-            'roles' => ['required', 'array', 'min:1'],
+            'roles' => $request->attributes->get('rol_funcional_opcional') ? ['present', 'array'] : ['required', 'array', 'min:1'],
             'roles.*' => ['string', 'in:'.implode(',', array_map(fn (Rol $r) => $r->value, Rol::cases()))],
             'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
         ];
@@ -348,7 +422,7 @@ class UsuarioController extends Controller
 
         if (! $this->esAdministradorOficial() && $anterior) {
             $rolesAnteriores = $anterior->roles ?? [];
-            $rolesSolicitados = $validados['roles'];
+            $rolesSolicitados = $validados['roles'] ?? [];
             sort($rolesAnteriores);
             sort($rolesSolicitados);
             if ($rolesAnteriores !== $rolesSolicitados) {
@@ -361,7 +435,8 @@ class UsuarioController extends Controller
             'datos_formulario' => $datosFormulario,
             'nombres' => $validados['nombres'],
             'dni' => $validados['dni'],
-            'roles' => array_map(fn (string $r) => Rol::from($r), $validados['roles']),
+            'roles' => array_map(fn (string $r) => Rol::from($r), $validados['roles'] ?? []),
+            'rol_funcional_opcional' => (bool) $request->attributes->get('rol_funcional_opcional', false),
             'pin' => $validados['pin'] ?? null,
             'zona_id' => isset($validados['zona_id']) ? (int) $validados['zona_id'] : null,
         ];

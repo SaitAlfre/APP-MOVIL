@@ -1,8 +1,41 @@
+import { iniciarEstadoProveedor } from './estado-proveedor';
 import { iniciarQrProveedor } from './proveedor-qr';
 import { sugerirUsuario } from './usuarios';
 
+/**
+ * Columna Estado del listado: cada opción del menú completa el único modal de confirmación (fuera de los
+ * resultados, que se reemplazan al filtrar) con la ruta, el estado destino y los textos correspondientes.
+ */
+export function iniciarEstadoRapido(signal) {
+    const modal = document.getElementById('proveedor-estado-modal');
+    if (!modal) return;
+    const formulario = modal.querySelector('[data-estado-rapido-form]');
+    document.addEventListener('click', event => {
+        const opcion = event.target.closest('[data-estado-rapido]');
+        if (!opcion || modal.open) return;
+        const destino = opcion.dataset.estadoRapido;
+        const confirmacion = modal.querySelector(`[data-estado-confirmacion="${destino}"]`);
+        if (!confirmacion) return;
+        formulario.action = opcion.dataset.url;
+        formulario.elements.namedItem('estado').value = destino;
+        formulario.elements.namedItem('motivo_estado').value = '';
+        modal.querySelectorAll('[data-estado-confirmacion]').forEach(texto => { texto.hidden = texto !== confirmacion; });
+        modal.querySelector('[data-estado-proveedor]').textContent = opcion.dataset.proveedor;
+        modal.querySelector(`#${modal.id}-titulo`).textContent = confirmacion.dataset.titulo;
+        modal.querySelector('[data-estado-confirmar]').textContent = confirmacion.dataset.boton;
+        const cuenta = modal.querySelector('[data-estado-cuenta]');
+        cuenta.hidden = !opcion.dataset.cuenta;
+        cuenta.textContent = opcion.dataset.cuenta
+            ? `Su cuenta móvil «${opcion.dataset.cuenta}» ${destino === 'activo' ? 'volverá a estar activa si se suspendió junto con la ficha' : 'también quedará suspendida y se cerrarán sus sesiones'}.`
+            : '';
+        modal.showModal();
+        formulario.elements.namedItem('motivo_estado').focus({ preventScroll: true });
+    }, { signal });
+}
+
 export function iniciarProveedores(signal) {
     iniciarQrProveedor(signal);
+    iniciarEstadoRapido(signal);
     const filtros = document.querySelector('[data-proveedores-filtros]');
     const resultados = document.querySelector('[data-proveedores-resultados]');
     const estado = document.querySelector('[data-proveedores-estado]');
@@ -150,6 +183,7 @@ export function iniciarProveedores(signal) {
     const formulario = document.querySelector('[data-proveedor-form]');
     const aviso = formulario?.querySelector('[data-proveedor-duplicados]');
     if (!formulario || !aviso) { return; }
+    iniciarEstadoProveedor(formulario, signal);
     iniciarConsultaDni(formulario, signal);
     const registro = formulario.hasAttribute('data-registro-proveedor') ? iniciarRegistroProveedor(formulario, signal) : null;
     let demora;
@@ -319,6 +353,19 @@ export function iniciarRegistroProveedor(formulario, signal) {
             detalles.append(item);
         }
         if (detalles.childElementCount) { caja.append(detalles); }
+        if (registro.datos) {
+            const recuperar = document.createElement('button');
+            recuperar.type = 'button';
+            recuperar.dataset.recuperarDatos = '';
+            recuperar.className = 'rounded-lg border border-eh-border-strong px-3 py-2 text-xs font-semibold text-eh-primary hover:bg-eh-primary-soft';
+            recuperar.textContent = 'Usar los datos registrados';
+            recuperar.addEventListener('click', () => {
+                recuperarDatosRegistrados(formulario, registro.datos);
+                recuperar.textContent = 'Datos registrados aplicados. Revísalos antes de guardar.';
+                recuperar.disabled = true;
+            });
+            caja.append(recuperar);
+        }
         if (registro.accion) {
             const etiqueta = document.createElement('label');
             etiqueta.className = 'flex min-h-10 cursor-pointer items-center gap-2 font-semibold';
@@ -387,12 +434,25 @@ export function iniciarRegistroProveedor(formulario, signal) {
     return { pintar, reiniciar, sinComprobar };
 }
 
+/** Copia al formulario los datos de la ficha o cuenta ya registradas; solo por acción explícita del administrador. */
+export function recuperarDatosRegistrados(formulario, datos) {
+    const campos = { nombres: datos.nombres, telefono: datos.telefono, zona_id: datos.zona_id };
+    for (const [nombre, valor] of Object.entries(campos)) {
+        const campo = formulario.elements.namedItem(nombre);
+        if (!campo || valor === null || valor === undefined || valor === '') { continue; }
+        if (campo.tagName === 'SELECT' && !Array.from(campo.options).some((opcion) => opcion.value === String(valor))) { continue; }
+        campo.value = String(valor);
+        campo.dispatchEvent(new Event(campo.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+    }
+}
+
 function iniciarConsultaDni(formulario, signal) {
     const boton = formulario.querySelector('[data-consultar-dni]');
     const resultado = formulario.querySelector('[data-dni-resultado]');
     const dni = formulario.elements.namedItem('dni');
     const nombre = formulario.elements.namedItem('nombres');
-    if (!boton || !resultado || formulario.dataset.dniDisponible !== 'true') { return; }
+    // Sin servicio externo configurado se sigue consultando: el servidor revisa primero los registros internos.
+    if (!boton || !resultado) { return; }
     let consulta;
     let demora;
     let revision = 0;
@@ -420,7 +480,7 @@ function iniciarConsultaDni(formulario, signal) {
             const respuesta = await fetch(formulario.dataset.dniUrl, {
                 method: 'POST', signal: consulta.signal,
                 headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': formulario.elements.namedItem('_token').value },
-                body: JSON.stringify({ dni: numero }),
+                body: JSON.stringify({ dni: numero, excluir: formulario.dataset.proveedorId ? Number(formulario.dataset.proveedorId) : null }),
             });
             if (respuesta.redirected || !respuesta.ok) { throw new Error('consulta'); }
             const datos = await respuesta.json();

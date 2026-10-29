@@ -170,7 +170,7 @@ class AdminUsuariosModuleTest extends TestCase
         $this->comoAdmin();
         $usuario = Usuario::factory()->create(['pin_hash' => '1234', 'roles' => ['calidad']]);
 
-        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678'])->assertSessionHasNoErrors();
+        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '5678', 'pin_confirmation' => '5678'])->assertSessionHasNoErrors();
 
         $this->post('/logout');
         $this->post('/login', ['username' => $usuario->username, 'pin' => '1234'])->assertSessionHasErrors('username');
@@ -195,7 +195,7 @@ class AdminUsuariosModuleTest extends TestCase
         $this->put(route('admin.usuarios.update', $usuario->id), ['nombres' => $usuario->nombres, 'dni' => $usuario->dni, 'roles' => ['calidad'], 'zona_id' => Zona::factory()->create()->id])->assertSessionHasNoErrors();
         $this->post(route('admin.usuarios.bloquear', $usuario->id), ['motivo' => 'Auditoría de prueba']);
         $this->post(route('admin.usuarios.desbloquear', $usuario->id));
-        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '9999']);
+        $this->post(route('admin.usuarios.restablecer', $usuario->id), ['pin' => '9999', 'pin_confirmation' => '9999']);
 
         $this->assertDatabaseHas('auditorias', ['entidad' => 'usuario', 'entidad_id' => $usuario->id, 'accion' => 'actualizar', 'usuario_id' => $admin->id]);
         $this->assertDatabaseHas('auditorias', ['entidad' => 'usuario', 'entidad_id' => $usuario->id, 'accion' => 'anular', 'motivo' => 'Auditoría de prueba']);

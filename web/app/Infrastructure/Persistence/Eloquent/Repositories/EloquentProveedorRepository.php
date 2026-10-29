@@ -119,9 +119,25 @@ final class EloquentProveedorRepository implements ProveedorRepositoryInterface
             'usuario_id' => $proveedor->usuarioId,
             'dueno' => $proveedor->dueno,
         ]);
+        if ($registro->exists && $registro->isDirty('estado')) {
+            $registro->forceFill(['suspension_origen' => null]);
+        }
         $registro->save();
 
         return $this->aDominio($registro->refresh());
+    }
+
+    public function origenSuspension(int $proveedorId): ?string
+    {
+        return ProveedorEloquent::query()->whereKey($proveedorId)->value('suspension_origen');
+    }
+
+    public function cambiarEstadoPorAccesoDeCuenta(int $proveedorId, EstadoProveedor $estado): void
+    {
+        ProveedorEloquent::query()->findOrFail($proveedorId)->forceFill([
+            'estado' => $estado,
+            'suspension_origen' => $estado === EstadoProveedor::Suspendido ? self::ORIGEN_ACCESO_CUENTA : null,
+        ])->saveQuietly();
     }
 
     private function aDominio(ProveedorEloquent $proveedor): ProveedorDominio

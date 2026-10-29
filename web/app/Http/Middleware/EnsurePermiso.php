@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,8 +28,8 @@ class EnsurePermiso
 
                 return $next($request);
             }
-            $accion = match ($request->method()) {
-                'POST' => $request->routeIs('admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer', 'admin.proveedores.vincular', 'admin.proveedores.desvincular', 'admin.proveedores.cuenta', 'admin.produccion.lotes.*', 'admin.tarifas.actual') ? 'editar' : 'crear',
+            $accion = $this->esBajaLogica($request) ? 'eliminar' : match ($request->method()) {
+                'POST' => $request->routeIs('admin.usuarios.acceso', 'admin.usuarios.bloquear', 'admin.usuarios.desbloquear', 'admin.usuarios.restablecer', 'admin.proveedores.vincular', 'admin.proveedores.desvincular', 'admin.proveedores.cuenta', 'admin.produccion.lotes.*', 'admin.tarifas.actual') ? 'editar' : 'crear',
                 'DELETE' => 'eliminar',
                 default => $request->isMethod('GET') && ($request->routeIs('*.create') || str_ends_with($request->path(), '/nuevo')) ? 'crear' : 'editar'
             };
@@ -36,5 +37,26 @@ class EnsurePermiso
         abort_unless($usuario !== null && $usuario->puede($modulo, $accion), 403);
 
         return $next($request);
+    }
+
+    /**
+     * Operaciones que el permiso «Eliminar» de un rol personalizado protege: dan de baja un registro sin borrarlo
+     * (anular, cancelar, deshacer, retirar o desactivar) y conservan su historial y auditoría. Reactivar sigue siendo
+     * «Editar». Debe coincidir con los módulos que declaran «eliminar» en config/modulos_roles.php.
+     */
+    private function esBajaLogica(Request $request): bool
+    {
+        $desactiva = fn (string $campo): bool => $request->has($campo) && ! $request->boolean($campo);
+
+        return match ($request->route()?->getName()) {
+            'admin.acopiadores.entregas.anular', 'admin.acopiadores.marcas.deshacer', 'admin.produccion.lotes.cancelar' => true,
+            'admin.proveedores.update', 'admin.proveedores.estado' => $request->input('estado') === 'retirado'
+                && DB::table('proveedores')->where('id', $request->route('proveedor'))->value('estado') !== 'retirado',
+            'admin.ventas.estado' => $request->input('estado') === 'anulada',
+            'admin.rutas.update' => $desactiva('activo') && (bool) DB::table('rutas')->where('id', $request->route('ruta'))->value('activo'),
+            'admin.zonas.estado', 'admin.vehiculos.estado', 'admin.produccion.productos.estado', 'admin.compradores.estado' => $desactiva('activo'),
+            'admin.recetas.estado' => $desactiva('receta_activa'),
+            default => false,
+        };
     }
 }

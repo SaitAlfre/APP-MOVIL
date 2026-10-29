@@ -1,3 +1,18 @@
+@php
+    $operadorEstado = auth('operador')->user();
+    $puedeCambiarEstado = $operadorEstado->puede('proveedores', 'editar');
+    $puedeRetirar = $operadorEstado->puede('proveedores', 'eliminar');
+    $opcionEstado = [
+        'suspendido' => ['etiqueta' => 'Suspender', 'descripcion' => 'No podrá registrar nuevas entregas.', 'icono' => 'clock'],
+        'retirado' => ['etiqueta' => 'Retirar', 'descripcion' => 'Baja lógica; conserva su historial.', 'icono' => 'xMark'],
+        'activo' => ['etiqueta' => 'Reactivar', 'descripcion' => 'Vuelve a recibir entregas.', 'icono' => 'arrowPath'],
+    ];
+    // Transiciones válidas según el estado actual y los permisos (Retirar exige Eliminar).
+    $destinosEstado = fn ($proveedor) => array_values(array_filter(
+        match ($proveedor->estado->value) { 'activo' => ['suspendido', 'retirado'], 'suspendido' => ['activo', 'retirado'], default => ['activo'] },
+        fn ($destino) => $destino === 'retirado' ? $puedeRetirar : $puedeCambiarEstado,
+    ));
+@endphp
 <div tabindex="0" role="region" aria-label="Listado de proveedores registrados" class="min-w-0 overflow-x-auto focus-visible:outline-2 focus-visible:outline-eh-primary">
     <table id="tabla-proveedores" data-export-total="{{ $proveedores->total() }}" class="gestion-table w-full text-left text-sm">
         <caption class="sr-only">Listado de proveedores registrados</caption>
@@ -30,10 +45,14 @@
                     </th>
                     <td data-column="dni" class="whitespace-nowrap font-mono text-xs">{{ $proveedor->dni }}</td>
                     <td data-column="zona" class="max-w-48 break-words text-eh-text-muted">{{ $zonas->get($proveedor->zonaId)?->nombre ?? '—' }}</td>
-                    <td data-column="estado"><x-ui.estado :estado="$proveedor->estado->value" /></td>
+                    <td data-column="estado" data-export-value="{{ $proveedor->estado->etiqueta() }}"><x-ui.estado-menu :label="$proveedor->estado->etiqueta()" :variant="match($proveedor->estado->value) {'activo'=>'green','suspendido'=>'red',default=>'gray'}" :nombre="$proveedor->nombres"
+                        :opciones="collect($destinosEstado($proveedor))->map(fn ($destino) => [...$opcionEstado[$destino], 'datos' => [
+                            'data-estado-rapido' => $destino, 'data-url' => route('admin.proveedores.estado', $proveedor->id), 'data-proveedor' => $proveedor->nombres.' · '.$proveedor->codigo,
+                            'data-cuenta' => $cuenta && $cuenta->roles === [\App\Domain\Usuarios\Rol::Proveedor] ? $cuenta->username : '',
+                            'aria-haspopup' => 'dialog', 'aria-controls' => 'proveedor-estado-modal']])->all()" /></td>
                     <td data-column="litros" class="whitespace-nowrap tabular-nums">{{ number_format($resumen['litros'],1) }} L</td>
                     <td data-column="ultima" class="whitespace-nowrap text-xs text-eh-text-muted">{{ $resumen['ultima'] ? \Illuminate\Support\Carbon::parse($resumen['ultima'])->format('d/m/Y H:i') : 'Sin entregas' }}</td>
-                    <td data-column="cuenta" class="text-xs text-eh-text-muted">{{ $cuenta?->username ?? 'Sin cuenta' }}</td>
+                    <td data-column="cuenta" class="text-xs text-eh-text-muted">@if($cuenta)<p>{{ $cuenta->username }}</p>@endif<x-ui.estado-cuenta :usuario="$cuenta" :productivo="$proveedor->estado->value" /></td>
                     <td data-column="acciones">
                         <div data-row-actions class="flex items-start justify-end gap-1">
                             @if($puedeGestionar)
