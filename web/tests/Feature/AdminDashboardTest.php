@@ -52,7 +52,7 @@ class AdminDashboardTest extends TestCase
             'litros' => 20, 'registrado_en' => $hoy.' 09:00:00', 'anulada' => false,
         ]);
 
-        // Lote en proceso: asigna 40 L de los 95 disponibles tras la merma.
+        // Lote en proceso: asigna 40 L de los 115 acopiados tras la merma (Calidad no filtra la producción).
         $producto = Producto::factory()->create(['litros_por_unidad' => 10]);
         $this->post('/admin/produccion/producir', ['fecha' => $hoy, 'producto_id' => $producto->id, 'litros_asignados' => 40])
             ->assertSessionHasNoErrors();
@@ -77,8 +77,8 @@ class AdminDashboardTest extends TestCase
                 && $indicadores['merma_porcentaje'] === 5.0
                 && $indicadores['pendiente_calidad_litros'] === 20.0
                 && $indicadores['pendiente_calidad_entregas'] === 1
-                && $indicadores['habilitado_litros'] === 95.0
-                && $indicadores['disponible_litros'] === 55.0
+                && $indicadores['habilitado_litros'] === 115.0
+                && $indicadores['disponible_litros'] === 75.0
                 && $indicadores['consumido_produccion_litros'] === 0.0
                 && $indicadores['lotes_en_proceso'] === 1
                 && $indicadores['lotes_finalizados'] === 0

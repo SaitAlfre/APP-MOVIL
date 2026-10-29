@@ -5,7 +5,7 @@
 @section('contenido')
     @php
         $puedeGestionar = auth('operador')->user()->puede('inventario', 'gestionar');
-        $umbralStockBajo = 10;
+        $estadosStock = ['disponible' => ['green', 'Disponible'], 'bajo' => ['yellow', 'Stock bajo'], 'agotado' => ['red', 'Agotado']];
 
         $pestanas = collect([
             ['key' => 'resumen', 'label' => 'Productos terminados'],
@@ -39,38 +39,28 @@
                 </x-ui.empty>
             </x-ui.card>
         @else
-            <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <ul class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3" aria-label="Stock actual por producto">
                 @foreach ($productos as $producto)
-                    @php $bajo = (float) $producto->existencia < $umbralStockBajo; @endphp
-                    <x-ui.card padding="p-4" :class="$bajo ? 'border-eh-gold/40 bg-eh-gold-soft' : ''">
-                        <div class="mb-2 flex items-start justify-between gap-2">
-                            <p class="text-xs font-medium leading-tight text-eh-text-muted">{{ $producto->nombre }}</p>
-                            <x-ui.badge :variant="$bajo ? 'yellow' : 'green'" :label="$bajo ? 'Stock bajo' : 'Normal'" />
+                    @php [$colorStock, $etiquetaStock] = $estadosStock[$producto->estadoStock()]; @endphp
+                    <li data-stock-card class="flex flex-col rounded-2xl border border-eh-border bg-eh-surface p-5 shadow-sm">
+                        <div class="flex items-start gap-3">
+                            <x-ui.avatar :name="$producto->nombre" :src="$producto->urlImagen()" size="h-10 w-10 text-xs" />
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('admin.produccion.productos.show', $producto->id) }}" class="block truncate font-semibold hover:text-eh-primary">{{ $producto->nombre }}</a>
+                                <p class="truncate text-xs text-eh-text-muted">{{ $producto->presentacion }}</p>
+                            </div>
+                            <x-ui.badge :variant="$colorStock" :label="$etiquetaStock" data-stock-badge />
                         </div>
-                        <p class="mono text-2xl font-bold text-eh-text">{{ number_format((float) $producto->existencia, 2) }}</p>
-                        <p class="text-sm text-eh-text-muted">{{ $producto->unidad_produccion }}</p>
-                    </x-ui.card>
+                        <p class="mono mt-4 text-2xl font-semibold">{{ number_format((float) $producto->existencia, 2) }} <span class="text-xs font-normal text-eh-text-muted">{{ $producto->unidad_produccion }}</span></p>
+                        <div class="mt-4 border-t border-eh-border pt-3">
+                            <x-ui.stock-minimo :action="route('admin.produccion.productos.minimo', $producto->id)" :id="'minimo-producto-'.$producto->id" :value="$producto->stock_minimo"
+                                :unit="$producto->unidad_produccion === 'unidad' ? 'u' : $producto->unidad_produccion" :existencia="$producto->existencia" :nombre="$producto->nombre"
+                                :editable="auth('operador')->user()->puede('productos', 'gestionar')" />
+                        </div>
+                    </li>
                 @endforeach
-            </div>
-
-            <x-ui.card>
-                <x-ui.table :headers="['Producto', 'Stock actual', 'Unidad', 'Presentación', 'Litros por unidad', 'Estado']" caption="Stock actual por producto">
-                    @foreach ($productos as $producto)
-                        @php $bajo = (float) $producto->existencia < $umbralStockBajo; @endphp
-                        <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
-                            <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $producto->nombre }}</td>
-                            <td class="mono px-4 py-3 text-lg font-bold text-eh-text">{{ number_format((float) $producto->existencia, 2) }}</td>
-                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $producto->unidad_produccion }}</td>
-                            <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $producto->presentacion }}</td>
-                            <td class="mono px-4 py-3 text-xs text-eh-text-muted">{{ $producto->litros_por_unidad !== null ? number_format((float) $producto->litros_por_unidad, 2).' L' : 'Sin receta' }}</td>
-                            <td class="px-4 py-3"><x-ui.badge :variant="$bajo ? 'yellow' : 'green'" :label="$bajo ? 'Stock bajo' : 'Normal'" /></td>
-                        </tr>
-                    @endforeach
-                </x-ui.table>
-                <p class="border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
-                    Se marca «Stock bajo» por debajo de {{ $umbralStockBajo }} unidades de producción.
-                </p>
-            </x-ui.card>
+            </ul>
+            <p class="mt-3 text-xs text-eh-text-muted">Se marca «Stock bajo» cuando el stock llega a la cantidad de aviso. Déjala vacía si no quieres aviso.</p>
         @endif
     @elseif ($tab === 'materiales')
         @include('admin.inventario._materiales')

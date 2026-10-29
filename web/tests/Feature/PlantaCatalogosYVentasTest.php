@@ -46,15 +46,20 @@ class PlantaCatalogosYVentasTest extends TestCase
         $this->assertDatabaseCount('reclamos_proveedor', 0);
     }
 
-    public function test_producto_se_crea_sin_receta_y_con_tres_precios_opcionales(): void
+    public function test_producto_exige_receta_y_guarda_tres_precios_opcionales(): void
     {
-        $this->post(route('admin.produccion.productos.store'), $this->datosProducto())->assertSessionHasNoErrors();
+        $this->post(route('admin.produccion.productos.store'), $this->datosProducto())->assertSessionHasErrors('receta_id');
+        $receta = M\Receta::factory()->create(['litros_tanda' => 180, 'rinde_unidades' => 20, 'unidad_base' => 'unidad']);
+        $this->get(route('admin.produccion.productos.create'))->assertOk()->assertSee($receta->nombre)->assertDontSee('name="litros_por_unidad"', false)->assertDontSee('data-receta-editor', false);
+        $this->post(route('admin.produccion.productos.store'), $this->datosProducto() + ['receta_id' => $receta->id, 'codigo' => 'QP-01', 'stock_minimo' => 5])->assertSessionHasNoErrors();
         $producto = M\Producto::sole();
-        $this->assertNull($producto->litros_por_unidad);
+        $this->assertEquals(9, $producto->litros_por_unidad);
         $this->assertEquals(15, $producto->precio_proveedor);
-        $this->assertDatabaseCount('receta_ingredientes', 0);
-        $this->get(route('admin.produccion.productos.create'))->assertOk()->assertDontSee('name="litros_por_unidad"', false)->assertDontSee('data-receta-editor', false);
-        $this->get(route('admin.recetas.create', ['producto_id' => $producto->id]))->assertOk()->assertSee('Queso paria fresco');
+        $this->assertSame('QP-01', $producto->codigo);
+        $this->assertEquals(5, $producto->stock_minimo);
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => 'Otro queso'] + $this->datosProducto() + ['receta_id' => $receta->id])->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('productos', 2);
+        $this->get(route('admin.produccion.productos.create', ['receta_id' => $receta->id]))->assertOk()->assertSee('usada en 2 productos');
     }
 
     public function test_admin_tampoco_puede_crear_reclamos_por_sincronizacion_movil(): void
@@ -75,7 +80,7 @@ class PlantaCatalogosYVentasTest extends TestCase
     {
         $producto = M\Producto::factory()->create(['litros_por_unidad' => null, 'existencia' => 6, 'precio_cliente' => 20]);
         $sal = M\Material::create(['nombre' => 'Sal', 'unidad' => 'g', 'existencia' => 500]);
-        $datos = ['producto_id' => $producto->id, 'litros_por_unidad' => 9, 'ingredientes' => [['material_id' => $sal->id, 'cantidad' => 20]]];
+        $datos = ['producto_id' => $producto->id, 'litros_tanda' => 9, 'rinde_unidades' => 1, 'ingredientes' => [['material_id' => $sal->id, 'cantidad' => 20]]];
         $this->post(route('admin.recetas.store'), $datos)->assertSessionHasNoErrors();
         $this->post(route('admin.recetas.store'), $datos)->assertSessionHasErrors('producto_id');
         $this->assertDatabaseCount('productos', 1);
@@ -86,14 +91,15 @@ class PlantaCatalogosYVentasTest extends TestCase
 
     public function test_editar_precio_del_producto_conserva_receta_stock_y_lotes(): void
     {
-        $producto = M\Producto::factory()->create(['litros_por_unidad' => 9, 'otros_insumos' => 'Paria pasteurizado', 'existencia' => 6]);
-        $this->put(route('admin.produccion.productos.update', $producto), $this->datosProducto())->assertSessionHasNoErrors();
+        $producto = M\Producto::factory()->create(['existencia' => 6]);
+        $receta = M\Receta::factory()->create(['litros_tanda' => 9, 'rinde_unidades' => 1, 'otros_insumos' => 'Paria pasteurizado']);
+        app(GestionRecetas::class)->vincular($producto->id, $receta->id);
+        $this->put(route('admin.produccion.productos.update', $producto), $this->datosProducto() + ['receta_id' => $receta->id])->assertSessionHasNoErrors();
         $this->assertEquals(9, $producto->fresh()->litros_por_unidad);
         $this->assertSame('Paria pasteurizado', $producto->fresh()->otros_insumos);
         $this->assertEquals(6, $producto->fresh()->existencia);
-        $receta = M\Receta::factory()->create(['litros_por_unidad' => 9]);
-        app(GestionRecetas::class)->vincular($producto->id, $receta->id);
-        $this->put(route('admin.recetas.update', $receta), ['litros_por_unidad' => 8.5, 'nombre' => 'Receta actualizada'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->put(route('admin.recetas.update', $receta), ['litros_tanda' => 8.5, 'rinde_unidades' => 1, 'nombre' => 'Receta actualizada'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertEquals(8.5, $producto->fresh()->litros_por_unidad);
         $this->assertSame('Queso paria fresco', $producto->fresh()->nombre);
         $this->assertEquals(20, $producto->fresh()->precio_cliente);
     }

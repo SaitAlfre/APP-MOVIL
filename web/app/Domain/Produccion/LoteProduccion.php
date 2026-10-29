@@ -50,7 +50,7 @@ final class LoteProduccion
             litrosUsados: null,
             litrosMermaProceso: null,
             litrosSobrantes: null,
-            unidadesEstimadas: (int) floor($litrosAsignados / $litrosPorUnidadSnapshot),
+            unidadesEstimadas: (int) floor(round($litrosAsignados / $litrosPorUnidadSnapshot, 3)),
             unidadesProducidas: null,
             estado: EstadoLoteProduccion::Borrador,
             origenAcopio: $origenAcopio,

@@ -70,7 +70,8 @@ interface EntregaRepositoryInterface
     public function litrosAprobadosPorVehiculoEnFecha(DateTimeImmutable $fecha): array;
 
     /**
-     * Litros habilitados por Calidad menos las mermas de transporte registradas en Recepción de
+     * Litros acopiados del día (sin filtrar por Calidad; litrosAprobados queda como referencia)
+     * menos las mermas de transporte registradas en Recepción de
      * leche (ver App\Domain\Recepcion), agregados por vehículo para el día. Un excedente medido
      * en planta (litros medidos > recolectados) no incrementa este saldo: solo se descuentan
      * mermas, nunca se suman diferencias positivas.
@@ -79,8 +80,8 @@ interface EntregaRepositoryInterface
      */
     public function recepcionPorVehiculoEnFecha(DateTimeImmutable $fecha): array;
 
-    /** @return list<array{fecha: string, litros: float}> Solo entregas aprobadas/observadas por Calidad, no anuladas. */
-    public function litrosAprobadosPorDiaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array;
+    /** @return list<array{fecha: string, litros: float}> Toda la leche acopiada (entregas no anuladas), sin filtrar por Calidad. */
+    public function litrosAcopiadosPorDiaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array;
 
     public function litrosAprobadosTotal(): float;
 

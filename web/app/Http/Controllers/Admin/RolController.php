@@ -24,7 +24,8 @@ class RolController extends Controller
         'Organización del acopio' => ['icono' => 'asignaciones', 'modulos' => ['zonas_vehiculos', 'mapa_rutas']],
         'Acopio' => ['icono' => 'milk', 'modulos' => ['acopiadores', 'entregas', 'recepcion']],
         'Calidad' => ['icono' => 'beaker', 'modulos' => ['calidad', 'sanciones']],
-        'Planta' => ['icono' => 'factory', 'modulos' => ['produccion', 'productos', 'recetas', 'inventario', 'ventas']],
+        'Planta' => ['icono' => 'factory', 'modulos' => ['produccion', 'productos', 'recetas', 'inventario']],
+        'Comercial' => ['icono' => 'shoppingCart', 'modulos' => ['ventas']],
         'Liquidaciones y pagos' => ['icono' => 'liquidacion', 'modulos' => ['liquidaciones']],
         'Comunicación y administración' => ['icono' => 'cog', 'modulos' => ['comunicados', 'importaciones', 'configuracion', 'auditoria']],
     ];

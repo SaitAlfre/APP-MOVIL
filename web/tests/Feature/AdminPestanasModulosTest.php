@@ -29,17 +29,17 @@ class AdminPestanasModulosTest extends TestCase
         $this->actingAs($this->admin, 'operador');
     }
 
-    public function test_inventario_marca_stock_bajo_por_debajo_del_umbral(): void
+    public function test_inventario_marca_stock_bajo_segun_el_minimo_de_cada_producto(): void
     {
-        Producto::factory()->create(['nombre' => 'Queso fresco', 'existencia' => 4]);
-        Producto::factory()->create(['nombre' => 'Yogurt natural', 'existencia' => 25]);
+        Producto::factory()->create(['nombre' => 'Queso fresco', 'existencia' => 4, 'stock_minimo' => 5]);
+        Producto::factory()->create(['nombre' => 'Yogurt natural', 'existencia' => 25, 'stock_minimo' => 5]);
 
         $respuesta = $this->get('/admin/inventario');
 
         $respuesta->assertOk();
         $respuesta->assertSee('Queso fresco');
         $respuesta->assertSee('Stock bajo');
-        $respuesta->assertSee('Normal');
+        $respuesta->assertSee('Disponible');
     }
 
     public function test_los_movimientos_viven_en_su_pestana_y_muestran_el_signo(): void

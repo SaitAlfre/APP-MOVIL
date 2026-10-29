@@ -8,6 +8,7 @@ use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Material;
 use App\Infrastructure\Persistence\Eloquent\Producto;
+use App\Infrastructure\Persistence\Eloquent\Receta;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,7 +49,7 @@ class PlantaRecetasInventarioTest extends TestCase
     private function datos(string $nombre = 'Queso fresco'): array
     {
         return [
-            'nombre' => $nombre, 'presentacion' => '1 kg', 'unidad_produccion' => 'unidad', 'litros_por_unidad' => 10,
+            'nombre' => $nombre, 'litros_tanda' => 10, 'rinde_unidades' => 1,
             'ingredientes' => [
                 ['material_id' => $this->sal->id, 'cantidad' => 20],
                 ['material_id' => $this->cuajo->id, 'cantidad' => 2],
@@ -58,12 +59,11 @@ class PlantaRecetasInventarioTest extends TestCase
 
     private function receta(string $nombre = 'Queso fresco'): Producto
     {
-        $datos = $this->datos($nombre);
-        $this->post(route('admin.produccion.productos.store'), array_intersect_key($datos, array_flip(['nombre', 'presentacion', 'unidad_produccion'])))->assertSessionHasNoErrors();
-        $producto = Producto::where('nombre', $nombre)->firstOrFail();
-        $this->post(route('admin.recetas.store'), $datos + ['producto_id' => $producto->id])->assertSessionHasNoErrors();
+        $this->post(route('admin.recetas.store'), $this->datos($nombre))->assertSessionHasNoErrors();
+        $receta = Receta::where('nombre', $nombre)->firstOrFail();
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => $nombre, 'presentacion' => '1 kg', 'receta_id' => $receta->id])->assertSessionHasNoErrors();
 
-        return $producto->refresh();
+        return Producto::where('nombre', $nombre)->firstOrFail();
     }
 
     private function lote(Producto $producto, float $litros = 100): LoteProduccion
@@ -147,7 +147,7 @@ class PlantaRecetasInventarioTest extends TestCase
         $lote = $this->lote($producto);
         $datos = $this->datos();
         $datos['ingredientes'][0]['cantidad'] = 40;
-        $datos['litros_por_unidad'] = 5;
+        $datos['litros_tanda'] = 5;
         $this->put(route('admin.recetas.update', $producto->receta_id), $datos)->assertSessionHasNoErrors();
         $this->iniciar($lote);
         $this->assertEquals(800, $this->sal->fresh()->existencia);
@@ -178,9 +178,9 @@ class PlantaRecetasInventarioTest extends TestCase
     {
         $azucar = $this->material('Azúcar', 'kg', 10);
         $datos = $this->datos('Yogur natural');
-        $datos['litros_por_unidad'] = 1;
+        $datos['litros_tanda'] = 1;
         $datos['ingredientes'] = [['material_id' => $azucar->id, 'cantidad' => 0.1]];
-        $producto = Producto::factory()->create(['nombre' => $datos['nombre'], 'litros_por_unidad' => null]);
+        $producto = Producto::factory()->create(['nombre' => $datos['nombre'], 'presentacion' => '1 L', 'litros_por_unidad' => null]);
         $this->post(route('admin.recetas.store'), $datos + ['producto_id' => $producto->id])->assertSessionHasNoErrors();
         $producto = Producto::where('nombre', 'Yogur natural')->firstOrFail();
         $this->get(route('admin.produccion.producir.index', [
@@ -204,6 +204,31 @@ class PlantaRecetasInventarioTest extends TestCase
         $this->post(route('admin.recetas.store'), $datos)->assertSessionHasErrors('ingredientes.0.material_id');
         $this->assertNull($producto->fresh()->litros_por_unidad);
         $this->assertDatabaseCount('receta_ingredientes', 0);
+    }
+
+    public function test_stock_minimo_de_insumos_y_productos_se_edita_libremente(): void
+    {
+        $this->patchJson(route('admin.inventario.materiales.minimo', $this->sal), ['stock_minimo' => 1200])
+            ->assertOk()->assertJson(['stock_minimo' => 1200]);
+        $this->assertEquals(1200, $this->sal->fresh()->stock_minimo);
+        $this->get(route('admin.inventario.index', ['tab' => 'materiales']))->assertOk()->assertSee('Stock bajo')->assertSee('value="1200"', false);
+        $this->patchJson(route('admin.inventario.materiales.minimo', $this->sal), ['stock_minimo' => 12.5])->assertOk();
+        $this->assertEquals(12.5, $this->sal->fresh()->stock_minimo);
+        $this->patchJson(route('admin.inventario.materiales.minimo', $this->sal), ['stock_minimo' => -1])->assertUnprocessable()->assertJsonValidationErrors('stock_minimo');
+        $this->patchJson(route('admin.inventario.materiales.minimo', $this->sal), ['stock_minimo' => null])->assertOk()->assertJson(['stock_minimo' => null]);
+        $this->assertNull($this->sal->fresh()->stock_minimo);
+
+        $producto = $this->receta();
+        $this->patch(route('admin.produccion.productos.minimo', $producto), ['stock_minimo' => 8])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertEquals(8, $producto->fresh()->stock_minimo);
+        $this->assertSame('agotado', $producto->fresh()->estadoStock());
+        $producto->update(['existencia' => 5]);
+        $this->assertSame('bajo', $producto->fresh()->estadoStock());
+        $this->get(route('admin.inventario.index'))->assertOk()->assertSee('data-min-editor', false)->assertSee('value="8"', false);
+
+        $this->actingAs(Usuario::factory()->create(['roles' => ['proveedor']]), 'operador');
+        $this->patchJson(route('admin.produccion.productos.minimo', $producto), ['stock_minimo' => 1])->assertForbidden();
+        $this->patchJson(route('admin.inventario.materiales.minimo', $this->sal), ['stock_minimo' => 1])->assertForbidden();
     }
 
     public function test_materiales_validan_unidad_precision_y_evitan_stock_negativo(): void

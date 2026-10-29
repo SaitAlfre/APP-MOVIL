@@ -52,12 +52,14 @@
                 ['ruta' => 'admin.calidad.casos', 'patron' => ['admin.calidad.casos', 'admin.calidad.incidencias.*', 'admin.sanciones.*'], 'modulo' => 'calidad', 'etiqueta' => 'Casos y sanciones', 'icono' => 'sancion'],
             ],
             'Planta' => [
-                ['ruta' => 'admin.produccion.productos.index', 'patron' => 'admin.produccion.productos.*', 'modulo' => 'productos', 'etiqueta' => 'Productos', 'icono' => 'cube'],
                 ['ruta' => 'admin.recetas.index', 'patron' => 'admin.recetas.*', 'modulo' => 'recetas', 'etiqueta' => 'Recetas', 'icono' => 'receta'],
-                ['ruta' => 'admin.compradores.index', 'patron' => 'admin.compradores.*', 'modulo' => 'ventas', 'etiqueta' => 'Compradores', 'icono' => 'users'],
+                ['ruta' => 'admin.produccion.productos.index', 'patron' => 'admin.produccion.productos.*', 'modulo' => 'productos', 'etiqueta' => 'Productos', 'icono' => 'cube'],
                 ['ruta' => 'admin.produccion.index', 'patron' => ['admin.produccion.index', 'admin.produccion.producir.*', 'admin.produccion.historial.*'], 'modulo' => 'produccion', 'etiqueta' => 'Producción', 'icono' => 'factory'],
-                ['ruta' => 'admin.inventario.index', 'patron' => 'admin.inventario.*', 'modulo' => 'inventario', 'etiqueta' => 'Inventario', 'icono' => 'cube'],
+                ['ruta' => 'admin.inventario.index', 'patron' => 'admin.inventario.*', 'modulo' => 'inventario', 'etiqueta' => 'Inventario', 'icono' => 'tableCells'],
+            ],
+            'Comercial' => [
                 ['ruta' => 'admin.ventas.index', 'patron' => 'admin.ventas.*', 'modulo' => 'ventas', 'etiqueta' => 'Ventas', 'icono' => 'shoppingCart'],
+                ['ruta' => 'admin.compradores.index', 'patron' => 'admin.compradores.*', 'modulo' => 'ventas', 'etiqueta' => 'Compradores', 'icono' => 'users'],
             ],
             'Liquidaciones y pagos' => [
                 ['ruta' => 'admin.liquidaciones.index', 'patron' => 'admin.liquidaciones.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Liquidaciones y pagos', 'icono' => 'liquidacion'],
@@ -76,7 +78,7 @@
             ],
         ];
 
-        $iconosGrupo = ['Acopio' => 'milk', 'Calidad' => 'beaker', 'Liquidaciones y pagos' => 'liquidacion', 'Planta' => 'factory', 'Organización del acopio' => 'asignaciones', 'Administración' => 'cog'];
+        $iconosGrupo = ['Acopio' => 'milk', 'Calidad' => 'beaker', 'Liquidaciones y pagos' => 'liquidacion', 'Planta' => 'factory', 'Comercial' => 'shoppingCart', 'Organización del acopio' => 'asignaciones', 'Administración' => 'cog'];
 
         $notificaciones = $operador->puede('comunicados')
             ? \App\Infrastructure\Persistence\Eloquent\Comunicado::where('estado', 'publicado')

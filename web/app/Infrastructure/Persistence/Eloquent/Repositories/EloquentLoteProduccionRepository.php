@@ -77,7 +77,7 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
             if (! $producto->activo || ! $producto->receta_activa || $producto->litros_por_unidad === null) {
                 throw ValidationException::withMessages(['producto_id' => 'La receta está inactiva. Selecciona una receta activa.']);
             }
-            $unidadesEstimadas = (int) floor(round($lote->litrosAsignados / (float) $producto->litros_por_unidad, 9));
+            $unidadesEstimadas = (int) floor(round($lote->litrosAsignados / (float) $producto->litros_por_unidad, 3));
             if ($unidadesEstimadas < 1 || $unidadesEstimadas > 1000000) {
                 throw ValidationException::withMessages(['litros_asignados' => 'El lote debe rendir entre 1 y 1 000 000 de unidades de producción.']);
             }
@@ -154,7 +154,7 @@ final class EloquentLoteProduccionRepository implements LoteProduccionRepository
 
             LoteProduccionDominio::validarFinalizacion((float) $registro->litros_asignados, $litrosUsados, $litrosMermaProceso);
 
-            $unidadesProducidas = $unidadesReales ?? (int) floor(round($litrosUsados / (float) $registro->litros_por_unidad_snapshot, 9));
+            $unidadesProducidas = $unidadesReales ?? (int) floor(round($litrosUsados / (float) $registro->litros_por_unidad_snapshot, 3));
             if ($unidadesProducidas < 0 || ($unidadesProducidas > 0 && $litrosUsados <= 0)) {
                 throw ValidationException::withMessages(['unidades_producidas' => 'Registra una cantidad válida y la leche realmente usada.']);
             }

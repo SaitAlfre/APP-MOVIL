@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Application\Produccion\CrearLoteProduccionUseCase;
 use App\Application\Produccion\FinalizarLoteProduccionUseCase;
+use App\Application\Produccion\GestionRecetas;
 use App\Application\Produccion\IniciarLoteProduccionUseCase;
 use App\Infrastructure\Persistence\Eloquent as M;
 use DateTimeImmutable;
@@ -143,10 +144,11 @@ class EscenarioPeruDemoSeeder extends Seeder
         foreach ([['Queso fresco DEMO', '1 kg', 8], ['Queso andino DEMO', '900 g', 10], ['Queso mozzarella DEMO', '500 g', 6]] as $n => [$nombre, $presentacion, $litros]) {
             $producto = M\Producto::create(['nombre' => $nombre, 'presentacion' => $presentacion, 'unidad_produccion' => 'unidad',
                 'litros_por_unidad' => $litros, 'existencia' => 0, 'activo' => true, 'otros_insumos' => 'Receta ficticia para probar el sistema']);
-            foreach ($materiales as $m => $material) {
-                DB::table('receta_ingredientes')->insert(['producto_id' => $producto->id, 'material_id' => $material->id, 'cantidad' => [2, 20, 5][$m]]);
-            }
-            $lote = app(CrearLoteProduccionUseCase::class)->ejecutar(new DateTimeImmutable(today()->subDay()->toDateString()), $producto->id, $litros * 10, $admin->id);
+            $gestion = app(GestionRecetas::class);
+            $receta = $gestion->actualizar(new M\Receta, ['nombre' => $nombre, 'unidad_base' => 'unidad', 'litros_tanda' => $litros * 10, 'rinde_unidades' => 10,
+                'otros_insumos' => 'Receta ficticia para probar el sistema'], collect($materiales)->map(fn ($material, $m) => ['material_id' => $material->id, 'cantidad' => [2, 20, 5][$m] * 10])->all());
+            $gestion->vincular($producto->id, $receta->id);
+            $lote = app(CrearLoteProduccionUseCase::class)->ejecutar(new DateTimeImmutable(today()->toDateString()), $producto->id, $litros * 10, $admin->id);
             M\LoteProduccion::whereKey($lote->id)->update(['codigo' => 'DEMO-PE-LOTE-'.($n + 1)]);
             app(IniciarLoteProduccionUseCase::class)->ejecutar($lote->id, $admin->id);
             app(FinalizarLoteProduccionUseCase::class)->ejecutar($lote->id, $litros * 10, 0, $admin->id, 10);

@@ -29,7 +29,7 @@ class PlantaComercialCasosPruebaSeeder extends Seeder
                     'existencia' => 0, 'activo' => true, 'otros_insumos' => $litros !== null ? 'DEMO: valores ficticios para probar el sistema.' : null]);
                 if ($producto->wasRecentlyCreated && $litros !== null) {
                     $gestion = app(GestionRecetas::class);
-                    $receta = $gestion->actualizar(new M\Receta, ['nombre' => $nombre, 'unidad_base' => 'unidad', 'litros_por_unidad' => $litros,
+                    $receta = $gestion->actualizar(new M\Receta, ['nombre' => $nombre, 'unidad_base' => 'unidad', 'litros_tanda' => $litros, 'rinde_unidades' => 1,
                         'otros_insumos' => 'DEMO: valores ficticios para probar el sistema.'], []);
                     $gestion->vincular($producto->id, $receta->id);
                 }

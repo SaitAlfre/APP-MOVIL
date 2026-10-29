@@ -20,7 +20,7 @@ final class ListarAcopiosRecientesUseCase
         $hasta = new DateTimeImmutable('today');
         $desde = $hasta->modify('-'.($dias - 1).' days');
 
-        return collect($this->entregas->litrosAprobadosPorDiaEnRango($desde, $hasta))
+        return collect($this->entregas->litrosAcopiadosPorDiaEnRango($desde, $hasta))
             ->map(fn ($fila) => [
                 'fecha' => new DateTimeImmutable($fila['fecha']),
                 'litros' => $this->obtenerAcopio->ejecutar(new DateTimeImmutable($fila['fecha']))->litrosTotal(),

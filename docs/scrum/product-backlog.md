@@ -1294,6 +1294,39 @@ Escenario: HU-16-C rechazo o ausencia de datos
 |---|---|---|---|---|---|
 | Condicionada a contratos de HU-16-A | Conversación pendiente: Confirmar si destino reserva stock o lo descuenta para evitar doble descuento en ventas. | mantener control del destino de lo producido | Hipótesis; confirmar reglas/datos antes de votar | Corte acotado propuesto; cabida depende de capacidad y DoD | Resultado observable; datos/entorno y ejecución pendientes |
 
+<a id="hu-16-d"></a>
+### HU-16-D — Gestionar recetas por tanda e insumos de planta
+
+> **Propuesta nueva del 2026-10-29, fuera de la instantánea inicial de 41 HU.** No está creada en el Project, no tiene RF propio ni Poker y no forma parte de ningún Sprint. Recoge reglas indicadas por el Product Owner en conversación; requiere refinamiento antes de votarse.
+
+**Como** responsable de producción, **quiero** describir cada receta como una tanda (leche, insumos y lo que rinde) y amarrar cada producto a su receta, **para** que la planta calcule leche e insumos y descuente el inventario al producir.
+
+- **RF / valor:** relacionada con RF-PROD-01 y RF-VEN-03; sin RF propio. Calcular leche e insumos sin hojas de cálculo.
+- **MoSCoW / tamaño inicial:** propuesta, sin MoSCoW ni puntos.
+- **Dependencias:** [HU-16-A](product-backlog.md#hu-16-a).
+- **Reglas indicadas por el PO (2026-10-29):** una receta puede servir a varios productos (la leche e insumos de cada uno se derivan de su peso o volumen por unidad); la leche se procesa el mismo día y se usa toda la leche acopiada del día (menos mermas de Recepción), sin filtrar por el resultado de Calidad; cancelar un lote iniciado no devuelve insumos; el producto define a mano sus precios de Proveedor, Cliente y Mayorista.
+- **Evidencia técnica actual:** implementación local en `web/` con pruebas de feature; sin aceptación externa. Aceptación: **EVIDENCIA PENDIENTE**.
+
+**Criterios de aceptación propuestos**
+
+- **CA-HU-16-D-01:** Una receta guarda leche de la tanda, lo que rinde e insumos por tanda; la cantidad por unidad se deriva dividiendo entre lo que rinde.
+- **CA-HU-16-D-02:** Un producto no se crea sin una receta activa; si la receta rinde en kg o L, el peso o volumen de cada unidad define su leche e insumos.
+- **CA-HU-16-D-03:** Un lote solo usa leche del día y, al iniciarse, descuenta los insumos calculados; el lote conserva sus cantidades aunque la receta cambie después.
+
+**Dos escenarios de especificación; no ejecutados como aceptación**
+
+```gherkin
+Escenario: HU-16-D flujo esperado
+  Dado una receta ficticia de 200 L que rinde 20 quesos con 400 g de sal
+  Cuando pido producir 10 quesos con leche de hoy
+  Entonces se asignan 100 L y se reservan 200 g de sal para el lote
+
+Escenario: HU-16-D rechazo o ausencia de datos
+  Dado un producto sin receta elegida
+  Cuando intento guardarlo
+  Entonces se rechaza y se pide elegir una receta activa
+```
+
 <a id="hu-17"></a>
 ## HU-17 — agrupación: Ventas
 

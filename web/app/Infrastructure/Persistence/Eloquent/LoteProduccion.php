@@ -20,7 +20,7 @@ class LoteProduccion extends Model
     {
         return [
             'fecha' => 'date',
-            'litros_por_unidad_snapshot' => 'decimal:3',
+            'litros_por_unidad_snapshot' => 'decimal:6',
             'litros_asignados' => 'decimal:3',
             'litros_usados' => 'decimal:3',
             'litros_merma_proceso' => 'decimal:3',

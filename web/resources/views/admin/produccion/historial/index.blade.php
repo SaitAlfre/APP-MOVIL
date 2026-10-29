@@ -72,7 +72,16 @@
                             <span class="mono text-sm font-bold text-eh-primary">{{ $lote->unidadesProducidas ?? $lote->unidadesEstimadas }}</span>
                             <span class="block text-[10px] text-eh-text-muted">{{ $lote->unidadesProducidas !== null ? 'reales' : 'estimadas' }}</span>
                         </td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $rendimiento !== null ? number_format($rendimiento, 2).' L/ud' : '—' }}</td>
+                        <td class="mono px-4 py-3 text-xs text-eh-text">
+                            {{ $rendimiento !== null ? number_format($rendimiento, 2).' L/ud' : '—' }}
+                            @if ($rendimiento !== null && $lote->litrosPorUnidadSnapshot > 0)
+                                @php $desvio = ($rendimiento - $lote->litrosPorUnidadSnapshot) / $lote->litrosPorUnidadSnapshot * 100; @endphp
+                                <p @class(['mt-1 font-sans text-[11px]', 'text-eh-red' => $desvio > 5, 'text-eh-text-muted' => $desvio <= 5])
+                                    title="La receta espera {{ number_format($lote->litrosPorUnidadSnapshot, 2) }} L por unidad">
+                                    Receta: {{ number_format($lote->litrosPorUnidadSnapshot, 2) }} L/ud{{ $desvio > 5 ? ' · rindió menos' : '' }}
+                                </p>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">
                             @if (count($lote->origenAcopio) > 0)
                                 <details>

@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Infrastructure\Persistence\Eloquent as M;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class RecetasCompartidasInventarioCompradoresTest extends TestCase
@@ -17,79 +19,137 @@ class RecetasCompartidasInventarioCompradoresTest extends TestCase
         $this->actingAs(M\Usuario::factory()->create(['roles' => ['admin']]), 'operador');
     }
 
-    private function receta(): M\Receta
+    /** Una tanda de 180 L rinde 20 kg y lleva 400 g de sal: 9 L y 20 g por kg. */
+    private function receta(string $nombre = 'Paria base'): M\Receta
     {
-        $sal = M\Material::create(['nombre' => 'Sal de planta', 'unidad' => 'g', 'existencia' => 1000]);
-        $this->post(route('admin.recetas.store'), ['nombre' => 'Paria base', 'unidad_base' => 'kg', 'litros_por_unidad' => 9,
-            'ingredientes' => [['material_id' => $sal->id, 'cantidad' => 20]]])->assertRedirect(route('admin.recetas.index'))->assertSessionHasNoErrors();
+        $sal = M\Material::firstOrCreate(['nombre' => 'Sal de planta'], ['unidad' => 'g', 'existencia' => 1000]);
+        $this->post(route('admin.recetas.store'), ['nombre' => $nombre, 'unidad_base' => 'kg', 'litros_tanda' => 180, 'rinde_unidades' => 20,
+            'ingredientes' => [['material_id' => $sal->id, 'cantidad' => 400]]])->assertRedirect(route('admin.recetas.index'))->assertSessionHasNoErrors();
 
-        return M\Receta::where('nombre', 'Paria base')->firstOrFail();
+        return M\Receta::where('nombre', $nombre)->firstOrFail();
     }
 
-    private function producto(string $nombre, ?int $recetaId = null, float $cantidad = 1): M\Producto
+    private function producto(string $nombre, int $recetaId): M\Producto
     {
-        $this->post(route('admin.produccion.productos.store'), ['nombre' => $nombre, 'presentacion' => 'Presentación de prueba', 'unidad_produccion' => 'unidad',
-            'receta_id' => $recetaId, 'cantidad_receta' => $cantidad, 'precio_cliente' => 20])->assertRedirect()->assertSessionHasNoErrors();
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => $nombre, 'presentacion' => 'Presentación de prueba',
+            'receta_id' => $recetaId, 'precio_cliente' => 20])->assertRedirect()->assertSessionHasNoErrors();
 
         return M\Producto::where('nombre', $nombre)->firstOrFail();
     }
 
-    public function test_receta_independiente_se_vincula_opcionalmente_a_varios_productos_y_escala_cantidades(): void
+    private function lecheDeHoy(float $litros): void
     {
-        $receta = $this->receta();
-        $entero = $this->producto('Paria 1 kg', $receta->id);
-        $medio = $this->producto('Paria 500 g', $receta->id, 0.5);
-        $sin = $this->producto('Producto sin receta');
-        $this->assertEquals(9, $entero->litros_por_unidad);
-        $this->assertEquals(4.5, $medio->litros_por_unidad);
-        $this->assertNull($sin->receta_id);
-        $this->assertDatabaseHas('receta_ingredientes', ['producto_id' => $medio->id, 'cantidad' => 10]);
-        $this->assertDatabaseCount('recetas', 1);
-        $this->assertEquals(1000, M\Material::sole()->existencia);
-        $this->get(route('admin.produccion.productos.create'))->assertOk()->assertSee('Receta (opcional)')->assertSee('Paria base');
+        $entrega = M\Entrega::factory()->create(['litros' => $litros, 'registrado_en' => now()]);
+        M\ControlCalidad::create(['entrega_id' => $entrega->id, 'usuario_id' => auth('operador')->id(), 'resultado' => 'aprobado', 'evaluado_en' => now()]);
     }
 
-    public function test_editar_receta_actualiza_productos_pero_conserva_snapshot_de_lote_existente(): void
+    public function test_una_receta_sirve_a_varios_productos_segun_el_peso_de_cada_unidad(): void
+    {
+        $receta = $this->receta();
+        $this->assertEquals(9, $receta->litros_por_unidad);
+        $producto = $this->producto('Paria 1 kg', $receta->id);
+        $this->assertEquals(9, $producto->litros_por_unidad);
+        $this->assertSame('kg', $producto->unidad_produccion);
+        $this->assertDatabaseHas('receta_ingredientes', ['producto_id' => $producto->id, 'cantidad' => 20]);
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => 'Paria 500 g', 'presentacion' => 'Molde de 500 g', 'receta_id' => $receta->id,
+            'contenido_por_unidad' => 500, 'unidad_contenido' => 'g'])->assertSessionHasNoErrors();
+        $medio = M\Producto::where('nombre', 'Paria 500 g')->firstOrFail();
+        $this->assertEquals(4.5, $medio->litros_por_unidad);
+        $this->assertSame('unidad', $medio->unidad_produccion);
+        $this->assertDatabaseHas('receta_ingredientes', ['producto_id' => $medio->id, 'cantidad' => 10]);
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => 'Producto sin receta', 'presentacion' => '1 kg'])->assertSessionHasErrors('receta_id');
+        $this->assertDatabaseCount('productos', 2);
+        $this->assertEquals(1000, M\Material::sole()->existencia);
+        $this->put(route('admin.recetas.update', $receta), ['nombre' => 'Paria base', 'unidad_base' => 'kg', 'litros_tanda' => 160, 'rinde_unidades' => 20,
+            'ingredientes' => [['material_id' => M\Material::sole()->id, 'cantidad' => 400]]])->assertSessionHasNoErrors();
+        $this->assertEquals(8, $producto->fresh()->litros_por_unidad);
+        $this->assertEquals(4, $medio->fresh()->litros_por_unidad);
+        $this->get(route('admin.recetas.index'))->assertOk()->assertSee('Paria base')->assertSee('Paria 1 kg')->assertSee('Paria 500 g')->assertSee('8 L');
+    }
+
+    public function test_la_imagen_del_producto_se_sirve_sin_enlace_publico(): void
+    {
+        Storage::fake('public');
+        $producto = $this->producto('Paria con foto', $this->receta()->id);
+        $this->put(route('admin.produccion.productos.update', $producto), ['nombre' => $producto->nombre, 'presentacion' => '1 kg', 'receta_id' => $producto->receta_id,
+            'imagen' => UploadedFile::fake()->image('queso.jpg', 300, 200)])->assertSessionHasNoErrors();
+        $producto->refresh();
+        Storage::disk('public')->assertExists($producto->imagen);
+        $this->assertStringContainsString('/admin/produccion/productos/'.$producto->id.'/imagen', $producto->urlImagen());
+        $this->get($producto->urlImagen())->assertOk();
+        $this->get(route('admin.produccion.productos.index'))->assertOk()->assertSee($producto->urlImagen(), false);
+        $this->actingAs(M\Usuario::factory()->create(['roles' => ['proveedor']]), 'operador');
+        $this->get(route('admin.produccion.productos.imagen', $producto))->assertForbidden();
+    }
+
+    public function test_editar_receta_actualiza_su_producto_pero_conserva_snapshot_de_lote_existente(): void
     {
         $receta = $this->receta();
         $producto = $this->producto('Paria 1 kg', $receta->id);
-        $medio = $this->producto('Paria 500 g', $receta->id, 0.5);
-        $entrega = M\Entrega::factory()->create(['litros' => 100, 'registrado_en' => now()]);
-        M\ControlCalidad::create(['entrega_id' => $entrega->id, 'usuario_id' => auth('operador')->id(), 'resultado' => 'aprobado', 'evaluado_en' => now()]);
+        $this->lecheDeHoy(100);
+        $this->get(route('admin.produccion.producir.index', ['fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'cantidad_producir' => 10]))
+            ->assertOk()->assertViewHas('litrosAsignadosSeleccionados', 90)->assertViewHas('unidadesEstimadas', 10)->assertSee('200.000 g');
         $this->post(route('admin.produccion.producir.store'), ['fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'litros_asignados' => 90])->assertSessionHasNoErrors();
         $lote = M\LoteProduccion::sole();
-        $this->put(route('admin.recetas.update', $receta), ['nombre' => 'Paria ajustado', 'unidad_base' => 'kg', 'litros_por_unidad' => 8,
-            'ingredientes' => [['material_id' => M\Material::sole()->id, 'cantidad' => 30]]])->assertRedirect()->assertSessionHasNoErrors();
+        $this->put(route('admin.recetas.update', $receta), ['nombre' => 'Paria ajustado', 'unidad_base' => 'kg', 'litros_tanda' => 160, 'rinde_unidades' => 20,
+            'ingredientes' => [['material_id' => M\Material::sole()->id, 'cantidad' => 600]]])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertEquals(8, $producto->fresh()->litros_por_unidad);
-        $this->assertEquals(4, $medio->fresh()->litros_por_unidad);
         $this->assertEquals(9, $lote->fresh()->litros_por_unidad_snapshot);
         $this->assertEquals(200, $lote->ingredientes_snapshot[0]['cantidad']);
         $this->patch(route('admin.produccion.lotes.iniciar', $lote))->assertSessionHasNoErrors();
         $this->assertEquals(800, M\Material::sole()->existencia);
     }
 
-    public function test_receta_inactiva_no_se_vincula_y_producto_puede_desvincularse_sin_borrar_receta(): void
+    public function test_tanda_con_rendimiento_fraccionario_no_pierde_unidades_por_redondeo(): void
+    {
+        $sal = M\Material::create(['nombre' => 'Sal fina', 'unidad' => 'kg', 'existencia' => 50]);
+        $this->post(route('admin.recetas.store'), ['nombre' => 'Queso pasteurizado', 'unidad_base' => 'unidad', 'litros_tanda' => 200, 'rinde_unidades' => 30,
+            'ingredientes' => [['material_id' => $sal->id, 'cantidad' => 4]]])->assertSessionHasNoErrors();
+        $producto = $this->producto('Queso pasteurizado 1 kg', M\Receta::where('nombre', 'Queso pasteurizado')->value('id'));
+        $this->lecheDeHoy(300);
+        $this->get(route('admin.produccion.producir.index', ['fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'cantidad_producir' => 30]))
+            ->assertViewHas('unidadesEstimadas', 30)->assertViewHas('puedeCrear', true);
+        $this->post(route('admin.produccion.producir.store'), ['fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'litros_asignados' => 200])->assertSessionHasNoErrors();
+        $lote = M\LoteProduccion::sole();
+        $this->assertSame(30, $lote->unidades_estimadas);
+        $this->assertEquals(4, $lote->ingredientes_snapshot[0]['cantidad']);
+    }
+
+    public function test_solo_se_produce_con_la_leche_de_hoy(): void
+    {
+        $producto = $this->producto('Paria 1 kg', $this->receta()->id);
+        $entrega = M\Entrega::factory()->create(['litros' => 100, 'registrado_en' => now()->subDay()]);
+        M\ControlCalidad::create(['entrega_id' => $entrega->id, 'usuario_id' => auth('operador')->id(), 'resultado' => 'aprobado', 'evaluado_en' => now()->subDay()]);
+        $this->get(route('admin.produccion.producir.index'))->assertOk()->assertSee('No hay leche de hoy por producir');
+        $this->post(route('admin.produccion.producir.store'), ['fecha' => today()->subDay()->toDateString(), 'producto_id' => $producto->id, 'litros_asignados' => 90])
+            ->assertSessionHasErrors('litros_asignados');
+        $this->assertDatabaseCount('lotes_produccion', 0);
+    }
+
+    public function test_receta_inactiva_no_se_vincula_y_el_producto_no_queda_sin_receta(): void
     {
         $receta = $this->receta();
         $producto = $this->producto('Producto vinculado', $receta->id);
         $this->patch(route('admin.recetas.estado', $receta), ['receta_activa' => false])->assertSessionHasNoErrors();
         $this->assertFalse($producto->fresh()->receta_activa);
-        $this->post(route('admin.produccion.productos.store'), ['nombre' => 'Vínculo inválido', 'presentacion' => '1 kg', 'unidad_produccion' => 'unidad', 'receta_id' => $receta->id])->assertSessionHasErrors('receta_id');
+        $otra = $this->receta('Otra receta');
+        $this->patch(route('admin.recetas.estado', $otra), ['receta_activa' => false])->assertSessionHasNoErrors();
+        $this->post(route('admin.produccion.productos.store'), ['nombre' => 'Vínculo inválido', 'presentacion' => '1 kg', 'receta_id' => $otra->id])->assertSessionHasErrors('receta_id');
         $this->assertDatabaseMissing('productos', ['nombre' => 'Vínculo inválido']);
-        $this->put(route('admin.produccion.productos.update', $producto), ['nombre' => $producto->nombre, 'presentacion' => '1 kg', 'unidad_produccion' => 'unidad', 'receta_id' => null])->assertSessionHasNoErrors();
-        $this->assertNull($producto->fresh()->litros_por_unidad);
-        $this->assertDatabaseCount('recetas', 1);
-        $this->assertDatabaseMissing('receta_ingredientes', ['producto_id' => $producto->id]);
+        $this->put(route('admin.produccion.productos.update', $producto), ['nombre' => $producto->nombre, 'presentacion' => '1 kg', 'receta_id' => null])->assertSessionHasErrors('receta_id');
+        $this->get(route('admin.produccion.productos.create'))->assertOk()->assertDontSee('Otra receta');
+        $this->assertEquals($receta->id, $producto->fresh()->receta_id);
+        $this->assertDatabaseCount('recetas', 2);
     }
 
     public function test_filtro_de_inventario_muestra_solo_ingredientes_del_producto_elegido(): void
     {
         $receta = $this->receta();
-        $producto = $this->producto('Paria mediano', $receta->id, 0.5);
+        $producto = $this->producto('Paria mediano', $receta->id);
         M\Material::create(['nombre' => 'Azúcar del yogur', 'unidad' => 'kg', 'existencia' => 5]);
         $this->get(route('admin.inventario.index', ['tab' => 'materiales', 'producto_id' => $producto->id]))->assertOk()
-            ->assertViewHas('materiales', fn ($filas) => $filas->count() === 1 && $filas->first()->nombre === 'Sal de planta')->assertSee('4.500 L');
-        $sin = $this->producto('Sin receta');
+            ->assertViewHas('materiales', fn ($filas) => $filas->count() === 1 && $filas->first()->nombre === 'Sal de planta')->assertSee('9.000 L');
+        $sin = M\Producto::factory()->create(['nombre' => 'Sin receta']);
         $this->get(route('admin.inventario.index', ['tab' => 'materiales', 'producto_id' => $sin->id]))->assertOk()->assertViewHas('materiales', fn ($filas) => $filas->isEmpty());
         $this->get(route('admin.inventario.index', ['tab' => 'materiales', 'producto_id' => 999999]))->assertSessionHasErrors('producto_id');
     }

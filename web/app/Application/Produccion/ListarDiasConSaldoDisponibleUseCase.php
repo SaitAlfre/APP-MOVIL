@@ -20,7 +20,7 @@ final class ListarDiasConSaldoDisponibleUseCase
         $hasta = new DateTimeImmutable('today');
         $desde = $hasta->modify('-'.($dias - 1).' days');
 
-        return collect($this->entregas->litrosAprobadosPorDiaEnRango($desde, $hasta))
+        return collect($this->entregas->litrosAcopiadosPorDiaEnRango($desde, $hasta))
             ->map(function ($fila) {
                 $fecha = new DateTimeImmutable($fila['fecha']);
                 $litrosTotal = $this->obtenerAcopio->ejecutar($fecha)->litrosTotal();

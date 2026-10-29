@@ -30,7 +30,7 @@ class AdminNavegacionYPermisosTest extends TestCase
 
         $respuesta = $this->get('/admin/dashboard');
 
-        foreach (['Acopio', 'Proveedores', 'Calidad', 'Liquidaciones y pagos', 'Planta', 'Organización del acopio', 'Administración'] as $grupo) {
+        foreach (['Acopio', 'Proveedores', 'Calidad', 'Liquidaciones y pagos', 'Planta', 'Comercial', 'Organización del acopio', 'Administración'] as $grupo) {
             $respuesta->assertSee($grupo, false);
         }
         foreach (['Centro operativo', 'Usuarios y accesos', 'Proveedores', 'Recepción en planta', 'Configuración', 'Rutas de acopio'] as $enlace) {

@@ -51,7 +51,7 @@ class ProduccionCasosPruebaSeeder extends Seeder
                         $filas[] = ['material_id' => $materiales[$indice]->id, 'cantidad' => $cantidad];
                     }
                     $gestion = app(GestionRecetas::class);
-                    $receta = $gestion->actualizar(new M\Receta, ['nombre' => $nombre, 'unidad_base' => 'unidad', 'litros_por_unidad' => $litros,
+                    $receta = $gestion->actualizar(new M\Receta, ['nombre' => $nombre, 'unidad_base' => 'unidad', 'litros_tanda' => $litros, 'rinde_unidades' => 1,
                         'otros_insumos' => 'DEMO: receta ficticia para practicar'], $filas);
                     $gestion->vincular($producto->id, $receta->id);
                 }

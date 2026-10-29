@@ -28,7 +28,7 @@ class ProduccionCasosPruebaTest extends TestCase
     public function test_sin_datos_se_explica_por_que_no_se_puede_producir(): void
     {
         $this->get(route('admin.produccion.producir.index'))->assertOk()
-            ->assertSee('No hay acopios pendientes de producir');
+            ->assertSee('No hay leche de hoy por producir');
         $this->post(route('admin.produccion.producir.store'), [
             'fecha' => today()->toDateString(), 'producto_id' => 999, 'litros_asignados' => 100,
         ])->assertSessionHasErrors('litros_asignados');
@@ -38,7 +38,7 @@ class ProduccionCasosPruebaTest extends TestCase
     public function test_demo_permite_producir_queso_y_conserva_consumos_al_repetir_la_carga(): void
     {
         $this->seed(ProduccionCasosPruebaSeeder::class);
-        $this->assertSame(495.0, $this->saldo());
+        $this->assertSame(595.0, $this->saldo());
         $producto = M\Producto::where('nombre', 'Queso DEMO Producción')->firstOrFail();
         $this->get(route('admin.produccion.producir.index', [
             'fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'cantidad_producir' => 10,
@@ -49,7 +49,7 @@ class ProduccionCasosPruebaTest extends TestCase
             'fecha' => today()->toDateString(), 'producto_id' => $producto->id, 'litros_asignados' => 100,
         ])->assertSessionHasNoErrors()->assertRedirect(route('admin.produccion.historial.index'));
         $lote = M\LoteProduccion::firstOrFail();
-        $this->assertSame(395.0, $this->saldo());
+        $this->assertSame(495.0, $this->saldo());
         $this->patch(route('admin.produccion.lotes.iniciar', $lote->id))->assertSessionHasNoErrors();
         $this->post(route('admin.produccion.lotes.finalizar', $lote->id), [
             'litros_usados' => 100, 'litros_merma_proceso' => 0, 'unidades_producidas' => 10,
@@ -65,7 +65,7 @@ class ProduccionCasosPruebaTest extends TestCase
         $this->assertDatabaseCount('receta_ingredientes', 3);
         $this->assertDatabaseCount('lotes_produccion', 1);
         $this->assertEquals(10, $producto->fresh()->existencia);
-        $this->assertSame(395.0, $this->saldo());
+        $this->assertSame(495.0, $this->saldo());
         foreach (M\Material::all() as $material) {
             $this->assertEquals($material->existencia, DB::table('movimientos_material')->where('material_id', $material->id)->sum('cantidad'));
         }
@@ -84,25 +84,24 @@ class ProduccionCasosPruebaTest extends TestCase
 
         $queso = M\Producto::where('nombre', 'Queso DEMO Producción')->firstOrFail();
         $this->post(route('admin.produccion.producir.store'), [
-            'fecha' => today()->toDateString(), 'producto_id' => $queso->id, 'litros_asignados' => 500,
+            'fecha' => today()->toDateString(), 'producto_id' => $queso->id, 'litros_asignados' => 600,
         ])->assertSessionHasErrors('litros_asignados');
         $this->assertDatabaseCount('lotes_produccion', 0);
         $this->assertDatabaseMissing('movimientos_material', ['tipo' => 'consumo']);
-        $this->assertSame(495.0, $this->saldo());
+        $this->assertSame(595.0, $this->saldo());
     }
 
-    public function test_leche_rechazada_o_pendiente_no_habilita_produccion(): void
+    public function test_toda_la_leche_acopiada_del_dia_habilita_produccion_sin_importar_calidad(): void
     {
         $this->seed(ProduccionCasosPruebaSeeder::class);
         M\ControlCalidad::where('resultado', 'aprobado')->delete();
-        $this->assertSame(0.0, $this->saldo());
-        $this->get(route('admin.produccion.producir.index'))->assertOk()
-            ->assertSee('No hay acopios pendientes de producir');
+        $this->assertSame(595.0, $this->saldo());
         $queso = M\Producto::where('nombre', 'Queso DEMO Producción')->firstOrFail();
         $this->post(route('admin.produccion.producir.store'), [
             'fecha' => today()->toDateString(), 'producto_id' => $queso->id, 'litros_asignados' => 10,
-        ])->assertSessionHasErrors('litros_asignados');
-        $this->assertDatabaseCount('lotes_produccion', 0);
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('lotes_produccion', 1);
+        $this->assertSame(585.0, $this->saldo());
     }
 
     public function test_registrar_entrada_de_azucar_habilita_el_yogur_sin_cambiar_los_datos_existentes(): void

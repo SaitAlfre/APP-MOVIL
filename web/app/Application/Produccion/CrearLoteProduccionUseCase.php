@@ -28,6 +28,10 @@ final class CrearLoteProduccionUseCase
             throw new LoteProduccionInvalidoException('El producto necesita una receta activa para producir.');
         }
 
+        if ($fecha->format('Y-m-d') !== (new DateTimeImmutable('today'))->format('Y-m-d')) {
+            throw LoteProduccionInvalidoException::soloLecheDelDia();
+        }
+
         LoteProduccion::validarAsignacion($litrosAsignados);
 
         $acopio = $this->obtenerAcopio->ejecutar($fecha);

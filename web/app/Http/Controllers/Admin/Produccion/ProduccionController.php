@@ -8,10 +8,12 @@ use App\Application\Produccion\FinalizarLoteProduccionUseCase;
 use App\Application\Produccion\GestionIngredientes;
 use App\Application\Produccion\IniciarLoteProduccionUseCase;
 use App\Application\Produccion\ListarDiasConSaldoDisponibleUseCase;
+use App\Application\Produccion\ObtenerResumenPlantaHoy;
 use App\Application\Produccion\ObtenerSaldoProduccionUseCase;
 use App\Domain\Produccion\Exceptions\LoteProduccionInvalidoException;
 use App\Domain\Productos\ProductoRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Persistence\Eloquent\Producto;
 use DateTimeImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,7 @@ class ProduccionController extends Controller
         ProductoRepositoryInterface $productos,
         ObtenerSaldoProduccionUseCase $obtenerSaldo,
         GestionIngredientes $ingredientes,
+        ObtenerResumenPlantaHoy $resumen,
     ): View {
         $request->validate([
             'fecha' => ['nullable', 'date_format:Y-m-d'],
@@ -34,7 +37,7 @@ class ProduccionController extends Controller
             'cantidad_producir' => ['nullable', 'integer', 'min:1', 'max:1000000'],
             'modo_calculo' => ['nullable', 'in:unidades,litros'],
         ]);
-        $dias = $listarDias->ejecutar();
+        $dias = $listarDias->ejecutar(1);
 
         $fecha = $request->filled('fecha') ? new DateTimeImmutable($request->string('fecha')->toString()) : null;
         $productoId = $request->integer('producto_id') ?: null;
@@ -42,17 +45,26 @@ class ProduccionController extends Controller
 
         $producto = $productoId !== null ? $productos->buscarPorId($productoId) : null;
         if ($producto?->litrosPorUnidad !== null && $request->filled('cantidad_producir') && $request->input('modo_calculo') !== 'litros') {
-            $litrosAsignados = round($request->integer('cantidad_producir') * $producto->litrosPorUnidad, 3);
+            $litrosAsignados = ceil(round($request->integer('cantidad_producir') * $producto->litrosPorUnidad * 1000, 3)) / 1000;
         }
         $saldo = $fecha !== null ? $obtenerSaldo->ejecutar($fecha) : null;
         $unidadesEstimadas = ($producto?->litrosPorUnidad !== null && $fecha !== null && $litrosAsignados !== null && $litrosAsignados > 0)
-            ? (int) floor(round($litrosAsignados / $producto->litrosPorUnidad, 9))
+            ? (int) floor(round($litrosAsignados / $producto->litrosPorUnidad, 3))
             : null;
         $necesarios = $unidadesEstimadas !== null ? $ingredientes->calcular($productoId, $litrosAsignados / $producto->litrosPorUnidad) : [];
 
+        $producibles = array_values(array_filter($productos->todosActivos(), fn ($p) => $p->litrosPorUnidad !== null && $p->recetaActiva));
+        $modelos = Producto::with('receta:id,nombre')->whereIn('id', array_map(fn ($p) => $p->id, $producibles))->get()->keyBy('id');
+
         return view('admin.produccion.produccion.index', [
             'dias' => $dias,
-            'productos' => array_values(array_filter($productos->todosActivos(), fn ($p) => $p->litrosPorUnidad !== null && $p->recetaActiva)),
+            'productos' => $producibles,
+            'catalogo' => array_map(fn ($p) => [
+                'id' => $p->id, 'nombre' => $p->nombre, 'litros' => $p->litrosPorUnidad, 'unidad' => $p->unidadProduccion,
+                'receta' => $modelos[$p->id]?->receta?->nombre, 'imagen' => $modelos[$p->id]?->urlImagen(),
+                'ingredientes' => array_map(fn ($i) => ['nombre' => $i['nombre'], 'unidad' => $i['unidad'], 'cantidad' => (float) $i['cantidad'], 'existencia' => (float) $i['existencia']], $ingredientes->receta($p->id)),
+            ], $producibles),
+            'resumen' => $resumen->ejecutar(),
             'fechaSeleccionada' => $fecha,
             'productoSeleccionadoId' => $productoId,
             'litrosAsignadosSeleccionados' => $litrosAsignados,

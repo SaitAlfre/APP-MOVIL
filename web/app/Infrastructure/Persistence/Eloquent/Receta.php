@@ -13,11 +13,11 @@ class Receta extends Model
 
     protected $table = 'recetas';
 
-    protected $fillable = ['nombre', 'unidad_base', 'litros_por_unidad', 'otros_insumos', 'activo'];
+    protected $fillable = ['nombre', 'unidad_base', 'litros_tanda', 'rinde_unidades', 'litros_por_unidad', 'otros_insumos', 'activo'];
 
     protected function casts(): array
     {
-        return ['litros_por_unidad' => 'decimal:3', 'activo' => 'boolean'];
+        return ['litros_tanda' => 'decimal:3', 'rinde_unidades' => 'decimal:3', 'litros_por_unidad' => 'decimal:6', 'activo' => 'boolean'];
     }
 
     protected static function newFactory(): RecetaFactory

@@ -10,7 +10,7 @@
         $totalMerma = collect($acopio->porVehiculo)->sum('merma');
     @endphp
 
-    <x-ui.page-header title="Producción" description="Leche habilitada por Calidad y disponible para abrir lotes">
+    <x-ui.page-header title="Producción" description="Leche acopiada del día y disponible para abrir lotes">
         @if ($puedeGestionar)
             <x-slot:actions>
                 <x-ui.btn :href="route('admin.produccion.producir.index')" icon="plus">Crear producción</x-ui.btn>
@@ -21,8 +21,8 @@
     @include('admin.produccion._nav')
 
     <x-ui.alert type="info" class="mb-4">
-        La producción usa únicamente leche aprobada u observada por Calidad, descontando las mermas registradas en Recepción.
-        Las entregas originales se conservan intactas.
+        La producción usa toda la leche acopiada del día, descontando las mermas registradas en Recepción.
+        El resultado de Calidad se muestra como referencia; las entregas originales se conservan intactas.
     </x-ui.alert>
 
     <x-ui.card padding="p-4" class="mb-4">
@@ -34,7 +34,7 @@
 
     <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         <x-ui.kpi label="Recolectado en campo" :value="number_format($totalRecolectado, 1)" unit="L" icon="droplets" color="blue" />
-        <x-ui.kpi label="Habilitado por Calidad" :value="number_format($totalHabilitado, 1)" unit="L" icon="beaker" color="green" />
+        <x-ui.kpi label="Aprobado por Calidad" :value="number_format($totalHabilitado, 1)" unit="L" icon="beaker" color="green" />
         <x-ui.kpi label="Merma registrada" :value="number_format($totalMerma, 1)" unit="L" icon="exclamation" :color="$totalMerma > 0 ? 'red' : 'green'" />
         <x-ui.kpi label="Disponible para producir" :value="number_format($acopio->litrosTotal(), 1)" unit="L" icon="factory" color="green"
             :trend="$acopio->yaProducido ? 'Con producción asignada' : 'Pendiente de producir'" :trend-up="! $acopio->yaProducido" />
@@ -59,7 +59,7 @@
                         <dd class="mono font-bold text-eh-text">{{ number_format($vehiculo['litrosRecolectados'], 1) }} L</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-eh-text-muted">Habilitados por Calidad</dt>
+                        <dt class="text-xs text-eh-text-muted">Aprobados por Calidad</dt>
                         <dd class="mono font-bold text-eh-text">{{ number_format($vehiculo['litrosAprobados'], 1) }} L</dd>
                     </div>
                     <div>

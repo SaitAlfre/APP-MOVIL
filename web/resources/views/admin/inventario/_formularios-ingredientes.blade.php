@@ -5,6 +5,7 @@
             <x-ui.field name="nombre" id="nombre-ingrediente" label="Nombre" placeholder="Sal, cuajo, azúcar…" maxlength="100" required />
             <x-ui.select name="unidad" id="unidad-ingrediente" label="Unidad" required :options="['kg' => 'Kilogramos (kg)', 'g' => 'Gramos (g)', 'L' => 'Litros (L)', 'mL' => 'Mililitros (mL)', 'unidad' => 'Unidades']" />
             <x-ui.field name="cantidad_inicial" label="Cantidad recibida (opcional)" type="number" min="0.001" max="999999999" step="0.001" />
+            <x-ui.field name="stock_minimo" id="minimo-nuevo-ingrediente" label="Avisar cuando queden (opcional)" type="number" min="0" max="999999999" step="0.001" placeholder="Sin aviso" />
             <div class="flex justify-end gap-2 pt-2"><x-ui.btn variant="ghost" data-modal-close>Cancelar</x-ui.btn><x-ui.btn type="submit" icon="plus">Crear ingrediente</x-ui.btn></div>
         </form>
     </x-ui.modal>

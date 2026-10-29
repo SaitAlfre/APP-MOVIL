@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\LoteProduccion;
 use App\Infrastructure\Persistence\Eloquent\Producto;
+use App\Infrastructure\Persistence\Eloquent\Receta;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use DateTimeImmutable;
@@ -30,13 +31,12 @@ class AdminProduccionModuleTest extends TestCase
     /** Queso fresco: 10 L de leche por unidad. */
     private function crearReceta(): Producto
     {
+        $this->post(route('admin.recetas.store'), ['nombre' => 'Queso fresco', 'litros_tanda' => 10, 'rinde_unidades' => 1, 'otros_insumos' => 'Cuajo 2 mL, Sal 20 g'])->assertSessionHasNoErrors();
         $this->post('/admin/produccion/productos', [
-            'nombre' => 'Queso fresco', 'presentacion' => '1 kg', 'unidad_produccion' => 'unidad',
+            'nombre' => 'Queso fresco', 'presentacion' => '1 kg', 'receta_id' => Receta::where('nombre', 'Queso fresco')->value('id'),
         ])->assertSessionHasNoErrors();
-        $producto = Producto::where('nombre', 'Queso fresco')->firstOrFail();
-        $this->post(route('admin.recetas.store'), ['producto_id' => $producto->id, 'litros_por_unidad' => 10, 'otros_insumos' => 'Cuajo 2 mL, Sal 20 g'])->assertSessionHasNoErrors();
 
-        return $producto->refresh();
+        return Producto::where('nombre', 'Queso fresco')->firstOrFail();
     }
 
     private function registrarEntregaEvaluada(Vehiculo $vehiculo, float $litros, EstadoCalidad $resultado, string $fecha): Entrega
@@ -69,7 +69,7 @@ class AdminProduccionModuleTest extends TestCase
 
     // --- Acopio del día ---
 
-    public function test_el_acopio_del_dia_agrupa_litros_aprobados_por_vehiculo_real_y_excluye_rechazados(): void
+    public function test_el_acopio_del_dia_agrupa_toda_la_leche_por_vehiculo_sin_filtrar_por_calidad(): void
     {
         $this->comoAdmin();
         $hoy = now()->toDateString();
@@ -86,20 +86,22 @@ class AdminProduccionModuleTest extends TestCase
         $response->assertOk();
         $response->assertSee('Camioneta Norte');
         $response->assertSee('Camioneta Sur');
-        $response->assertSee('100.0 L');
-        $response->assertViewHas('acopio', fn ($acopio) => $acopio->litrosTotal() === 100.0);
+        $response->assertSee('1,099.0 L');
+        $response->assertViewHas('acopio', fn ($acopio) => $acopio->litrosTotal() === 1099.0
+            && collect($acopio->porVehiculo)->sum('litrosAprobados') === 100.0);
     }
 
     // --- Recetas (productos) ---
 
-    public function test_una_receta_requiere_litros_por_unidad_mayor_a_cero(): void
+    public function test_una_receta_requiere_leche_y_rendimiento_mayores_a_cero(): void
     {
         $this->comoAdmin();
 
         $producto = Producto::factory()->create(['litros_por_unidad' => null]);
-        $response = $this->post(route('admin.recetas.store'), ['producto_id' => $producto->id, 'litros_por_unidad' => 0]);
-        $response->assertSessionHasErrors('litros_por_unidad');
+        $response = $this->post(route('admin.recetas.store'), ['producto_id' => $producto->id, 'litros_tanda' => 0, 'rinde_unidades' => 0]);
+        $response->assertSessionHasErrors(['litros_tanda', 'rinde_unidades']);
         $this->assertNull($producto->fresh()->litros_por_unidad);
+        $this->assertDatabaseCount('recetas', 0);
     }
 
     // --- Creación de lotes y saldo compartido del día ---
@@ -275,7 +277,7 @@ class AdminProduccionModuleTest extends TestCase
         $response = $this->get('/admin/produccion/producir');
 
         $response->assertOk();
-        $response->assertSee('No hay acopios pendientes de producir');
+        $response->assertSee('No hay leche de hoy por producir');
     }
 
     public function test_el_historial_muestra_los_kpis_y_el_lote_registrado(): void

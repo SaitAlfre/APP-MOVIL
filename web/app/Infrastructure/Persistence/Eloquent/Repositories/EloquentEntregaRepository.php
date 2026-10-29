@@ -347,22 +347,16 @@ final class EloquentEntregaRepository implements EntregaRepositoryInterface
                 'litrosAprobados' => $litros,
                 'merma' => $merma,
                 'motivo' => $mermaFila['motivos'] ?? '',
-                'litros' => max(0, round($litros - $merma, 2)),
+                'litros' => max(0, round((float) $grupo->sum('litros') - $merma, 2)),
             ];
         })->values()->all();
     }
 
-    public function litrosAprobadosPorDiaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array
+    public function litrosAcopiadosPorDiaEnRango(DateTimeImmutable $desde, DateTimeImmutable $hasta): array
     {
         return EntregaEloquent::query()
             ->where('anulada', false)
             ->whereBetween('registrado_en', [$desde->format('Y-m-d 00:00:00'), $hasta->format('Y-m-d 23:59:59')])
-            ->whereExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('controles_calidad')
-                    ->whereColumn('controles_calidad.entrega_id', 'entregas.id')
-                    ->whereIn('controles_calidad.resultado', ['aprobado', 'observado']);
-            })
             ->selectRaw('DATE(registrado_en) as fecha, COALESCE(SUM(litros), 0) as litros')
             ->groupBy(DB::raw('DATE(registrado_en)'))
             ->orderByDesc('fecha')

@@ -12,6 +12,6 @@ class RecetaFactory extends Factory
 
     public function definition(): array
     {
-        return ['nombre' => fake()->unique()->words(3, true), 'unidad_base' => 'unidad', 'litros_por_unidad' => 10, 'activo' => true];
+        return ['nombre' => fake()->unique()->words(3, true), 'unidad_base' => 'unidad', 'litros_tanda' => 10, 'rinde_unidades' => 1, 'litros_por_unidad' => 10, 'activo' => true];
     }
 }

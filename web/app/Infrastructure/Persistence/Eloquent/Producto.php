@@ -19,7 +19,7 @@ class Producto extends Model
     protected $table = 'productos';
 
     protected $fillable = [
-        'receta_id', 'cantidad_receta', 'nombre', 'presentacion', 'unidad_produccion', 'contenido_por_unidad',
+        'receta_id', 'codigo', 'descripcion', 'imagen', 'stock_minimo', 'nombre', 'presentacion', 'unidad_produccion', 'contenido_por_unidad',
         'precio_proveedor', 'precio_cliente', 'precio_mayorista', 'receta_activa',
         'unidad_contenido', 'litros_por_unidad', 'otros_insumos', 'existencia', 'activo',
     ];
@@ -28,8 +28,8 @@ class Producto extends Model
     {
         return [
             'contenido_por_unidad' => 'decimal:3',
-            'litros_por_unidad' => 'decimal:3',
-            'existencia' => 'decimal:3', 'cantidad_receta' => 'decimal:3',
+            'litros_por_unidad' => 'decimal:6', 'stock_minimo' => 'decimal:3',
+            'existencia' => 'decimal:3',
             'activo' => 'boolean', 'receta_activa' => 'boolean',
             'precio_proveedor' => 'decimal:2', 'precio_cliente' => 'decimal:2', 'precio_mayorista' => 'decimal:2',
         ];
@@ -38,5 +38,21 @@ class Producto extends Model
     public function receta(): BelongsTo
     {
         return $this->belongsTo(Receta::class);
+    }
+
+    /** URL de la imagen servida por la aplicación (no depende del enlace public/storage). */
+    public function urlImagen(): ?string
+    {
+        return $this->imagen !== null ? route('admin.produccion.productos.imagen', ['producto' => $this->id, 'v' => $this->updated_at?->timestamp]) : null;
+    }
+
+    /** Disponible, bajo (en o bajo el mínimo configurado) o agotado. */
+    public function estadoStock(): string
+    {
+        return match (true) {
+            (float) $this->existencia <= 0 => 'agotado',
+            $this->stock_minimo !== null && (float) $this->existencia <= (float) $this->stock_minimo => 'bajo',
+            default => 'disponible',
+        };
     }
 }

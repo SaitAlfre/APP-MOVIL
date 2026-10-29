@@ -12,6 +12,11 @@ final class LoteProduccionInvalidoException extends DomainException
         return new self('La receta seleccionada no existe.');
     }
 
+    public static function soloLecheDelDia(): self
+    {
+        return new self('La leche se procesa el mismo día: solo puedes crear lotes con la leche de hoy.');
+    }
+
     public static function litrosAsignadosInvalidos(): self
     {
         return new self('Los litros asignados deben ser mayores a 0.');

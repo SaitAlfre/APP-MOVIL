@@ -204,6 +204,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
             Route::middleware('permiso:productos,ver')->group(function () {
                 Route::get('/', [ProductoController::class, 'index'])->name('index');
                 Route::get('{producto}', [ProductoController::class, 'show'])->whereNumber('producto')->name('show');
+                Route::get('{producto}/imagen', [ProductoController::class, 'imagen'])->whereNumber('producto')->name('imagen');
             });
             Route::middleware('permiso:productos,gestionar')->group(function () {
                 Route::get('nuevo', [ProductoController::class, 'create'])->name('create');
@@ -211,6 +212,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
                 Route::get('{producto}/editar', [ProductoController::class, 'edit'])->whereNumber('producto')->name('edit');
                 Route::put('{producto}', [ProductoController::class, 'update'])->whereNumber('producto')->name('update');
                 Route::patch('{producto}/estado', [ProductoController::class, 'cambiarEstado'])->whereNumber('producto')->name('estado');
+                Route::patch('{producto}/minimo', [ProductoController::class, 'actualizarMinimo'])->whereNumber('producto')->name('minimo');
             });
         });
 
@@ -231,6 +233,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         Route::middleware('permiso:inventario,gestionar')->group(function () {
             Route::post('inventario/materiales', [InventarioController::class, 'storeMaterial'])->name('inventario.materiales.store');
             Route::post('inventario/materiales/movimientos', [InventarioController::class, 'storeMovimientoMaterial'])->name('inventario.materiales.movimientos.store');
+            Route::patch('inventario/materiales/{material}/minimo', [InventarioController::class, 'updateMinimoMaterial'])->whereNumber('material')->name('inventario.materiales.minimo');
         });
 
         Route::middleware('permiso:ventas,ver')->group(function () {

@@ -15,7 +15,7 @@ class AuditarCambiosOperativos
         AnalisisCalidad::class => ['analisis_calidad', ['uuid', 'proveedor_id', 'codigo_muestra', 'estado', 'temperatura', 'grasa', 'sng', 'densidad', 'proteina', 'lactosa', 'sales', 'solidos_totales', 'agua_anadida', 'punto_congelacion', 'ph', 'registrado_en']],
         ControlCalidad::class => ['control_calidad', ['entrega_id', 'resultado', 'temperatura_c', 'acidez', 'observaciones', 'evaluado_en']],
         Liquidacion::class => ['liquidacion', ['proveedor_id', 'periodo_inicio', 'periodo_fin', 'litros_totales', 'precio_litro', 'monto_total', 'estado', 'pagada_en']],
-        Producto::class => ['producto', ['receta_id', 'cantidad_receta', 'nombre', 'presentacion', 'unidad_produccion', 'litros_por_unidad', 'receta_activa', 'precio_proveedor', 'precio_cliente', 'precio_mayorista', 'otros_insumos', 'existencia', 'activo']],
+        Producto::class => ['producto', ['receta_id', 'codigo', 'stock_minimo', 'nombre', 'presentacion', 'unidad_produccion', 'litros_por_unidad', 'receta_activa', 'precio_proveedor', 'precio_cliente', 'precio_mayorista', 'otros_insumos', 'existencia', 'activo']],
         MovimientoProducto::class => ['movimiento_producto', ['producto_id', 'tipo', 'cantidad', 'unidad', 'motivo', 'fecha']],
         Sancion::class => ['sancion', ['control_calidad_id', 'proveedor_id', 'tipo', 'severidad', 'descuento', 'motivo', 'estado', 'resuelto_en']],
         ReclamoProveedor::class => ['reclamo_proveedor', ['proveedor_id', 'entrega_id', 'litros_originales', 'litros_solicitados', 'motivo', 'estado', 'respuesta', 'resuelto_en']],
