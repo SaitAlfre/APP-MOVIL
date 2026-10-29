@@ -32,6 +32,8 @@
                     <input type="hidden" name="paradas_json">
                     <input type="hidden" name="trazado_json">
                     <input type="hidden" name="resumen_recorrido_json">
+                    <input type="hidden" name="activo" value="{{ old('activo', $ruta->activo ? '1' : '0') }}">
+                    <input type="hidden" name="indicaciones" value="{{ old('indicaciones', $ruta->indicaciones) }}">
                     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end">
                         <x-ui.select name="zona_id" label="1 · Zona" required placeholder="Elige la zona" :selected="$ruta->zona_id" data-campo-zona
                             :options="$zonasCatalogo->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre.($zona->activo ? '' : ' (inactiva)')])->all()" />
@@ -55,17 +57,6 @@
                     @elseif ($ruta->acopiador_id && ! $acopiadores->contains('id', $ruta->acopiador_id))
                         <p class="mt-3 text-xs text-eh-red">El acopiador anterior ya no está disponible. Asigna otra cuenta activa o guarda sin asignación.</p>
                     @endif
-                    <details class="mt-3 border-t border-eh-border pt-3">
-                        <summary class="cursor-pointer text-xs font-semibold text-eh-text-muted">Más opciones: indicaciones y disponibilidad</summary>
-                        <div class="mt-3 grid gap-4 md:grid-cols-[1fr_240px]">
-                            <div>
-                                <label for="indicaciones" class="mb-1 block text-xs font-medium">Indicaciones para el acopiador</label>
-                                <textarea id="indicaciones" name="indicaciones" rows="2" maxlength="2000" placeholder="Hora de salida, accesos o referencias importantes"
-                                    class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm">{{ old('indicaciones', $ruta->indicaciones) }}</textarea>
-                            </div>
-                            <x-ui.select name="activo" label="Disponibilidad" :selected="$ruta->activo ? '1' : '0'" :options="['1' => 'Disponible para acopio', '0' => 'Desactivada']" />
-                        </div>
-                    </details>
                 </form>
             @else
                 <div class="flex flex-wrap gap-2 text-sm text-eh-text-muted">
