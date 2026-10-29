@@ -6,6 +6,7 @@ import { iniciarRoles } from './roles';
 import { iniciarGestion } from './gestion';
 import { bindThemeToggle } from './theme';
 import { iniciarNavegacion } from './navegacion';
+import { iniciarIdioma, traducir } from './idioma';
 
 let pagina;
 function iniciarPagina() {
@@ -613,8 +614,9 @@ function iniciarPagina() {
         .filter((field) => !['hidden', 'password'].includes(field.type))
         .map((field) => [field.name, field.value, field.checked]));
     const closeModal = (dialog) => {
-        if (!dialog.querySelector('[data-descartar-al-cerrar]') && modalSnapshots.has(dialog) && modalSnapshots.get(dialog) !== modalSnapshot(dialog)
-            && !window.confirm('¿Salir sin guardar los cambios de este formulario?')) return;
+        if (!dialog.hasAttribute('data-preferences') && !dialog.querySelector('[data-descartar-al-cerrar]')
+            && modalSnapshots.has(dialog) && modalSnapshots.get(dialog) !== modalSnapshot(dialog)
+            && !window.confirm(traducir('¿Salir sin guardar los cambios de este formulario?'))) return;
         dialog.close();
     };
     document.querySelectorAll('[data-modal-open]').forEach((trigger) => {
@@ -701,7 +703,7 @@ function iniciarPagina() {
     // Confirmación explícita antes de acciones sensibles o irreversibles.
     document.querySelectorAll('[data-confirm]').forEach((form) => {
         form.addEventListener('submit', (event) => {
-            if (!window.confirm(form.dataset.confirm)) {
+            if (!window.confirm(traducir(form.dataset.confirm))) {
                 event.preventDefault();
             }
         });
@@ -765,6 +767,7 @@ function iniciarPagina() {
             empty.hidden = visibleRows !== 0;
         });
     });
+    iniciarIdioma(signal);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,7 +1,7 @@
-<dialog id="preferencias-interfaz" data-modal data-preferences aria-labelledby="preferencias-interfaz-titulo" class="border-l border-eh-border bg-eh-surface p-0 text-eh-text shadow-2xl backdrop:bg-black/40">
+<dialog id="preferencias-interfaz" data-modal data-preferences data-i18n aria-labelledby="preferencias-interfaz-titulo" class="border-l border-eh-border bg-eh-surface p-0 text-eh-text shadow-2xl backdrop:bg-black/40">
     <div class="flex shrink-0 items-center justify-between gap-3 border-b border-eh-border p-5">
         <div><h2 id="preferencias-interfaz-titulo" tabindex="-1" class="font-semibold">Personalizar mi vista</h2><p class="mt-1 text-xs text-eh-text-muted">Ajusta la apariencia a tu comodidad.</p></div>
-        <button type="button" data-modal-close aria-label="Cerrar preferencias" class="grid h-10 w-10 shrink-0 place-items-center rounded-xl hover:bg-eh-surface-alt"><x-icon name="xMark" class="h-4 w-4" /></button>
+        <button type="button" data-modal-close data-i18n-attrs="aria-label" aria-label="Cerrar preferencias" class="grid h-10 w-10 shrink-0 place-items-center rounded-xl hover:bg-eh-surface-alt"><x-icon name="xMark" class="h-4 w-4" /></button>
     </div>
     <div class="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
         <fieldset class="border-b border-eh-border pb-5"><legend class="mb-3 text-sm font-semibold">Tema</legend><div class="grid grid-cols-3 gap-2">
@@ -91,9 +91,9 @@
         </div></fieldset>
         <fieldset><legend class="mb-3 text-sm font-semibold">Idioma</legend>
             <div class="grid grid-cols-2 gap-2">
-                <label class="preference-option rounded-xl border border-eh-border p-3 text-sm"><input type="radio" name="vista-language" checked class="mr-2" value="es">Español</label>
-                <label class="rounded-xl border border-eh-border bg-eh-surface-alt p-3 text-sm text-eh-text-muted"><input type="radio" name="vista-language" disabled class="mr-2" value="qu">Quechua Puno</label>
-            </div><p class="mt-2 text-xs text-eh-text-muted">Quechua Puno estará disponible cuando se valide la traducción de los formularios y mensajes.</p>
+                <label class="preference-option cursor-pointer rounded-xl border border-eh-border p-3 text-sm"><input type="radio" name="vista-language" data-language checked class="mr-2" value="es"><span lang="es" data-no-translate>Español</span></label>
+                <label class="preference-option cursor-pointer rounded-xl border border-eh-border p-3 text-sm"><input type="radio" name="vista-language" data-language class="mr-2" value="qu"><span lang="qu-PE" data-no-translate>Quechua · Runa simi</span></label>
+            </div>
         </fieldset>
         <button type="button" data-preferences-reset class="w-full rounded-xl border border-eh-border-strong px-4 py-3 text-sm font-medium hover:bg-eh-surface-alt">Restablecer apariencia</button>
         <p data-preferences-status role="status" aria-live="polite" class="text-xs text-eh-text-muted"></p>

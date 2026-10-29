@@ -6,7 +6,7 @@
     @php
         $tipoVehiculo = old('tipo_vehiculo', $ruta->tipo_vehiculo ?? 'camion');
     @endphp
-    <x-ui.page-header :title="$ruta->exists ? $ruta->nombre : 'Nueva ruta de acopio'"
+    <x-ui.page-header :translate-title="! $ruta->exists" :title="$ruta->exists ? $ruta->nombre : 'Nueva ruta de acopio'"
         :description="$puedeGestionar ? 'Elige la zona y agrega a sus proveedores en el orden de siempre. El camino sale de la planta, pasa por cada parada y vuelve a la planta; se calcula solo.' : 'Sal de la planta (P) y visita las paradas siguiendo los números del recorrido.'">
         <x-slot:actions><x-ui.btn :href="route('admin.mapa-rutas.index')" variant="outline" icon="arrowLeft">Todas las rutas</x-ui.btn></x-slot:actions>
     </x-ui.page-header>

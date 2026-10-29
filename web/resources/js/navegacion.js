@@ -1,3 +1,5 @@
+import { traducir } from './idioma.js';
+
 /** Navegación progresiva: Laravel conserva rutas, permisos y validación. */
 export function iniciarNavegacion(iniciarPagina, desmontarPagina) {
     if (!document.querySelector('.admin-shell')) return;
@@ -21,7 +23,7 @@ export function iniciarNavegacion(iniciarPagina, desmontarPagina) {
             status.setAttribute('role', 'status');
             document.body.append(status);
         }
-        status.textContent = mensaje;
+        status.textContent = traducir(mensaje);
     };
     const guardarScroll = () => {
         const main = document.querySelector('.admin-content');

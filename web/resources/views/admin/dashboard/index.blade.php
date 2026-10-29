@@ -125,7 +125,7 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <span class="grid h-12 w-12 place-items-center rounded-2xl bg-eh-primary-soft text-eh-primary"><x-icon name="droplets" class="h-6 w-6" /></span>
-                    <div><p class="text-xs font-semibold text-eh-text-muted">Precio de la leche hoy</p><p class="mono mt-1 text-2xl font-bold text-eh-primary">{{ $tarifaActual ? 'S/ '.number_format((float) $tarifaActual->precio, 3) : 'Sin configurar' }} @if ($tarifaActual)<span class="text-sm font-normal">/ litro</span>@endif</p></div>
+                    <div><p data-i18n class="text-xs font-semibold text-eh-text-muted">Precio de la leche hoy</p><p class="mono mt-1 text-2xl font-bold text-eh-primary">{{ $tarifaActual ? 'S/ '.number_format((float) $tarifaActual->precio, 3) : 'Sin configurar' }} @if ($tarifaActual)<span data-i18n class="text-sm font-normal">/ litro</span>@endif</p></div>
                 </div>
                 <div class="flex flex-wrap items-center gap-4">
                     @if ($proximaTarifa)<p class="text-sm text-eh-text-muted">Desde {{ $proximaTarifa->desde->format('d/m') }}: <strong>S/ {{ number_format((float) $proximaTarifa->precio, 3) }}</strong></p>@endif
@@ -140,7 +140,7 @@
             @foreach ($atajos as $atajo)
                 <a data-action-card href="{{ route($atajo['ruta']) }}" class="action-card">
                     <span class="action-card-icon"><x-icon :name="$atajo['icono']" class="h-5 w-5" /></span>
-                    <span class="text-sm font-semibold">{{ $atajo['titulo'] }}</span>
+                    <span data-i18n class="text-sm font-semibold">{{ $atajo['titulo'] }}</span>
                     <x-icon name="arrowRight" class="action-card-arrow h-4 w-4" />
                 </a>
             @endforeach
@@ -151,7 +151,7 @@
     <x-ui.card padding="p-5 md:p-6" class="mb-3">
         <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h2 class="font-semibold tracking-[-.02em] text-eh-text">Periodo analizado</h2>
+                <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Periodo analizado</h2>
                 <p class="mt-1 text-[11px] text-eh-text-muted">{{ $desde->format('d/m/Y') }} — {{ $hasta->format('d/m/Y') }} · tendencia por {{ $etiquetaAgrupacion }}</p>
             </div>
             <div class="flex rounded-xl bg-eh-surface-alt p-1" aria-label="Periodos rápidos">
@@ -161,7 +161,7 @@
                             'rounded-lg px-3 py-1.5 text-[10px] font-semibold transition-all',
                             'bg-eh-surface text-eh-text shadow-sm' => $diasPeriodo === $dias,
                             'text-eh-text-muted hover:text-eh-text' => $diasPeriodo !== $dias,
-                        ]) @if ($diasPeriodo === $dias) aria-current="true" @endif>{{ $etiqueta }}</a>
+                        ]) data-i18n @if ($diasPeriodo === $dias) aria-current="true" @endif>{{ $etiqueta }}</a>
                 @endforeach
             </div>
         </div>
@@ -170,7 +170,7 @@
             <x-ui.field name="hasta" label="Hasta" type="date" :value="$hasta->format('Y-m-d')" :max="now()->toDateString()" />
             <x-ui.select name="zona_id" label="Zona" placeholder="Todas las zonas"
                 :options="collect($zonasDisponibles)->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" :selected="$zonaId" />
-            <x-ui.select name="agrupacion" label="Tendencia por" :options="['dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes']" :selected="$agrupacion" />
+            <x-ui.select :translate-options="true" name="agrupacion" label="Tendencia por" :options="['dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes']" :selected="$agrupacion" />
             <x-ui.btn type="submit" icon="filter">Aplicar</x-ui.btn>
         </form>
 
@@ -213,7 +213,7 @@
             <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h2 class="font-semibold tracking-[-.02em] text-eh-text">Litros recolectados — por {{ $etiquetaAgrupacion }}</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Recolección del periodo filtrado</p>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Recolección del periodo filtrado</p>
                 </div>
                 <span class="flex items-center gap-1.5 text-[10px] text-eh-text-muted">
                     <i class="h-2 w-2 rounded-sm bg-eh-sage" aria-hidden="true"></i> Litros recolectados
@@ -227,8 +227,8 @@
         <article class="rounded-[22px] border border-eh-border bg-eh-sand p-5 md:p-6">
             <div class="flex items-start justify-between">
                 <div>
-                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Resultados de calidad</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Controles del periodo por resultado</p>
+                    <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Resultados de calidad</h2>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Controles del periodo por resultado</p>
                 </div>
                 <span class="grid h-8 w-8 place-items-center rounded-lg bg-eh-surface/45 text-eh-text">
                     <x-icon name="beaker" class="h-4 w-4" />
@@ -243,8 +243,8 @@
     {{-- Acopio por sector --}}
     <section class="mb-3">
         <x-ui.card padding="p-5 md:p-6">
-            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Litros por zona — periodo filtrado</h2>
-            <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Volumen y número de entregas por zona</p>
+            <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Litros por zona — periodo filtrado</h2>
+            <p data-i18n class="mb-5 mt-1 text-[11px] text-eh-text-muted">Volumen y número de entregas por zona</p>
             <x-ui.chart-hbars :data="$serieZonas" meta-key="meta" unit="L" color="var(--eh-sage)"
                 description="Litros recolectados por zona." empty="Sin datos por zona para mostrar." />
         </x-ui.card>
@@ -258,8 +258,8 @@
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
                 <div>
-                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Jornadas abiertas</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Acopio en curso ahora mismo</p>
+                    <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Jornadas abiertas</h2>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Acopio en curso ahora mismo</p>
                 </div>
                 <a href="{{ route('admin.jornadas.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todas <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
@@ -280,7 +280,7 @@
                     <x-icon name="chevronRight" class="h-4 w-4 shrink-0 text-eh-text-muted opacity-40 transition group-hover:opacity-100" />
                 </a>
             @empty
-                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">No hay jornadas abiertas ahora mismo.</p>
+                <p data-i18n class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">No hay jornadas abiertas ahora mismo.</p>
             @endforelse
         </x-ui.card>
         @endif
@@ -288,8 +288,8 @@
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
                 <div>
-                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Alertas recientes</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Pendientes que requieren atención</p>
+                    <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Alertas recientes</h2>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Pendientes que requieren atención</p>
                 </div>
                 <span @class([
                     'rounded-md px-2 py-1 text-[10px] font-bold',
@@ -325,13 +325,13 @@
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
                 <div>
-                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Últimas entregas</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Últimas transacciones registradas</p>
+                    <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Últimas entregas</h2>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Últimas transacciones registradas</p>
                 </div>
                 <a href="{{ route('admin.entregas.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todas <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
             @if (count($panel['ultimas_entregas']) === 0)
-                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin entregas registradas en el periodo.</p>
+                <p data-i18n class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin entregas registradas en el periodo.</p>
             @else
                 <x-ui.table :headers="['Proveedor', 'Zona', 'Litros', 'Hora']" caption="Últimas entregas registradas" class="border-t border-eh-border">
                     @foreach ($panel['ultimas_entregas'] as $entrega)
@@ -358,8 +358,8 @@
         <x-ui.card class="overflow-hidden">
             <div class="flex items-center justify-between p-5 md:px-6">
                 <div>
-                    <h2 class="font-semibold tracking-[-.02em] text-eh-text">Controles de calidad pendientes</h2>
-                    <p class="mt-1 text-[11px] text-eh-text-muted">Entregas a la espera de evaluación</p>
+                    <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Controles de calidad pendientes</h2>
+                    <p data-i18n class="mt-1 text-[11px] text-eh-text-muted">Entregas a la espera de evaluación</p>
                 </div>
                 <a href="{{ route('admin.calidad.index') }}" class="flex items-center gap-1 text-[10px] font-bold text-eh-text hover:gap-1.5">Ver todos <x-icon name="arrowRight" class="h-3.5 w-3.5" /></a>
             </div>
@@ -378,7 +378,7 @@
                     <x-ui.badge variant="yellow" label="Pendiente" />
                 </div>
             @empty
-                <p class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin controles pendientes.</p>
+                <p data-i18n class="border-t border-eh-border px-5 py-8 text-center text-xs text-eh-text-muted">Sin controles pendientes.</p>
             @endforelse
         </x-ui.card>
     </section>
@@ -386,14 +386,14 @@
     {{-- Rendimiento y mermas --}}
     <section class="grid gap-3 lg:grid-cols-2">
         <x-ui.card padding="p-5 md:p-6">
-            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Rendimiento por acopiador</h2>
-            <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Litros recolectados por acopiador en el periodo</p>
+            <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Rendimiento por acopiador</h2>
+            <p data-i18n class="mb-5 mt-1 text-[11px] text-eh-text-muted">Litros recolectados por acopiador en el periodo</p>
             <x-ui.chart-hbars :data="$serieAcopiadores" meta-key="meta" unit="L" color="var(--eh-sage)"
                 description="Litros recolectados por acopiador." empty="Sin datos por acopiador para mostrar." />
         </x-ui.card>
 
         <x-ui.card padding="p-5 md:p-6">
-            <h2 class="font-semibold tracking-[-.02em] text-eh-text">Mermas por camión</h2>
+            <h2 data-i18n class="font-semibold tracking-[-.02em] text-eh-text">Mermas por camión</h2>
             <p class="mb-5 mt-1 text-[11px] text-eh-text-muted">Solo viajes con recepción registrada · umbral {{ number_format($alertas['umbral_merma_porcentaje'], 0) }}%</p>
             <x-ui.chart-hbars :data="$serieMermas" meta-key="meta" unit="L" color="#c9a14f"
                 description="Merma de transporte por vehículo." empty="Sin recepciones registradas en este periodo." />

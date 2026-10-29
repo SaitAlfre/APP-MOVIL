@@ -17,7 +17,7 @@
         @method('PUT')
 
         <x-ui.card padding="p-6">
-            <h2 class="mb-4 text-sm font-semibold text-eh-text">Organización</h2>
+            <h2 data-i18n class="mb-4 text-sm font-semibold text-eh-text">Organización</h2>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-ui.field name="organizacion_nombre" label="Nombre de la organización" required maxlength="150"
                     :value="$configuracion['organizacion_nombre']" :disabled="! $puedeGestionar" />
@@ -31,20 +31,20 @@
         </x-ui.card>
 
         <x-ui.card padding="p-6">
-            <h2 class="mb-4 text-base font-semibold text-eh-text">Calendario de trabajo y moneda</h2>
+            <h2 data-i18n class="mb-4 text-base font-semibold text-eh-text">Calendario de trabajo y moneda</h2>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-ui.select name="moneda" label="Moneda" required :options="['PEN' => 'PEN (S/)']"
                     :selected="$configuracion['moneda']" :disabled="! $puedeGestionar" />
-                <a href="{{ route('admin.tarifas.index') }}" class="self-center text-sm underline text-eh-primary">Administrar precios por temporada y vigencia</a>
-                <x-ui.select name="inicio_semana" label="Inicio de la semana operativa" required :options="$dias"
+                <a data-i18n href="{{ route('admin.tarifas.index') }}" class="self-center text-sm underline text-eh-primary">Administrar precios por temporada y vigencia</a>
+                <x-ui.select name="inicio_semana" label="Inicio de la semana operativa" required :translate-options="true" :options="$dias"
                     :selected="$configuracion['inicio_semana']" :disabled="! $puedeGestionar" />
-                <x-ui.select name="dia_pago" label="Día de pago" required :options="$dias"
+                <x-ui.select name="dia_pago" label="Día de pago" required :translate-options="true" :options="$dias"
                     :selected="$configuracion['dia_pago']" :disabled="! $puedeGestionar" />
             </div>
         </x-ui.card>
 
         <x-ui.card padding="p-6">
-            <h2 class="mb-4 text-sm font-semibold text-eh-text">Seguridad de acceso</h2>
+            <h2 data-i18n class="mb-4 text-sm font-semibold text-eh-text">Seguridad de acceso</h2>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-ui.field name="login_intentos_maximos" label="Intentos máximos de inicio de sesión" type="number" min="1" max="20" required
                     :value="$configuracion['login_intentos_maximos']" :disabled="! $puedeGestionar" />
@@ -53,7 +53,7 @@
                 <label class="flex items-center gap-3 rounded-xl border border-eh-border p-3 md:col-span-2">
                     <input type="checkbox" name="requerir_cambio_pin" value="1" @checked($configuracion['requerir_cambio_pin'] === '1')
                         @disabled(! $puedeGestionar) class="rounded border-eh-border text-eh-primary focus:ring-eh-primary">
-                    <span class="text-sm text-eh-text">Requerir cambio de PIN en el primer inicio de sesión</span>
+                    <span data-i18n class="text-sm text-eh-text">Requerir cambio de PIN en el primer inicio de sesión</span>
                 </label>
             </div>
         </x-ui.card>

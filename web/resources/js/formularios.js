@@ -1,3 +1,5 @@
+import { traducir } from './idioma.js';
+
 export function iniciarEditorFormulario(signal) {
     const editor = document.querySelector('[data-editor-formulario]');
     if (!editor) return;
@@ -92,7 +94,7 @@ export function protegerCambiosFormulario(signal) {
     });
     document.addEventListener('ecolecta:visit-failed', () => { enviando = false; }, { signal });
     document.addEventListener('ecolecta:before-visit', event => {
-        if (cambios.size && !enviando && !window.confirm('Tienes cambios sin guardar. ¿Salir y descartarlos?')) event.preventDefault();
+        if (cambios.size && !enviando && !window.confirm(traducir('Tienes cambios sin guardar. ¿Salir y descartarlos?'))) event.preventDefault();
     }, { signal });
     window.addEventListener('beforeunload', event => {
         if (cambios.size && !enviando) { event.preventDefault(); event.returnValue = ''; }

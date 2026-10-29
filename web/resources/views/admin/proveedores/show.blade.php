@@ -18,7 +18,7 @@
         $ultimaEntrega = collect($entregas)->first();
     @endphp
 
-    <x-ui.page-header :title="$proveedor->nombres"
+    <x-ui.page-header :translate-title="false" :title="$proveedor->nombres"
         :description="'Código: '.$proveedor->codigo.' · DNI: '.$proveedor->dni"
         :breadcrumbs="[['label' => 'Proveedores', 'url' => route('admin.proveedores.index')], ['label' => $proveedor->nombres]]">
         <x-slot:actions>

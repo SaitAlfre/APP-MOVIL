@@ -9,6 +9,7 @@
     'hint' => null,
     'required' => false,
     'controlClass' => '',
+    'translateOptions' => false,
 ])
 
 @php
@@ -19,7 +20,7 @@
 
 <div {{ $attributes->only('class')->class('ui-field flex min-w-0 flex-col gap-1.5') }}>
     @if ($label)
-        <label for="{{ $campoId }}" class="text-xs font-medium text-eh-text">
+        <label data-i18n for="{{ $campoId }}" class="text-xs font-medium text-eh-text">
             {{ $label }}
             @if ($required)
                 <span class="text-eh-red" aria-hidden="true">*</span>
@@ -40,11 +41,11 @@
             'border-eh-border-strong focus:border-eh-sage focus:ring-eh-sage/15' => ! $mensaje,
         ]) }}>
         @if ($placeholder !== null)
-            <option value="">{{ $placeholder }}</option>
+            <option data-i18n value="">{{ $placeholder }}</option>
         @endif
         @if (! empty($options))
             @foreach ($options as $valor => $etiqueta)
-                <option value="{{ $valor }}" @selected((string) $actual === (string) $valor)>{{ $etiqueta }}</option>
+                <option @if ($translateOptions) data-i18n @endif value="{{ $valor }}" @selected((string) $actual === (string) $valor)>{{ $etiqueta }}</option>
             @endforeach
         @else
             {{ $slot }}
@@ -54,6 +55,6 @@
     @if ($mensaje)
         <p id="{{ $campoId }}-error" class="text-xs text-eh-red">{{ $mensaje }}</p>
     @elseif ($hint)
-        <p id="{{ $campoId }}-hint" class="text-xs text-eh-text-muted">{{ $hint }}</p>
+        <p data-i18n id="{{ $campoId }}-hint" class="text-xs text-eh-text-muted">{{ $hint }}</p>
     @endif
 </div>

@@ -3,6 +3,7 @@
     'description' => null,
     'breadcrumbs' => [],
     'eyebrow' => null,
+    'translateTitle' => true,
 ])
 
 <section {{ $attributes->class('ui-page-header mb-6 flex flex-wrap items-start justify-between gap-4') }}>
@@ -25,9 +26,9 @@
         @elseif ($eyebrow)
             <p class="mb-1 text-xs font-semibold uppercase tracking-[.18em] text-eh-sage">{{ $eyebrow }}</p>
         @endif
-        <h1 class="text-pretty text-[26px] font-semibold leading-tight tracking-[-.025em] text-eh-text md:text-[30px]">{{ $title }}</h1>
+        <h1 @if ($translateTitle) data-i18n @endif class="text-pretty text-[26px] font-semibold leading-tight tracking-[-.025em] text-eh-text md:text-[30px]">{{ $title }}</h1>
         @if ($description)
-            <p class="mt-1 max-w-2xl text-sm text-eh-text-muted">{{ $description }}</p>
+            <p data-i18n class="mt-1 max-w-2xl text-sm text-eh-text-muted">{{ $description }}</p>
         @endif
     </div>
     @isset($actions)

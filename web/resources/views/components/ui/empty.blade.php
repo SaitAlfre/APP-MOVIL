@@ -8,9 +8,9 @@
     <span class="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-eh-surface-alt text-eh-sage">
         <x-icon :name="$icon" class="h-6 w-6" />
     </span>
-    <p class="text-sm font-semibold text-eh-text">{{ $title }}</p>
+    <p data-i18n class="text-sm font-semibold text-eh-text">{{ $title }}</p>
     @if ($description)
-        <p class="mt-2 max-w-md text-sm leading-relaxed text-eh-text-muted">{{ $description }}</p>
+        <p data-i18n class="mt-2 max-w-md text-sm leading-relaxed text-eh-text-muted">{{ $description }}</p>
     @endif
     @isset($action)
         <div class="mt-4">{{ $action }}</div>

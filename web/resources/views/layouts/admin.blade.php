@@ -87,7 +87,7 @@
             : 0;
     @endphp
 
-    <a href="#contenido-principal" class="sr-only z-[70] rounded-xl bg-eh-surface px-4 py-2 font-bold text-eh-primary shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar al contenido principal</a>
+    <a data-i18n href="#contenido-principal" class="sr-only z-[70] rounded-xl bg-eh-surface px-4 py-2 font-bold text-eh-primary shadow-lg focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar al contenido principal</a>
 
     <div class="admin-shell relative flex h-dvh overflow-hidden bg-eh-bg">
         <div data-admin-menu-overlay hidden class="fixed inset-0 z-20 bg-[#0c1612]/45 backdrop-blur-sm lg:hidden"></div>
@@ -100,8 +100,8 @@
                         <x-icon name="milk" class="h-6 w-6" />
                     </span>
                     <span class="sidebar-label min-w-0">
-                        <span class="block truncate font-semibold leading-tight tracking-[-.02em] text-eh-text">Ecolactea</span>
-                        <span class="block truncate text-[10px] font-medium uppercase tracking-[.2em] text-eh-text-muted">Digital</span>
+                        <span data-i18n class="block truncate font-semibold leading-tight tracking-[-.02em] text-eh-text">Ecolactea</span>
+                        <span data-i18n class="block truncate text-[10px] font-medium uppercase tracking-[.2em] text-eh-text-muted">Digital</span>
                     </span>
                 </a>
                 <button type="button" data-admin-menu-close class="ml-auto grid h-8 w-8 place-items-center rounded-lg text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text lg:hidden" aria-label="Cerrar menú">
@@ -109,7 +109,7 @@
                 </button>
             </div>
 
-            <nav id="opciones-menu" aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
+            <nav data-i18n id="opciones-menu" aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
                 @foreach ($navGroups as $grupo => $items)
                     @php
                         $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']) && (! ($item['solo_admin'] ?? false) || ($operador->tieneRol('admin') && $operador->perfil_rol_id === null)) && (! ($item['plan_reservado'] ?? false) || ($operador->perfil_rol_id === null && ($operador->tieneRol('admin') || ($operador->tieneRol('calidad') && ! $operador->tieneRol('acopiador') && ! $operador->tieneRol('proveedor'))))));
@@ -118,7 +118,7 @@
                     @continue($itemsVisibles->isEmpty())
                     @if ($itemsVisibles->count() > 1)
                         <details data-nav-group="{{ $loop->index }}" data-active="{{ $grupoActivo ? 'true' : 'false' }}" @if ($grupoActivo) open @endif>
-                            <summary class="sidebar-group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-eh-text hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary" title="{{ $grupo }}">
+                            <summary class="sidebar-group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-eh-text hover:bg-eh-surface-alt focus-visible:outline-2 focus-visible:outline-eh-primary" data-i18n-attrs="title" title="{{ $grupo }}">
                                 <x-icon :name="$iconosGrupo[$grupo] ?? $itemsVisibles->first()['icono']" class="h-[18px] w-[18px] shrink-0" />
                                 <span class="sidebar-label flex-1">{{ $grupo }}</span>
                                 <x-icon name="chevronDown" class="sidebar-chevron h-3.5 w-3.5 shrink-0" />
@@ -128,7 +128,7 @@
                     @if ($itemsVisibles->count() === 1)<div>@endif
                     @foreach ($itemsVisibles as $item)
                         @php $activo = request()->routeIs(...(array) $item['patron']); @endphp
-                        <a href="{{ route($item['ruta']) }}" title="{{ $item['etiqueta'] }}" aria-label="{{ $item['etiqueta'] }}" @class([
+                        <a href="{{ route($item['ruta']) }}" data-i18n-attrs="title aria-label" title="{{ $item['etiqueta'] }}" aria-label="{{ $item['etiqueta'] }}" @class([
                             'sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-eh-primary',
                             'bg-eh-sidebar-active font-semibold text-eh-primary' => $activo,
                             'text-eh-sidebar-muted hover:bg-eh-surface-alt hover:text-eh-text' => ! $activo,
@@ -144,7 +144,7 @@
                     @endif
                 @endforeach
             </nav>
-            <button type="button" data-sidebar-collapse aria-controls="menu-administracion" aria-expanded="true" aria-label="Contraer menú lateral" title="Contraer menú lateral"
+            <button type="button" data-sidebar-collapse data-i18n-attrs="aria-label title" aria-controls="menu-administracion" aria-expanded="true" aria-label="Contraer menú lateral" title="Contraer menú lateral"
                 class="sidebar-edge-toggle absolute -right-4 top-[72px] z-40 hidden h-8 w-8 items-center justify-center rounded-full border border-eh-border-strong bg-eh-sidebar text-eh-text-muted shadow-sm transition-colors hover:border-eh-primary hover:text-eh-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-eh-primary lg:flex">
                 <x-icon name="chevronRight" class="sidebar-collapse-icon h-3.5 w-3.5 rotate-180" />
             </button>
@@ -159,9 +159,9 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="mt-3">
                     @csrf
-                    <button type="submit" aria-label="Cerrar sesión" title="Cerrar sesión" class="flex items-center gap-2 rounded-md text-xs font-medium text-eh-text underline decoration-eh-border-strong underline-offset-4 hover:decoration-eh-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eh-primary">
+                    <button data-i18n data-i18n-attrs="aria-label title" type="submit" aria-label="Cerrar sesión" title="Cerrar sesión" class="flex items-center gap-2 rounded-md text-xs font-medium text-eh-text underline decoration-eh-border-strong underline-offset-4 hover:decoration-eh-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eh-primary">
                         <x-icon name="logout" class="h-3.5 w-3.5" />
-                        <span class="sidebar-label">Cerrar sesión</span>
+                        <span data-i18n class="sidebar-label">Cerrar sesión</span>
                     </button>
                 </form>
             </div>
@@ -170,7 +170,7 @@
         <div class="admin-panel flex min-w-0 flex-1 flex-col overflow-hidden">
             <header class="no-print z-20 flex h-[68px] shrink-0 items-center justify-between gap-2 border-b border-eh-border bg-eh-surface/95 px-3 backdrop-blur-xl sm:px-5 lg:px-8">
                 <div class="flex min-w-0 items-center gap-3">
-                    <button type="button" data-admin-menu-toggle aria-controls="menu-administracion" aria-expanded="false"
+                    <button type="button" data-admin-menu-toggle data-i18n-attrs="aria-label" aria-controls="menu-administracion" aria-expanded="false"
                         class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-eh-ink text-white lg:hidden" aria-label="Abrir menú de administración">
                         <x-icon name="bars3" class="h-5 w-5" />
                     </button>
@@ -180,11 +180,11 @@
                     <span class="truncate text-sm font-medium text-eh-text sm:hidden">@yield('titulo', 'Centro operativo')</span>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
-                    <button type="button" data-theme-toggle class="grid h-10 w-10 place-items-center rounded-xl border border-eh-border-strong bg-eh-surface/65 text-eh-text-muted hover:bg-eh-surface hover:text-eh-text" aria-label="Cambiar tema">
+                    <button type="button" data-theme-toggle data-i18n-attrs="aria-label" class="grid h-10 w-10 place-items-center rounded-xl border border-eh-border-strong bg-eh-surface/65 text-eh-text-muted hover:bg-eh-surface hover:text-eh-text" aria-label="Cambiar tema">
                         <x-icon name="moon" data-theme-icon="moon" class="h-[17px] w-[17px]" />
                         <x-icon name="sun" data-theme-icon="sun" class="h-[17px] w-[17px]" hidden />
                     </button>
-                    <button type="button" data-modal-open="preferencias-interfaz" aria-label="Personalizar apariencia" title="Personalizar apariencia" class="grid h-10 w-10 place-items-center rounded-xl text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text">
+                    <button type="button" data-modal-open="preferencias-interfaz" data-i18n-attrs="aria-label title" aria-label="Personalizar apariencia" title="Personalizar apariencia" class="grid h-10 w-10 place-items-center rounded-xl text-eh-text-muted hover:bg-eh-surface-alt hover:text-eh-text">
                         <x-icon name="cog" class="h-[18px] w-[18px]" />
                     </button>
                     @if ($operador->puede('comunicados'))

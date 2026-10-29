@@ -9,11 +9,12 @@
 @php $campoId = $id ?? $name; @endphp
 
 <div class="relative">
-    <label for="{{ $campoId }}" class="sr-only">{{ $label }}</label>
+    <label data-i18n for="{{ $campoId }}" class="sr-only">{{ $label }}</label>
     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-eh-text-muted">
         <x-icon name="search" class="h-4 w-4" />
     </span>
     <input
+        data-i18n-attrs="placeholder aria-label"
         id="{{ $campoId }}"
         name="{{ $name }}"
         type="search"

@@ -13,9 +13,9 @@
             {{ $paginator->onEachSide(1)->links() }}
         @else
             <nav aria-label="Paginación" class="inline-flex items-center gap-1 rounded-xl bg-eh-surface-alt p-1 text-[11px] font-semibold">
-                <span aria-disabled="true" class="rounded-lg px-2.5 py-1.5 opacity-50">← Ant.</span>
+                <span data-i18n aria-disabled="true" class="rounded-lg px-2.5 py-1.5 opacity-50">← Ant.</span>
                 <span aria-current="page" class="rounded-lg bg-eh-primary px-2 py-1 text-white">1</span>
-                <span aria-disabled="true" class="rounded-lg px-2.5 py-1.5 opacity-50">Sig. →</span>
+                <span data-i18n aria-disabled="true" class="rounded-lg px-2.5 py-1.5 opacity-50">Sig. →</span>
             </nav>
         @endif
     </div>

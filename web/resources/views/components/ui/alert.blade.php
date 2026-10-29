@@ -19,7 +19,7 @@
     </span>
     <div class="min-w-0 flex-1 pt-0.5">
         @if ($title)
-            <p class="font-semibold">{{ $title }}</p>
+            <p data-i18n class="font-semibold">{{ $title }}</p>
         @endif
         <div @class(['mt-0.5' => (bool) $title])>{{ $slot }}</div>
     </div>

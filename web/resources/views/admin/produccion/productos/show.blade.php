@@ -11,7 +11,7 @@
         $numero = fn ($valor) => rtrim(rtrim(number_format((float) $valor, 3), '0'), '.');
     @endphp
 
-    <x-ui.page-header :title="$producto->nombre"
+    <x-ui.page-header :translate-title="false" :title="$producto->nombre"
         :description="collect([$producto->codigo, $producto->presentacion])->filter()->implode(' · ')"
         :breadcrumbs="[['label' => 'Planta'], ['label' => 'Productos', 'url' => route('admin.produccion.productos.index')], ['label' => $producto->nombre]]">
         <x-slot:actions>

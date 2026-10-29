@@ -28,14 +28,14 @@
 @endphp
 
 @if ($href)
-    <a href="{{ $href }}" {{ $attributes->class($clases) }}>
+    <a data-i18n data-i18n-attrs="aria-label title" href="{{ $href }}" {{ $attributes->class($clases) }}>
         @if ($icon)
             <x-icon :name="$icon" :class="$tamanoIcono" />
         @endif
         {{ $slot }}
     </a>
 @else
-    <button type="{{ $type }}" {{ $attributes->class($clases) }}>
+    <button data-i18n data-i18n-attrs="aria-label title" type="{{ $type }}" {{ $attributes->class($clases) }}>
         @if ($icon)
             <x-icon :name="$icon" :class="$tamanoIcono" />
         @endif

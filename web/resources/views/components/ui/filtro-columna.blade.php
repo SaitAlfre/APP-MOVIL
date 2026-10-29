@@ -15,7 +15,7 @@
 
 <details class="th-filtro" data-th-filtro>
     <summary @class(['th-filtro-activo' => $actual !== null])>
-        <span>{{ $etiqueta }}</span>
+        <span data-i18n>{{ $etiqueta }}</span>
         @if ($actual !== null)
             <span class="th-filtro-valor">· {{ $actual }}</span>
         @endif

@@ -25,7 +25,7 @@
     'border-eh-border bg-eh-surface/70' => ! $dark,
 ]) }}>
     <div class="mb-5 flex items-start justify-between gap-3">
-        <p @class(['text-xs font-medium', 'text-white/50' => $dark, 'text-eh-text-muted' => ! $dark]) @if ($hint) title="{{ $hint }}" @endif>{{ $label }}</p>
+        <p data-i18n data-i18n-attrs="title" @class(['text-xs font-medium', 'text-white/50' => $dark, 'text-eh-text-muted' => ! $dark]) @if ($hint) title="{{ $hint }}" @endif>{{ $label }}</p>
         <span @class([
             'grid h-7 w-7 shrink-0 place-items-center rounded-lg',
             'bg-white/10 text-eh-lime' => $dark,

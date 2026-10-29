@@ -19,7 +19,7 @@
 
 <div {{ $attributes->only('class')->class('ui-field flex min-w-0 flex-col gap-1.5') }}>
     @if ($label)
-        <label for="{{ $campoId }}" class="text-xs font-medium text-eh-text">
+        <label data-i18n for="{{ $campoId }}" class="text-xs font-medium text-eh-text">
             {{ $label }}
             @if ($required)
                 <span class="text-eh-red" aria-hidden="true">*</span>
@@ -30,6 +30,7 @@
 
     <div class="relative">
         <input
+            data-i18n-attrs="placeholder title aria-label"
             id="{{ $campoId }}"
             name="{{ $name }}"
             type="{{ $type }}"
@@ -51,6 +52,6 @@
     @if ($mensaje)
         <p id="{{ $campoId }}-error" class="text-xs text-eh-red">{{ $mensaje }}</p>
     @elseif ($hint)
-        <p id="{{ $campoId }}-hint" class="text-xs text-eh-text-muted">{{ $hint }}</p>
+        <p data-i18n id="{{ $campoId }}-hint" class="text-xs text-eh-text-muted">{{ $hint }}</p>
     @endif
 </div>
