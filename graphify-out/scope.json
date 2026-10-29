@@ -2,7 +2,7 @@
   "snapshot_date": "2026-10-26",
   "timezone": "America/Lima",
   "head": "1a02bc429b8bc36b5b14d4388f23cd0d27c9ce56",
-  "scope": "Documentacion Markdown vigente y entradas principales de arquitectura; excluye capturas, antecedentes, plantillas, documentos binarios y recibos automaticos; no es indice completo del codigo.",
+  "scope": "Documentacion Markdown vigente y entradas principales de arquitectura; excluye capturas, antecedentes, plantillas, documentos binarios y recibos automaticos; no es indice completo del codigo. Ampliado el 2026-10-28 con extraccion completa de codigo (ver code_snapshot).",
   "files": {
     "code": [
       "C:\\Users\\ASUS\\Documents\\APP-MOVIL-SAITxd\\settings.gradle.kts",
@@ -79,5 +79,20 @@
     "input": null,
     "output": null,
     "note": "Host-agent token usage is not exposed by collaboration tools; unknown, not zero."
+  },
+  "code_snapshot": {
+    "snapshot_date": "2026-10-28",
+    "timezone": "America/Lima",
+    "head": "487f80587f141cc8eceb2e46ac74690e99e7a6c4",
+    "kind": "Extraccion completa de codigo (AST local, sin LLM) mediante graphify extract --code-only",
+    "includes": "Archivos de codigo versionados o no ignorados: shared/src, androidApp/src, iosApp, web/app, web/routes, web/tests, web/database, web/resources (incluye Blade), web/config, scripts, firebase-tests, .github/workflows y manifiestos Gradle/npm/composer.",
+    "excludes": "Lo ignorado por .gitignore (web/vendor, web/node_modules, **/build, web/public/build), .npmrc (marcado sensible), 2 archivos .sql (falta tree_sitter_sql) y archivos sin extension soportada.",
+    "stats": {
+      "code_files": 989,
+      "nodes": 8273,
+      "edges_after_cluster": 22451,
+      "communities": 501
+    },
+    "limits": "Nombres de comunidad tomados del nodo central (sin etiquetado LLM). 10 archivos Kotlin de prueba se extrajeron parcialmente por errores de parseo. La capa semantica de documentacion sigue siendo la del 2026-10-26; los documentos nuevos o modificados despues no tienen nodos semanticos."
   }
 }

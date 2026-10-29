@@ -41,6 +41,8 @@ Fuentes: `docs/tecnica/coder1-implementacion.md`, `docs/academico/evidencias-pen
 
 ## Alcance del mapa
 
-Documentacion Markdown vigente y nueve entradas de arquitectura: 63 archivos. Se excluyen capturas, recibos automaticos, antecedentes, plantillas, documentos binarios y la mayor parte del codigo de implementacion. No se ha ejecutado ninguna suite del producto para producir este mapa. Las pruebas citadas son evidencias existentes con fecha y entorno propios.
+Documentacion Markdown vigente y nueve entradas de arquitectura: 63 archivos (capa semantica del 26-10). Se excluyen capturas, recibos automaticos, antecedentes, plantillas y documentos binarios. No se ha ejecutado ninguna suite del producto para producir este mapa.
+
+Ampliacion del 28-10-2026: extraccion completa de codigo por AST local (989 archivos, commit `487f8058`) unida al grafo documental. Los documentos creados o modificados despues del 26-10, como los tres nuevos de `docs/tecnica/` sobre estados de acceso, registro unificado de proveedores y roles personalizados, no tienen nodos semanticos. Tras cambios de codigo, `graphify update .` refresca solo la parte de codigo; la documentacion modificada requiere lectura semantica aparte. Las pruebas citadas son evidencias existentes con fecha y entorno propios.
 
 `graph.json` contiene conexiones EXTRACTED, INFERRED o AMBIGUOUS con sus fuentes. Los nodos destacados representan conectividad en esta seleccion, no una prioridad de negocio. Uso de tokens del anfitrion: N/D, no cero.
