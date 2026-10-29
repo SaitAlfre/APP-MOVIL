@@ -12,7 +12,7 @@ return [
     'ruteo' => env('MAPA_RUTEO_URL', 'https://routing.openstreetmap.de/routed-car/route/v1/driving'),
     // OpenRouteService traza el camino desde el servidor; la clave nunca se envía al navegador ni al celular.
     'ors' => [
-        'clave' => env('ORS_API_KEY'),
+        'clave' => env('ORS_API_KEY', env('OpenRouteService')),
         'url' => env('ORS_URL', 'https://api.openrouteservice.org'),
         'perfiles' => ['camion' => 'driving-hgv', 'motocarga' => 'driving-car'],
     ],
