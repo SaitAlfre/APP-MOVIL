@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Jornadas\ConsultarHojaRutaQuery;
+use App\Domain\Auditoria\AccionAuditoria;
+use App\Domain\Jornadas\EtapaJornada;
 use App\Domain\Recepcion\RecepcionAcopioRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
+use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Vehiculo;
 use App\Infrastructure\Persistence\Eloquent\Zona;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,28 +24,56 @@ use Illuminate\View\View;
 
 class JornadaController extends Controller
 {
+    /** Acopio del día: una tarjeta por jornada con su etapa y la acción que le toca a administración. */
     public function index(Request $request, RecepcionAcopioRepositoryInterface $recepciones): View
     {
         $datos = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d'],
             'usuario_id' => ['nullable', 'integer', 'exists:usuarios,id'], 'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
-            'estado' => ['nullable', 'in:abierta,cerrada']]);
-        $fecha = $request->has('fecha') ? ($datos['fecha'] ?? null) : now('America/Lima')->toDateString();
-        $query = Jornada::query()->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha))
+            'etapa' => ['nullable', Rule::enum(EtapaJornada::class)]]);
+        $hoy = now('America/Lima')->toDateString();
+        $fecha = $request->has('fecha') ? ($datos['fecha'] ?? null) : $hoy;
+        $etapa = isset($datos['etapa']) ? EtapaJornada::from($datos['etapa']) : null;
+        $base = Jornada::query()->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha))
             ->when($datos['usuario_id'] ?? null, fn ($q, $id) => $q->where('usuario_id', $id))
-            ->when($datos['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
-            ->when($datos['estado'] ?? null, fn ($q, $estado) => $estado === 'abierta' ? $q->whereNull('cerrada_en') : $q->whereNotNull('cerrada_en'));
-        $paginador = (clone $query)->with(['usuario', 'zona', 'vehiculo'])
+            ->when($datos['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id));
+        $paginador = $this->conEtapa(clone $base, $etapa)->with(['usuario', 'zona', 'vehiculo'])
             ->withSum(['entregas as litros' => fn ($q) => $q->where('anulada', false)], 'litros')
             ->withCount(['entregas as recojos_count' => fn ($q) => $q->where('anulada', false)])
-            ->orderByDesc('abierta_en')->paginate(20)->withQueryString();
+            ->orderByDesc('abierta_en')->paginate(24)->withQueryString();
+        $recepcionesPagina = $recepciones->porJornadas($paginador->pluck('id')->all());
 
         return view('admin.jornadas.index', [
-            'paginador' => $paginador, 'fecha' => $fecha, 'total' => (clone $query)->count(),
-            'abiertas' => (clone $query)->whereNull('cerrada_en')->count(),
-            'recepciones' => $recepciones->porJornadas($paginador->pluck('id')->all()),
+            'paginador' => $paginador, 'fecha' => $fecha, 'hoy' => $hoy, 'etapa' => $etapa,
+            'recepciones' => $recepcionesPagina,
+            'etapas' => $paginador->mapWithKeys(fn (Jornada $j) => [$j->id => EtapaJornada::de($j->cerrada_en === null, $recepcionesPagina[$j->id] ?? null)])->all(),
+            'resumen' => [
+                'litros' => (float) Entrega::query()->whereIn('jornada_id', (clone $base)->select('id'))->where('anulada', false)->sum('litros'),
+                'enRuta' => $this->conEtapa(clone $base, EtapaJornada::EnRuta)->count(),
+                'porRecibir' => $this->conEtapa(clone $base, EtapaJornada::PorRecibir)->count(),
+                'diferencia' => round((float) DB::table('recepciones_acopio')->whereIn('jornada_id', (clone $base)->select('id'))
+                    ->sum(DB::raw('litros_medidos - litros_recolectados')), 2),
+            ],
+            'pendientesAnteriores' => $this->conEtapa(Jornada::query()->whereDate('fecha', '<', $fecha ?? $hoy), EtapaJornada::PorRecibir)->count(),
             'zonas' => Zona::query()->orderBy('nombre')->get(),
             'acopiadores' => Usuario::query()->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->get(),
         ]);
+    }
+
+    /**
+     * @param  Builder<Jornada>  $query
+     * @return Builder<Jornada>
+     */
+    private function conEtapa(Builder $query, ?EtapaJornada $etapa): Builder
+    {
+        $recepcion = fn ($sub) => $sub->select(DB::raw(1))->from('recepciones_acopio')->whereColumn('recepciones_acopio.jornada_id', 'jornadas.id');
+
+        return match ($etapa) {
+            null => $query,
+            EtapaJornada::EnRuta => $query->whereNull('cerrada_en')->whereNotExists($recepcion),
+            EtapaJornada::PorRecibir => $query->whereNotNull('cerrada_en')->whereNotExists($recepcion),
+            EtapaJornada::RecibidaConDiferencia => $query->whereExists(fn ($sub) => $recepcion($sub)->whereColumn('litros_medidos', '!=', 'litros_recolectados')),
+            EtapaJornada::RecibidaSinDiferencia => $query->whereExists(fn ($sub) => $recepcion($sub)->whereColumn('litros_medidos', '=', 'litros_recolectados')),
+        };
     }
 
     public function create(): View
@@ -77,12 +110,23 @@ class JornadaController extends Controller
         });
     }
 
-    public function show(int $jornada, ConsultarHojaRutaQuery $hoja): View
+    /** Detalle de jornada: recojos, recepción en planta y reclamos en una sola página. */
+    public function show(int $jornada, ConsultarHojaRutaQuery $hoja, RecepcionAcopioRepositoryInterface $recepciones): View
     {
         $entidad = Jornada::query()->with(['usuario', 'zona', 'vehiculo'])->findOrFail($jornada);
+        $recientes = $entidad->entregas()->with('proveedor')->latest('registrado_en')->paginate(20, ['*'], 'entregas_page')->withQueryString();
+        $recepcion = $recepciones->porJornada($entidad->id);
+        $cambios = Auditoria::query()->where('entidad', 'entrega')->whereIn('entidad_id', $recientes->pluck('id'))
+            ->whereIn('accion', [AccionAuditoria::Corregir->value, AccionAuditoria::Anular->value])
+            ->orderBy('ocurrido_en')->get()->groupBy('entidad_id');
 
         return view('admin.jornadas.show', ['jornada' => $entidad, 'hoja' => $hoja->ejecutar($entidad),
-            'recientes' => $entidad->entregas()->with('proveedor')->latest('registrado_en')->paginate(20, ['*'], 'entregas_page')->withQueryString(),
+            'recientes' => $recientes,
+            'cambios' => $cambios,
+            'recepcion' => $recepcion,
+            'etapa' => EtapaJornada::de($entidad->cerrada_en === null, $recepcion),
+            'reclamos' => ReclamoProveedor::query()->with(['proveedor', 'entrega'])
+                ->whereIn('entrega_id', $entidad->entregas()->select('id'))->latest()->get(),
             'litros' => (float) $entidad->entregas()->where('anulada', false)->sum('litros'),
             'entregas' => $entidad->entregas()->where('anulada', false)->count(),
             'proveedores' => Proveedor::query()->where('zona_id', $entidad->zona_id)->where('estado', 'activo')->orderBy('nombres')->get(),

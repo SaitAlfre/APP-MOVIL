@@ -37,16 +37,12 @@
         <x-ui.tabs :tabs="$pestanas" :active="$pestana" class="mb-0 px-2" />
 
         @if ($pestana === 'analisis')
-            <form method="GET" action="{{ route('admin.calidad.index') }}" class="flex flex-wrap items-end gap-2 border-b border-eh-border px-4 py-3">
+            <form method="GET" action="{{ route('admin.calidad.index') }}" data-live-filter class="flex flex-wrap items-end gap-2 border-b border-eh-border px-4 py-3">
                 <input type="hidden" name="tab" value="analisis">
-                <div class="w-56"><x-ui.field name="q" label="Proveedor o muestra" :value="$busqueda" placeholder="Nombre, código o AN-…" /></div>
+                <div class="w-56"><x-ui.field name="q" type="search" label="Proveedor o muestra" :value="$busqueda" placeholder="Nombre, código o AN-…" autocomplete="off" /></div>
                 <div class="w-48"><x-ui.select id="zona-filtro" name="zona" label="Zona" placeholder="Todas" :options="$zonas" :selected="$zonaActual" /></div>
                 <div class="w-44"><x-ui.select id="resultado-filtro" name="resultado" label="Estado" placeholder="Todos"
                     :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado']" :selected="$filtroActual ? strtolower($filtroActual->value) : null" /></div>
-                <x-ui.btn type="submit" variant="secondary" size="sm" icon="filter">Filtrar</x-ui.btn>
-                @if ($filtros)
-                    <x-ui.btn :href="route('admin.calidad.index')" variant="ghost" size="sm" icon="xMark">Limpiar</x-ui.btn>
-                @endif
                 <span class="ml-auto self-center text-xs text-eh-text-muted">
                     Tasa de aprobación: <strong class="mono text-eh-text">{{ $total > 0 ? round($conteos['aprobado'] / $total * 100, 1).'%' : '—' }}</strong>
                 </span>

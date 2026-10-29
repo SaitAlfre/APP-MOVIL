@@ -1,4 +1,5 @@
 import { iniciarDirectorioUsuarios } from './directorio-usuarios';
+import { iniciarFiltrosDinamicos } from './filtros-dinamicos';
 import { iniciarUsuario } from './usuarios';
 import { iniciarEditorFormulario, protegerCambiosFormulario } from './formularios';
 import { iniciarRoles } from './roles';
@@ -18,6 +19,7 @@ function iniciarPagina() {
     protegerCambiosFormulario(signal);
     iniciarUsuario(signal);
     iniciarDirectorioUsuarios(signal);
+    iniciarFiltrosDinamicos(signal);
 
     if (document.querySelector('[data-proveedores-filtros], [data-proveedor-form], [data-proveedor-qr]')) {
         import('./proveedores').then(({ iniciarProveedores }) => {

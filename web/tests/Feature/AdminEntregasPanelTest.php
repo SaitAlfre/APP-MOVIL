@@ -12,7 +12,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
- * Listado de entregas: filtros, totales y registro por lote.
+ * Historial de recojos: filtros y totales. Solo consulta; los recojos se registran en su jornada.
  */
 class AdminEntregasPanelTest extends TestCase
 {
@@ -27,8 +27,7 @@ class AdminEntregasPanelTest extends TestCase
     /**
      * Nombres de los proveedores presentes en la tabla de resultados.
      *
-     * El listado no basta con `assertDontSee`: el modal de registro por lote incluye
-     * un selector con todos los proveedores activos, así que se comprueba la consulta.
+     * Se comprueba la consulta y no solo el HTML, para no depender de otros textos de la página.
      *
      * @return list<string>
      */
@@ -113,6 +112,38 @@ class AdminEntregasPanelTest extends TestCase
         $respuesta->assertViewHas('litrosHoy', 25.0);
     }
 
+    public function test_filtra_por_periodo_rapido_y_por_rango_de_fechas(): void
+    {
+        $lima = now('America/Lima');
+        Entrega::factory()->create(['litros' => 10, 'registrado_en' => $lima->copy()->setTime(9, 0)->utc()]);
+        Entrega::factory()->create(['litros' => 20, 'registrado_en' => $lima->copy()->subDay()->setTime(9, 0)->utc()]);
+        Entrega::factory()->create(['litros' => 40, 'registrado_en' => $lima->copy()->subDays(20)->setTime(9, 0)->utc()]);
+
+        $this->get('/admin/entregas?periodo=hoy')->assertOk()->assertViewHas('litrosFiltrados', 10.0);
+        $this->get('/admin/entregas?periodo=ayer')->assertOk()->assertViewHas('litrosFiltrados', 20.0);
+        $this->get('/admin/entregas?desde='.$lima->copy()->subDays(25)->toDateString().'&hasta='.$lima->copy()->subDays(2)->toDateString())
+            ->assertOk()->assertViewHas('litrosFiltrados', 40.0);
+        $this->get('/admin/entregas?periodo=mes')->assertSessionHasErrors('periodo');
+    }
+
+    public function test_los_encabezados_filtran_por_acopiador_y_por_origen(): void
+    {
+        $acopiador = Usuario::factory()->create(['nombres' => 'Rubén Quispe', 'roles' => ['acopiador']]);
+        $jornada = Jornada::factory()->create(['usuario_id' => $acopiador->id]);
+        Entrega::factory()->create(['jornada_id' => $jornada->id, 'usuario_id' => $acopiador->id, 'litros' => 15, 'uuid_movil' => 'celular-1']);
+        Entrega::factory()->create(['litros' => 30, 'uuid_movil' => null]);
+
+        $this->get('/admin/entregas?acopiador_id='.$acopiador->id)->assertOk()
+            ->assertViewHas('litrosFiltrados', 15.0)
+            ->assertSee('th-filtro-activo', false)
+            ->assertSee('· Rubén Quispe', false);
+        $this->get('/admin/entregas?origen=web')->assertOk()->assertViewHas('litrosFiltrados', 30.0);
+        $this->get('/admin/entregas?origen=celular&zona_id='.Zona::factory()->create()->id)->assertOk()
+            ->assertSee('Sin recojos para esta búsqueda')
+            ->assertSee('data-th-filtro', false);
+        $this->get('/admin/entregas?origen=fax')->assertSessionHasErrors('origen');
+    }
+
     public function test_un_filtro_invalido_se_rechaza(): void
     {
         $this->get('/admin/entregas?zona_id=999999')->assertSessionHasErrors('zona_id');
@@ -120,39 +151,24 @@ class AdminEntregasPanelTest extends TestCase
         $this->get('/admin/entregas?fecha=no-es-fecha')->assertSessionHasErrors('fecha');
     }
 
-    public function test_sin_jornadas_abiertas_el_registro_por_lote_avisa_en_vez_de_ofrecer_el_formulario(): void
-    {
-        Jornada::factory()->cerrada()->create();
-
-        $respuesta = $this->get('/admin/entregas');
-
-        $respuesta->assertOk();
-        $respuesta->assertSee('No hay jornadas abiertas', false);
-        $respuesta->assertDontSee('Registrar lote');
-    }
-
-    public function test_el_registro_por_lote_rechaza_proveedores_repetidos_en_la_misma_carga(): void
+    public function test_el_historial_es_solo_consulta_y_ya_no_registra_por_lote(): void
     {
         $jornada = Jornada::factory()->create();
-        $proveedor = Proveedor::factory()->create(['tachos' => 5, 'capacidad_tacho_l' => 40]);
+        Entrega::factory()->create(['jornada_id' => $jornada->id]);
 
-        $respuesta = $this->post('/admin/entregas/lote', [
-            'jornada_id' => $jornada->id,
-            'entregas' => [
-                ['proveedor_id' => $proveedor->id, 'litros' => 10, 'tachos' => 1],
-                ['proveedor_id' => $proveedor->id, 'litros' => 12, 'tachos' => 1],
-            ],
-        ]);
-
-        $respuesta->assertSessionHasErrors('entregas.1.proveedor_id');
-        $this->assertDatabaseCount('entregas', 0);
+        $this->get('/admin/entregas')->assertOk()
+            ->assertSee('Historial de recojos')
+            ->assertSee(route('admin.acopiadores.jornadas.show', $jornada->id), false)
+            ->assertDontSee('registro-lote', false);
+        $this->post('/admin/entregas/lote', ['jornada_id' => $jornada->id, 'entregas' => []])->assertNotFound();
     }
 
-    public function test_calidad_ve_el_listado_pero_no_puede_registrar_lotes(): void
+    public function test_calidad_ve_el_historial_sin_enlaces_a_jornadas(): void
     {
         $this->actingAs(Usuario::factory()->create(['roles' => ['calidad']]), 'operador');
+        $entrega = Entrega::factory()->create();
 
-        $this->get('/admin/entregas')->assertOk()->assertDontSee('Registro por lote');
-        $this->post('/admin/entregas/lote', ['jornada_id' => 1, 'entregas' => []])->assertForbidden();
+        $this->get('/admin/entregas')->assertOk()
+            ->assertDontSee(route('admin.acopiadores.jornadas.show', $entrega->jornada_id), false);
     }
 }

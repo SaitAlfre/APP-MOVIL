@@ -210,7 +210,7 @@ class AdminProveedoresPanelTest extends TestCase
         ]);
 
         $this->get("/admin/proveedores/{$proveedor->id}?tab=entregas")->assertOk()->assertSee('40.0 L');
-        $this->get("/admin/proveedores/{$proveedor->id}?tab=calidad")->assertOk()->assertSee('Temperatura sobre el rango');
+        $this->get("/admin/proveedores/{$proveedor->id}?tab=calidad")->assertOk()->assertSee('5.5 °C')->assertDontSee('Temperatura sobre el rango');
         $this->get("/admin/proveedores/{$proveedor->id}?tab=liquidaciones")->assertOk()->assertSee('S/ 72.00');
         $this->get("/admin/proveedores/{$proveedor->id}?tab=auditoria")->assertOk()->assertSee('Cambio de zona del proveedor');
     }

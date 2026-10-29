@@ -33,8 +33,8 @@
                 ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Resumen del día', 'icono' => 'home'],
             ],
             'Acopio' => [
-                ['ruta' => 'admin.jornadas.index', 'patron' => ['admin.jornadas.*', 'admin.acopiadores.jornadas.*'], 'modulo' => 'acopiadores', 'etiqueta' => 'Jornadas de acopio', 'icono' => 'jornada'],
-                ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Entregas', 'icono' => 'droplets'],
+                ['ruta' => 'admin.jornadas.index', 'patron' => ['admin.jornadas.*', 'admin.acopiadores.jornadas.*'], 'modulo' => 'acopiadores', 'etiqueta' => 'Acopio del día', 'icono' => 'jornada'],
+                ['ruta' => 'admin.entregas.index', 'patron' => 'admin.entregas.*', 'modulo' => 'entregas', 'etiqueta' => 'Historial de recojos', 'icono' => 'droplets'],
                 ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'recepcion'],
             ],
             'Calidad' => [
@@ -209,7 +209,7 @@
                 </div>
             </header>
 
-            <main id="contenido-principal" @class(['admin-content relative flex-1 overflow-y-auto', 'gestion-area' => request()->routeIs('admin.usuarios.*','admin.proveedores.*','admin.roles.*','admin.formularios.*')])>
+            <main id="contenido-principal" @class(['admin-content relative flex-1 overflow-y-auto', 'gestion-area' => request()->routeIs('admin.usuarios.*','admin.proveedores.*','admin.roles.*','admin.formularios.*','admin.entregas.*','admin.recepcion.*')])>
                 <div class="admin-page mx-auto max-w-[1440px] px-5 py-7 md:px-8 lg:px-8 lg:py-7">
                     @if (session('error'))
                         <x-ui.alert type="error" class="mb-5">{{ session('error') }}</x-ui.alert>

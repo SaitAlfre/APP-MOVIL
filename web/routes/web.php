@@ -161,9 +161,6 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         Route::middleware('permiso:entregas,ver')->group(function () {
             Route::get('entregas', [EntregaController::class, 'index'])->name('entregas.index');
         });
-        Route::middleware('permiso:entregas,gestionar')->group(function () {
-            Route::post('entregas/lote', [EntregaController::class, 'storeBatch'])->name('entregas.lote.store');
-        });
 
         Route::middleware('permiso:sanciones,ver')->group(function () {
             Route::get('sanciones', [SancionController::class, 'index'])->name('sanciones.index');

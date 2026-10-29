@@ -8,7 +8,6 @@ use App\Infrastructure\Persistence\Eloquent\Configuracion;
 use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Importacion;
-use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\MovimientoProducto;
 use App\Infrastructure\Persistence\Eloquent\Producto;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
@@ -76,23 +75,6 @@ class AdminFigmaModulesTest extends TestCase
 
         $this->get('/admin/sanciones')->assertOk()->assertSee('Agua añadida');
         $this->assertDatabaseHas('sanciones', ['proveedor_id' => $entrega->proveedor_id, 'estado' => 'pendiente', 'descuento' => 30.50]);
-    }
-
-    public function test_registro_por_lote_crea_entregas_reales(): void
-    {
-        $jornada = Jornada::factory()->create();
-        $proveedores = Proveedor::factory()->count(2)->create(['zona_id' => $jornada->zona_id, 'tachos' => 2, 'capacidad_tacho_l' => 40]);
-
-        $this->post('/admin/entregas/lote', [
-            'jornada_id' => $jornada->id,
-            'entregas' => [
-                ['proveedor_id' => $proveedores[0]->id, 'litros' => 30, 'tachos' => 1],
-                ['proveedor_id' => $proveedores[1]->id, 'litros' => 35, 'tachos' => 1],
-            ],
-        ])->assertRedirect('/admin/entregas');
-
-        $this->assertDatabaseCount('entregas', 2);
-        $this->assertSame(1, Entrega::distinct('lote_id')->count('lote_id'));
     }
 
     public function test_sancion_aprobada_se_descuenta_una_sola_vez_de_la_liquidacion(): void

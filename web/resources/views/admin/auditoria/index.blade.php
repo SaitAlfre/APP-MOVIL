@@ -34,7 +34,7 @@
     <x-ui.page-header title="Auditoría" description="Consulta quién creó, corrigió o anuló información y el motivo de cada cambio." />
 
     <x-ui.card padding="p-4" class="mb-4">
-        <form method="GET" action="{{ route('admin.auditoria.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <form method="GET" action="{{ route('admin.auditoria.index') }}" data-live-filter class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <x-ui.select name="usuario_id" label="Responsable o cuenta" placeholder="Todos" :selected="$filtros['usuario_id'] ?? null"
                 :options="$usuariosFiltro->mapWithKeys(fn ($usuario) => [$usuario->id => $usuario->nombres])->all()" />
             <x-ui.select name="entidad" label="Módulo o entidad" placeholder="Todos" :selected="$filtros['entidad'] ?? null"
@@ -43,12 +43,6 @@
                 :options="collect($acciones)->mapWithKeys(fn ($accion) => [$accion->value => $etiquetasAccion[$accion->value] ?? ucfirst($accion->value)])->all()" />
             <x-ui.field name="desde" label="Desde" type="date" :value="$filtros['desde'] ?? null" />
             <x-ui.field name="hasta" label="Hasta" type="date" :value="$filtros['hasta'] ?? null" />
-            <div class="flex items-end gap-2">
-                <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
-                @if ($hayFiltros)
-                    <x-ui.btn :href="route('admin.auditoria.index')" variant="ghost" icon="xMark">Limpiar</x-ui.btn>
-                @endif
-            </div>
         </form>
     </x-ui.card>
 

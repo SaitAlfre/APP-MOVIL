@@ -13,12 +13,9 @@
     </x-ui.page-header>
 
     @if ($rutas->isNotEmpty() || $hayFiltros)
-        <form method="GET" class="mb-5 grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <x-ui.field name="buscar" label="Buscar ruta" :value="request('buscar')" maxlength="120" placeholder="Nombre o código" />
+        <form method="GET" data-live-filter class="mb-5 grid items-end gap-3 sm:grid-cols-2">
+            <x-ui.field name="buscar" type="search" label="Buscar ruta" :value="request('buscar')" maxlength="120" placeholder="Nombre o código" autocomplete="off" />
             <x-ui.select name="zona_id" label="Sector" placeholder="Todos los sectores" :selected="request('zona_id')" :options="$zonas->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre])->all()" />
-            <div class="flex gap-2"><x-ui.btn type="submit" variant="outline">Buscar</x-ui.btn>
-            @if ($hayFiltros)<x-ui.btn :href="route('admin.mapa-rutas.index')" variant="ghost">Limpiar</x-ui.btn>
-            @endif</div>
         </form>
     @endif
     @if ($rutas->isEmpty())

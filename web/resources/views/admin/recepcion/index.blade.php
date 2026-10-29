@@ -6,233 +6,158 @@
     @php
         $operador = auth('operador')->user();
         $puedeGestionar = $operador->puede('recepcion', 'gestionar');
+        $puedeVerJornadas = $operador->puede('acopiadores');
         $umbral = (float) config('ecolecta.umbral_merma_porcentaje');
-
+        $recibidas = collect($filas)->filter(fn ($fila) => $fila['recepcion'] !== null);
         $litrosRecolectados = collect($filas)->sum('litrosRecolectados');
-        $litrosMedidos = collect($filas)->sum(fn ($fila) => $fila['recepcion']?->litrosMedidos ?? 0);
-        $mermaTotal = collect($filas)
-            ->filter(fn ($fila) => $fila['recepcion'] !== null)
-            ->sum(fn ($fila) => $fila['recepcion']->litrosRecolectados - $fila['recepcion']->litrosMedidos);
+        $mermaTotal = $recibidas->sum(fn ($fila) => max(0.0, -$fila['recepcion']->diferencia()));
+        $estados = [
+            'pendiente' => ['Por recibir', 'yellow'],
+            'diferencia' => ['Con diferencia', 'red'],
+            'exacta' => ['Sin diferencia', 'green'],
+        ];
+        $avatares = ['bg-eh-red-soft text-eh-red', 'bg-eh-blue-soft text-eh-blue', 'bg-eh-gold-soft text-eh-gold', 'bg-eh-success-soft text-eh-success', 'bg-eh-violet-soft text-eh-violet'];
+        $iniciales = fn (string $nombre) => collect(preg_split('/\s+/u', trim($nombre)))->filter()->take(2)->map(fn ($parte) => mb_strtoupper(mb_substr($parte, 0, 1)))->implode('');
     @endphp
 
     <x-ui.page-header title="Recepción en planta"
-        description="Llegada a planta por viaje. Registrar la llegada no aprueba Calidad: son dos pasos independientes." />
+        description="Cada tarjeta es un viaje que llega a planta. Registra los litros medidos; la diferencia controla la ruta y no cambia el pago al proveedor." />
 
-    <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <x-ui.kpi label="Viajes en el periodo" :value="count($filas)" icon="truck" color="blue" />
-        <x-ui.kpi label="Sin recepción registrada" :value="$pendientes" icon="clock" :color="$pendientes > 0 ? 'yellow' : 'green'" />
-        <x-ui.kpi label="Litros recolectados" :value="number_format($litrosRecolectados, 1)" unit="L" icon="droplets" color="green" />
+    <div class="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <x-ui.kpi label="Viajes en el periodo" :value="$conteos['']" icon="truck" color="blue" />
+        <x-ui.kpi label="Por recibir" :value="$conteos['pendiente']" icon="clock" :color="$conteos['pendiente'] > 0 ? 'yellow' : 'green'" />
+        <x-ui.kpi label="Litros de campo" :value="number_format($litrosRecolectados, 1)" unit="L" icon="droplets" color="green" />
         <x-ui.kpi label="Merma de transporte" :value="number_format($mermaTotal, 1)" unit="L" icon="exclamation" :color="$mermaTotal > 0 ? 'red' : 'green'"
-            hint="Diferencia entre lo recolectado y lo medido en planta, solo de los viajes ya recepcionados." />
+            hint="Litros que faltaron al medir en planta, solo de los viajes ya recibidos." />
     </div>
 
-    <x-ui.card padding="p-4" class="mb-4">
-        <form method="GET" action="{{ route('admin.recepcion.index') }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <x-ui.field name="desde" label="Desde" type="date" :value="$desde->format('Y-m-d')" class="sm:w-44" />
-            <x-ui.field name="hasta" label="Hasta" type="date" :value="$hasta->format('Y-m-d')" class="sm:w-44" />
-            <x-ui.select name="estado" label="Estado" placeholder="Todos" class="sm:w-44"
-                :options="['pendiente' => 'Pendientes', 'registrada' => 'Registradas']" :selected="$estado" />
-            <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
-            @if (request()->hasAny(['desde', 'hasta', 'estado']))<x-ui.btn :href="route('admin.recepcion.index')" variant="ghost">Quitar filtros</x-ui.btn>@endif
-        </form>
-    </x-ui.card>
+    <x-acopio.filtros form-id="filtros-recepcion" :action="route('admin.recepcion.index')"
+        :estados="['' => 'Todos · '.$conteos[''], 'pendiente' => 'Por recibir · '.$conteos['pendiente'], 'diferencia' => 'Con diferencia · '.$conteos['diferencia'], 'exacta' => 'Sin diferencia · '.$conteos['exacta']]"
+        :estado="$estado" :periodos="['' => 'Últimos 14 días', 'hoy' => 'Hoy', 'ayer' => 'Ayer', 'semana' => 'Esta semana']" :periodo="$periodo"
+        :buscar="request('buscar')" placeholder="Acopiador, zona o placa…" :desde="$desde->format('Y-m-d')" :hasta="$hasta->format('Y-m-d')" />
 
-    <x-ui.card>
-        @if (count($filas) === 0)
-            <x-ui.empty icon="truck" title="No hay viajes con entregas en este rango"
-                description="Ajusta las fechas o el filtro de estado." />
-        @else
-            <x-ui.table :headers="['Fecha', 'Acopiador', 'Camión', 'Zona', 'Recolectados', 'Medidos en planta', 'Diferencia', 'Calidad', 'Recepción', '']"
-                caption="Viajes que llegan a planta">
-                @foreach ($filas as $fila)
-                    @php
-                        $recepcion = $fila['recepcion'];
-                        $calidad = $fila['calidad'];
-                        $diferencia = $recepcion?->diferencia();
-                        $porcentaje = $recepcion !== null && $recepcion->litrosRecolectados > 0
-                            ? (abs($diferencia) / $recepcion->litrosRecolectados) * 100
-                            : null;
-                        $sobreUmbral = $recepcion !== null && $recepcion->esMerma() && $porcentaje !== null && $porcentaje > $umbral;
-                    @endphp
-                    <tr class="border-b border-eh-border align-top last:border-0 hover:bg-eh-surface-alt">
-                        <td class="px-4 py-3 text-xs font-medium text-eh-text">{{ $fila['fecha']->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 text-xs text-eh-text">{{ $fila['acopiador'] }}</td>
-                        <td class="px-4 py-3 text-xs text-eh-text">
-                            {{ $fila['vehiculoNombre'] }}
-                            <span class="mono block text-[11px] text-eh-text-muted">{{ $fila['placa'] }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $fila['zona'] }}</td>
-                        <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ number_format($fila['litrosRecolectados'], 1) }} L</td>
-                        <td class="mono px-4 py-3 text-xs text-eh-text">{{ $recepcion ? number_format($recepcion->litrosMedidos, 1).' L' : '—' }}</td>
-                        <td class="px-4 py-3">
-                            @if ($recepcion === null || $diferencia === 0.0)
-                                <span class="mono text-xs text-eh-text-muted">{{ $recepcion === null ? '—' : 'Sin diferencia' }}</span>
-                            @else
-                                <span @class(['mono text-xs font-semibold', 'text-eh-red' => $recepcion->esMerma(), 'text-eh-gold' => $recepcion->esExcedente()])>
-                                    {{ $recepcion->esMerma() ? 'Merma' : 'Excedente' }} {{ number_format(abs($diferencia), 1) }} L
-                                    @if ($porcentaje !== null)
-                                        ({{ number_format($porcentaje, 1) }}%)
-                                    @endif
-                                </span>
-                                @if ($sobreUmbral)
-                                    <span class="mt-1 flex items-center gap-1 text-[10px] font-semibold text-eh-red">
-                                        <x-icon name="exclamation" class="h-3 w-3" /> Sobre el {{ number_format($umbral, 0) }}% permitido
-                                    </span>
-                                @endif
-                                @if ($recepcion->motivoDiferencia)
-                                    <p class="mt-1 max-w-44 break-words text-[11px] text-eh-text-muted">{{ $recepcion->motivoDiferencia }}</p>
-                                @endif
-                            @endif
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-1">
-                                @if ($calidad['pendientes'] > 0)
-                                    <x-ui.badge variant="gray" :label="$calidad['pendientes'].' pendiente'" />
-                                @endif
-                                @if ($calidad['aprobadas'] > 0)
-                                    <x-ui.badge variant="green" :label="$calidad['aprobadas'].' aprobado'" />
-                                @endif
-                                @if ($calidad['observadas'] > 0)
-                                    <x-ui.badge variant="yellow" :label="$calidad['observadas'].' observado'" />
-                                @endif
-                                @if ($calidad['rechazadas'] > 0)
-                                    <x-ui.badge variant="red" :label="$calidad['rechazadas'].' rechazado'" />
-                                @endif
+    <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section aria-label="Viajes que llegan a planta">
+            @if (count($filas) === 0)
+                <x-ui.card>
+                    <x-ui.empty icon="truck" title="No hay viajes con esta búsqueda" description="Cambia las fechas, el estado o el texto buscado." />
+                </x-ui.card>
+            @else
+                <ul class="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+                    @foreach ($filas as $fila)
+                        @php
+                            $recepcion = $fila['recepcion'];
+                            [$etiqueta, $color] = $estados[$estadoDe($fila)];
+                            $diferencia = $recepcion?->diferencia();
+                            $porcentaje = $recepcion !== null && $fila['litrosRecolectados'] > 0 ? abs($diferencia) / $fila['litrosRecolectados'] * 100 : null;
+                            $sobreUmbral = $recepcion?->esMerma() && $porcentaje > $umbral;
+                            $calidad = $fila['calidad'];
+                        @endphp
+                        <li class="flex flex-col rounded-2xl border border-eh-border bg-eh-surface p-5">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <span aria-hidden="true" class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-semibold {{ $avatares[crc32($fila['zona']) % count($avatares)] }}">{{ $iniciales($fila['acopiador']) }}</span>
+                                    <div class="min-w-0">
+                                        <p class="truncate font-semibold text-eh-text">{{ $fila['acopiador'] }}</p>
+                                        <p class="truncate text-xs text-eh-text-muted">{{ $fila['zona'] }}</p>
+                                    </div>
+                                </div>
+                                <x-ui.badge :variant="$color" :label="$etiqueta" />
                             </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            @if ($recepcion === null)
-                                <x-ui.badge variant="blue" label="Pendiente" />
-                            @else
-                                <x-ui.badge variant="green" label="Registrada" />
-                                <p class="mono mt-1 text-[11px] text-eh-text-muted">{{ $recepcion->llegadaEn->format('d/m H:i') }}</p>
+
+                            <dl class="mt-4 space-y-2 text-sm">
+                                <div class="flex items-center gap-2 text-eh-text-muted"><x-icon name="truck" class="h-4 w-4" /><dt class="sr-only">Camión</dt><dd>{{ $fila['vehiculoNombre'] }} · <span class="mono">{{ $fila['placa'] }}</span></dd></div>
+                                <div class="flex items-center gap-2 text-eh-text-muted"><x-icon name="jornada" class="h-4 w-4" /><dt class="sr-only">Fecha</dt><dd>{{ $fila['fecha']->format('d/m/Y') }}</dd></div>
+                                <div class="flex items-center gap-2 text-eh-text-muted"><x-icon name="beaker" class="h-4 w-4" /><dt class="sr-only">Calidad</dt>
+                                    <dd class="flex flex-wrap gap-1">
+                                        @if ($calidad['aprobadas'] + $calidad['observadas'] + $calidad['rechazadas'] + $calidad['pendientes'] === 0)
+                                            <span>Sin muestras de calidad</span>
+                                        @endif
+                                        @if ($calidad['aprobadas'] > 0)<x-ui.badge variant="green" :label="$calidad['aprobadas'].' aprobadas'" />@endif
+                                        @if ($calidad['observadas'] > 0)<x-ui.badge variant="yellow" :label="$calidad['observadas'].' observadas'" />@endif
+                                        @if ($calidad['rechazadas'] > 0)<x-ui.badge variant="red" :label="$calidad['rechazadas'].' rechazadas'" />@endif
+                                        @if ($calidad['pendientes'] > 0)<x-ui.badge variant="gray" :label="$calidad['pendientes'].' sin evaluar'" />@endif
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <div class="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-eh-surface-alt p-3 text-center">
+                                <div><p class="text-[11px] text-eh-text-muted">Campo</p><p class="mono text-sm font-semibold">{{ number_format($fila['litrosRecolectados'], 1) }} L</p></div>
+                                <div><p class="text-[11px] text-eh-text-muted">Planta</p><p class="mono text-sm font-semibold">{{ $recepcion ? number_format($recepcion->litrosMedidos, 1).' L' : '—' }}</p></div>
+                                <div>
+                                    <p class="text-[11px] text-eh-text-muted">Diferencia</p>
+                                    <p @class(['mono text-sm font-semibold', 'text-eh-red' => $recepcion?->esMerma(), 'text-eh-gold' => $recepcion?->esExcedente()])>
+                                        {{ $recepcion === null ? '—' : ($diferencia === 0.0 ? '0 L' : ($diferencia > 0 ? '+' : '').number_format($diferencia, 1).' L') }}
+                                    </p>
+                                </div>
+                            </div>
+                            @if ($recepcion?->motivoDiferencia)
+                                <p class="mt-2 text-xs text-eh-text-muted"><span class="font-medium text-eh-text">Motivo:</span> {{ $recepcion->motivoDiferencia }}</p>
                             @endif
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            @if ($puedeGestionar)
-                                <x-ui.btn type="button" size="sm" :variant="$recepcion === null ? 'primary' : 'secondary'"
-                                    data-modal-open="recepcion-{{ $fila['jornadaId'] }}">
-                                    {{ $recepcion === null ? 'Registrar llegada' : 'Corregir' }}
-                                </x-ui.btn>
+                            @if ($sobreUmbral)
+                                <p class="mt-2 flex items-center gap-1 text-xs font-semibold text-eh-red"><x-icon name="exclamation" class="h-3.5 w-3.5" /> Supera el {{ number_format($umbral, 0) }}% de merma permitido</p>
                             @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </x-ui.table>
-        @endif
-    </x-ui.card>
+
+                            <div class="min-h-4 flex-1"></div>
+                            <div class="flex items-center justify-between gap-2 border-t border-eh-border pt-3">
+                                <span class="flex items-center gap-1 text-xs text-eh-text-muted">
+                                    <x-icon name="clock" class="h-3.5 w-3.5" />
+                                    {{ $recepcion ? 'Llegó '.$recepcion->llegadaEn->format('d/m H:i') : 'Sin llegada' }}
+                                </span>
+                                <div class="flex items-center gap-1">
+                                    @if ($puedeVerJornadas)
+                                        <x-ui.btn :href="route('admin.acopiadores.jornadas.show', $fila['jornadaId'])" variant="ghost" size="sm">Ver jornada</x-ui.btn>
+                                    @endif
+                                    @if ($puedeGestionar)
+                                        <x-ui.btn size="sm" :variant="$recepcion === null ? 'primary' : 'outline'" data-modal-open="recepcion-{{ $fila['jornadaId'] }}">
+                                            {{ $recepcion === null ? 'Registrar llegada' : 'Corregir' }}
+                                        </x-ui.btn>
+                                    @endif
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        <aside class="space-y-5">
+            <x-ui.card padding="p-5">
+                <h2 class="mb-1 flex items-center gap-2 font-semibold"><x-icon name="chartBar" class="h-4 w-4 text-eh-primary" /> Merma por zona</h2>
+                <p class="mb-4 text-xs text-eh-text-muted">Litros que faltaron en planta en el periodo.</p>
+                <x-ui.chart-hbars :data="$mermaPorZona" color="var(--eh-red)" empty="Sin merma registrada en el periodo." />
+            </x-ui.card>
+
+            <x-ui.card padding="p-5">
+                <h2 class="mb-4 flex items-center gap-2 font-semibold"><x-icon name="clock" class="h-4 w-4 text-eh-primary" /> Llegadas de hoy</h2>
+                @if (count($deHoy) === 0)
+                    <p class="text-sm text-eh-text-muted">Hoy todavía no hay viajes.</p>
+                @else
+                    <ul class="space-y-3">
+                        @foreach ($deHoy as $fila)
+                            @php [$etiqueta, $color] = $estados[$estadoDe($fila)]; @endphp
+                            <li class="flex items-start justify-between gap-3 rounded-xl border border-eh-border p-3">
+                                <div class="flex min-w-0 items-start gap-2">
+                                    <span aria-hidden="true" @class(['mt-1.5 h-2 w-2 shrink-0 rounded-full', 'bg-eh-gold' => $color === 'yellow', 'bg-eh-red' => $color === 'red', 'bg-eh-success' => $color === 'green'])></span>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium">{{ $fila['zona'] }}</p>
+                                        <p class="truncate text-xs text-eh-text-muted">{{ $etiqueta }} · {{ number_format($fila['litrosRecolectados'], 1) }} L</p>
+                                    </div>
+                                </div>
+                                <span class="mono shrink-0 text-xs text-eh-text-muted">{{ $fila['recepcion']?->llegadaEn->format('H:i') ?? '—' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-ui.card>
+        </aside>
+    </div>
 
     @if ($puedeGestionar)
         @foreach ($filas as $fila)
-            @php $recepcion = $fila['recepcion']; @endphp
-            <x-ui.modal :id="'recepcion-'.$fila['jornadaId']" :title="$recepcion === null ? 'Registrar llegada a planta' : 'Corregir recepción'">
-                <form method="POST" action="{{ route('admin.recepcion.llegada.store', $fila['jornadaId']) }}" class="space-y-4" data-once>
-                    @csrf
-
-                    <div class="rounded-xl bg-eh-surface-alt p-4 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-eh-text-muted">Viaje</span>
-                            <span class="font-medium text-eh-text">{{ $fila['acopiador'] }} · {{ $fila['zona'] }}</span>
-                        </div>
-                        <div class="mt-2 flex justify-between">
-                            <span class="text-eh-text-muted">Litros recolectados en campo</span>
-                            <span class="mono font-bold text-eh-text">{{ number_format($fila['litrosRecolectados'], 1) }} L</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="flex flex-col gap-1">
-                            <label for="llegada-{{ $fila['jornadaId'] }}" class="text-sm font-medium text-eh-text">
-                                Fecha y hora de llegada <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
-                            </label>
-                            <input id="llegada-{{ $fila['jornadaId'] }}" name="llegada_en" type="datetime-local" required
-                                max="{{ now()->format('Y-m-d\TH:i') }}"
-                                value="{{ old('llegada_en', $recepcion?->llegadaEn->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i')) }}"
-                                class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label for="litros-{{ $fila['jornadaId'] }}" class="text-sm font-medium text-eh-text">
-                                Litros medidos en planta <span class="text-eh-red" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>
-                            </label>
-                            <div class="relative">
-                                <input id="litros-{{ $fila['jornadaId'] }}" name="litros_medidos" type="number" min="0" step="0.01" required
-                                    value="{{ old('litros_medidos', $recepcion?->litrosMedidos ?? $fila['litrosRecolectados']) }}"
-                                    data-recepcion-medidos data-recolectado="{{ $fila['litrosRecolectados'] }}" data-jornada="{{ $fila['jornadaId'] }}"
-                                    class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 pr-8 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">
-                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-eh-text-muted">L</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p data-recepcion-diferencia="{{ $fila['jornadaId'] }}" class="rounded-xl bg-eh-surface-alt px-3 py-2 text-sm text-eh-text-muted" aria-live="polite">
-                        Ingresa los litros medidos para ver la diferencia.
-                    </p>
-
-                    <div class="flex flex-col gap-1">
-                        <label for="motivo-{{ $fila['jornadaId'] }}" class="text-sm font-medium text-eh-text">Motivo de la diferencia</label>
-                        <textarea id="motivo-{{ $fila['jornadaId'] }}" name="motivo_diferencia" maxlength="255" rows="2"
-                            placeholder="Obligatorio solo si hay diferencia entre lo recolectado y lo medido"
-                            class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ old('motivo_diferencia', $recepcion?->motivoDiferencia) }}</textarea>
-                    </div>
-
-                    <div class="flex flex-col gap-1">
-                        <label for="obs-{{ $fila['jornadaId'] }}" class="text-sm font-medium text-eh-text">Observaciones</label>
-                        <textarea id="obs-{{ $fila['jornadaId'] }}" name="observaciones" maxlength="500" rows="2"
-                            class="w-full rounded-xl border border-eh-border bg-eh-surface px-3 py-2 text-sm text-eh-text focus:border-eh-primary focus:outline-none focus:ring-1 focus:ring-eh-primary">{{ old('observaciones', $recepcion?->observaciones) }}</textarea>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <x-ui.btn type="button" variant="ghost" data-modal-close>Cancelar</x-ui.btn>
-                        <x-ui.btn type="submit">Guardar recepción</x-ui.btn>
-                    </div>
-                </form>
-            </x-ui.modal>
+            @include('admin.recepcion._llegada-modal', ['jornadaId' => $fila['jornadaId'], 'viaje' => $fila['acopiador'].' · '.$fila['zona'], 'litrosRecolectados' => $fila['litrosRecolectados'], 'recepcion' => $fila['recepcion']])
         @endforeach
 
-        <script>
-            (function () {
-                const umbral = {{ $umbral }};
-
-                document.querySelectorAll('[data-recepcion-medidos]').forEach((input) => {
-                    const recolectado = parseFloat(input.dataset.recolectado);
-                    const salida = document.querySelector('[data-recepcion-diferencia="' + input.dataset.jornada + '"]');
-
-                    if (!salida) {
-                        return;
-                    }
-
-                    const actualizar = () => {
-                        const medido = input.value !== '' ? parseFloat(input.value) : null;
-
-                        if (medido === null || Number.isNaN(medido)) {
-                            salida.textContent = 'Ingresa los litros medidos para ver la diferencia.';
-                            salida.className = 'rounded-xl bg-eh-surface-alt px-3 py-2 text-sm text-eh-text-muted';
-                            return;
-                        }
-
-                        const diferencia = recolectado - medido;
-                        const porcentaje = recolectado > 0 ? (Math.abs(diferencia) / recolectado) * 100 : 0;
-
-                        if (Math.abs(diferencia) < 0.005) {
-                            salida.textContent = 'Sin diferencia respecto a lo recolectado en campo.';
-                            salida.className = 'rounded-xl bg-eh-primary-soft px-3 py-2 text-sm font-medium text-eh-primary';
-                            return;
-                        }
-
-                        const etiqueta = diferencia > 0 ? 'Merma' : 'Excedente';
-                        const texto = etiqueta + ' de ' + Math.abs(diferencia).toFixed(1) + ' L (' + porcentaje.toFixed(1) + '% de lo recolectado). Indica el motivo.';
-                        const alerta = diferencia > 0 && porcentaje > umbral;
-
-                        salida.textContent = alerta ? texto + ' Supera el ' + umbral + '% permitido.' : texto;
-                        salida.className = alerta
-                            ? 'rounded-xl bg-eh-red-soft px-3 py-2 text-sm font-medium text-eh-red'
-                            : 'rounded-xl bg-eh-gold-soft px-3 py-2 text-sm font-medium text-eh-gold';
-                    };
-
-                    input.addEventListener('input', actualizar);
-                    actualizar();
-                });
-            })();
-        </script>
+        @include('admin.recepcion._llegada-script')
     @endif
 @endsection

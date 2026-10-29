@@ -789,3 +789,8 @@ button, a, summary { touch-action: manipulation; }
 html.is-navigating::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--color-eh-primary, #c04436); z-index: 100; }
 html.is-navigating .admin-content { cursor: progress; }
 .navigation-status { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 100; max-width: min(90vw, 40rem); padding: 1rem; border-radius: .75rem; background: var(--color-eh-surface, white); color: var(--color-eh-text, #292524); box-shadow: 0 4px 24px #0002; }
+
+/* Campos numéricos sin flechas de incremento: los litros se escriben, no se ajustan de a 0.1. */
+input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

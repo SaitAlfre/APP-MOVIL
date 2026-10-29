@@ -121,7 +121,7 @@
                 @if (count($entregas) === 0)
                     <x-ui.empty icon="droplets" title="Sin entregas registradas" description="Cuando el acopiador registre una entrega de este proveedor aparecerá aquí." />
                 @else
-                    <x-ui.table :headers="$puedeVerCalidad ? ['Fecha', 'Litros', 'Calidad', 'Observaciones'] : ['Fecha', 'Litros', 'Observaciones']" caption="Últimas entregas del proveedor">
+                    <x-ui.table :headers="$puedeVerCalidad ? ['Fecha', 'Litros', 'Calidad'] : ['Fecha', 'Litros']" caption="Últimas entregas del proveedor">
                         @foreach ($entregas as $entrega)
                             @php $control = $controles[$entrega->id] ?? null; @endphp
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
@@ -134,7 +134,6 @@
                                         <x-ui.badge variant="yellow" label="Pendiente" />
                                     @endif
                                 </td>@endif
-                                <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $entrega->observaciones ?: '—' }}</td>
                             </tr>
                         @endforeach
                     </x-ui.table>
@@ -145,7 +144,7 @@
                 @if ($conControl->isEmpty())
                     <x-ui.empty icon="beaker" title="Sin controles de calidad" description="Las entregas de este proveedor todavía no fueron evaluadas." />
                 @else
-                    <x-ui.table :headers="['Evaluado', 'Resultado', 'Temperatura', 'Acidez', 'Observaciones']" caption="Controles de calidad del proveedor">
+                    <x-ui.table :headers="['Evaluado', 'Resultado', 'Temperatura', 'Acidez']" caption="Controles de calidad del proveedor">
                         @foreach ($conControl as $entrega)
                             @php $control = $controles[$entrega->id]; @endphp
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
@@ -153,7 +152,6 @@
                                 <td class="px-4 py-3"><x-ui.estado :estado="$control->resultado->value" /></td>
                                 <td class="mono px-4 py-3 text-sm text-eh-text">{{ $control->temperaturaC !== null ? number_format($control->temperaturaC, 1).' °C' : '—' }}</td>
                                 <td class="mono px-4 py-3 text-sm text-eh-text">{{ $control->acidez !== null ? number_format($control->acidez, 1).' °D' : '—' }}</td>
-                                <td class="px-4 py-3 text-xs text-eh-text-muted">{{ $control->observaciones ?: '—' }}</td>
                             </tr>
                         @endforeach
                     </x-ui.table>

@@ -105,3 +105,16 @@ a.gestion-row-title:hover { color: var(--eh-primary); text-decoration: underline
 /* Columna Estado: la insignia abre un menú con los cambios permitidos. */
 .gestion-action-menu.gestion-estado-menu > summary { width: auto; height: auto; min-height: 2rem; padding: 0; border-radius: 9999px; }
 div.gestion-estado-opciones :is(a, button) { align-items: flex-start; white-space: normal; max-width: 16rem; }
+
+/* Filtro desplegable dentro del encabezado de una columna. */
+.th-filtro { position: relative; display: inline-block; }
+.th-filtro > summary { display: inline-flex; align-items: center; gap: .3rem; list-style: none; cursor: pointer; border-radius: .4rem; padding: .15rem .35rem; margin: -.15rem -.35rem; }
+.th-filtro > summary::-webkit-details-marker { display: none; }
+.th-filtro > summary:hover, .th-filtro[open] > summary { background: var(--eh-surface-alt); }
+.th-filtro > summary:focus-visible { outline: 2px solid var(--eh-primary); outline-offset: 2px; }
+.th-filtro-activo { color: var(--eh-primary); }
+.th-filtro-valor { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.th-filtro-menu { position: absolute; top: calc(100% + .35rem); left: 0; z-index: 20; min-width: 13rem; max-height: 18rem; overflow-y: auto; padding: .35rem; border: 1px solid var(--eh-border); border-radius: .75rem; background: var(--eh-surface); box-shadow: 0 8px 24px #00000014; text-align: left; font-weight: 400; }
+.th-filtro-menu a { display: block; padding: .5rem .65rem; border-radius: .45rem; font-size: .8125rem; color: var(--eh-text); white-space: nowrap; }
+.th-filtro-menu a:hover { background: var(--eh-surface-alt); }
+.th-filtro-menu a[aria-current] { background: var(--eh-primary-soft); color: var(--eh-primary); font-weight: 600; }

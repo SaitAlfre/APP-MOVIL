@@ -21,10 +21,9 @@
     <x-ui.tabs :tabs="$pestanas" :active="$tab" />
 
     @if (in_array($tab, ['materiales', 'movimientos-materiales'], true))
-        <form method="GET" action="{{ route('admin.inventario.index') }}" class="mb-5 flex flex-wrap items-end gap-3" data-inventory-filter>
+        <form method="GET" action="{{ route('admin.inventario.index') }}" class="mb-5 flex flex-wrap items-end gap-3" data-inventory-filter data-live-filter>
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="min-w-64 flex-1"><x-ui.select name="producto_id" label="Ingredientes para el producto" placeholder="Todos los ingredientes" :selected="$productoFiltro?->id" :options="$productos->mapWithKeys(fn ($p) => [$p->id => $p->nombre.' · '.$p->presentacion])->all()" /></div>
-            <x-ui.btn type="submit" variant="secondary" icon="filter">Filtrar</x-ui.btn>
             @if ($productoFiltro)<x-ui.btn :href="route('admin.inventario.index', ['tab' => $tab])" variant="ghost">Ver todos</x-ui.btn>@endif
         </form>
     @endif

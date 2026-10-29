@@ -43,7 +43,7 @@ class JornadaEntregaController extends Controller
 
             'proveedor_id' => ['required', 'integer'],
 
-            'litros' => ['required', 'numeric', 'gt:0', 'max:18500'],
+            'litros' => ['required', 'numeric', 'gt:0', 'max:18500', 'decimal:0,1'],
 
             'tachos' => ['sometimes', 'integer', 'min:1'],
 
@@ -130,7 +130,7 @@ class JornadaEntregaController extends Controller
 
             'entrega_id' => ['required', 'integer'],
 
-            'litros' => ['required', 'numeric', 'gt:0', 'max:18500'],
+            'litros' => ['required', 'numeric', 'gt:0', 'max:18500', 'decimal:0,1'],
 
             'tachos' => ['sometimes', 'integer', 'min:1'],
 
@@ -193,9 +193,9 @@ class JornadaEntregaController extends Controller
     public function corregir(Request $request, int $entrega, CorregirEntregaUseCase $corregir): RedirectResponse
     {
 
-        $datos = $request->validate(['litros' => ['required', 'numeric', 'gt:0', 'max:18500'],
+        $datos = $request->validate(['litros' => ['required', 'numeric', 'gt:0', 'max:18500', 'decimal:0,1'],
 
-            'observaciones' => ['nullable', 'string', 'max:255'], 'motivo' => ['required', 'string', 'min:5', 'max:255'],
+            'motivo' => ['required', 'string', 'min:5', 'max:255'],
 
             'revision' => ['required', 'string', 'size:64']]);
 
@@ -209,7 +209,7 @@ class JornadaEntregaController extends Controller
 
             }
 
-            $corregir->ejecutar($registro->id, (float) $datos['litros'], $registro->tachos, $datos['observaciones'] ?? null, $datos['motivo'], auth('operador')->id());
+            $corregir->ejecutar($registro->id, (float) $datos['litros'], $registro->tachos, $registro->observaciones, $datos['motivo'], auth('operador')->id());
 
             return redirect()->route('admin.acopiadores.jornadas.show', $registro->jornada_id)->with('estado', 'Recojo corregido. Se descargará en el móvil al sincronizar.');
 

@@ -2,21 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Entregas\RegistrarEntregaUseCase;
-use App\Domain\Entregas\Exceptions\EntregaInvalidaException;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
-use App\Infrastructure\Persistence\Eloquent\Jornada;
-use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Usuario;
 use App\Infrastructure\Persistence\Eloquent\Zona;
 use Carbon\CarbonImmutable;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
-use RuntimeException;
 
+/** Historial de recojos: solo consulta. Los recojos se registran dentro del detalle de su jornada. */
 class EntregaController extends Controller
 {
     public function index(Request $request): View
@@ -24,9 +18,26 @@ class EntregaController extends Controller
         $request->validate([
             'buscar' => ['nullable', 'string', 'max:120'],
             'fecha' => ['nullable', 'date'],
+            'desde' => ['nullable', 'date_format:Y-m-d'],
+            'hasta' => ['nullable', 'date_format:Y-m-d'],
+            'periodo' => ['nullable', 'in:hoy,ayer,semana'],
             'zona_id' => ['nullable', 'integer', 'exists:zonas,id'],
+            'acopiador_id' => ['nullable', 'integer', 'exists:usuarios,id'],
+            'origen' => ['nullable', 'in:celular,web'],
             'estado' => ['nullable', 'string', 'in:registrada,anulada'],
+            'orden' => ['nullable', 'in:recientes,antiguos,litros_desc,litros_asc'],
+            'por_pagina' => ['nullable', 'in:10,20,50'],
         ]);
+        $orden = $request->input('orden', 'recientes');
+        $hoy = CarbonImmutable::now('America/Lima')->startOfDay();
+        $periodo = $request->filled('periodo') ? $request->string('periodo')->toString() : null;
+        $fecha = fn (string $campo) => $request->filled($campo) ? CarbonImmutable::parse($request->input($campo), 'America/Lima') : null;
+        [$desde, $hasta] = match ($periodo) {
+            'hoy' => [$hoy, $hoy],
+            'ayer' => [$hoy->subDay(), $hoy->subDay()],
+            'semana' => [$hoy->startOfWeek(), $hoy],
+            default => [$fecha('desde') ?? $fecha('fecha'), $fecha('hasta') ?? $fecha('fecha')],
+        };
 
         $filtrada = fn ($query) => $query
             ->when($request->filled('buscar'), function ($interno) use ($request) {
@@ -37,58 +48,39 @@ class EntregaController extends Controller
                         ->orWhereHas('jornada.usuario', fn ($usuarios) => $usuarios->where('nombres', 'like', $termino));
                 });
             })
-            ->when($request->filled('fecha'), fn ($interno) => $interno->whereBetween('registrado_en', [CarbonImmutable::parse($request->input('fecha'), 'America/Lima')->startOfDay()->utc(), CarbonImmutable::parse($request->input('fecha'), 'America/Lima')->endOfDay()->utc()]))
+            ->when($desde, fn ($interno) => $interno->where('registrado_en', '>=', $desde->startOfDay()->utc()))
+            ->when($hasta, fn ($interno) => $interno->where('registrado_en', '<=', $hasta->endOfDay()->utc()))
             ->when($request->filled('zona_id'), fn ($interno) => $interno->where('zona_id', $request->integer('zona_id')))
+            ->when($request->filled('acopiador_id'), fn ($interno) => $interno->where('usuario_id', $request->integer('acopiador_id')))
+            ->when($request->input('origen') === 'celular', fn ($interno) => $interno->whereNotNull('uuid_movil'))
+            ->when($request->input('origen') === 'web', fn ($interno) => $interno->whereNull('uuid_movil'));
+        $conEstado = fn ($query) => $filtrada($query)
             ->when($request->filled('estado'), fn ($interno) => $interno->where('anulada', $request->string('estado')->toString() === 'anulada'));
 
-        $entregas = $filtrada(Entrega::query()->with(['proveedor.zona', 'jornada.usuario']))
-            ->latest('registrado_en')
-            ->paginate(20)
+        $entregas = $conEstado(Entrega::query()->with(['proveedor.zona', 'jornada.usuario']))
+            ->when($orden === 'recientes', fn ($q) => $q->latest('registrado_en'))
+            ->when($orden === 'antiguos', fn ($q) => $q->oldest('registrado_en'))
+            ->when($orden === 'litros_desc', fn ($q) => $q->orderByDesc('litros')->latest('registrado_en'))
+            ->when($orden === 'litros_asc', fn ($q) => $q->orderBy('litros')->latest('registrado_en'))
+            ->paginate($request->integer('por_pagina', 20))
             ->withQueryString();
 
         return view('admin.entregas.index', [
             'entregas' => $entregas,
-            'litrosFiltrados' => (float) $filtrada(Entrega::query())->where('anulada', false)->sum('litros'),
+            'orden' => $orden,
+            'periodo' => $periodo,
+            'desde' => $desde?->toDateString(),
+            'hasta' => $hasta?->toDateString(),
+            'conteos' => [
+                '' => $filtrada(Entrega::query())->count(),
+                'registrada' => $filtrada(Entrega::query())->where('anulada', false)->count(),
+                'anulada' => $filtrada(Entrega::query())->where('anulada', true)->count(),
+            ],
+            'litrosFiltrados' => (float) $conEstado(Entrega::query())->where('anulada', false)->sum('litros'),
             'litrosHoy' => (float) Entrega::whereBetween('registrado_en', [now('America/Lima')->startOfDay()->utc(), now('America/Lima')->endOfDay()->utc()])->where('anulada', false)->sum('litros'),
             'entregasHoy' => Entrega::whereBetween('registrado_en', [now('America/Lima')->startOfDay()->utc(), now('America/Lima')->endOfDay()->utc()])->where('anulada', false)->count(),
-            'jornadas' => Jornada::with(['zona', 'usuario'])->whereNull('cerrada_en')->latest('abierta_en')->get(),
-            'proveedores' => Proveedor::with('zona')->where('estado', 'activo')->orderBy('nombres')->get(),
             'zonasDisponibles' => Zona::query()->orderBy('nombre')->get(),
+            'acopiadores' => Usuario::query()->whereJsonContains('roles', 'acopiador')->orderBy('nombres')->pluck('nombres', 'id')->all(),
         ]);
-    }
-
-    public function storeBatch(Request $request, RegistrarEntregaUseCase $registrar): RedirectResponse
-    {
-        $request->merge([
-            'entregas' => collect($request->input('entregas', []))
-                ->filter(fn (array $fila) => filled($fila['proveedor_id'] ?? null) || filled($fila['litros'] ?? null) || filled($fila['tachos'] ?? null))
-                ->values()->all(),
-        ]);
-        $datos = $request->validate([
-            'jornada_id' => ['required', 'integer', 'exists:jornadas,id'],
-            'entregas' => ['required', 'array', 'min:1', 'max:50'],
-            'entregas.*.proveedor_id' => ['required', 'integer', 'distinct', 'exists:proveedores,id'],
-            'entregas.*.litros' => ['required', 'numeric', 'gt:0', 'max:18500'],
-            'entregas.*.tachos' => ['sometimes', 'integer', 'min:1'],
-        ]);
-        $jornada = Jornada::whereKey($datos['jornada_id'])->whereNull('cerrada_en')->firstOrFail();
-        foreach ($datos['entregas'] as $fila) {
-            if (! Proveedor::query()->whereKey($fila['proveedor_id'])->where('zona_id', $jornada->zona_id)->where('estado', 'activo')->exists()) {
-                return back()->withErrors(['entregas' => 'Todos los proveedores deben estar activos y pertenecer a la zona de la jornada.'])->withInput();
-            }
-        }
-        $loteId = (string) Str::uuid();
-
-        try {
-            DB::transaction(function () use ($datos, $jornada, $loteId, $registrar): void {
-                foreach ($datos['entregas'] as $fila) {
-                    $registrar->ejecutar($jornada->id, (int) $fila['proveedor_id'], $jornada->usuario_id, $jornada->zona_id, $jornada->vehiculo_id, (float) $fila['litros'], (int) ($fila['tachos'] ?? 1), 'Registro por lote desde el panel web.', $loteId);
-                }
-            });
-        } catch (EntregaInvalidaException|RuntimeException $exception) {
-            return back()->withErrors(['entregas' => $this->mensajeSeguro($exception)])->withInput();
-        }
-
-        return redirect()->route('admin.entregas.index')->with('estado', count($datos['entregas']).' entregas registradas en el lote.');
     }
 }

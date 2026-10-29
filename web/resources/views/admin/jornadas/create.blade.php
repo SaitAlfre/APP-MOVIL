@@ -5,7 +5,7 @@
 @section('contenido')
     <x-ui.page-header title="Iniciar jornada"
         description="Abre una jornada en nombre de un acopiador para poder registrar sus entregas."
-        :breadcrumbs="[['label' => 'Jornadas de acopio', 'url' => route('admin.jornadas.index')], ['label' => 'Iniciar jornada']]" />
+        :breadcrumbs="[['label' => 'Acopio del día', 'url' => route('admin.jornadas.index')], ['label' => 'Iniciar jornada']]" />
 
     @if (empty($acopiadores))
         <x-ui.card class="max-w-2xl">
