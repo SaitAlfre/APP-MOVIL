@@ -22,7 +22,7 @@ class SolicitudTraslado extends Model
 
     protected function casts(): array
     {
-        return ['resuelto_en' => 'datetime'];
+        return ['resuelto_en' => 'datetime', 'fecha_efectiva' => 'date', 'aplicado_en' => 'datetime'];
     }
 
     public function proveedor(): BelongsTo

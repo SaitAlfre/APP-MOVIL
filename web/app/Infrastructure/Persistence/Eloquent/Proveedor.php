@@ -32,6 +32,11 @@ class Proveedor extends Model
         'creado_por_usuario_id',
         'usuario_id',
         'dueno',
+        'latitud',
+        'longitud',
+        'ubicacion_origen',
+        'ubicacion_por',
+        'ubicacion_en',
     ];
 
     protected function casts(): array
@@ -39,6 +44,9 @@ class Proveedor extends Model
         return [
             'estado' => EstadoProveedor::class,
             'capacidad_tacho_l' => 'decimal:2',
+            'latitud' => 'float',
+            'longitud' => 'float',
+            'ubicacion_en' => 'datetime',
         ];
     }
 

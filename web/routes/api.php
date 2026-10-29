@@ -23,6 +23,8 @@ Route::prefix('movil')->name('api.movil.')->group(function () {
 
     Route::middleware(['movil.token:acopiador,admin', 'throttle:movil-sync'])->group(function () {
         Route::put('entregas/{uuid}', [MovilController::class, 'sincronizarEntrega'])->name('entregas.sincronizar');
+        // Ubicación capturada una vez en la casa del proveedor; no es seguimiento en vivo.
+        Route::put('proveedores/{codigo}/ubicacion', [MovilController::class, 'guardarUbicacionProveedor'])->name('proveedores.ubicacion');
     });
 
     Route::middleware('movil.token:proveedor')->group(function () {

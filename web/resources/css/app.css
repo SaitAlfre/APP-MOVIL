@@ -794,3 +794,6 @@ html.is-navigating .admin-content { cursor: progress; }
 input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Planta: salida y llegada de todos los recorridos. */
+.mapa-planta { position: absolute; top: 0; left: 0; display: grid; place-items: center; width: 36px; height: 36px; border: 3px solid white; border-radius: 10px; background: #1f2937; color: white; font-size: 14px; font-weight: 800; box-shadow: 0 2px 8px #0005; pointer-events: auto; z-index: 2; }

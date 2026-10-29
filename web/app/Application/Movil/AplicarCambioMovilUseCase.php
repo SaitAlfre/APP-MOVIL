@@ -10,6 +10,7 @@ use App\Application\Proveedores\CambiarEstadoProveedorUseCase;
 use App\Application\Proveedores\CrearProveedorUseCase;
 use App\Application\Proveedores\DatosProveedor;
 use App\Application\Proveedores\DesvincularUsuarioProveedorUseCase;
+use App\Application\Proveedores\TrasladoZonaProveedor;
 use App\Application\Proveedores\VincularUsuarioProveedorUseCase;
 use App\Application\Usuarios\ActualizarUsuarioUseCase;
 use App\Application\Usuarios\CambiarEstadoUsuarioUseCase;
@@ -434,28 +435,28 @@ class AplicarCambioMovilUseCase
         if ($solicitud === null && SolicitudTraslado::query()->where('proveedor_id', $proveedor->id)->where('estado', 'PENDIENTE')->exists()) {
             throw new CambioMovilRechazadoException('El proveedor ya tiene un traslado pendiente de revisión.', 'traslado_pendiente', 409);
         }
-        $solicitud ??= SolicitudTraslado::query()->create([
-            'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id,
-            'zona_destino_id' => $destino->id, 'motivo' => $datos['motivo'], 'estado' => 'PENDIENTE',
-        ]);
+        if ($solicitud === null) {
+            $solicitud = SolicitudTraslado::query()->create([
+                'uuid_movil' => $datos['uuid'], 'proveedor_id' => $proveedor->id,
+                'zona_destino_id' => $destino->id, 'motivo' => $datos['motivo'], 'estado' => 'PENDIENTE',
+            ]);
+            $solicitud->update(['fecha_efectiva' => TrasladoZonaProveedor::fechaMinima($solicitud)->toDateString()]);
+        }
         if ($resolver && $solicitud->estado !== 'PENDIENTE' && $solicitud->estado !== $estado) {
             throw new CambioMovilRechazadoException('El traslado ya tiene una decisión distinta. Sincroniza para ver el resultado.', 'solicitud_resuelta', 409);
         }
         if ($resolver && $solicitud->estado === 'PENDIENTE') {
+            // El cambio de zona respeta el aviso mínimo: se programa y se aplica en la fecha efectiva.
+            $minima = TrasladoZonaProveedor::fechaMinima($solicitud);
+            $pedida = isset($datos['fechaEfectiva']) ? CarbonImmutable::parse($datos['fechaEfectiva'], 'America/Lima')->startOfDay() : null;
+            $efectiva = $pedida !== null && $pedida->greaterThan($minima) ? $pedida : $minima;
+            $efectiva = $efectiva->lessThan(TrasladoZonaProveedor::hoy()) ? TrasladoZonaProveedor::hoy() : $efectiva;
+            $respuesta = trim($datos['respuesta'] ?? '') ?: ($estado === 'APROBADA' ? 'Traslado autorizado por administración.' : 'Traslado rechazado por administración.');
+            $solicitud->update(['estado' => $estado, 'respuesta' => $respuesta, 'resuelto_por' => $autor->id, 'resuelto_en' => now()]
+                + ($estado === 'APROBADA' ? ['fecha_efectiva' => $efectiva->toDateString()] : []));
             if ($estado === 'APROBADA') {
-                $anterior = $proveedor->zona_id;
-                app(ActualizarProveedorUseCase::class)->ejecutar($proveedor->id, new DatosProveedor(
-                    codigo: $proveedor->codigo, nombres: $proveedor->nombres, dni: $proveedor->dni,
-                    telefono: $proveedor->telefono, direccion: $proveedor->direccion, zonaId: $solicitud->zona_destino_id,
-                    tachos: $proveedor->tachos, capacidadTachoL: (float) $proveedor->capacidad_tacho_l,
-                ));
-                Auditoria::query()->create([
-                    'entidad' => 'proveedor', 'entidad_id' => $proveedor->id, 'usuario_id' => $autor->id,
-                    'accion' => 'autorizar', 'ocurrido_en' => now(), 'motivo' => $solicitud->motivo,
-                    'valor_antes' => "zona={$anterior}", 'valor_despues' => "zona={$solicitud->zona_destino_id}",
-                ]);
+                app(TrasladoZonaProveedor::class)->aplicarSiCorresponde($solicitud->fresh(), $autor->id);
             }
-            $solicitud->update(['estado' => $estado, 'respuesta' => trim($datos['respuesta'] ?? '') ?: ($estado === 'APROBADA' ? 'Traslado autorizado por administración.' : 'Traslado rechazado por administración.'), 'resuelto_por' => $autor->id, 'resuelto_en' => now()]);
         }
 
         return $solicitud->id;

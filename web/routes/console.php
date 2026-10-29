@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\Proveedores\ConciliarCuentasProveedoresUseCase;
+use App\Application\Proveedores\TrasladoZonaProveedor;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Foundation\Inspiring;
@@ -52,3 +53,11 @@ Schedule::call(function (): void {
         ->where('publicar_en', '<=', now())
         ->update(['estado' => 'publicado', 'publicado_en' => now()]);
 })->everyMinute()->name('publicar-comunicados')->withoutOverlapping();
+
+Artisan::command('traslados:aplicar', function (TrasladoZonaProveedor $traslados): int {
+    $this->info('Traslados de zona aplicados: '.$traslados->aplicarProgramados());
+
+    return 0;
+})->purpose('Aplica los traslados de zona aprobados cuya fecha efectiva ya llegó');
+
+Schedule::command('traslados:aplicar')->dailyAt('00:05')->timezone('America/Lima')->name('aplicar-traslados')->withoutOverlapping();

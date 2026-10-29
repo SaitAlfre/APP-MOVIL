@@ -23,14 +23,21 @@
             ->implode('');
 
         $navGroups = [
+            'Inicio' => [
+                ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Resumen del día', 'icono' => 'home'],
+            ],
             'Usuarios y proveedores' => [
                 ['ruta' => 'admin.usuarios.index', 'patron' => 'admin.usuarios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Usuarios y accesos', 'icono' => 'usuarios'],
                 ['ruta' => 'admin.proveedores.index', 'patron' => 'admin.proveedores.*', 'modulo' => 'proveedores', 'etiqueta' => 'Proveedores', 'icono' => 'proveedores'],
                 ['ruta' => 'admin.roles.index', 'patron' => 'admin.roles.*', 'modulo' => 'usuarios', 'etiqueta' => 'Roles y permisos', 'icono' => 'shield', 'solo_admin' => true],
                 ['ruta' => 'admin.formularios.index', 'patron' => 'admin.formularios.*', 'modulo' => 'usuarios', 'etiqueta' => 'Formularios', 'icono' => 'receta', 'solo_admin' => true],
             ],
-            'Inicio' => [
-                ['ruta' => 'admin.dashboard.index', 'patron' => 'admin.dashboard.*', 'modulo' => 'dashboard', 'etiqueta' => 'Resumen del día', 'icono' => 'home'],
+            'Organización del acopio' => [
+                ['ruta' => 'admin.organizacion.index', 'patron' => 'admin.organizacion.index', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Resumen por zona', 'icono' => 'chartBar'],
+                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Rutas de acopio', 'icono' => 'map'],
+                ['ruta' => 'admin.acopiadores.catalogo', 'patron' => 'admin.acopiadores.catalogo', 'modulo' => 'acopiadores', 'etiqueta' => 'Acopiadores', 'icono' => 'acopiador'],
+                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Sectores y vehículos', 'icono' => 'truck'],
+                ['ruta' => 'admin.organizacion.traslados', 'patron' => 'admin.organizacion.traslados*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Traslados de zona', 'icono' => 'arrowPath'],
             ],
             'Acopio' => [
                 ['ruta' => 'admin.jornadas.index', 'patron' => ['admin.jornadas.*', 'admin.acopiadores.jornadas.*'], 'modulo' => 'acopiadores', 'etiqueta' => 'Acopio del día', 'icono' => 'jornada'],
@@ -41,10 +48,6 @@
                 ['ruta' => 'admin.calidad.index', 'patron' => 'admin.calidad.*', 'modulo' => 'calidad', 'etiqueta' => 'Calidad', 'icono' => 'beaker'],
                 ['ruta' => 'admin.sanciones.index', 'patron' => 'admin.sanciones.*', 'modulo' => 'sanciones', 'etiqueta' => 'Sanciones', 'icono' => 'sancion'],
             ],
-            'Liquidaciones y pagos' => [
-                ['ruta' => 'admin.liquidaciones.index', 'patron' => 'admin.liquidaciones.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Liquidaciones y pagos', 'icono' => 'liquidacion'],
-                ['ruta' => 'admin.tarifas.index', 'patron' => 'admin.tarifas.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Precio de la leche', 'icono' => 'tarifa'],
-            ],
             'Planta' => [
                 ['ruta' => 'admin.produccion.productos.index', 'patron' => 'admin.produccion.productos.*', 'modulo' => 'productos', 'etiqueta' => 'Productos', 'icono' => 'cube'],
                 ['ruta' => 'admin.recetas.index', 'patron' => 'admin.recetas.*', 'modulo' => 'recetas', 'etiqueta' => 'Recetas', 'icono' => 'receta'],
@@ -53,10 +56,9 @@
                 ['ruta' => 'admin.inventario.index', 'patron' => 'admin.inventario.*', 'modulo' => 'inventario', 'etiqueta' => 'Inventario', 'icono' => 'cube'],
                 ['ruta' => 'admin.ventas.index', 'patron' => 'admin.ventas.*', 'modulo' => 'ventas', 'etiqueta' => 'Ventas', 'icono' => 'shoppingCart'],
             ],
-            'Organización del acopio' => [
-                ['ruta' => 'admin.mapa-rutas.index', 'patron' => 'admin.mapa-rutas.*', 'modulo' => 'mapa_rutas', 'etiqueta' => 'Rutas de acopio', 'icono' => 'map'],
-                ['ruta' => 'admin.acopiadores.catalogo', 'patron' => 'admin.acopiadores.catalogo', 'modulo' => 'acopiadores', 'etiqueta' => 'Acopiadores', 'icono' => 'acopiador'],
-                ['ruta' => 'admin.zonas-vehiculos.index', 'patron' => 'admin.zonas-vehiculos.*', 'modulo' => 'zonas_vehiculos', 'etiqueta' => 'Sectores y vehículos', 'icono' => 'truck'],
+            'Liquidaciones y pagos' => [
+                ['ruta' => 'admin.liquidaciones.index', 'patron' => 'admin.liquidaciones.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Liquidaciones y pagos', 'icono' => 'liquidacion'],
+                ['ruta' => 'admin.tarifas.index', 'patron' => 'admin.tarifas.*', 'modulo' => 'liquidaciones', 'etiqueta' => 'Precio de la leche', 'icono' => 'tarifa'],
             ],
             'Comunicación' => [
                 ['ruta' => 'admin.comunicados.index', 'patron' => 'admin.comunicados.*', 'modulo' => 'comunicados', 'etiqueta' => 'Comunicados', 'icono' => 'megaphone'],
@@ -209,7 +211,7 @@
                 </div>
             </header>
 
-            <main id="contenido-principal" @class(['admin-content relative flex-1 overflow-y-auto', 'gestion-area' => request()->routeIs('admin.usuarios.*','admin.proveedores.*','admin.roles.*','admin.formularios.*','admin.entregas.*','admin.recepcion.*')])>
+            <main id="contenido-principal" @class(['admin-content relative flex-1 overflow-y-auto', 'gestion-area' => request()->routeIs('admin.usuarios.*','admin.proveedores.*','admin.roles.*','admin.formularios.*','admin.entregas.*','admin.recepcion.*','admin.acopiadores.catalogo','admin.zonas-vehiculos.*','admin.organizacion.*','admin.mapa-rutas.index')])>
                 <div class="admin-page mx-auto max-w-[1440px] px-5 py-7 md:px-8 lg:px-8 lg:py-7">
                     @if (session('error'))
                         <x-ui.alert type="error" class="mb-5">{{ session('error') }}</x-ui.alert>

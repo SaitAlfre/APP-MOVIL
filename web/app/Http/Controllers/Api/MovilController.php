@@ -17,6 +17,7 @@ use App\Http\Controllers\Controller;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
+use App\Infrastructure\Persistence\Eloquent\Ruta;
 use App\Infrastructure\Persistence\Eloquent\TokenMovil;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Illuminate\Http\JsonResponse;
@@ -263,6 +264,44 @@ class MovilController extends Controller
      * Solo las liquidaciones del proveedor vinculado a la cuenta del token: nunca las de otro. Se envían
      * todas las generadas en el panel (pendientes de pago y pagadas) con su estado real.
      */
+    public function guardarUbicacionProveedor(Request $request, string $codigo): JsonResponse
+    {
+        $datos = $request->validate([
+            'latitud' => ['required', 'numeric', 'between:-85,85'],
+            'longitud' => ['required', 'numeric', 'between:-180,180'],
+            'precisionM' => ['required', 'numeric', 'min:0', 'max:100'],
+        ], ['precisionM.max' => 'La señal GPS es poco precisa (más de 100 m). Espera unos segundos al aire libre y vuelve a intentarlo.']);
+        $autor = $request->user();
+        $proveedor = Proveedor::query()->where('codigo', $codigo)->where('estado', 'activo')->first();
+        if ($proveedor === null) {
+            return response()->json(['message' => 'El proveedor no existe o no está activo en el panel.', 'codigo' => 'no_existe'], 404);
+        }
+        $asignado = $autor->tieneRol('admin') || $autor->zona_id === $proveedor->zona_id
+            || Ruta::query()->where('acopiador_id', $autor->id)->where('zona_id', $proveedor->zona_id)->where('activo', true)->exists();
+        if (! $asignado) {
+            return response()->json(['message' => 'Solo el acopiador de la zona del proveedor puede guardar su ubicación.', 'codigo' => 'sin_permiso'], 403);
+        }
+
+        DB::transaction(function () use ($proveedor, $datos, $autor): void {
+            $antes = $proveedor->latitud === null ? 'sin ubicación' : $proveedor->latitud.','.$proveedor->longitud;
+            $proveedor->update(['latitud' => (float) $datos['latitud'], 'longitud' => (float) $datos['longitud'],
+                'ubicacion_origen' => 'celular', 'ubicacion_por' => $autor->id, 'ubicacion_en' => now()]);
+            // La parada del proveedor se mueve en sus rutas; administración vuelve a calcular el camino.
+            Ruta::query()->where('zona_id', $proveedor->zona_id)->lockForUpdate()->get()->each(function (Ruta $ruta) use ($proveedor, $datos): void {
+                $paradas = collect($ruta->paradas ?? [])->map(fn (array $parada) => ($parada['proveedor_id'] ?? null) === $proveedor->id
+                    ? [...$parada, 'latitud' => (float) $datos['latitud'], 'longitud' => (float) $datos['longitud']] : $parada)->all();
+                if ($paradas !== $ruta->paradas) {
+                    $ruta->update(['paradas' => $paradas, 'mapa_version' => $ruta->mapa_version + 1]);
+                }
+            });
+            Auditoria::query()->create(['entidad' => 'proveedor', 'entidad_id' => $proveedor->id, 'accion' => 'actualizar',
+                'motivo' => 'Ubicación capturada desde el celular (precisión '.round((float) $datos['precisionM']).' m)',
+                'usuario_id' => $autor->id, 'ocurrido_en' => now(), 'valor_antes' => $antes, 'valor_despues' => $datos['latitud'].','.$datos['longitud']]);
+        });
+
+        return response()->json(['latitud' => (float) $datos['latitud'], 'longitud' => (float) $datos['longitud'], 'origen' => 'celular']);
+    }
+
     public function liquidacionesProveedor(Request $request): JsonResponse
     {
         $proveedor = Proveedor::query()->where('usuario_id', $request->user()->id)->first();

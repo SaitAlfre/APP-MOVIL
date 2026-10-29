@@ -157,7 +157,7 @@ class RolesConfigurablesTest extends TestCase
     public function test_sidebar_muestra_la_gestion_al_inicio_sin_accesos_anteriores(): void
     {
         $this->admin();
-        $this->get(route('admin.usuarios.index'))->assertOk()->assertSeeInOrder(['Usuarios y proveedores', 'Roles y permisos', 'Formularios', 'Resumen del día', 'Acopio'])->assertSee('Usuarios y accesos')->assertSee(route('admin.proveedores.index'), false)->assertDontSee('Roles y formularios');
+        $this->get(route('admin.usuarios.index'))->assertOk()->assertSeeInOrder(['Resumen del día', 'Usuarios y proveedores', 'Roles y permisos', 'Formularios', 'Organización del acopio', 'Acopio del día', 'Calidad', 'Planta', 'Liquidaciones y pagos'])->assertSee('Usuarios y accesos')->assertSee(route('admin.proveedores.index'), false)->assertDontSee('Roles y formularios');
     }
 
     public function test_formulario_genera_claves_unicas_y_conserva_el_orden(): void

@@ -160,43 +160,5 @@
             @endif
         @endforeach
     @endif
-    <section class="mt-6">
-        <h2 class="mb-3 text-sm font-semibold text-eh-text">Solicitudes de traslado</h2>
-        <x-ui.card>
-            @if ($solicitudesTraslado->isEmpty())
-                <p class="p-4 text-sm text-eh-text-muted">No hay solicitudes de traslado.</p>
-            @else
-                <x-ui.table :headers="['Proveedor', 'Destino solicitado', 'Motivo', 'Estado', '']" caption="Solicitudes de traslado">
-                    @foreach ($solicitudesTraslado as $traslado)
-                        <tr class="border-b border-eh-border">
-                            <td class="px-4 py-3">{{ $traslado->proveedor?->nombres }}</td>
-                            <td class="px-4 py-3">{{ $traslado->destino?->nombre }}</td>
-                            <td class="px-4 py-3">
-                                <p>{{ $traslado->motivo }}</p>
-                                @if ($traslado->respuesta)
-                                    <p class="mt-2 text-xs text-eh-text-muted">Respuesta: {{ $traslado->respuesta }}</p>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">{{ $traslado->estado }}</td>
-                            <td class="px-4 py-3">
-                                @if ($operador->tieneRol('admin') && $traslado->estado === 'PENDIENTE')
-                                    <div class="min-w-60">
-                                            <form method="POST" action="{{ route('admin.sanciones.traslados.resolver', $traslado) }}" class="space-y-2" data-once>
-                                                @csrf
-                                                @method('PATCH')
-                                                <x-ui.select name="estado" label="Decisión" required :options="['APROBADA' => 'Aprobar traslado', 'RECHAZADA' => 'Rechazar traslado']" />
-                                                <label class="block text-xs" for="respuesta-traslado-{{ $traslado->id }}">Respuesta al proveedor</label>
-                                                <textarea id="respuesta-traslado-{{ $traslado->id }}" name="respuesta" required maxlength="500" rows="2" class="w-full rounded-lg border border-eh-border bg-eh-surface p-2 text-sm"></textarea>
-                                                <x-ui.btn type="submit" size="sm" variant="secondary">Guardar decisión</x-ui.btn>
-                                            </form>
-                                    </div>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </x-ui.table>
-                <div class="p-4">{{ $solicitudesTraslado->links() }}</div>
-            @endif
-        </x-ui.card>
-    </section>
+    <p class="mt-6 text-sm text-eh-text-muted">Los traslados de zona se revisan en <a href="{{ route('admin.organizacion.traslados') }}" class="font-semibold text-eh-primary underline">Organización del acopio › Traslados de zona</a>.</p>
 @endsection

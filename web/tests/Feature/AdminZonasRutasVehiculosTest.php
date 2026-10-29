@@ -68,7 +68,7 @@ class AdminZonasRutasVehiculosTest extends TestCase
         $respuesta->assertViewHas('filasZonas', function ($filas) {
             $fila = collect($filas)->first();
 
-            return $fila['proveedores'] === 2 && $fila['rutas'] === 1;
+            return $fila['proveedores'] === 2 && $fila['rutas']->count() === 1;
         });
     }
 

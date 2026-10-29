@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\JornadaController as AdminJornadaController;
 use App\Http\Controllers\Admin\JornadaEntregaController;
 use App\Http\Controllers\Admin\LiquidacionController;
 use App\Http\Controllers\Admin\MapaRutaController;
+use App\Http\Controllers\Admin\OrganizacionController;
 use App\Http\Controllers\Admin\Produccion\AcopioController;
 use App\Http\Controllers\Admin\Produccion\HistorialController;
 use App\Http\Controllers\Admin\Produccion\ProduccionController;
@@ -54,6 +55,7 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         Route::middleware('permiso:mapa_rutas,gestionar')->group(function () {
             Route::get('mapa-rutas/nueva', [MapaRutaController::class, 'create'])->name('mapa-rutas.create');
             Route::post('mapa-rutas', [MapaRutaController::class, 'store'])->name('mapa-rutas.store');
+            Route::post('mapa-rutas/trazar', [MapaRutaController::class, 'trazar'])->middleware('throttle:20,1')->name('mapa-rutas.trazar');
         });
         Route::put('mapa-rutas/{ruta}', [MapaRutaController::class, 'update'])
             ->whereNumber('ruta')->middleware('permiso:mapa_rutas,gestionar')->name('mapa-rutas.update');
@@ -123,8 +125,11 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
 
         Route::middleware('permiso:zonas_vehiculos,ver')->group(function () {
             Route::get('zonas-vehiculos', [ZonaVehiculoController::class, 'index'])->name('zonas-vehiculos.index');
+            Route::get('organizacion', [OrganizacionController::class, 'index'])->name('organizacion.index');
+            Route::get('organizacion/traslados', [OrganizacionController::class, 'traslados'])->name('organizacion.traslados');
         });
         Route::middleware('permiso:zonas_vehiculos,gestionar')->group(function () {
+            Route::patch('organizacion/traslados/{traslado}', [OrganizacionController::class, 'resolverTraslado'])->name('organizacion.traslados.resolver');
             Route::post('zonas-vehiculos/rutas', [ZonaVehiculoController::class, 'storeRuta'])->name('rutas.store');
             Route::put('zonas-vehiculos/rutas/{ruta}', [ZonaVehiculoController::class, 'updateRuta'])->name('rutas.update');
             Route::get('zonas/nueva', [ZonaController::class, 'create'])->name('zonas.create');
@@ -168,7 +173,6 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         });
         Route::middleware('permiso:sanciones,gestionar')->group(function () {
             Route::patch('sanciones/{sancion}', [SancionController::class, 'resolver'])->name('sanciones.resolver');
-            Route::patch('sanciones/traslados/{traslado}', [SancionController::class, 'resolverTraslado'])->name('sanciones.traslados.resolver');
             Route::patch('sanciones/reclamos/{reclamo}', [SancionController::class, 'resolverReclamo'])->name('sanciones.reclamos.resolver');
         });
 

@@ -14,6 +14,7 @@ class MapaAcopio {
         this.tiles = new Map();
         this.stops = [];
         this.trace = [];
+        this.planta = config.planta ?? null;
         this.tileLayer = document.createElement('div');
         this.tileLayer.className = 'mapa-teselas';
         this.svg = document.createElementNS(svgNamespace, 'svg');
@@ -107,6 +108,7 @@ class MapaAcopio {
 
     fit() {
         const points = [...this.stops.map((stop) => [stop.latitud, stop.longitud]), ...this.trace.map((point) => [point.latitud, point.longitud])];
+        if (this.planta) points.push([this.planta.latitud, this.planta.longitud]);
         if (!points.length) return;
         for (let zoom = 17; zoom >= 4; zoom--) {
             const projected = points.map((point) => this.project(point, zoom));
@@ -171,6 +173,13 @@ class MapaAcopio {
             }
             this.markerLayer.append(marker);
         });
+        if (this.planta) {
+            this.plantaMarker = document.createElement('span');
+            this.plantaMarker.className = 'mapa-planta';
+            this.plantaMarker.textContent = 'P';
+            this.plantaMarker.title = this.planta.nombre + ': salida y llegada de los camiones';
+            this.markerLayer.append(this.plantaMarker);
+        }
         this.locationMarker = document.createElement('span');
         this.locationMarker.className = 'mapa-ubicacion';
         this.locationMarker.title = 'Tu ubicación';
@@ -221,13 +230,18 @@ class MapaAcopio {
             const projected = this.project(point, this.zoom);
             return [projected[0] - left, projected[1] - top];
         };
-        const line = this.trace.length >= 2 ? this.trace : this.stops;
+        const extremos = this.planta && this.stops.length ? [this.planta] : [];
+        const line = this.trace.length >= 2 ? this.trace : [...extremos, ...this.stops, ...extremos];
         this.path.setAttribute('points', line.map((point) => screen([point.latitud, point.longitud]).join(',')).join(' '));
         this.path.setAttribute('class', this.trace.length >= 2 ? 'mapa-trazado' : 'mapa-orden');
         this.stops.forEach((stop, index) => {
             const [x, y] = screen([stop.latitud, stop.longitud]);
             this.markerLayer.children[index].style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
         });
+        if (this.plantaMarker) {
+            const [x, y] = screen([this.planta.latitud, this.planta.longitud]);
+            this.plantaMarker.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+        }
         if (!this.locationMarker) return;
         this.locationMarker.hidden = !this.location;
         if (this.location) {
@@ -238,21 +252,6 @@ class MapaAcopio {
 }
 
 const firmaParadas = (stops) => stops.map((stop) => Number(stop.latitud).toFixed(6) + ',' + Number(stop.longitud).toFixed(6)).join(';');
-const coordenadaValida = ([lat, lon]) => Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 85 && Math.abs(lon) <= 180;
-
-function leerUbicacion(value) {
-    const pair = /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/;
-    let match = value.trim().match(new RegExp('^' + pair.source + '$'));
-    if (!match) {
-        try {
-            const url = new URL(value.trim());
-            const target = url.href.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
-            match = target ?? ['query', 'q', 'destination', 'll'].map((name) => url.searchParams.get(name)?.match(pair)).find(Boolean) ?? url.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
-        } catch { return null; }
-    }
-    const point = match ? [Number(match[1]), Number(match[2])] : null;
-    return point && coordenadaValida(point) ? point.map((value) => Number(value.toFixed(6))) : null;
-}
 
 function longitudCamino(points) {
     let distance = 0;
@@ -266,469 +265,496 @@ function longitudCamino(points) {
     return distance;
 }
 
-let ultimaConsultaRutas = 0;
+const iniciales = (nombre) => String(nombre ?? '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0].toUpperCase()).join('');
+const normalizar = (valor) => String(valor ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase('es');
+const clavePunto = (punto) => Number(punto.latitud).toFixed(6) + ',' + Number(punto.longitud).toFixed(6);
+const claveTramo = (a, b) => clavePunto(a) + '>' + clavePunto(b);
+/** Velocidad supuesta en una trocha dibujada a mano, para estimar el tiempo de ese tramo. */
+const KMH_TROCHA = 15;
+const PUNTOS_MAXIMOS = 2000;
 
+/** Reduce el trazado a lo que acepta el servidor conservando el primer y el último punto. */
+function reducirTrazado(puntos) {
+    if (puntos.length <= PUNTOS_MAXIMOS) return puntos;
+    const paso = (puntos.length - 1) / (PUNTOS_MAXIMOS - 1);
+    return Array.from({ length: PUNTOS_MAXIMOS }, (_, i) => puntos[Math.round(i * paso)]);
+}
+
+/**
+ * Editor simple de rutas: la zona define los proveedores, se agregan con un clic en el orden de
+ * siempre del acopiador y el camino (planta → paradas → planta) se calcula solo con
+ * OpenRouteService en el servidor. Un tramo de trocha que no está en el mapa se dibuja a mano y se
+ * conserva aunque el resto del camino se recalcule.
+ */
 export function iniciarMapasRutas(signal) {
     document.querySelectorAll('[data-mapa-ruta]').forEach((root) => {
         const config = JSON.parse(root.querySelector('[data-map-config]').textContent);
-        let stops = config.paradas ?? [];
+        const form = root.querySelector('[data-route-save]');
+        const editable = Boolean(form);
+        config.editable = editable;
+        const planta = config.planta ?? null;
+        let stops = (config.paradas ?? []).map((stop) => ({ ...stop }));
         let trace = config.trazado ?? [];
         let summary = config.resumen && ['manual', 'carretera'].includes(config.resumen.fuente) ? config.resumen : null;
         if (summary && summary.firma_paradas !== firmaParadas(stops)) { trace = []; summary = null; }
-        let selected = -1, editing = -1, mode = 'parada', dirty = Boolean(config.cambios_pendientes), submitted = false;
-        let calculating = false, pendingRequest, draggedIndex = null, draftSnapshot = '', pendingPlacement = null;
-        const status = root.querySelector('[data-map-status]');
-        const list = root.querySelector('[data-stop-list]');
-        const template = root.querySelector('[data-stop-template]');
-        const editor = root.querySelector('[data-stop-editor]');
-        const dialog = root.querySelector('[data-stop-dialog]');
-        const saveForm = root.querySelector('[data-route-save]');
-        const fields = editor ? Object.fromEntries(['nombre', 'proveedor_id', 'ubicacion', 'referencia'].map((name) => [name, editor.elements.namedItem(name)])) : {};
-        const locationPreset = editor?.querySelector('[data-stop-location-preset]');
-        const sectorField = saveForm?.elements.namedItem('zona_id');
-        let sector = Number(sectorField?.value || config.zona_id || 0);
-        const saveStatus = root.querySelector('[data-save-status]');
-        const calculateButton = root.querySelector('[data-route-calculate]');
-        const submitButton = root.querySelector('[data-route-submit]');
-        config.editable = Boolean(editor);
+        const manuales = new Map((config.resumen?.tramos_manuales ?? []).map((tramo) => [tramo.clave, tramo.puntos]));
+        let tramos = null;
+        let selected = -1, dirty = Boolean(config.cambios_pendientes), submitted = false;
+        let ubicar = null, temporizador = null, consulta = null, calculando = false, arrastrado = null;
+        let dibujo = null;
+        const proveedores = new Map((config.proveedores ?? []).map((proveedor) => [proveedor.id, { ...proveedor }]));
+        const $ = (selector) => root.querySelector(selector);
+        const status = $('[data-map-status]');
+        const list = $('[data-stop-list]');
+        const template = $('[data-stop-template]');
+        const zonaCampo = form?.elements.namedItem('zona_id');
+        const nombreCampo = form?.elements.namedItem('nombre');
+        let zona = Number(zonaCampo?.value || config.zona_id || 0);
+        const vehiculo = () => form?.querySelector('input[name="tipo_vehiculo"]:checked')?.value ?? 'camion';
+        const secuencia = () => (planta ? [planta, ...stops, planta] : [...stops]);
+        const nombrePunto = (index, total) => (planta && (index === 0 || index === total - 1) ? 'Planta' : String(planta ? index : index + 1));
 
-        function notify(message) { status.textContent = message; }
-        function markDirty() {
+        const avisar = (mensaje, tipo = 'normal') => {
+            status.textContent = mensaje;
+            status.classList.toggle('text-eh-red', tipo === 'error');
+            status.classList.toggle('text-eh-text-muted', tipo !== 'error');
+        };
+        const marcarCambios = () => {
             dirty = true;
-            if (saveStatus) saveStatus.textContent = 'Cambios pendientes de guardar';
-        }
-        function snapshot() { return JSON.stringify(Object.values(fields).map((field) => field.value)); }
-        function draftChanged() { return Boolean(pendingPlacement) || (dialog?.open && snapshot() !== draftSnapshot); }
-        function manualSummary() {
-            summary = trace.length >= 2 ? { fuente: 'manual', distancia_m: longitudCamino(trace), duracion_s: null, firma_paradas: firmaParadas(stops) } : null;
-        }
-        function invalidatePath() {
-            pendingRequest?.abort();
-            if (trace.length) notify('Las paradas cambiaron. Calcula el camino nuevamente o dibújalo al terminar de ordenar.');
-            trace = [];
-            summary = null;
-        }
-        function closeEditor(force = false) {
-            if (!force && draftChanged() && !window.confirm('¿Descartar los cambios de esta parada?')) return false;
-            dialog.close();
-            editor.reset();
-            editing = -1;
-            return true;
-        }
-        function fillProviders(value = '') {
-            const options = config.proveedores.filter((provider) => provider.zona_id === sector && provider.estado === 'activo');
-            fields.proveedor_id.replaceChildren(new Option('Otro punto: planta, reunión o referencia', ''));
-            options.forEach((provider) => {
-                const used = stops.some((stop, index) => index !== editing && Number(stop.proveedor_id) === provider.id);
-                const option = new Option((provider.codigo ? provider.codigo + ' · ' : '') + provider.nombres + (used ? ' (ya agregado)' : ''), provider.id);
-                option.disabled = used;
-                fields.proveedor_id.add(option);
-            });
-            if (value && !options.some((provider) => provider.id === Number(value))) {
-                const oldProvider = config.proveedores.find((provider) => provider.id === Number(value));
-                fields.proveedor_id.add(new Option((oldProvider?.nombres ?? 'Proveedor anterior') + ' (no disponible)', value));
-            }
-            fields.proveedor_id.value = value;
-            root.querySelector('[data-provider-field]').hidden = options.length === 0 && !value;
-        }
-        function updateLocationMatch() {
-            if (!locationPreset) return;
-            const point = leerUbicacion(fields.ubicacion.value);
-            const matches = stops.map((stop, index) => ({ stop, index })).filter(({ stop }) => point && Number(stop.latitud).toFixed(6) === point[0].toFixed(6) && Number(stop.longitud).toFixed(6) === point[1].toFixed(6));
-            const match = matches.find(({ index }) => index === editing) ?? matches[0];
-            locationPreset.value = match ? String(match.index) : '';
-            const status = editor.querySelector('[data-stop-location-match]');
-            status.hidden = !match;
-            status.textContent = match ? 'Ubicación del punto ' + (match.index + 1) + ' · ' + match.stop.nombre : '';
-        }
-        function fillLocationPresets() {
-            if (!locationPreset) return;
-            locationPreset.replaceChildren(new Option('Elegir punto…', ''));
-            stops.forEach((stop, index) => {
-                const coordinates = [stop.latitud, stop.longitud].map((value) => Number(value).toFixed(6)).join(', ');
-                locationPreset.add(new Option('Punto ' + (index + 1) + ' · ' + stop.nombre + ' · ' + coordinates, String(index)));
-            });
-            editor.querySelector('[data-stop-location-presets]').hidden = stops.length === 0;
-            updateLocationMatch();
-        }
-        function openEditor(index = -1, point = null, providerId = null, draft = null) {
-            if (!editor) return;
-            if (pendingPlacement) { notify('Marca la ubicación en el mapa o pulsa Volver a los datos.'); return; }
-            if (!sector) {
-                notify('Elige primero el sector de la ruta.');
-                sectorField?.focus();
-                return;
-            }
-            if (index < 0 && stops.length >= 100) { notify('Una ruta admite hasta 100 paradas.'); return; }
-            editing = index;
-            editor.reset();
-            const stop = stops[index];
-            const provider = config.proveedores.find((item) => item.id === Number(providerId));
-            fillProviders(draft?.proveedor_id ?? stop?.proveedor_id ?? provider?.id ?? '');
-            fields.nombre.value = draft?.nombre ?? stop?.nombre ?? provider?.nombres ?? 'Parada ' + (stops.length + 1);
-            fields.referencia.value = draft?.referencia ?? stop?.referencia ?? provider?.direccion ?? '';
-            const location = stop ? [stop.latitud, stop.longitud] : point;
-            fields.ubicacion.value = point ? point.map((value) => Number(value).toFixed(6)).join(', ') : draft?.ubicacion ?? (location ? location.map((value) => Number(value).toFixed(6)).join(', ') : '');
-            root.querySelector('[data-stop-error]').hidden = true;
-            const number = stop ? index + 1 : stops.length + 1;
-            root.querySelector('[data-stop-dialog-number]').textContent = String(number);
-            root.querySelector('[data-stop-dialog-title]').textContent = (stop ? 'Editar punto ' : 'Nuevo punto ') + number;
-            root.querySelector('[data-stop-location-label]').textContent = 'Ubicación del punto ' + number;
-            root.querySelector('[data-stop-submit]').textContent = (stop ? 'Guardar punto ' : 'Agregar punto ') + number;
-            fillLocationPresets();
-            draftSnapshot = snapshot();
-            dialog.showModal();
-            (location ? fields.nombre : root.querySelector('[data-stop-pick-location]')).focus();
-            if (location) fields.nombre.select();
-        }
-        function restorePlacement(point = null) {
-            const pending = pendingPlacement;
-            if (!pending) return;
-            pendingPlacement = null;
-            root.querySelector('[data-placement-banner]').hidden = true;
-            openEditor(pending.index, point, null, pending.fields);
-            refreshControls();
-        }
-        function select(index) {
-            selected = index;
-            const stop = stops[index];
-            if (!stop) return;
-            map.focus([stop.latitud, stop.longitud]);
-            refresh();
-            list.children[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            notify('Parada ' + (index + 1) + ': ' + stop.nombre + (stop.referencia ? '. ' + stop.referencia : ''));
-        }
-        const map = new MapaAcopio(root.querySelector('[data-map-canvas]'), config, (point) => {
-            if (!editor) return;
-            if (!sector) { notify('Elige primero el sector de la ruta.'); sectorField.focus(); return; }
-            if (pendingPlacement) { restorePlacement(point); return; }
-            if (mode === 'trazado') {
-                if (trace.length >= 2000) { notify('El trazado admite hasta 2000 puntos.'); return; }
-                trace.push({ latitud: Number(point[0].toFixed(6)), longitud: Number(point[1].toFixed(6)) });
-                manualSummary();
-                markDirty();
-                refresh();
-                notify('Punto del camino agregado. Continúa marcando los giros o vuelve a Agregar paradas.');
-            } else {
-                openEditor(-1, point);
-            }
-        }, select, (index) => {
-            selected = index;
-            invalidatePath();
-            markDirty();
-            refresh();
-            notify('Ubicación de la parada ' + (index + 1) + ' actualizada. Vuelve a calcular el camino.');
+            const estado = $('[data-save-status]');
+            if (estado) estado.textContent = 'Cambios sin guardar';
+        };
+
+        const map = new MapaAcopio($('[data-map-canvas]'), config, (punto) => clicEnMapa(punto), (index) => elegir(index), (index) => {
+            actualizarProveedor(stops[index]);
+            marcarCambios();
+            programarCalculo();
+            refrescar();
         });
 
-        function reorder(from, to) {
-            if (from === to || to < 0 || to >= stops.length) return;
-            const [stop] = stops.splice(from, 1);
-            stops.splice(to, 0, stop);
-            selected = to;
-            invalidatePath();
-            markDirty();
-            refresh();
-        }
-        function refreshControls() {
-        if (editor) {
-            const ready = root.querySelector('[data-route-ready]');
-            const inactiveSector = config.sectores?.some((item) => item.id === sector && !item.activo);
-            ready.textContent = !stops.length ? 'Elige el sector y marca la primera parada.' : inactiveSector ? 'El sector está desactivado; activa el sector para habilitar el recorrido.' : !saveForm.elements.namedItem('acopiador_id').value ? 'Recorrido preparado; falta asignar un acopiador.' : saveForm.elements.namedItem('activo').value === '0' ? 'La ruta está desactivada y no aparecerá al acopiador.' : 'El acopiador podrá consultar estas paradas cuando guardes.';
-            submitButton.disabled = stops.length === 0 || calculating || Boolean(pendingPlacement);
-            root.querySelector('[data-stops-reverse]').disabled = stops.length < 2 || Boolean(pendingPlacement);
-            root.querySelector('[data-trace-undo]').disabled = trace.length === 0 || summary?.fuente === 'carretera' || Boolean(pendingPlacement);
-            root.querySelector('[data-trace-clear]').disabled = trace.length === 0 || Boolean(pendingPlacement);
-            root.querySelectorAll('[data-map-mode], [data-stop-add]').forEach((button) => { button.disabled = Boolean(pendingPlacement); });
-            Array.from(list.children).forEach((row, index) => {
-                row.querySelectorAll('[data-stop-edit], [data-stop-remove]').forEach((button) => { button.disabled = Boolean(pendingPlacement); });
-                row.querySelector('[data-stop-up]').disabled = index === 0 || Boolean(pendingPlacement);
-                row.querySelector('[data-stop-down]').disabled = index === stops.length - 1 || Boolean(pendingPlacement);
-                row.draggable = !pendingPlacement;
-            });
-            if (calculateButton) calculateButton.disabled = stops.length < 2 || calculating || Boolean(pendingPlacement);
-            root.querySelector('[data-map-hint]').textContent = pendingPlacement ? 'Pulsa donde se recoge la leche de ' + pendingPlacement.fields.nombre + '.' : !sector ? 'Elige un sector para comenzar.' : mode === 'trazado' ? 'Marca las vías y los giros para dibujar el camino.' : 'Pulsa en el mapa para agregar una parada. Arrastra un punto para moverlo.';
-        }
+        function proveedorDeParada(stop) { return stop?.proveedor_id ? proveedores.get(Number(stop.proveedor_id)) : null; }
+        function actualizarProveedor(stop) {
+            const proveedor = proveedorDeParada(stop);
+            if (proveedor) { proveedor.latitud = stop.latitud; proveedor.longitud = stop.longitud; }
         }
 
-        function refreshProviders() {
-            const catalog = root.querySelector('[data-provider-list]');
-            if (!catalog) return;
-            const normalize = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
-            const search = normalize(root.querySelector('[data-provider-search]').value.trim());
-            const providers = config.proveedores.filter((provider) => provider.zona_id === sector && provider.estado === 'activo');
-            const matching = providers.filter((provider) => normalize([provider.codigo, provider.nombres, provider.direccion].join(' ')).includes(search));
-            root.querySelector('[data-provider-count]').textContent = String(new Set(stops.map((stop) => stop.proveedor_id).filter(Boolean)).size);
-            const empty = root.querySelector('[data-provider-empty]');
-            empty.textContent = !sector ? 'Primero elige el sector para ver sus proveedores.' : !providers.length ? 'Este sector todavía no tiene proveedores activos. Puedes registrar uno o agregar un punto de reunión en el mapa.' : !matching.length ? 'No encontramos ese proveedor. Prueba con otro nombre o código.' : '';
-            empty.hidden = Boolean(matching.length);
-            const rows = document.createDocumentFragment();
-            matching.forEach((provider) => {
-                const index = stops.findIndex((stop) => Number(stop.proveedor_id) === provider.id);
-                const row = document.createElement('li');
-                row.className = 'flex items-center justify-between gap-3 rounded-xl border border-eh-border p-3';
-                const info = document.createElement('div');
-                info.className = 'min-w-0';
-                const name = document.createElement('p');
-                name.className = 'break-words text-sm font-semibold';
-                name.textContent = provider.nombres;
-                const code = document.createElement('p');
-                code.className = 'mt-1 text-xs text-eh-text-muted';
-                code.textContent = provider.codigo + (index >= 0 ? ' · Vinculado' : '');
-                info.append(name, code);
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'shrink-0 rounded-lg bg-eh-primary-soft px-3 py-2 text-sm font-semibold text-eh-primary focus-visible:outline-2 focus-visible:outline-eh-primary';
-                button.textContent = index >= 0 ? 'Ver parada ' + (index + 1) : 'Agregar';
-                button.setAttribute('aria-label', (index >= 0 ? 'Ver parada de ' : 'Agregar a ') + provider.nombres);
-                button.addEventListener('click', () => index >= 0 ? select(index) : openEditor(-1, null, provider.id));
-                row.append(info, button);
-                rows.append(row);
+        /** Une los tramos (con los dibujados a mano encima) en un solo trazado y su resumen. */
+        function componer() {
+            if (!tramos) return;
+            const puntos = [];
+            let distancia = 0, duracion = 0, hayManual = false;
+            const borrador = dibujo ? { indice: dibujo.indice, puntos: dibujo.puntos } : null;
+            tramos.forEach((tramo, indice) => {
+                const extremoA = tramo.puntos[0], extremoB = tramo.puntos[tramo.puntos.length - 1];
+                let propios = tramo.puntos, manual = false;
+                if (borrador?.indice === indice) { propios = [extremoA, ...borrador.puntos, extremoB]; manual = true; }
+                else if (manuales.has(tramo.clave)) { propios = manuales.get(tramo.clave); manual = true; }
+                const largo = manual ? longitudCamino(propios) : tramo.distancia_m;
+                distancia += largo;
+                duracion += manual ? largo / 1000 / KMH_TROCHA * 3600 : tramo.duracion_s;
+                hayManual ||= manual;
+                tramo.manual = manual;
+                puntos.push(...(puntos.length ? propios.slice(1) : propios));
             });
-            catalog.replaceChildren(rows);
+            const sinCamino = tramos.every((tramo) => tramo.recta && !tramo.manual);
+            trace = sinCamino ? [] : reducirTrazado(puntos);
+            const enUso = new Set(tramos.map((tramo) => tramo.clave));
+            summary = sinCamino ? null : {
+                fuente: hayManual ? 'manual' : 'carretera', distancia_m: Math.round(distancia), duracion_s: Math.round(duracion),
+                firma_paradas: firmaParadas(stops),
+                tramos_manuales: [...manuales.entries()].filter(([clave]) => enUso.has(clave)).map(([clave, puntosManual]) => ({ clave, puntos: puntosManual })),
+            };
         }
 
-        function refresh() {
-            list.replaceChildren();
-            stops.forEach((stop, index) => {
-                const row = template.content.firstElementChild.cloneNode(true);
-                row.dataset.selected = String(index === selected);
-                row.querySelector('[data-stop-number]').textContent = String(index + 1);
-                row.querySelector('[data-stop-name]').textContent = stop.nombre;
-                const reference = row.querySelector('[data-stop-reference]');
-                reference.textContent = stop.referencia;
-                reference.hidden = !stop.referencia;
-                row.querySelector('[data-stop-position]').textContent = stops.length === 1 ? 'Punto de recojo' : index === 0 ? 'Inicio del recorrido' : index === stops.length - 1 ? 'Última parada' : '';
-                const provider = config.proveedores.find((item) => item.id === Number(stop.proveedor_id));
-                const providerLabel = row.querySelector('[data-stop-provider]');
-                providerLabel.textContent = stop.proveedor_id ? 'Proveedor: ' + (provider ? provider.codigo + ' · ' + provider.nombres : 'No disponible') : 'Punto de referencia · sin proveedor';
-                const warning = row.querySelector('[data-stop-warning]');
-                if (stop.proveedor_id && (!provider || provider.estado !== 'activo' || provider.zona_id !== sector)) {
-                    warning.hidden = false;
-                    warning.textContent = 'Revisa el proveedor: ya no está activo en este sector.';
+        function tramosRectos() {
+            const puntos = secuencia();
+            return puntos.slice(0, -1).map((a, i) => ({ puntos: [a, puntos[i + 1]], distancia_m: longitudCamino([a, puntos[i + 1]]), duracion_s: 0, clave: claveTramo(a, puntos[i + 1]), recta: true }));
+        }
+
+        function clicEnMapa([latitud, longitud]) {
+            if (!editable) return;
+            const punto = { latitud: Number(latitud.toFixed(6)), longitud: Number(longitud.toFixed(6)) };
+            if (dibujo) {
+                dibujo.puntos.push(punto);
+                componer();
+                refrescar();
+                return;
+            }
+            if (!ubicar) {
+                avisar('Para agregar una parada usa la lista de proveedores. Puedes arrastrar los números para ajustar su ubicación.');
+                return;
+            }
+            const pendiente = ubicar;
+            terminarUbicacion();
+            if (pendiente.index >= 0) {
+                Object.assign(stops[pendiente.index], punto);
+                actualizarProveedor(stops[pendiente.index]);
+                avisar('Ubicación actualizada. Recalculando el camino…');
+            } else {
+                stops.push({ nombre: pendiente.nombre, proveedor_id: pendiente.proveedorId, referencia: pendiente.referencia ?? '', ...punto });
+                actualizarProveedor(stops[stops.length - 1]);
+                avisar(`${pendiente.nombre} quedó como parada ${stops.length}.`);
+            }
+            marcarCambios();
+            programarCalculo();
+            refrescar();
+        }
+
+        function iniciarUbicacion(datos) {
+            if (dibujo) cerrarDibujo();
+            ubicar = datos;
+            $('[data-banner-ubicar]').hidden = false;
+            $('[data-banner-texto]').textContent = `Haz clic en el mapa donde vive o recoges a ${datos.nombre}.`;
+            $('[data-map-canvas]').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+        function terminarUbicacion() {
+            ubicar = null;
+            $('[data-banner-ubicar]').hidden = true;
+        }
+
+        function agregarProveedor(proveedor) {
+            if (stops.some((stop) => Number(stop.proveedor_id) === proveedor.id)) return;
+            if (proveedor.latitud === null || proveedor.latitud === undefined) {
+                iniciarUbicacion({ index: -1, proveedorId: proveedor.id, nombre: proveedor.nombres, referencia: proveedor.direccion });
+                return;
+            }
+            stops.push({ nombre: proveedor.nombres, proveedor_id: proveedor.id, latitud: proveedor.latitud, longitud: proveedor.longitud, referencia: proveedor.direccion ?? '' });
+            marcarCambios();
+            programarCalculo();
+            refrescar();
+        }
+
+        function mover(desde, hasta) {
+            if (hasta < 0 || hasta >= stops.length || desde === hasta) return;
+            const [parada] = stops.splice(desde, 1);
+            stops.splice(hasta, 0, parada);
+            selected = hasta;
+            marcarCambios();
+            programarCalculo();
+            refrescar();
+        }
+
+        function elegir(index) {
+            selected = index;
+            const stop = stops[index];
+            if (stop) map.focus([stop.latitud, stop.longitud], 16);
+            refrescar();
+            list.children[index]?.scrollIntoView({ block: 'nearest' });
+        }
+
+        /** El camino se recalcula solo poco después del último cambio; los tramos dibujados se conservan. */
+        function programarCalculo() {
+            if (!editable) return;
+            if (dibujo) cerrarDibujo();
+            tramos = null; trace = []; summary = null;
+            clearTimeout(temporizador);
+            consulta?.abort();
+            if (!stops.length || (!planta && stops.length < 2)) { refrescar(); return; }
+            temporizador = setTimeout(calcular, 900);
+        }
+
+        async function calcular() {
+            if (!config.ruteo || !stops.length) return;
+            const firma = firmaParadas(stops);
+            const controlador = new AbortController();
+            consulta = controlador;
+            calculando = true;
+            avisar('Calculando el camino por carretera desde la planta…');
+            refrescar();
+            const espera = setTimeout(() => controlador.abort(), 25000);
+            try {
+                const respuesta = await fetch(config.ruteo, {
+                    method: 'POST', signal: controlador.signal, credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': form?.elements.namedItem('_token')?.value ?? '' },
+                    body: JSON.stringify({ tipo_vehiculo: vehiculo(), paradas: stops.map((stop) => ({ latitud: stop.latitud, longitud: stop.longitud })) }),
+                });
+                const resultado = await respuesta.json().catch(() => ({}));
+                const ruta = resultado.routes?.[0];
+                const puntos = secuencia();
+                if (!respuesta.ok || resultado.code !== 'Ok' || !Array.isArray(ruta?.legs) || ruta.legs.length !== puntos.length - 1) {
+                    throw new Error(resultado.message ?? 'No se encontró un camino por carretera.');
                 }
-                const selectButton = row.querySelector('[data-stop-select]');
-                selectButton.setAttribute('aria-label', 'Ver parada ' + (index + 1) + ': ' + stop.nombre);
-                selectButton.addEventListener('click', () => select(index));
-                const directions = new URL('https://www.google.com/maps/dir/');
-                directions.search = new URLSearchParams({ api: '1', destination: stop.latitud + ',' + stop.longitud, travelmode: 'driving', dir_action: 'navigate' }).toString();
-                row.querySelector('[data-stop-directions]').href = directions.href;
-                if (editor) {
-                    row.querySelector('[data-stop-edit]').addEventListener('click', () => openEditor(index));
-                    row.querySelector('[data-stop-up]').disabled = index === 0;
-                    row.querySelector('[data-stop-down]').disabled = index === stops.length - 1;
-                    row.querySelector('[data-stop-up]').addEventListener('click', () => reorder(index, index - 1));
-                    row.querySelector('[data-stop-down]').addEventListener('click', () => reorder(index, index + 1));
-                    row.querySelector('[data-stop-remove]').addEventListener('click', () => {
-                        if (!window.confirm('¿Quitar la parada "' + stop.nombre + '" del recorrido?')) return;
+                if (firma !== firmaParadas(stops)) return;
+                tramos = ruta.legs.map((leg, i) => {
+                    const camino = leg.coordinates.map(([longitud, latitud]) => ({ latitud, longitud }));
+                    // Los extremos son los puntos exactos de planta y paradas, para unir los tramos sin saltos.
+                    return { puntos: [puntos[i], ...camino.slice(1, -1), puntos[i + 1]], distancia_m: leg.distance, duracion_s: leg.duration, clave: claveTramo(puntos[i], puntos[i + 1]) };
+                });
+                componer();
+                $('[data-routing-credit]').hidden = false;
+                avisar(summary?.fuente === 'manual' ? 'Camino calculado; se conservaron los tramos dibujados a mano.' : 'Camino calculado por carretera desde la planta. Revisa el recorrido y guarda la ruta.');
+            } catch (error) {
+                if (error.name === 'AbortError' && controlador !== consulta) return;
+                tramos = tramosRectos();
+                componer();
+                avisar((error.name === 'AbortError' ? 'El cálculo tardó demasiado.' : error.message) + ' Puedes guardar igual (línea recta entre paradas) o dibujar a mano los tramos.', 'error');
+            } finally {
+                clearTimeout(espera);
+                if (consulta === controlador) { consulta = null; calculando = false; }
+                refrescar();
+            }
+        }
+
+        /* ---------- Dibujo a mano por tramo ---------- */
+        function etiquetasTramos() {
+            const puntos = secuencia();
+            return puntos.slice(0, -1).map((a, i) => {
+                const desde = nombrePunto(i, puntos.length), hasta = nombrePunto(i + 1, puntos.length);
+                const nombre = planta ? (i < stops.length ? stops[i].nombre : 'vuelta a la planta') : stops[i + 1].nombre;
+                return `${desde} → ${hasta} · ${nombre}${tramos?.[i]?.manual ? ' (a mano)' : ''}`;
+            });
+        }
+        async function abrirDibujo() {
+            if (!stops.length) { avisar('Agrega al menos una parada antes de dibujar un tramo.'); return; }
+            if (ubicar) terminarUbicacion();
+            if (!tramos) { clearTimeout(temporizador); await calcular(); }
+            if (!tramos) return;
+            const indice = selected >= 0 ? selected : 0;
+            dibujo = { indice, puntos: [] };
+            const selector = $('[data-dibujo-tramo]');
+            selector.replaceChildren(...etiquetasTramos().map((texto, i) => new Option(texto, String(i), false, i === indice)));
+            $('[data-banner-dibujo]').hidden = false;
+            $('[data-dibujo-alternar]')?.setAttribute('aria-pressed', 'true');
+            enfocarTramo();
+            componer();
+            refrescar();
+        }
+        function enfocarTramo() {
+            const tramo = tramos?.[dibujo?.indice];
+            $('[data-dibujo-carretera]').hidden = !tramo || !manuales.has(tramo.clave);
+            avisar('Haz clic sobre el mapa siguiendo la trocha, desde el inicio hasta el final del tramo elegido. Luego pulsa «Guardar tramo».');
+            if (tramo) {
+                const [a, b] = [tramo.puntos[0], tramo.puntos[tramo.puntos.length - 1]];
+                map.focus([(a.latitud + b.latitud) / 2, (a.longitud + b.longitud) / 2], 15);
+            }
+        }
+        function cerrarDibujo() {
+            dibujo = null;
+            $('[data-banner-dibujo]').hidden = true;
+            $('[data-dibujo-alternar]')?.setAttribute('aria-pressed', 'false');
+            componer();
+        }
+
+        function pintarParadas() {
+            list.replaceChildren();
+            $('[data-stops-empty]').hidden = stops.length > 0;
+            stops.forEach((stop, index) => {
+                const item = template.content.firstElementChild.cloneNode(true);
+                item.dataset.selected = String(index === selected);
+                item.querySelector('[data-stop-number]').textContent = String(index + 1);
+                item.querySelector('[data-stop-name]').textContent = stop.nombre;
+                const proveedor = proveedorDeParada(stop);
+                const llegadaManual = tramos?.[planta ? index : index - 1]?.manual;
+                item.querySelector('[data-stop-reference]').textContent = (proveedor ? proveedor.codigo + (stop.referencia ? ' · ' + stop.referencia : '') : (stop.referencia || 'Punto de referencia'))
+                    + (llegadaManual ? ' · llegada dibujada a mano' : '');
+                item.querySelector('[data-stop-directions]').href = `https://www.google.com/maps/dir/?api=1&destination=${stop.latitud},${stop.longitud}&travelmode=driving`;
+                item.querySelector('[data-stop-select]').setAttribute('aria-label', `Ver parada ${index + 1} en el mapa`);
+                item.querySelector('[data-stop-select]').addEventListener('click', () => elegir(index));
+                if (editable) {
+                    item.draggable = true;
+                    item.addEventListener('dragstart', () => { arrastrado = index; item.classList.add('opacity-50'); });
+                    item.addEventListener('dragend', () => { arrastrado = null; item.classList.remove('opacity-50'); });
+                    item.addEventListener('dragover', (event) => { event.preventDefault(); item.classList.add('ruta-parada-destino'); });
+                    item.addEventListener('dragleave', () => item.classList.remove('ruta-parada-destino'));
+                    item.addEventListener('drop', (event) => { event.preventDefault(); if (arrastrado !== null) mover(arrastrado, index); });
+                    item.querySelector('[data-stop-up]').addEventListener('click', () => mover(index, index - 1));
+                    item.querySelector('[data-stop-down]').addEventListener('click', () => mover(index, index + 1));
+                    item.querySelector('[data-stop-move]').addEventListener('click', () => iniciarUbicacion({ index, nombre: stop.nombre }));
+                    item.querySelector('[data-stop-remove]').addEventListener('click', () => {
                         stops.splice(index, 1);
                         selected = -1;
-                        invalidatePath();
-                        markDirty();
-                        refresh();
-                    });
-                    row.draggable = true;
-                    row.addEventListener('dragstart', (event) => {
-                        if (event.target.closest('button, a')) { event.preventDefault(); return; }
-                        draggedIndex = index;
-                        event.dataTransfer.effectAllowed = 'move';
-                        event.dataTransfer.setData('text/plain', String(index));
-                    });
-                    row.addEventListener('dragover', (event) => {
-                        if (draggedIndex === null) return;
-                        event.preventDefault();
-                        event.dataTransfer.dropEffect = 'move';
-                        row.classList.add('ruta-parada-destino');
-                    });
-                    row.addEventListener('dragleave', () => row.classList.remove('ruta-parada-destino'));
-                    row.addEventListener('drop', (event) => {
-                        event.preventDefault();
-                        if (draggedIndex !== null) reorder(draggedIndex, index);
-                        draggedIndex = null;
-                    });
-                    row.addEventListener('dragend', () => {
-                        draggedIndex = null;
-                        list.querySelectorAll('.ruta-parada-destino').forEach((item) => item.classList.remove('ruta-parada-destino'));
+                        marcarCambios();
+                        programarCalculo();
+                        refrescar();
                     });
                 }
-                list.append(row);
+                list.append(item);
             });
-            root.querySelector('[data-stops-empty]').hidden = stops.length > 0;
-            root.querySelector('[data-stop-count]').textContent = String(stops.length);
-            root.querySelector('[data-trace-label]').textContent = trace.length >= 2 ? (summary?.fuente === 'carretera' ? 'Camino sugerido por carretera' : 'Camino dibujado manualmente') : (stops.length >= 2 ? 'Orden de visita · falta trazar el camino' : 'Agrega paradas para armar el recorrido');
-            const distance = summary?.distancia_m ?? (trace.length >= 2 ? longitudCamino(trace) : null);
-            const minutes = Number.isFinite(summary?.duracion_s) ? Math.max(1, Math.round(summary.duracion_s / 60)) : null;
-            root.querySelector('[data-route-metrics]').textContent = distance === null ? '' : (distance / 1000).toLocaleString('es-PE', { maximumFractionDigits: 1 }) + ' km aprox.' + (minutes ? ' · ' + minutes + ' min de conducción, sin contar el recojo' : '');
-            const credit = root.querySelector('[data-routing-credit]');
-            credit.hidden = summary?.fuente !== 'carretera';
-            credit.textContent = ' · ' + config.credito_ruteo;
-            refreshControls();
-            refreshProviders();
-            map.setRoute(stops, trace, selected);
         }
 
-        editor?.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const point = leerUbicacion(fields.ubicacion.value);
-            const error = root.querySelector('[data-stop-error]');
-            const fail = (message) => { error.hidden = false; error.textContent = message; };
-            if (!point) { fail('Escribe latitud, longitud o un enlace que incluya coordenadas. Los enlaces cortos deben abrirse primero para copiar la ubicación.'); return; }
-            if (!fields.nombre.value.trim()) { fail('Escribe el nombre de la parada.'); return; }
-            const providerId = fields.proveedor_id.value ? Number(fields.proveedor_id.value) : null;
-            const provider = config.proveedores.find((item) => item.id === providerId);
-            if (providerId && (!provider || provider.zona_id !== sector || provider.estado !== 'activo')) { fail('Elige un proveedor activo de este sector o deja la parada sin proveedor asociado.'); return; }
-            if (providerId && stops.some((stop, index) => index !== editing && stop.proveedor_id === providerId)) { fail('Ese proveedor ya tiene una parada en la ruta.'); return; }
-            const before = firmaParadas(stops);
-            const stop = { nombre: fields.nombre.value.trim(), proveedor_id: providerId, latitud: point[0], longitud: point[1], referencia: fields.referencia.value.trim() };
-            if (editing < 0) stops.push(stop); else stops[editing] = stop;
-            selected = editing < 0 ? stops.length - 1 : editing;
-            if (before !== firmaParadas(stops)) invalidatePath();
-            closeEditor(true);
-            markDirty();
-            refresh();
-            map.focus(point);
-            notify('Punto ' + (selected + 1) + ' guardado en el recorrido. Guarda la ruta para conservar los cambios.');
-        });
-        fields.ubicacion?.addEventListener('input', updateLocationMatch);
-        locationPreset?.addEventListener('change', () => {
-            if (locationPreset.value === '') return;
-            const stop = stops[Number(locationPreset.value)];
-            if (!stop) return;
-            fields.ubicacion.value = [stop.latitud, stop.longitud].map((value) => Number(value).toFixed(6)).join(', ');
-            updateLocationMatch();
-            map.focus([stop.latitud, stop.longitud]);
-        });
-        fields.proveedor_id?.addEventListener('change', () => {
-            const provider = config.proveedores.find((item) => item.id === Number(fields.proveedor_id.value));
-            if (provider) { fields.nombre.value = provider.nombres; fields.referencia.value = provider.direccion ?? ''; }
-        });
-        root.querySelector('[data-provider-search]')?.addEventListener('input', refreshProviders);
-        root.querySelector('[data-stop-pick-location]')?.addEventListener('click', () => {
-            pendingPlacement = { index: editing, fields: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, field.value])) };
-            dialog.close();
-            root.querySelector('[data-placement-banner]').hidden = false;
-            root.querySelector('[data-placement-message]').textContent = 'Ubicar punto ' + (editing < 0 ? stops.length + 1 : editing + 1) + ' · ' + fields.nombre.value;
-            refreshControls();
-            root.querySelector('[data-map-canvas]').scrollIntoView({ block: 'center', behavior: 'smooth' });
-            root.querySelector('[data-map-canvas]').focus({ preventScroll: true });
-            notify('Elige el punto de recojo en el mapa. Después podrás confirmar la parada.');
-        });
-        root.querySelector('[data-placement-cancel]')?.addEventListener('click', () => restorePlacement());
-        root.querySelectorAll('[data-stop-close]').forEach((button) => button.addEventListener('click', () => closeEditor()));
-        dialog?.addEventListener('cancel', (event) => { event.preventDefault(); closeEditor(); });
-        root.querySelector('[data-stop-add]')?.addEventListener('click', () => openEditor());
-        sectorField?.addEventListener('change', () => {
-            const next = Number(sectorField.value);
-            if (next === sector) return;
-            if (pendingPlacement) { sectorField.value = String(sector); notify('Termina de ubicar la parada antes de cambiar de sector.'); return; }
-            if ((stops.length || trace.length) && !window.confirm('Cambiar de sector vaciará las paradas y el camino de este editor. ¿Continuar?')) { sectorField.value = sector ? String(sector) : ''; return; }
-            sector = next;
-            stops = [];
-            selected = -1;
-            invalidatePath();
-            markDirty();
-            refresh();
-        });
-        root.querySelector('[data-stops-reverse]')?.addEventListener('click', () => {
-            stops.reverse();
-            selected = -1;
-            invalidatePath();
-            markDirty();
-            refresh();
-        });
-        root.querySelectorAll('[data-map-mode]').forEach((button) => button.addEventListener('click', () => {
-            if (button.dataset.mapMode === 'trazado') {
-                if (stops.length < 2) { notify('Agrega al menos dos paradas antes de dibujar el camino.'); return; }
-                if (summary?.fuente === 'carretera') {
-                    if (!window.confirm('¿Reemplazar el camino calculado por uno dibujado manualmente?')) return;
-                    trace = [];
-                    summary = null;
-                    markDirty();
-                }
+        function pintarProveedores() {
+            const contenedor = $('[data-provider-list]');
+            if (!contenedor) return;
+            const busqueda = normalizar($('input[data-provider-search]')?.value);
+            const deZona = [...proveedores.values()].filter((proveedor) => proveedor.zona_id === zona && proveedor.estado === 'activo');
+            const visibles = deZona.filter((proveedor) => normalizar(proveedor.codigo + ' ' + proveedor.nombres).includes(busqueda));
+            const vacio = $('[data-provider-empty]');
+            vacio.textContent = !zona ? 'Elige la zona para ver a sus proveedores.' : !deZona.length ? 'Esta zona no tiene proveedores activos.' : !visibles.length ? 'Nadie coincide con esa búsqueda.' : '';
+            vacio.hidden = Boolean(visibles.length);
+            const ubicadosLibres = deZona.filter((proveedor) => proveedor.latitud !== null && proveedor.latitud !== undefined && !stops.some((stop) => Number(stop.proveedor_id) === proveedor.id));
+            const botonTodos = $('[data-agregar-ubicados]');
+            botonTodos.hidden = ubicadosLibres.length < 2;
+            botonTodos.querySelector('[data-agregar-ubicados-texto]').textContent = `Agregar ubicados (${ubicadosLibres.length})`;
+            const filas = document.createDocumentFragment();
+            visibles.forEach((proveedor) => {
+                const posicion = stops.findIndex((stop) => Number(stop.proveedor_id) === proveedor.id);
+                const ubicado = proveedor.latitud !== null && proveedor.latitud !== undefined;
+                const fila = document.createElement('li');
+                fila.className = 'flex items-center gap-3 rounded-xl border border-eh-border p-2.5';
+                const avatar = document.createElement('span');
+                avatar.className = 'grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold ' + (posicion >= 0 ? 'bg-eh-primary text-eh-on-primary' : 'bg-eh-surface-alt text-eh-text-muted');
+                avatar.textContent = posicion >= 0 ? String(posicion + 1) : iniciales(proveedor.nombres);
+                avatar.setAttribute('aria-hidden', 'true');
+                const info = document.createElement('div');
+                info.className = 'min-w-0 flex-1';
+                const nombre = document.createElement('p');
+                nombre.className = 'truncate text-sm font-medium';
+                nombre.textContent = proveedor.nombres;
+                const detalle = document.createElement('p');
+                detalle.className = 'truncate text-xs ' + (ubicado ? 'text-eh-text-muted' : 'text-eh-gold');
+                detalle.textContent = proveedor.codigo + (posicion >= 0 ? ` · parada ${posicion + 1}` : ubicado ? ' · ubicado' : ' · sin ubicación');
+                info.append(nombre, detalle);
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = posicion >= 0
+                    ? 'shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-eh-text-muted hover:bg-eh-surface-alt'
+                    : 'shrink-0 rounded-lg bg-eh-primary-soft px-2.5 py-1.5 text-xs font-semibold text-eh-primary hover:bg-eh-primary hover:text-eh-on-primary';
+                boton.textContent = posicion >= 0 ? 'Ver' : ubicado ? 'Agregar' : 'Ubicar';
+                boton.setAttribute('aria-label', (posicion >= 0 ? 'Ver la parada de ' : ubicado ? 'Agregar a la ruta a ' : 'Marcar en el mapa y agregar a ') + proveedor.nombres);
+                boton.addEventListener('click', () => (posicion >= 0 ? elegir(posicion) : agregarProveedor(proveedor)));
+                fila.append(avatar, info, boton);
+                filas.append(fila);
+            });
+            contenedor.replaceChildren(filas);
+        }
+
+        function pintarMetricas() {
+            const deZona = [...proveedores.values()].filter((proveedor) => proveedor.zona_id === zona && proveedor.estado === 'activo');
+            const enRuta = deZona.filter((proveedor) => stops.some((stop) => Number(stop.proveedor_id) === proveedor.id)).length;
+            $('[data-metrica-paradas]').textContent = String(stops.length);
+            $('[data-stop-count]').textContent = String(stops.length);
+            $('[data-metrica-cobertura]').textContent = zona ? `${enRuta} / ${deZona.length}` : '—';
+            const distancia = summary?.distancia_m ?? (stops.length ? longitudCamino(secuencia()) : null);
+            $('[data-metrica-distancia]').textContent = calculando ? '…' : distancia === null ? '—' : (summary ? '' : '≈ ') + (distancia / 1000).toFixed(1) + ' km';
+            $('[data-metrica-tiempo]').textContent = calculando ? '…' : summary?.duracion_s ? Math.round(summary.duracion_s / 60) + ' min' : '—';
+            const listo = $('[data-route-ready]');
+            if (listo) {
+                const manualesUsados = tramos?.filter((tramo) => tramo.manual).length ?? summary?.tramos_manuales?.length ?? 0;
+                listo.textContent = !zona ? 'Elige la zona.' : !stops.length ? 'Agrega al menos una parada para guardar.'
+                    : calculando ? 'Esperando el cálculo del camino…'
+                    : `${stops.length} paradas · ida y vuelta desde la planta${summary ? (manualesUsados ? ` · ${manualesUsados} tramo(s) a mano` : ' · por carretera') : ' · sin camino calculado'}${enRuta < deZona.length ? ` · faltan ${deZona.length - enRuta} proveedores de la zona` : ''}.`;
             }
-            mode = button.dataset.mapMode;
-            root.querySelectorAll('[data-map-mode]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
-            refresh();
-        }));
-        root.querySelector('[data-trace-undo]')?.addEventListener('click', () => { trace.pop(); manualSummary(); markDirty(); refresh(); });
-        root.querySelector('[data-trace-clear]')?.addEventListener('click', () => {
-            if (!window.confirm('¿Quitar el trazado? Las paradas se conservarán.')) return;
-            trace = []; summary = null; markDirty(); refresh();
-        });
-        calculateButton?.addEventListener('click', async () => {
-            if (calculating || stops.length < 2) return;
-            if (Date.now() - ultimaConsultaRutas < 1500) { notify('Espera un momento antes de volver a calcular.'); return; }
-            if (trace.length && summary?.fuente !== 'carretera' && !window.confirm('¿Reemplazar el camino manual por el recorrido sugerido por carretera?')) return;
-            ultimaConsultaRutas = Date.now();
-            const signature = firmaParadas(stops);
-            const controller = new AbortController();
-            pendingRequest = controller;
-            calculating = true;
-            calculateButton.textContent = 'Calculando…';
-            refresh();
-            notify('Calculando el camino por carretera, respetando el orden de las paradas…');
-            const timeout = window.setTimeout(() => controller.abort(), 20000);
-            try {
-                const url = new URL(config.ruteo.replace(/\/$/, '') + '/' + stops.map((stop) => stop.longitud + ',' + stop.latitud).join(';'));
-                url.search = new URLSearchParams({ overview: 'simplified', geometries: 'geojson', steps: 'false', radiuses: stops.map(() => '250').join(';') }).toString();
-                const response = await fetch(url, { signal: controller.signal, referrerPolicy: 'strict-origin-when-cross-origin' });
-                const result = await response.json();
-                const route = result.routes?.[0];
-                if (!response.ok || result.code !== 'Ok' || !Array.isArray(route?.geometry?.coordinates)) throw new Error('No se encontró un camino por carretera. Revisa las paradas o usa el trazado manual para accesos rurales.');
-                const points = route.geometry.coordinates;
-                if (points.length < 2 || points.length > 2000 || points.some((point) => !Array.isArray(point) || point.length !== 2 || !coordenadaValida([point[1], point[0]]))) throw new Error('El recorrido no se pudo dibujar. Divide el sector en rutas más pequeñas o traza el camino manualmente.');
-                if (!Number.isFinite(route.distance) || !Number.isFinite(route.duration) || route.distance < 0 || route.distance > 40000000 || route.duration < 0 || route.duration > 2678400) throw new Error('El servicio devolvió un recorrido no válido. Prueba con otras paradas.');
-                if (controller.signal.aborted || signature !== firmaParadas(stops)) return;
-                trace = points.map(([lon, lat]) => ({ latitud: lat, longitud: lon }));
-                summary = { fuente: 'carretera', distancia_m: route.distance, duracion_s: route.duration, firma_paradas: signature };
-                mode = 'parada';
-                root.querySelectorAll('[data-map-mode]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.mapMode === mode)));
-                markDirty();
-                map.setRoute(stops, trace, selected);
-                map.fit();
-                notify('Camino calculado. Revisa los accesos a las viviendas y guarda la ruta.' + (result.waypoints?.some((point) => point.distance > 50) ? ' Algunas paradas están a más de 50 m de la vía: revisa su acceso.' : ''));
-            } catch (error) {
-                if (signature === firmaParadas(stops)) notify(error.name === 'AbortError' ? 'El cálculo tardó demasiado. Puedes volver a intentar o dibujar el camino manualmente.' : error.message.includes('recorrido') || error.message.includes('camino') ? error.message : 'No se pudo conectar al servicio de rutas. Conservamos tus paradas y el trazado anterior.');
-            } finally {
-                window.clearTimeout(timeout);
-                if (pendingRequest === controller) pendingRequest = null;
-                calculating = false;
-                calculateButton.textContent = 'Calcular por carretera';
-                refresh();
-            }
-        });
-        root.querySelector('[data-zoom-in]').addEventListener('click', () => map.changeZoom(1));
-        root.querySelector('[data-zoom-out]').addEventListener('click', () => map.changeZoom(-1));
-        root.querySelector('[data-map-fit]').addEventListener('click', () => map.fit());
-        root.querySelector('[data-map-locate]').addEventListener('click', () => {
-            if (!navigator.geolocation) { notify('Este navegador no permite obtener tu ubicación.'); return; }
-            notify('Obteniendo ubicación…');
-            navigator.geolocation.getCurrentPosition((position) => {
-                map.location = [position.coords.latitude, position.coords.longitude];
-                map.focus(map.location);
-                notify('Tu ubicación aparece en azul. Precisión aproximada: ' + Math.round(position.coords.accuracy) + ' metros.');
-            }, () => notify('Permite el acceso a tu ubicación y abre la web con HTTPS para localizarte.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
-        });
-        saveForm?.addEventListener('input', () => { markDirty(); refreshControls(); });
-        saveForm?.addEventListener('submit', (event) => {
-            if (!stops.length || calculating || dialog.open || pendingPlacement) {
-                event.preventDefault();
-                notify(calculating ? 'Espera a que termine el cálculo del recorrido.' : dialog.open || pendingPlacement ? 'Guarda o cancela la edición de la parada antes de guardar la ruta.' : 'Agrega al menos una parada antes de guardar.');
+            const enviar = $('[data-route-submit]');
+            if (enviar) enviar.disabled = !stops.length || !zona || calculando || submitted;
+        }
+
+        function refrescar() {
+            map.setRoute(stops, trace, selected);
+            pintarParadas();
+            pintarProveedores();
+            pintarMetricas();
+        }
+
+        zonaCampo?.addEventListener('change', () => {
+            const nueva = Number(zonaCampo.value || 0);
+            const ajenas = stops.filter((stop) => stop.proveedor_id && proveedores.get(Number(stop.proveedor_id))?.zona_id !== nueva);
+            if (ajenas.length && !window.confirm(`Cambiar de zona quitará ${ajenas.length} proveedores de otra zona. ¿Continuar?`)) {
+                zonaCampo.value = String(zona || '');
                 return;
             }
-            saveForm.elements.namedItem('paradas_json').value = JSON.stringify(stops);
-            saveForm.elements.namedItem('trazado_json').value = JSON.stringify(trace);
-            saveForm.elements.namedItem('resumen_recorrido_json').value = JSON.stringify(summary);
-            submitted = true;
-            submitButton.disabled = true;
-            saveStatus.textContent = 'Guardando recorrido…';
+            stops = stops.filter((stop) => !ajenas.includes(stop));
+            zona = nueva;
+            const opcion = zonaCampo.selectedOptions[0]?.textContent?.trim();
+            if (nombreCampo && (!nombreCampo.value.trim() || nombreCampo.dataset.automatico === 'true') && opcion && zona) {
+                nombreCampo.value = 'Ruta ' + opcion.replace(' (inactiva)', '');
+                nombreCampo.dataset.automatico = 'true';
+            }
+            marcarCambios();
+            programarCalculo();
+            refrescar();
+            const ubicados = [...proveedores.values()].filter((proveedor) => proveedor.zona_id === zona && proveedor.latitud !== null && proveedor.latitud !== undefined);
+            if (ubicados.length) map.focus([ubicados[0].latitud, ubicados[0].longitud], 14);
+            avisar(zona ? 'Agrega a los proveedores en el orden en que los visita el acopiador.' : 'Elige la zona para ver a sus proveedores.');
         });
-        window.addEventListener('beforeunload', (event) => { if ((dirty || draftChanged()) && !submitted) { event.preventDefault(); event.returnValue = ''; } }, { signal });
+        nombreCampo?.addEventListener('input', () => { nombreCampo.dataset.automatico = 'false'; });
+        form?.addEventListener('change', (event) => {
+            if (event.target.name === 'tipo_vehiculo') { marcarCambios(); programarCalculo(); }
+        });
+        form?.addEventListener('input', marcarCambios);
+        $('input[data-provider-search]')?.addEventListener('input', pintarProveedores);
+        $('[data-agregar-ubicados]')?.addEventListener('click', () => {
+            [...proveedores.values()].filter((proveedor) => proveedor.zona_id === zona && proveedor.estado === 'activo' && proveedor.latitud !== null && proveedor.latitud !== undefined
+                && !stops.some((stop) => Number(stop.proveedor_id) === proveedor.id))
+                .forEach((proveedor) => stops.push({ nombre: proveedor.nombres, proveedor_id: proveedor.id, latitud: proveedor.latitud, longitud: proveedor.longitud, referencia: proveedor.direccion ?? '' }));
+            marcarCambios();
+            programarCalculo();
+            refrescar();
+            map.fit();
+            avisar('Se agregaron los proveedores ubicados al final. Ordénalos según el recorrido de siempre.');
+        });
+        $('[data-punto-referencia]')?.addEventListener('click', () => {
+            const nombre = window.prompt('Nombre del punto (por ejemplo: punto de reunión, puente):');
+            if (nombre?.trim()) iniciarUbicacion({ index: -1, proveedorId: null, nombre: nombre.trim().slice(0, 120), referencia: '' });
+        });
+        $('[data-banner-cancelar]')?.addEventListener('click', () => { terminarUbicacion(); avisar('Ubicación cancelada.'); });
+        $('[data-stops-reverse]')?.addEventListener('click', () => { stops.reverse(); selected = -1; marcarCambios(); programarCalculo(); refrescar(); });
+        $('[data-dibujo-alternar]')?.addEventListener('click', () => (dibujo ? (cerrarDibujo(), refrescar()) : abrirDibujo()));
+        $('[data-dibujo-tramo]')?.addEventListener('change', (event) => {
+            dibujo = { indice: Number(event.target.value), puntos: [] };
+            enfocarTramo();
+            componer();
+            refrescar();
+        });
+        $('[data-dibujo-deshacer]')?.addEventListener('click', () => { dibujo?.puntos.pop(); componer(); refrescar(); });
+        $('[data-dibujo-guardar]')?.addEventListener('click', () => {
+            const tramo = tramos?.[dibujo?.indice];
+            if (!tramo) return;
+            const extremos = [tramo.puntos[0], tramo.puntos[tramo.puntos.length - 1]];
+            manuales.set(tramo.clave, [extremos[0], ...dibujo.puntos.slice(0, 498), extremos[1]]);
+            cerrarDibujo();
+            marcarCambios();
+            refrescar();
+            avisar('Tramo dibujado guardado en la ruta. Se mantiene aunque cambies otras paradas; recuerda guardar la ruta.');
+        });
+        $('[data-dibujo-carretera]')?.addEventListener('click', () => {
+            const tramo = tramos?.[dibujo?.indice];
+            if (tramo) manuales.delete(tramo.clave);
+            cerrarDibujo();
+            marcarCambios();
+            refrescar();
+            avisar('Ese tramo vuelve a seguir la carretera.');
+        });
+        $('[data-dibujo-cancelar]')?.addEventListener('click', () => { cerrarDibujo(); refrescar(); avisar('Dibujo cancelado.'); });
+        $('[data-zoom-in]').addEventListener('click', () => map.changeZoom(1));
+        $('[data-zoom-out]').addEventListener('click', () => map.changeZoom(-1));
+        $('[data-map-fit]').addEventListener('click', () => map.fit());
+        $('[data-map-locate]').addEventListener('click', () => {
+            if (!navigator.geolocation) { avisar('Este navegador no permite obtener tu ubicación.'); return; }
+            avisar('Obteniendo tu ubicación…');
+            navigator.geolocation.getCurrentPosition((posicion) => {
+                map.location = [posicion.coords.latitude, posicion.coords.longitude];
+                map.focus(map.location);
+                avisar(`Tu ubicación aparece en azul (precisión aproximada: ${Math.round(posicion.coords.accuracy)} m).`);
+            }, () => avisar('Permite el acceso a tu ubicación y abre la web con HTTPS para localizarte.', 'error'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+        });
+        form?.addEventListener('submit', (event) => {
+            if (!stops.length || calculando || ubicar || dibujo) {
+                event.preventDefault();
+                avisar(calculando ? 'Espera a que termine el cálculo del camino.' : ubicar ? 'Marca la ubicación pendiente en el mapa o cancélala.' : dibujo ? 'Guarda o cancela el tramo que estás dibujando.' : 'Agrega al menos una parada antes de guardar.', 'error');
+                return;
+            }
+            form.elements.namedItem('paradas_json').value = JSON.stringify(stops);
+            form.elements.namedItem('trazado_json').value = JSON.stringify(summary ? trace : []);
+            form.elements.namedItem('resumen_recorrido_json').value = JSON.stringify(summary);
+            submitted = true;
+            const estado = $('[data-save-status]');
+            if (estado) estado.textContent = 'Guardando la ruta…';
+        });
+        window.addEventListener('beforeunload', (event) => { if (dirty && !submitted) { event.preventDefault(); event.returnValue = ''; } }, { signal });
         document.addEventListener('ecolecta:before-visit', (event) => {
-            if ((dirty || draftChanged()) && !submitted && !window.confirm('¿Salir sin guardar el recorrido?')) event.preventDefault();
+            if (dirty && !submitted && !window.confirm('¿Salir sin guardar la ruta?')) event.preventDefault();
         }, { signal });
-        document.addEventListener('ecolecta:visit-failed', () => { submitted = false; refreshControls(); }, { signal });
-        signal?.addEventListener('abort', () => { map.observer?.disconnect(); cancelAnimationFrame(map.frame); pendingRequest?.abort(); }, { once: true });
-        refresh();
+        document.addEventListener('ecolecta:visit-failed', () => { submitted = false; pintarMetricas(); }, { signal });
+        signal?.addEventListener('abort', () => { map.observer?.disconnect(); cancelAnimationFrame(map.frame); consulta?.abort(); clearTimeout(temporizador); }, { once: true });
+
+        if (summary?.fuente === 'carretera' || summary?.fuente === 'manual') $('[data-routing-credit]').hidden = false;
+        if (nombreCampo && !nombreCampo.value.trim() && zona && zonaCampo?.selectedOptions[0]) {
+            nombreCampo.value = 'Ruta ' + zonaCampo.selectedOptions[0].textContent.trim().replace(' (inactiva)', '');
+            nombreCampo.dataset.automatico = 'true';
+        }
+        refrescar();
         map.fit();
+        if (editable && stops.length && !summary) programarCalculo();
+        if (editable && zona && !stops.length) avisar('Agrega a los proveedores en el orden en que los visita el acopiador.');
     });
 }

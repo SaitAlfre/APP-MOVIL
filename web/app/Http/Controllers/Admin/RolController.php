@@ -17,9 +17,93 @@ class RolController extends Controller
 {
     private const ACCIONES = ['ver', 'crear', 'editar', 'eliminar'];
 
+    /** Categorías de la página de roles: agrupan los módulos como el menú lateral. */
+    private const CATEGORIAS = [
+        'Inicio y reportes' => ['icono' => 'home', 'modulos' => ['dashboard', 'reportes']],
+        'Usuarios y proveedores' => ['icono' => 'usuarios', 'modulos' => ['usuarios', 'proveedores']],
+        'Organización del acopio' => ['icono' => 'asignaciones', 'modulos' => ['zonas_vehiculos', 'mapa_rutas']],
+        'Acopio' => ['icono' => 'milk', 'modulos' => ['acopiadores', 'entregas', 'recepcion']],
+        'Calidad' => ['icono' => 'beaker', 'modulos' => ['calidad', 'sanciones']],
+        'Planta' => ['icono' => 'factory', 'modulos' => ['produccion', 'productos', 'recetas', 'inventario', 'ventas']],
+        'Liquidaciones y pagos' => ['icono' => 'liquidacion', 'modulos' => ['liquidaciones']],
+        'Comunicación y administración' => ['icono' => 'cog', 'modulos' => ['comunicados', 'importaciones', 'configuracion', 'auditoria']],
+    ];
+
+    private const DESCRIPCIONES_SISTEMA = [
+        'admin' => 'Acceso completo al panel: usuarios, roles, catálogos, acopio, planta y pagos.',
+        'acopiador' => 'Recoge la leche con la app móvil y consulta sus rutas asignadas en la web.',
+        'calidad' => 'Registra análisis de calidad y propone sanciones desde la web y el celular.',
+        'proveedor' => 'Consulta sus entregas, calidad y pagos desde la app móvil del proveedor.',
+    ];
+
+    /** Roles a la izquierda y, a la derecha, los permisos del rol elegido agrupados por categoría. */
     public function index(Request $request): View
     {
-        return view('admin.roles.index', ['perfiles' => $this->listar($request), 'rolesSistema' => Rol::cases()]);
+        $perfiles = $this->listar($request);
+        $rolesSistema = collect(Rol::cases())->map(fn (Rol $rol) => (object) [
+            'clave' => $rol->value, 'nombre' => $rol->etiqueta(), 'descripcion' => self::DESCRIPCIONES_SISTEMA[$rol->value] ?? '',
+            'usuarios' => DB::table('usuarios')->whereNull('perfil_rol_id')->whereJsonContains('roles', $rol->value)->count(),
+            'permisos' => $this->permisosDeSistema($rol->value),
+        ]);
+
+        $sistema = $request->string('sistema')->toString();
+        $id = $request->integer('rol') ?: (int) session('rol');
+        $perfil = $id > 0 ? $this->perfilConUsuarios($id) : null;
+        $seleccion = match (true) {
+            $sistema !== '' && $rolesSistema->contains('clave', $sistema) => ['tipo' => 'sistema', 'rol' => $rolesSistema->firstWhere('clave', $sistema)],
+            $perfil !== null => ['tipo' => 'perfil', 'rol' => $perfil],
+            $perfiles->isNotEmpty() => ['tipo' => 'perfil', 'rol' => $this->perfilConUsuarios((int) $perfiles->first()->id)],
+            default => ['tipo' => 'sistema', 'rol' => $rolesSistema->first()],
+        };
+        $permisos = $seleccion['tipo'] === 'perfil' ? (json_decode($seleccion['rol']->permisos, true) ?: []) : $seleccion['rol']->permisos;
+
+        return view('admin.roles.index', [
+            'perfiles' => $perfiles,
+            'rolesSistema' => $rolesSistema,
+            'seleccion' => $seleccion,
+            'permisos' => $permisos,
+            'categorias' => $this->categorias(),
+        ]);
+    }
+
+    private function perfilConUsuarios(int $id): ?object
+    {
+        return DB::table('perfiles_roles')->select('perfiles_roles.*')
+            ->selectSub(DB::table('usuarios')->selectRaw('count(*)')->whereColumn('perfil_rol_id', 'perfiles_roles.id'), 'usuarios_count')
+            ->where('id', $id)->first();
+    }
+
+    /** @return array<string, list<string>> Permisos efectivos de un rol oficial según config/permisos.php. */
+    private function permisosDeSistema(string $rol): array
+    {
+        return collect(config('modulos_roles'))->map(function (array $modulo, string $clave) use ($rol): array {
+            $ver = $rol === 'admin' || in_array($rol, config("permisos.{$clave}.ver", []), true);
+            $gestionar = $rol === 'admin' || in_array($rol, config("permisos.{$clave}.gestionar", []), true);
+
+            return array_values(array_filter($modulo['acciones'], fn (string $accion) => $accion === 'ver' ? $ver : $gestionar));
+        })->filter()->all();
+    }
+
+    /** @return list<array{nombre: string, icono: string, permisos: list<array{modulo: string, accion: string, titulo: string, descripcion: string}>}> */
+    private function categorias(): array
+    {
+        $modulos = config('modulos_roles');
+        $verbos = ['ver' => 'Ver', 'crear' => 'Crear en', 'editar' => 'Editar', 'eliminar' => 'Dar de baja en'];
+        $textos = [
+            'ver' => 'Consulta los listados y el detalle del módulo.',
+            'crear' => 'Registra datos nuevos.',
+            'editar' => 'Modifica datos existentes y cambia estados.',
+        ];
+
+        return collect(self::CATEGORIAS)->map(fn (array $categoria, string $nombre) => [
+            'nombre' => $nombre, 'icono' => $categoria['icono'],
+            'permisos' => collect($categoria['modulos'])->filter(fn (string $modulo) => isset($modulos[$modulo]))
+                ->flatMap(fn (string $modulo) => collect($modulos[$modulo]['acciones'])->map(fn (string $accion) => [
+                    'modulo' => $modulo, 'accion' => $accion,
+                    'titulo' => $verbos[$accion].' '.mb_strtolower($modulos[$modulo]['nombre']),
+                    'descripcion' => $accion === 'eliminar' ? $modulos[$modulo]['eliminar'] : $textos[$accion],
+                ]))->values()->all(),
+        ])->values()->all();
     }
 
     public function formularios(Request $request): View
@@ -141,9 +225,9 @@ class RolController extends Controller
     public function store(Request $request): RedirectResponse
     {
         // Un rol personalizado nuevo solo define permisos del panel web: no hereda funciones móviles de ningún rol oficial.
-        DB::table('perfiles_roles')->insert($this->datos($request) + ['base' => null, 'created_at' => now()]);
+        $id = DB::table('perfiles_roles')->insertGetId($this->datos($request) + ['base' => null, 'created_at' => now()]);
 
-        return to_route('admin.roles.index')->with('estado', 'Rol creado.');
+        return to_route('admin.roles.index')->with(['estado' => 'Rol creado. Activa sus permisos por categoría.', 'rol' => $id]);
     }
 
     public function update(Request $request, int $rol): RedirectResponse
@@ -152,7 +236,7 @@ class RolController extends Controller
         // La base de un rol anterior no se edita: conserva las funciones móviles de sus cuentas.
         DB::table('perfiles_roles')->where('id', $rol)->update($this->datos($request, $rol));
 
-        return to_route('admin.roles.index')->with('estado', 'Rol actualizado.');
+        return to_route('admin.roles.index')->with(['estado' => 'Rol actualizado.', 'rol' => $rol]);
     }
 
     public function destroy(int $rol): RedirectResponse

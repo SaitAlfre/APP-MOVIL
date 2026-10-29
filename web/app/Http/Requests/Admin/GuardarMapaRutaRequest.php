@@ -33,6 +33,7 @@ class GuardarMapaRutaRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:120'],
             'zona_id' => ['required', 'integer', Rule::exists('zonas', 'id')->where(fn (Builder $query) => $query->where('activo', true)->when($ruta, fn (Builder $zona) => $zona->orWhere('id', $ruta->zona_id)))],
             'activo' => ['required', 'boolean'],
+            'tipo_vehiculo' => ['nullable', Rule::in(['camion', 'motocarga'])],
             'mapa_version' => [$ruta ? 'required' : 'nullable', 'integer', 'min:0'],
             'acopiador_id' => ['nullable', 'integer', Rule::exists('usuarios', 'id')->where('activo', true)],
             'indicaciones' => ['nullable', 'string', 'max:2000'],
@@ -47,11 +48,19 @@ class GuardarMapaRutaRequest extends FormRequest
             'trazado.*' => ['required', 'array:latitud,longitud'],
             'trazado.*.latitud' => ['required', 'numeric', 'between:-85,85'],
             'trazado.*.longitud' => ['required', 'numeric', 'between:-180,180'],
-            'resumen_recorrido' => ['nullable', 'array:fuente,distancia_m,duracion_s,firma_paradas'],
+            'resumen_recorrido' => ['nullable', 'array:fuente,distancia_m,duracion_s,firma_paradas,tramos_manuales'],
             'resumen_recorrido.fuente' => ['required_with:resumen_recorrido', Rule::in(['carretera', 'manual'])],
             'resumen_recorrido.distancia_m' => ['nullable', 'numeric', 'between:0,40000000'],
             'resumen_recorrido.duracion_s' => ['nullable', 'numeric', 'between:0,2678400'],
             'resumen_recorrido.firma_paradas' => ['required_with:resumen_recorrido', 'string', 'max:4000'],
+            // Tramos de trocha dibujados a mano: se reaplican aunque el resto del camino se recalcule.
+            'resumen_recorrido.tramos_manuales' => ['nullable', 'array', 'max:101'],
+            'resumen_recorrido.tramos_manuales.*' => ['array:clave,puntos'],
+            'resumen_recorrido.tramos_manuales.*.clave' => ['required', 'string', 'max:120'],
+            'resumen_recorrido.tramos_manuales.*.puntos' => ['required', 'array', 'list', 'min:2', 'max:500'],
+            'resumen_recorrido.tramos_manuales.*.puntos.*' => ['array:latitud,longitud'],
+            'resumen_recorrido.tramos_manuales.*.puntos.*.latitud' => ['required', 'numeric', 'between:-85,85'],
+            'resumen_recorrido.tramos_manuales.*.puntos.*.longitud' => ['required', 'numeric', 'between:-180,180'],
         ];
     }
 

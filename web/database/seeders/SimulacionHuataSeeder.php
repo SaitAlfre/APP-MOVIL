@@ -40,10 +40,12 @@ class SimulacionHuataSeeder extends Seeder
 
     /** @var array<string, array{nombre: string, clave: string, centro: array{float, float}, comunidades: list<string>}> */
     private const array ZONAS = [
-        'faon' => ['nombre' => 'FAON-MARKAPAJO', 'clave' => 'faon', 'centro' => [-15.6040, -69.9720], 'comunidades' => ['Markapajo', 'Faon', 'Markapajo Alto']],
-        'moro' => ['nombre' => 'MORO VIEJO-PANCHA', 'clave' => 'moro', 'centro' => [-15.6230, -69.9850], 'comunidades' => ['Moro Viejo', 'Pancha', 'Pancha Grande']],
-        'collana' => ['nombre' => 'COLLANA I-YASIN-HUAN', 'clave' => 'collana', 'centro' => [-15.5960, -69.9560], 'comunidades' => ['Collana I', 'Yasin', 'Huan']],
-        'planta' => ['nombre' => 'PLANTA-COLLANA II', 'clave' => 'planta', 'centro' => [-15.6120, -69.9640], 'comunidades' => ['Collana II', 'Sector Planta', 'Collana II Bajo']],
+        // Centros aproximados alrededor de la planta de Huata (-15.6137, -69.9762). Faon y Yasin siguen las
+        // escuelas que registra OpenStreetMap; Moro Viejo-Pancha y Collana II son supuestos de prueba.
+        'faon' => ['nombre' => 'FAON-MARKAPAJO', 'clave' => 'faon', 'centro' => [-15.6265, -69.9515], 'comunidades' => ['Markapajo', 'Faon', 'Markapajo Alto']],
+        'moro' => ['nombre' => 'MORO VIEJO-PANCHA', 'clave' => 'moro', 'centro' => [-15.5985, -69.9620], 'comunidades' => ['Moro Viejo', 'Pancha', 'Pancha Grande']],
+        'collana' => ['nombre' => 'COLLANA I-YASIN-HUAN', 'clave' => 'collana', 'centro' => [-15.6430, -69.9560], 'comunidades' => ['Collana I', 'Yasin', 'Huan']],
+        'planta' => ['nombre' => 'PLANTA-COLLANA II', 'clave' => 'planta', 'centro' => [-15.6115, -69.9860], 'comunidades' => ['Collana II', 'Sector Planta', 'Collana II Bajo']],
     ];
 
     /** @var list<array{string, string}> */
@@ -88,11 +90,14 @@ class SimulacionHuataSeeder extends Seeder
         $zonas = [];
         foreach (array_values(self::ZONAS) as $indice => $datos) {
             $zona = Zona::query()->firstOrCreate(['nombre' => $datos['nombre']], ['activo' => true]);
-            $vehiculo = Vehiculo::query()->firstOrCreate(['placa' => ['V1A-123', 'V2B-456', 'V3C-789', 'V4D-012'][$indice]], ['nombre' => 'Camión '.($indice + 1), 'activo' => true]);
+            // MORO VIEJO-PANCHA se recoge en motocarga por sus trochas angostas; las demás zonas, en camión.
+            $tipo = $datos['clave'] === 'moro' ? 'motocarga' : 'camion';
+            $vehiculo = Vehiculo::query()->firstOrCreate(['placa' => ['V1A-123', 'V2B-456', 'V3C-789', 'V4D-012'][$indice]],
+                ['nombre' => ($tipo === 'motocarga' ? 'Motocarga ' : 'Camión ').($indice + 1), 'activo' => true, 'tipo' => $tipo]);
             $acopiador = $this->cuenta('acop_'.$datos['clave'], self::PERSONAL[$indice][1], 'acopiador', $zona->id);
             $calidad = $this->cuenta('calidad_'.$datos['clave'], self::PERSONAL[$indice + 4][1], 'calidad', $zona->id);
             $proveedores = $this->proveedores($zona, $datos);
-            $this->ruta($zona, $acopiador, $proveedores, $datos);
+            $this->ruta($zona, $acopiador, $proveedores, $datos, $tipo);
             $zonas[] = compact('zona', 'vehiculo', 'acopiador', 'calidad', 'proveedores');
         }
 
@@ -143,23 +148,46 @@ class SimulacionHuataSeeder extends Seeder
      * @param  list<Proveedor>  $proveedores
      * @param  array{nombre: string, clave: string, centro: array{float, float}, comunidades: list<string>}  $datos
      */
-    private function ruta(Zona $zona, Usuario $acopiador, array $proveedores, array $datos): void
+    private function ruta(Zona $zona, Usuario $acopiador, array $proveedores, array $datos, string $tipoVehiculo): void
     {
-        [$latitud, $longitud] = $datos['centro'];
         $paradas = collect($proveedores)->values()->map(fn (Proveedor $proveedor, int $i) => [
-            'nombre' => ($i + 1).' · '.$proveedor->nombres,
+            'nombre' => $proveedor->nombres,
             'proveedor_id' => $proveedor->id,
-            'latitud' => round($latitud + 0.0012 * $i * cos($i), 6),
-            'longitud' => round($longitud + 0.0012 * $i * sin($i), 6),
+            ...self::ubicacionDePrueba($datos['clave'], $i + 1),
             'referencia' => $proveedor->direccion,
         ])->all();
 
+        // Los dos últimos proveedores quedan sin ubicar para practicar la captura desde el mapa o el celular.
+        foreach ($paradas as $indice => $parada) {
+            if ($indice < count($paradas) - 2) {
+                Proveedor::query()->whereKey($parada['proveedor_id'])->update([
+                    'latitud' => $parada['latitud'], 'longitud' => $parada['longitud'], 'ubicacion_origen' => 'web', 'ubicacion_en' => now(),
+                ]);
+            }
+        }
+        $paradas = array_slice($paradas, 0, count($paradas) - 2);
+
         Ruta::query()->firstOrCreate(['codigo' => 'RUTA-'.strtoupper($datos['clave'])], [
-            'nombre' => 'Ruta '.$datos['nombre'], 'zona_id' => $zona->id, 'acopiador_id' => $acopiador->id,
+            'nombre' => 'Ruta '.$datos['nombre'], 'zona_id' => $zona->id, 'acopiador_id' => $acopiador->id, 'tipo_vehiculo' => $tipoVehiculo,
             'activo' => true, 'mapa_version' => 1, 'paradas' => $paradas,
-            'trazado' => array_map(fn (array $parada) => ['latitud' => $parada['latitud'], 'longitud' => $parada['longitud']], $paradas),
+            'trazado' => [],
             'indicaciones' => 'SIMULACIÓN: las paradas siguen el orden de recojo, pero sus coordenadas son aproximadas y no están validadas sobre caminos reales.',
         ]);
+    }
+
+    /**
+     * Ubicación ficticia del proveedor número N de una zona: dispersa hasta ~1,3 km de su centro y
+     * siempre igual para la misma zona y número.
+     *
+     * @return array{latitud: float, longitud: float}
+     */
+    public static function ubicacionDePrueba(string $clave, int $numero): array
+    {
+        [$latitud, $longitud] = self::ZONAS[$clave]['centro'];
+        $angulo = (crc32($clave.'-a-'.$numero) % 3600) / 3600 * 2 * M_PI;
+        $radio = 0.002 + (crc32($clave.'-r-'.$numero) % 1000) / 1000 * 0.010;
+
+        return ['latitud' => round($latitud + $radio * sin($angulo), 6), 'longitud' => round($longitud + $radio * cos($angulo), 6)];
     }
 
     /**

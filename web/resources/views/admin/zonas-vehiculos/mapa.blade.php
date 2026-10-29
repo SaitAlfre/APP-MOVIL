@@ -3,162 +3,212 @@
 @section('titulo', $ruta->exists ? 'Ruta: '.$ruta->nombre : 'Nueva ruta de acopio')
 
 @section('contenido')
-    <x-ui.page-header :title="$ruta->exists ? $ruta->nombre : 'Armar una ruta de acopio'" description="Elige a quién recogerás la leche, marca sus ubicaciones y guarda el orden de visita.">
+    @php
+        $tipoVehiculo = old('tipo_vehiculo', $ruta->tipo_vehiculo ?? 'camion');
+    @endphp
+    <x-ui.page-header :title="$ruta->exists ? $ruta->nombre : 'Nueva ruta de acopio'"
+        :description="$puedeGestionar ? 'Elige la zona y agrega a sus proveedores en el orden de siempre. El camino sale de la planta, pasa por cada parada y vuelve a la planta; se calcula solo.' : 'Sal de la planta (P) y visita las paradas siguiendo los números del recorrido.'">
         <x-slot:actions><x-ui.btn :href="route('admin.mapa-rutas.index')" variant="outline" icon="arrowLeft">Todas las rutas</x-ui.btn></x-slot:actions>
     </x-ui.page-header>
 
     @if ($puedeGestionar && $zonasCatalogo->isEmpty())
-        <x-ui.card><x-ui.empty icon="map" title="Primero registra un sector" description="El sector agrupa los proveedores que visitarás en esta ruta.">
-            <x-slot:action><x-ui.btn :href="route('admin.zonas.create')" icon="plus">Crear sector</x-ui.btn></x-slot:action>
+        <x-ui.card><x-ui.empty icon="map" title="Primero registra una zona" description="La zona agrupa a los proveedores que visitarás en esta ruta.">
+            <x-slot:action><x-ui.btn :href="route('admin.zonas.create')" icon="plus">Crear zona</x-ui.btn></x-slot:action>
         </x-ui.empty></x-ui.card>
     @else
         <div data-mapa-ruta class="space-y-4">
             <script type="application/json" data-map-config>{!! json_encode($configMapa, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!}</script>
+
+            @if ($errors->any())
+                <x-ui.alert type="error" data-form-errors>{{ $errors->first() }}</x-ui.alert>
+            @endif
+
             @if ($puedeGestionar)
-                <form id="guardar-mapa" method="POST" action="{{ $ruta->exists ? route('admin.mapa-rutas.update', $ruta) : route('admin.mapa-rutas.store') }}" data-route-save class="rounded-[22px] border border-eh-border bg-eh-surface/70 p-5">
+                <form id="guardar-mapa" method="POST" action="{{ $ruta->exists ? route('admin.mapa-rutas.update', $ruta) : route('admin.mapa-rutas.store') }}" data-route-save
+                    class="rounded-2xl border border-eh-border bg-eh-surface p-4">
                     @csrf
                     @if ($ruta->exists) @method('PUT') @endif
                     <input type="hidden" name="mapa_version" value="{{ old('mapa_version', $ruta->mapa_version ?? 0) }}">
                     <input type="hidden" name="paradas_json">
                     <input type="hidden" name="trazado_json">
                     <input type="hidden" name="resumen_recorrido_json">
-                    <div class="grid gap-4 md:grid-cols-3">
-                        <x-ui.field name="nombre" label="Nombre de la ruta" required maxlength="120" :value="$ruta->nombre" placeholder="Ej. Recojo de la mañana — Sector Norte" />
-                        <x-ui.select name="zona_id" label="¿En qué sector recogerás?" required placeholder="Elegir sector" :selected="$ruta->zona_id" :options="$zonasCatalogo->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre.($zona->activo ? '' : ' (inactivo)')])->all()" hint="Verás los proveedores activos de este sector." />
-                        <x-ui.select name="acopiador_id" label="¿Quién hará el recorrido?" placeholder="Asignar después" :selected="$ruta->acopiador_id" :options="$acopiadores->mapWithKeys(fn ($acopiador) => [$acopiador->id => $acopiador->nombres])->all()" hint="Puedes guardar primero y asignar al acopiador después." />
+                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end">
+                        <x-ui.select name="zona_id" label="1 · Zona" required placeholder="Elige la zona" :selected="$ruta->zona_id" data-campo-zona
+                            :options="$zonasCatalogo->mapWithKeys(fn ($zona) => [$zona->id => $zona->nombre.($zona->activo ? '' : ' (inactiva)')])->all()" />
+                        <x-ui.select name="acopiador_id" label="2 · Acopiador" placeholder="Asignar después" :selected="$ruta->acopiador_id"
+                            :options="$acopiadores->mapWithKeys(fn ($acopiador) => [$acopiador->id => $acopiador->nombres])->all()" />
+                        <x-ui.field name="nombre" label="Nombre de la ruta" required maxlength="120" :value="$ruta->nombre" placeholder="Se completa con la zona" data-campo-nombre />
+                        <fieldset>
+                            <legend class="mb-1.5 text-xs font-medium">3 · Vehículo</legend>
+                            <div class="gestion-status-tabs">
+                                @foreach (['camion' => 'Camión', 'motocarga' => 'Motocarga'] as $valor => $texto)
+                                    <label class="gestion-status-tab cursor-pointer has-[:checked]:border-eh-border has-[:checked]:bg-eh-surface has-[:checked]:text-eh-text has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-eh-primary">
+                                        <input type="radio" name="tipo_vehiculo" value="{{ $valor }}" class="sr-only" @checked($tipoVehiculo === $valor)>
+                                        <x-icon name="truck" class="mr-1 h-3.5 w-3.5" /> {{ $texto }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
                     </div>
                     @if ($acopiadores->isEmpty())
-                        <p class="mt-3 text-xs text-eh-text-muted">Puedes preparar la ruta y asignarla después. <a href="{{ route('admin.usuarios.create') }}" class="font-semibold text-eh-primary underline">Crear cuenta de acopiador</a></p>
+                        <p class="mt-3 text-xs text-eh-text-muted">Todavía no hay acopiadores. <a href="{{ route('admin.usuarios.create') }}" class="font-semibold text-eh-primary underline">Crear cuenta de acopiador</a></p>
                     @elseif ($ruta->acopiador_id && ! $acopiadores->contains('id', $ruta->acopiador_id))
-                        <p class="mt-3 text-xs text-eh-red">El acopiador anterior ya no está disponible. Asigna otra cuenta activa o guarda la ruta sin asignación.</p>
+                        <p class="mt-3 text-xs text-eh-red">El acopiador anterior ya no está disponible. Asigna otra cuenta activa o guarda sin asignación.</p>
                     @endif
-                    <details class="mt-4 border-t border-eh-border pt-3">
-                        <summary class="cursor-pointer text-xs font-semibold text-eh-text-muted">Indicaciones y disponibilidad</summary>
-                        <div class="mt-3 grid gap-4 md:grid-cols-[1fr_220px]">
-                            <div><label for="indicaciones" class="mb-1 block text-[11px] font-semibold">Indicaciones para el acopiador</label><textarea id="indicaciones" name="indicaciones" rows="2" maxlength="2000" class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm" placeholder="Hora de salida, acceso al sector o referencias importantes">{{ old('indicaciones', $ruta->indicaciones) }}</textarea></div>
+                    <details class="mt-3 border-t border-eh-border pt-3">
+                        <summary class="cursor-pointer text-xs font-semibold text-eh-text-muted">Más opciones: indicaciones y disponibilidad</summary>
+                        <div class="mt-3 grid gap-4 md:grid-cols-[1fr_240px]">
+                            <div>
+                                <label for="indicaciones" class="mb-1 block text-xs font-medium">Indicaciones para el acopiador</label>
+                                <textarea id="indicaciones" name="indicaciones" rows="2" maxlength="2000" placeholder="Hora de salida, accesos o referencias importantes"
+                                    class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm">{{ old('indicaciones', $ruta->indicaciones) }}</textarea>
+                            </div>
                             <x-ui.select name="activo" label="Disponibilidad" :selected="$ruta->activo ? '1' : '0'" :options="['1' => 'Disponible para acopio', '0' => 'Desactivada']" />
                         </div>
                     </details>
                 </form>
             @else
-                <div class="flex flex-wrap gap-3 text-sm text-eh-text-muted"><span>{{ $ruta->zona->nombre }}</span><span>·</span><span>{{ $ruta->acopiador?->nombres ?? 'Sin acopiador' }}</span></div>
-                @if ($ruta->indicaciones)<x-ui.alert><span class="whitespace-pre-line">{{ $ruta->indicaciones }}</span></x-ui.alert>
+                <div class="flex flex-wrap gap-2 text-sm text-eh-text-muted">
+                    <x-ui.badge variant="blue" :label="$ruta->zona->nombre" />
+                    <x-ui.badge variant="gray" :label="$ruta->tipo_vehiculo === 'motocarga' ? 'Motocarga' : 'Camión'" />
+                    <span>{{ $ruta->acopiador?->nombres ?? 'Sin acopiador' }}</span>
+                </div>
+                @if ($ruta->indicaciones)
+                    <x-ui.alert><span class="whitespace-pre-line">{{ $ruta->indicaciones }}</span></x-ui.alert>
                 @endif
             @endif
+
             @if ($ruta->exists && (! $ruta->activo || ! $ruta->zona->activo))
-                <x-ui.alert type="warning">Esta ruta o su sector están desactivados. Actívalos para que el acopiador pueda consultar el recorrido.</x-ui.alert>
+                <x-ui.alert type="warning">Esta ruta o su zona están desactivadas. Actívalas para que el acopiador pueda consultar el recorrido.</x-ui.alert>
             @endif
 
-            @if ($puedeGestionar)
-                <x-ui.card padding="p-5">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="text-base font-semibold">Proveedores de esta ruta</h2></div>
-                        <p class="rounded-full bg-eh-primary-soft px-3 py-2 text-sm font-semibold" role="status"><span data-provider-count>0</span> vinculados</p>
-                    </div>
-                    <div class="mt-4"><x-ui.field id="buscar-proveedor-ruta" type="search" label="Buscar proveedor del sector" placeholder="Escribe su nombre, código o dirección" data-provider-search autocomplete="off" /></div>
-                    <p data-provider-empty class="mt-3 text-sm text-eh-text-muted"></p>
-                    <ul data-provider-list aria-label="Proveedores disponibles del sector" class="mt-3 grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3"></ul>
-                    <p class="mt-3 text-xs text-eh-text-muted">¿Falta alguien? <a href="{{ route('admin.proveedores.create') }}" class="font-semibold text-eh-primary underline">Registrar proveedor</a>. Debe estar activo y pertenecer al sector elegido.</p>
-                </x-ui.card>
-                <div data-placement-banner hidden class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-eh-primary bg-eh-primary-soft p-4" role="status">
-                    <p data-placement-message class="text-sm font-semibold"></p>
-                    <x-ui.btn variant="outline" size="sm" data-placement-cancel>Volver a los datos</x-ui.btn>
-                </div>
-            @endif
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div class="rounded-2xl border border-eh-border bg-eh-surface p-4"><p class="text-xs text-eh-text-muted">Paradas</p><p class="mono mt-1 text-2xl font-semibold" data-metrica-paradas>0</p></div>
+                <div class="rounded-2xl border border-eh-border bg-eh-surface p-4"><p class="text-xs text-eh-text-muted">Proveedores de la zona en la ruta</p><p class="mono mt-1 text-2xl font-semibold" data-metrica-cobertura>—</p></div>
+                <div class="rounded-2xl border border-eh-border bg-eh-surface p-4"><p class="text-xs text-eh-text-muted">Distancia</p><p class="mono mt-1 text-2xl font-semibold" data-metrica-distancia>—</p></div>
+                <div class="rounded-2xl border border-eh-border bg-eh-surface p-4"><p class="text-xs text-eh-text-muted">Tiempo de manejo</p><p class="mono mt-1 text-2xl font-semibold" data-metrica-tiempo>—</p></div>
+            </div>
 
-            <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
                 <div class="min-w-0 space-y-3">
                     <x-ui.card class="overflow-hidden">
-                        <div class="flex flex-wrap items-center gap-2 border-b border-eh-border p-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-eh-border p-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <x-ui.btn size="sm" variant="ghost" icon="map" data-map-fit>Ver todo</x-ui.btn>
+                                <x-ui.btn size="sm" variant="ghost" icon="ubicacion" data-map-locate>Mi ubicación</x-ui.btn>
+                            </div>
                             @if ($puedeGestionar)
-                                <x-ui.btn size="sm" variant="outline" icon="plus" data-stop-add>Agregar otro punto</x-ui.btn>
-                                @if (config('mapas.ruteo'))<x-ui.btn size="sm" variant="outline" data-route-calculate>Calcular por carretera</x-ui.btn>
-                                @endif
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <x-ui.btn size="sm" variant="ghost" icon="plus" data-punto-referencia>Punto de referencia</x-ui.btn>
+                                    <x-ui.btn size="sm" variant="outline" icon="pencil" data-dibujo-alternar aria-pressed="false">Dibujar un tramo a mano</x-ui.btn>
+                                </div>
                             @endif
-                            <x-ui.btn size="sm" variant="ghost" data-map-fit>Ver todo</x-ui.btn>
-                            <x-ui.btn size="sm" variant="ghost" data-map-locate>Mi ubicación</x-ui.btn>
+                        </div>
+                        <div data-banner-ubicar hidden class="flex flex-wrap items-center justify-between gap-3 border-b border-eh-primary bg-eh-primary-soft px-4 py-3" role="status">
+                            <p class="flex items-center gap-2 text-sm font-semibold text-eh-primary"><x-icon name="ubicacion" class="h-4 w-4" /> <span data-banner-texto></span></p>
+                            <x-ui.btn size="sm" variant="outline" data-banner-cancelar>Cancelar</x-ui.btn>
+                        </div>
+                        <div data-banner-dibujo hidden class="space-y-3 border-b border-eh-gold bg-eh-gold-soft px-4 py-3">
+                            <div class="flex flex-wrap items-end gap-3">
+                                <div class="min-w-56 flex-1">
+                                    <label for="dibujo-tramo" class="mb-1 block text-xs font-semibold text-eh-gold">Tramo que vas a dibujar</label>
+                                    <select id="dibujo-tramo" data-dibujo-tramo class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm"></select>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <x-ui.btn size="sm" variant="ghost" data-dibujo-deshacer>Deshacer punto</x-ui.btn>
+                                    <x-ui.btn size="sm" variant="ghost" data-dibujo-carretera hidden>Usar carretera</x-ui.btn>
+                                    <x-ui.btn size="sm" variant="ghost" data-dibujo-cancelar>Cancelar</x-ui.btn>
+                                    <x-ui.btn size="sm" icon="check" data-dibujo-guardar>Guardar tramo</x-ui.btn>
+                                </div>
+                            </div>
+                            <p class="text-xs text-eh-gold">Haz clic sobre el mapa siguiendo la trocha. El tramo une sola la parada de inicio y la de llegada; el resto del camino sigue por carretera.</p>
                         </div>
                         <div class="relative">
-                            <div data-map-canvas class="mapa-acopio" tabindex="0" role="region" aria-label="Mapa del recorrido. Arrastra para desplazarte, usa las flechas del teclado o los botones para acercar y alejar.">
-                                <span class="mapa-atribucion">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="underline">OpenStreetMap</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener noreferrer" class="underline">Corregir mapa</a><span data-routing-credit hidden> · OSRM / FOSSGIS</span></span>
+                            <div data-map-canvas class="mapa-acopio" tabindex="0" role="region" aria-label="Mapa del recorrido. Arrastra para desplazarte; usa más y menos para acercar.">
+                                <span class="mapa-atribucion">P = {{ config('mapas.planta.nombre') }} · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="underline">OpenStreetMap</a><span data-routing-credit hidden> · openrouteservice.org</span></span>
                             </div>
                             <div class="absolute left-3 top-3 z-10 flex flex-col overflow-hidden rounded-xl border border-eh-border bg-eh-surface shadow-lg">
                                 <button type="button" data-zoom-in class="h-10 w-10 text-xl font-bold" aria-label="Acercar mapa">+</button>
                                 <button type="button" data-zoom-out class="h-10 w-10 border-t border-eh-border text-xl font-bold" aria-label="Alejar mapa">−</button>
                             </div>
-                            @if ($puedeGestionar)<p data-map-hint class="pointer-events-none absolute bottom-9 left-3 right-3 rounded-xl bg-eh-surface/95 px-3 py-2 text-center text-xs font-semibold shadow-sm">Elige un sector y pulsa en el mapa para agregar una parada.</p>
+                        </div>
+                        <p data-map-status role="status" aria-live="polite" class="min-h-11 border-t border-eh-border px-4 py-3 text-sm text-eh-text-muted">
+                            {{ $puedeGestionar ? 'Elige la zona para ver a sus proveedores.' : 'Elige una parada para verla en el mapa.' }}
+                        </p>
+                    </x-ui.card>
+                </div>
+
+                <div class="min-w-0 space-y-4">
+                    <x-ui.card padding="p-4">
+                        <div class="mb-3 flex items-center justify-between gap-2">
+                            <h2 class="font-semibold">Orden de visita · <span data-stop-count>0</span></h2>
+                            @if ($puedeGestionar)
+                                <x-ui.btn variant="ghost" size="sm" data-stops-reverse>Invertir</x-ui.btn>
                             @endif
                         </div>
-                        <div class="flex flex-wrap items-center justify-between gap-3 p-4">
-                            <div><p data-trace-label class="text-xs font-semibold"></p><p data-route-metrics class="mt-1 text-xs text-eh-text-muted"></p></div>
-                            <span class="rounded-full bg-eh-primary-soft px-3 py-1 text-xs font-semibold"><span data-stop-count>0</span> paradas</span>
-                        </div>
+                        <p data-stops-empty class="rounded-xl bg-eh-surface-alt p-4 text-center text-sm text-eh-text-muted">
+                            {{ $puedeGestionar ? 'Agrega proveedores desde la lista de abajo. Quedan en el orden en que los agregas; luego puedes moverlos.' : 'El administrador todavía no agregó paradas.' }}
+                        </p>
+                        <ol data-stop-list class="ruta-lista space-y-2"></ol>
                     </x-ui.card>
-                    <p data-map-status role="status" aria-live="polite" class="min-h-5 text-xs text-eh-text-muted">{{ $puedeGestionar ? 'Marca las paradas sobre el mapa; también puedes pegar sus coordenadas.' : 'Elige una parada para ver su ubicación y cómo llegar.' }}</p>
+
                     @if ($puedeGestionar)
-                        <details class="rounded-2xl border border-eh-border bg-eh-surface/70 p-4">
-                            <summary class="cursor-pointer text-xs font-semibold">Ajustar el camino manualmente</summary>
-                            <p class="mb-3 mt-3 text-xs text-eh-text-muted">Úsalo para accesos rurales. Activa el trazado y marca las vías y los giros desde la primera hasta la última parada.</p>
-                            <div class="flex flex-wrap gap-2">
-                                <x-ui.btn variant="outline" size="sm" data-map-mode="parada" aria-pressed="true">Agregar paradas</x-ui.btn>
-                                <x-ui.btn variant="outline" size="sm" data-map-mode="trazado" aria-pressed="false">Dibujar camino</x-ui.btn>
-                                <x-ui.btn variant="ghost" size="sm" data-trace-undo>Deshacer punto</x-ui.btn>
-                                <x-ui.btn variant="ghost" size="sm" data-trace-clear>Quitar trazado</x-ui.btn>
+                        <x-ui.card padding="p-4">
+                            <div class="mb-3 flex items-center justify-between gap-2">
+                                <h2 class="font-semibold">Proveedores de la zona</h2>
+                                <x-ui.btn variant="outline" size="sm" icon="plus" data-agregar-ubicados hidden><span data-agregar-ubicados-texto>Agregar ubicados</span></x-ui.btn>
                             </div>
-                        </details>
+                            <x-ui.search name="buscar_proveedor" id="buscar-proveedor-ruta" label="Buscar proveedor" placeholder="Nombre o código…" data-provider-search autocomplete="off" />
+                            <p data-provider-empty class="mt-3 text-sm text-eh-text-muted"></p>
+                            <ul data-provider-list aria-label="Proveedores de la zona" class="mt-3 max-h-96 space-y-2 overflow-y-auto pr-1"></ul>
+                            <p class="mt-3 text-xs text-eh-text-muted">¿Falta alguien? <a href="{{ route('admin.proveedores.create') }}" class="font-semibold text-eh-primary underline">Registrar proveedor</a> en esta zona.</p>
+                        </x-ui.card>
                     @endif
                 </div>
-                <x-ui.card padding="p-4" class="min-w-0">
-                    <div class="mb-3 flex items-center justify-between gap-2"><h2 class="font-semibold">Orden de recolección</h2>
-                    @if ($puedeGestionar)<x-ui.btn variant="ghost" size="sm" data-stops-reverse>Invertir orden</x-ui.btn>
-                    @endif</div>
-                    <p class="mb-4 text-xs text-eh-text-muted">{{ $puedeGestionar ? 'Arrastra las paradas para ordenarlas o usa las flechas. Puedes mover los puntos sobre el mapa.' : 'Visita las paradas siguiendo los números del recorrido.' }}</p>
-                    <div data-stops-empty class="rounded-xl bg-eh-surface-alt p-5 text-center"><p class="text-sm font-semibold">Marca tu primera parada</p><p class="mt-2 text-xs text-eh-text-muted">{{ $puedeGestionar ? 'Pulsa en el mapa o en Agregar parada. El recorrido se guardará cuando tenga puntos de recojo.' : 'El administrador debe completar las paradas de esta ruta.' }}</p></div>
-                    <ol data-stop-list class="ruta-lista space-y-3"></ol>
-                    <noscript><ol class="space-y-3">
-                    @foreach ($configMapa['paradas'] as $parada)<li class="rounded-xl border border-eh-border p-3"><strong>{{ $loop->iteration }}. {{ $parada['nombre'] }}</strong><p class="text-sm">{{ $parada['referencia'] }}</p><a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ $parada['latitud'] }},{{ $parada['longitud'] }}&amp;travelmode=driving" target="_blank" rel="noopener noreferrer" class="text-sm underline">Cómo llegar</a></li>
-                    @endforeach</ol></noscript>
-                </x-ui.card>
             </div>
+
             @if ($puedeGestionar)
-                <div class="ruta-guardar sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-eh-border bg-eh-surface/95 p-4 shadow-lg backdrop-blur">
-                    <div><p data-save-status class="text-sm font-semibold">{{ $ruta->exists ? ($errors->any() ? 'Revisa los datos antes de guardar' : 'Todos los cambios guardados') : 'Ruta nueva · agrega al menos una parada' }}</p><p data-route-ready class="mt-1 text-sm text-eh-text-muted"></p></div>
-                    <x-ui.btn type="submit" form="guardar-mapa" data-route-submit>{{ $ruta->exists ? 'Guardar cambios' : 'Crear ruta' }}</x-ui.btn>
+                <div class="sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-eh-border bg-eh-surface/95 p-4 shadow-lg backdrop-blur">
+                    <div>
+                        <p data-save-status class="text-sm font-semibold">{{ $ruta->exists ? 'Sin cambios' : 'Ruta nueva' }}</p>
+                        <p data-route-ready class="mt-0.5 text-xs text-eh-text-muted">Agrega al menos una parada para guardar.</p>
+                    </div>
+                    <x-ui.btn type="submit" form="guardar-mapa" data-route-submit icon="check">{{ $ruta->exists ? 'Guardar cambios' : 'Crear ruta' }}</x-ui.btn>
                 </div>
-                <dialog data-stop-dialog aria-labelledby="titulo-parada" class="w-[calc(100%_-_2rem)] max-w-lg rounded-2xl border border-eh-border bg-eh-surface p-0 text-eh-text shadow-2xl backdrop:bg-black/45">
-                    <form data-stop-editor autocomplete="off" class="space-y-4 p-5">
-                        <div class="flex items-center justify-between gap-3"><div class="flex min-w-0 items-center gap-3"><span data-stop-dialog-number aria-hidden="true" class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-eh-primary text-lg font-bold text-eh-on-primary">1</span><h2 id="titulo-parada" data-stop-dialog-title class="text-lg font-semibold">Nuevo punto 1</h2></div><button type="button" data-stop-close aria-label="Cerrar" class="rounded-lg p-2"><x-icon name="xMark" class="h-4 w-4" /></button></div>
-                        <div data-provider-field><x-ui.select id="parada-proveedor" name="proveedor_id" label="¿A quién pertenece esta parada?" placeholder="Otro punto: planta, reunión o referencia" hint="El proveedor queda vinculado al guardar la ruta." /></div>
-                        <x-ui.field id="parada-nombre" name="nombre" label="Nombre de la parada" required maxlength="120" placeholder="Ej. Casa de Juan o punto de reunión" />
-                        <div class="space-y-3">
-                            <x-ui.btn variant="secondary" icon="map" data-stop-pick-location>Elegir ubicación en el mapa</x-ui.btn>
-                            <div data-stop-location-presets hidden>
-                                <label for="parada-punto-existente" class="mb-1 block text-xs font-semibold">Usar ubicación de un punto de esta ruta</label>
-                                <select id="parada-punto-existente" data-stop-location-preset class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm">
-                                    <option value="">Elegir punto…</option>
-                                </select>
-                            </div>
-                            <div><label for="parada-ubicacion" data-stop-location-label class="mb-1 block text-xs font-semibold">Ubicación del punto 1</label><input id="parada-ubicacion" name="ubicacion" autocomplete="off" spellcheck="false" required data-stop-location aria-describedby="parada-ubicacion-coincidencia" class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm" placeholder="Latitud, longitud o enlace de Google Maps"><p id="parada-ubicacion-coincidencia" data-stop-location-match role="status" hidden class="mt-2 rounded-lg bg-eh-primary-soft px-3 py-2 text-xs font-medium text-eh-primary"></p></div>
-                        </div>
-                        <x-ui.field id="parada-referencia" name="referencia" label="Referencia para llegar (opcional)" maxlength="500" placeholder="Ej. Portón azul junto al colegio" />
-                        <p data-stop-error role="alert" hidden class="text-xs text-eh-red"></p>
-                        <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn variant="ghost" data-stop-close>Cancelar</x-ui.btn><x-ui.btn type="submit" data-stop-submit>Agregar parada</x-ui.btn></div>
-                    </form>
-                </dialog>
             @endif
+
             <template data-stop-template>
-                <li class="ruta-parada rounded-xl border border-eh-border bg-eh-surface/70 p-3">
-                    <div class="flex items-start gap-3"><button type="button" data-stop-select class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-eh-primary text-sm font-bold text-eh-on-primary" aria-label="Ver parada en el mapa"><span data-stop-number></span></button><div class="min-w-0 flex-1"><p data-stop-name class="break-words text-sm font-semibold"></p><p data-stop-reference class="mt-1 break-words text-xs text-eh-text-muted"></p><p data-stop-position class="mt-1 text-[10px] font-semibold text-eh-text-muted"></p></div>
-                    @if ($puedeGestionar)<span data-stop-drag class="cursor-grab text-eh-text-muted" aria-hidden="true">⠿</span>
-                    @endif</div>
-                    <p data-stop-warning hidden class="mt-2 text-xs text-eh-red"></p>
-                    <p data-stop-provider class="mt-2 break-words rounded-lg bg-eh-primary-soft px-2 py-1 text-xs font-semibold text-eh-primary"></p>
-                    <div class="mt-3 flex flex-wrap items-center gap-1"><a data-stop-directions target="_blank" rel="noopener noreferrer" class="rounded-lg bg-eh-primary px-3 py-2 text-[11px] font-semibold text-eh-on-primary">Cómo llegar</a>
-                    @if ($puedeGestionar)<x-ui.btn variant="ghost" size="sm" data-stop-edit>Editar</x-ui.btn><x-ui.btn variant="ghost" size="sm" data-stop-up aria-label="Subir parada">↑</x-ui.btn><x-ui.btn variant="ghost" size="sm" data-stop-down aria-label="Bajar parada">↓</x-ui.btn><x-ui.btn variant="ghost" size="sm" data-stop-remove aria-label="Quitar parada">Quitar</x-ui.btn>
-                    @endif</div>
+                <li class="ruta-parada flex items-start gap-3 rounded-xl border border-eh-border bg-eh-surface p-3" data-stop-item>
+                    <button type="button" data-stop-select class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-eh-primary text-sm font-bold text-eh-on-primary"><span data-stop-number></span></button>
+                    <div class="min-w-0 flex-1">
+                        <p data-stop-name class="truncate text-sm font-semibold"></p>
+                        <p data-stop-reference class="truncate text-xs text-eh-text-muted"></p>
+                        <div class="mt-2 flex flex-wrap items-center gap-1">
+                            <a data-stop-directions target="_blank" rel="noopener noreferrer" class="rounded-lg bg-eh-primary-soft px-2 py-1 text-[11px] font-semibold text-eh-primary">Cómo llegar</a>
+                            @if ($puedeGestionar)
+                                <button type="button" data-stop-move class="rounded-lg px-2 py-1 text-[11px] text-eh-text-muted hover:bg-eh-surface-alt">Mover en el mapa</button>
+                                <button type="button" data-stop-remove class="rounded-lg px-2 py-1 text-[11px] text-eh-red hover:bg-eh-red-soft">Quitar</button>
+                            @endif
+                        </div>
+                    </div>
+                    @if ($puedeGestionar)
+                        <div class="flex shrink-0 flex-col items-center">
+                            <button type="button" data-stop-up class="rounded p-1 text-eh-text-muted hover:bg-eh-surface-alt" aria-label="Subir parada">↑</button>
+                            <span data-stop-drag class="cursor-grab px-1 text-eh-text-muted" aria-hidden="true">⠿</span>
+                            <button type="button" data-stop-down class="rounded p-1 text-eh-text-muted hover:bg-eh-surface-alt" aria-label="Bajar parada">↓</button>
+                        </div>
+                    @endif
                 </li>
             </template>
-            <noscript><x-ui.alert type="warning">Activa JavaScript para editar el mapa. Las paradas guardadas se muestran en la lista.</x-ui.alert></noscript>
+            <noscript>
+                <x-ui.alert type="warning">Activa JavaScript para editar el mapa. Estas son las paradas guardadas:</x-ui.alert>
+                <ol class="space-y-2">
+                    @foreach ($configMapa['paradas'] as $parada)
+                        <li class="rounded-xl border border-eh-border p-3"><strong>{{ $loop->iteration }}. {{ $parada['nombre'] }}</strong>
+                            <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ $parada['latitud'] }},{{ $parada['longitud'] }}&amp;travelmode=driving" target="_blank" rel="noopener noreferrer" class="ml-2 text-sm underline">Cómo llegar</a></li>
+                    @endforeach
+                </ol>
+            </noscript>
         </div>
     @endif
 @endsection

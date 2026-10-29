@@ -97,8 +97,8 @@ class RutasProveedoresUsabilidadTest extends TestCase
     public function test_la_ruta_guia_la_seleccion_de_proveedores_y_conserva_datos_al_fallar(): void
     {
         $proveedor = M\Proveedor::factory()->create(['zona_id' => $this->zona->id, 'estado' => 'activo']);
-        $this->get(route('admin.mapa-rutas.create'))->assertOk()->assertSee('Proveedores de esta ruta')
-            ->assertSee('Elegir ubicación en el mapa')->assertSee('data-provider-search', false)->assertDontSee('Pasos para preparar la ruta');
+        $this->get(route('admin.mapa-rutas.create'))->assertOk()->assertSee('Proveedores de la zona')->assertSee('Orden de visita')
+            ->assertSee('data-provider-search', false)->assertSee('data-agregar-ubicados', false)->assertDontSee('data-stop-dialog', false);
         $datos = $this->datos([$this->parada($proveedor)]);
         $datos['nombre'] = '';
         $this->from(route('admin.mapa-rutas.create'))->post(route('admin.mapa-rutas.store'), $datos)

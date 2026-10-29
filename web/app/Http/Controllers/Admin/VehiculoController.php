@@ -8,6 +8,7 @@ use App\Application\Vehiculos\CrearVehiculoUseCase;
 use App\Domain\Vehiculos\Exceptions\VehiculoInvalidoException;
 use App\Domain\Vehiculos\VehiculoRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Persistence\Eloquent\Vehiculo as VehiculoEloquent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class VehiculoController extends Controller
 {
     public function create(): View
     {
-        return view('admin.vehiculos.form', ['vehiculo' => null]);
+        return view('admin.vehiculos.form', ['vehiculo' => null, 'tipo' => 'camion']);
     }
 
     public function store(Request $request, CrearVehiculoUseCase $crear): RedirectResponse
@@ -25,10 +26,12 @@ class VehiculoController extends Controller
         $request->validate([
             'nombre' => ['required', 'string', 'max:100'],
             'placa' => ['required', 'string', 'max:20'],
+            'tipo' => ['nullable', 'in:camion,motocarga'],
         ]);
 
         try {
-            $crear->ejecutar($request->string('nombre')->toString(), $request->string('placa')->toString());
+            $creado = $crear->ejecutar($request->string('nombre')->toString(), $request->string('placa')->toString());
+            VehiculoEloquent::query()->whereKey($creado->id)->update(['tipo' => $request->input('tipo') ?: 'camion']);
         } catch (VehiculoInvalidoException $e) {
             return back()->withErrors(['placa' => $this->mensajeSeguro($e)])->withInput();
         }
@@ -41,7 +44,7 @@ class VehiculoController extends Controller
         $entidad = $vehiculos->buscarPorId($vehiculo);
         abort_if($entidad === null, 404);
 
-        return view('admin.vehiculos.form', ['vehiculo' => $entidad]);
+        return view('admin.vehiculos.form', ['vehiculo' => $entidad, 'tipo' => VehiculoEloquent::query()->whereKey($vehiculo)->value('tipo') ?? 'camion']);
     }
 
     public function update(int $vehiculo, Request $request, ActualizarVehiculoUseCase $actualizar): RedirectResponse
@@ -49,10 +52,12 @@ class VehiculoController extends Controller
         $request->validate([
             'nombre' => ['required', 'string', 'max:100'],
             'placa' => ['required', 'string', 'max:20'],
+            'tipo' => ['nullable', 'in:camion,motocarga'],
         ]);
 
         try {
             $actualizar->ejecutar($vehiculo, $request->string('nombre')->toString(), $request->string('placa')->toString());
+            VehiculoEloquent::query()->whereKey($vehiculo)->update(['tipo' => $request->input('tipo') ?: 'camion']);
         } catch (VehiculoInvalidoException $e) {
             return back()->withErrors(['placa' => $this->mensajeSeguro($e)])->withInput();
         }
