@@ -5,6 +5,7 @@ namespace App\Application\Calidad;
 use App\Domain\Calidad\EstadoAnalisis;
 use App\Domain\Calidad\ParametrosCalidad;
 use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
+use App\Infrastructure\Persistence\Eloquent\InfraccionCalidad;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use Carbon\CarbonImmutable;
@@ -30,6 +31,11 @@ class GuardarAnalisisCalidadUseCase
      */
     public function ejecutar(array $datos, Usuario $tecnico): AnalisisCalidad
     {
+        return DB::transaction(fn () => $this->guardar($datos, $tecnico));
+    }
+
+    private function guardar(array $datos, Usuario $tecnico): AnalisisCalidad
+    {
         $valores = collect(array_keys(ParametrosCalidad::PARAMETROS))->mapWithKeys(function (string $clave) use ($datos) {
             $val = $datos['valores'][$clave] ?? null;
             $val = $val !== null && $val !== '' ? (float) $val : null;
@@ -48,12 +54,27 @@ class GuardarAnalisisCalidadUseCase
 
         $unidad = ($datos['unidad_congelacion'] ?? '°C') === '°H' ? '°H' : '°C';
         $evaluacion = ParametrosCalidad::evaluar($valores, $unidad);
-        $proveedor = Proveedor::query()->with('zona')->findOrFail($datos['proveedor_id']);
+        $proveedor = Proveedor::query()->with('zona')->lockForUpdate()->findOrFail($datos['proveedor_id']);
         $uuid = $datos['uuid'] ?? (string) Str::uuid();
-        $existente = AnalisisCalidad::query()->where('uuid', $uuid)->first();
+        $existente = AnalisisCalidad::query()->where('uuid', $uuid)->lockForUpdate()->first();
         $ahora = now();
 
         $columnas = collect(ParametrosCalidad::PARAMETROS)->mapWithKeys(fn (array $p, string $clave) => [$p[5] => $valores[$clave]])->all();
+        if ($existente !== null && InfraccionCalidad::where('analisis_calidad_id', $existente->id)->exists()) {
+            $mismosValores = collect($columnas)->every(fn ($valor, $columna) => $existente->{$columna} === $valor);
+            $mismoRegistro = $mismosValores && $existente->proveedor_id === $proveedor->id
+                && $existente->registrado_en->equalTo($datos['registrado_en'])
+                && $existente->estado === ($datos['estado'] ?? $evaluacion['estado'])
+                && ($existente->serial_analizador ?: null) === (($datos['serial'] ?? null) ?: null)
+                && ($existente->modo_analizador ?: null) === (($datos['modo'] ?? null) ?: null)
+                && $existente->observaciones === (trim((string) ($datos['observaciones'] ?? '')) ?: null)
+                && $existente->unidadCongelacion() === $unidad;
+            if (! $mismoRegistro) {
+                throw new InvalidArgumentException('El análisis respalda un caso de calidad y no puede sobrescribirse. Registra una nueva prueba.');
+            }
+
+            return $existente;
+        }
         $visita = [
             ...($existente?->visita ?? []),
             ...($datos['visita'] ?? []),

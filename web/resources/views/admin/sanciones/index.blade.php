@@ -5,22 +5,32 @@
 @section('contenido')
     @php
         $operador = auth('operador')->user();
-        $puedeGestionar = $operador->puede('sanciones', 'gestionar');
+        $puedeGestionar = $operador->tieneRol('admin') && $operador->puede('sanciones', 'gestionar');
         $puedeResolverReclamos = $operador->tieneRol('admin');
         $severidades = ['alta' => 'red', 'media' => 'yellow', 'baja' => 'gray'];
     @endphp
 
-    <x-ui.page-header title="Sanciones y reclamos" description="Sanciones por calidad y reclamos enviados por proveedores" />
+    <x-ui.page-header title="Sanciones y reclamos" description="Consulta sanciones históricas y resuelve los reclamos de litros enviados por los proveedores." />
+
+    <x-ui.alert type="info" class="mb-5" title="Los castigos semanales se gestionan en Calidad">
+        Los controles nuevos no generan sanciones de monto fijo. Revisa las infracciones y sus descuentos por litro en
+        @if ($operador->puede('calidad', 'ver'))
+            <a href="{{ route('admin.calidad.index', ['tab' => 'incidencias']) }}" class="font-semibold underline">Calidad › Casos y sanciones</a>.
+        @else
+            Calidad › Casos y sanciones.
+        @endif
+        Aquí se conservan los registros de sanciones anteriores y los reclamos sobre entregas.
+    </x-ui.alert>
 
     <div class="space-y-6">
         <section>
-            <h2 class="mb-3 text-sm font-semibold text-eh-text">Propuestas de sanción</h2>
+            <h2 class="mb-3 text-sm font-semibold text-eh-text">Sanciones históricas de monto fijo</h2>
             <x-ui.card>
                 @if ($sanciones->total() === 0)
-                    <x-ui.empty icon="exclamation" title="No hay propuestas de sanción"
-                        description="Se crean automáticamente a partir de los controles de calidad observados o rechazados." />
+                    <x-ui.empty icon="exclamation" title="No hay sanciones históricas"
+                        description="Los casos nuevos y el castigo de S/ 0,20 a S/ 0,50 por litro se revisan en Calidad › Casos y sanciones." />
                 @else
-                    <x-ui.table :headers="['Proveedor', 'Control', 'Tipo', 'Severidad', 'Descuento', 'Motivo', 'Estado', '']" caption="Propuestas de sanción por calidad">
+                    <x-ui.table :headers="['Proveedor', 'Control', 'Tipo', 'Severidad', 'Descuento', 'Motivo', 'Estado', '']" caption="Registros históricos de sanciones de monto fijo">
                         @foreach ($sanciones as $sancion)
                             <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">
                                 <td class="px-4 py-3 text-sm font-medium text-eh-text">{{ $sancion->proveedor?->nombres ?? '—' }}</td>
@@ -60,7 +70,7 @@
                     </x-ui.table>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-eh-border px-4 py-3 text-xs text-eh-text-muted">
-                        <span>Mostrando {{ $sanciones->count() }} de {{ $sanciones->total() }} propuestas</span>
+                        <span>Mostrando {{ $sanciones->count() }} de {{ $sanciones->total() }} sanciones históricas</span>
                         <div>{{ $sanciones->onEachSide(1)->links() }}</div>
                     </div>
                 @endif

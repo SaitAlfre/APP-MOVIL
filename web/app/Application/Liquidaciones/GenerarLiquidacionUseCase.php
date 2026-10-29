@@ -76,6 +76,8 @@ final class GenerarLiquidacionUseCase
                 Sancion::whereKey($sanciones->pluck('id')->all())->update(['aplicada_liquidacion_id' => $guardada->id]);
             }
 
+            app(CalcularCastigoCalidadSemanal::class)->recalcular(LiquidacionEloquent::findOrFail($guardada->id), $valorado['bruto']);
+
             return $this->liquidaciones->buscarPorId($guardada->id) ?? $guardada;
         });
     }

@@ -2,6 +2,7 @@
 
 namespace App\Application\Movil;
 
+use App\Application\Liquidaciones\CalcularCastigoCalidadSemanal;
 use App\Application\Liquidaciones\CalcularImporteTemporadas;
 use App\Domain\Entregas\EntregaRepositoryInterface;
 use App\Domain\Liquidaciones\EstadoLiquidacion;
@@ -11,7 +12,6 @@ use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
-use App\Infrastructure\Persistence\Eloquent\Sancion;
 use App\Infrastructure\Persistence\Eloquent\Usuario;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
@@ -82,12 +82,8 @@ final class ResolverReclamoProveedorUseCase
                         $liquidacion->detalle_valorado = $valorado['detalle'];
                         $liquidacion->precio_litro = $valorado['precio'];
                     }
-                    $sanciones = (float) Sancion::query()->where('aplicada_liquidacion_id', $liquidacion->id)->sum('descuento');
-                    $descuento = min($sanciones > 0 ? $sanciones : (float) $liquidacion->descuento_sanciones, $bruto);
-                    $liquidacion->update([
-                        'litros_totales' => $totalLitros, 'descuento_sanciones' => $descuento,
-                        'monto_total' => round($bruto - $descuento, 2),
-                    ]);
+                    $liquidacion->litros_totales = $totalLitros;
+                    app(CalcularCastigoCalidadSemanal::class)->recalcular($liquidacion, $bruto);
                 }
             }
             $reclamo->fill(['estado' => $estado, 'respuesta' => $respuesta, 'resuelto_por' => $autor->id, 'resuelto_en' => now()])->save();

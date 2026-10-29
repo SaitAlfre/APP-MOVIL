@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Calidad\CalificarEntregasConAnalisis;
 use App\Application\Movil\ResolverReclamoProveedorUseCase;
 use App\Domain\Movil\CambioMovilRechazadoException;
 use App\Http\Controllers\Controller;
-use App\Infrastructure\Persistence\Eloquent\ControlCalidad;
 use App\Infrastructure\Persistence\Eloquent\Entrega;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
 use App\Infrastructure\Persistence\Eloquent\Sancion;
@@ -20,8 +18,6 @@ class SancionController extends Controller
 {
     public function index(): View
     {
-        $this->crearPropuestasDesdeCalidad();
-
         return view('admin.sanciones.index', [
             'sanciones' => Sancion::with(['proveedor', 'controlCalidad.entrega'])->latest()->paginate(15, ['*'], 'sanciones'),
             'reclamos' => ReclamoProveedor::with(['proveedor', 'entrega'])->latest()->paginate(15, ['*'], 'reclamos'),
@@ -31,6 +27,7 @@ class SancionController extends Controller
 
     public function resolver(Request $request, Sancion $sancion): RedirectResponse
     {
+        abort_unless(auth('operador')->user()->tieneRol('admin'), 403, 'Solo administración puede autorizar descuentos.');
         $datos = $request->validate(['estado' => ['required', Rule::in(['aprobada', 'rechazada'])]]);
         abort_if($sancion->estado !== 'pendiente', 409, 'La sanción ya fue resuelta.');
         $sancion->update(['estado' => $datos['estado'], 'resuelto_por' => auth('operador')->id(), 'resuelto_en' => now()]);
@@ -66,11 +63,5 @@ class SancionController extends Controller
             'Content-Type' => $info['mime'], 'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => "default-src 'none'; sandbox",
         ]);
-    }
-
-    private function crearPropuestasDesdeCalidad(): void
-    {
-        ControlCalidad::query()->with('entrega')->whereIn('resultado', ['observado', 'rechazado'])->get()
-            ->each(fn (ControlCalidad $control) => CalificarEntregasConAnalisis::sincronizarSancion($control));
     }
 }

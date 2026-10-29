@@ -98,6 +98,32 @@
         @endif
     </x-ui.card>
 
+    @if ($descuentoSanciones > 0)
+        <x-ui.card padding="p-5" class="mb-4">
+            <h2 class="mb-2 text-sm font-semibold text-eh-text">Descuentos y castigo de calidad</h2>
+            <p class="mb-3 text-sm text-eh-text-muted">Bruto: S/ {{ number_format($importeBruto, 2) }} · Descuentos: S/ {{ number_format($descuentoSanciones, 2) }} · Neto: S/ {{ number_format($liquidacion->montoTotal, 2) }}</p>
+            @if (! empty($castigoCalidad['dias']))
+                <p class="mb-3 text-xs text-eh-text-muted">Se aplica el mayor descuento por litro de las infracciones confirmadas para cada fecha. Los castigos coincidentes no se suman.</p>
+                <x-ui.table :headers="['Fecha', 'Litros', 'Castigo/L', 'Descuento']" caption="Detalle del castigo semanal por calidad">
+                    @foreach ($castigoCalidad['dias'] as $dia)
+                        <tr class="border-b border-eh-border last:border-0">
+                            <td class="mono px-4 py-2 text-xs">{{ \Illuminate\Support\Carbon::parse($dia['fecha'])->format('d/m/Y') }}</td>
+                            <td class="mono px-4 py-2 text-xs">{{ number_format($dia['litros'], 2) }} L</td>
+                            <td class="mono px-4 py-2 text-xs">S/ {{ number_format($dia['descuento_litro'], 2) }}</td>
+                            <td class="mono px-4 py-2 text-xs">S/ {{ number_format($dia['descuento'], 2) }}</td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+                <p class="mt-3 text-sm font-medium text-eh-text">Castigo de calidad aplicado: S/ {{ number_format($castigoCalidad['descuento'], 2) }}</p>
+                @if (($castigoCalidad['descuento_calculado'] ?? 0) > ($castigoCalidad['descuento'] ?? 0))
+                    <p class="mt-2 text-xs text-eh-text-muted">El descuento se limitó al saldo disponible; el total a pagar nunca es negativo.</p>
+                @endif
+            @else
+                <p class="text-xs text-eh-text-muted">Descuentos históricos conservados de esta liquidación.</p>
+            @endif
+        </x-ui.card>
+    @endif
+
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <x-ui.card padding="p-4">
             <h2 class="mb-3 text-sm font-semibold text-eh-text">Datos del proveedor</h2>

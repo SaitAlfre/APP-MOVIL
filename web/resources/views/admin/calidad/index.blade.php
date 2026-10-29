@@ -1,57 +1,68 @@
 @extends('layouts.admin')
 
-@section('titulo', 'Calidad')
+@section('titulo', $pestana === 'incidencias' ? 'Casos y sanciones' : 'Análisis recibidos')
 
 @section('contenido')
     @php
         use App\Domain\Calidad\ParametrosCalidad;
 
-        $operador = auth('operador')->user();
-        $puedeGestionar = $operador->puede('calidad', 'gestionar');
-        $filtros = array_filter(['resultado' => $filtroActual ? strtolower($filtroActual->value) : null, 'q' => $busqueda ?: null, 'zona' => $zonaActual]);
+        $filtros = array_filter(['resultado' => $filtroActual ? strtolower($filtroActual->value) : null, 'q' => $busqueda ?: null, 'zona' => $zonaActual, 'desde' => $desde ?? null, 'hasta' => $hasta ?? null, 'tecnico' => $tecnicoActual ?? null]);
 
         $pestanas = collect([
-            ['key' => 'analisis', 'label' => 'Historial de análisis'],
+            ['key' => 'analisis', 'label' => 'Análisis recibidos'],
             ['key' => 'reglas', 'label' => 'Parámetros y referencias'],
         ])->map(fn ($tab) => $tab + ['url' => route('admin.calidad.index', ['tab' => $tab['key']] + $filtros)])->all();
         $total = array_sum($conteos);
     @endphp
 
-    <x-ui.page-header title="Control de calidad" eyebrow="Análisis LactoScan"
-        :description="'Análisis de leche por proveedor, igual que en la app de calidad'.($deHoy > 0 ? ' · '.$deHoy.' '.($deHoy === 1 ? 'análisis' : 'análisis').' hoy' : '')">
-        @if ($puedeGestionar)
-            <x-slot:actions>
-                <x-ui.btn :href="route('admin.calidad.create')" icon="plus">Nueva prueba LactoScan</x-ui.btn>
-            </x-slot:actions>
-        @endif
+    <x-ui.page-header :title="$pestana === 'incidencias' ? 'Casos y sanciones' : 'Análisis recibidos'" eyebrow="Calidad"
+        description="Recibe los controles realizados desde la app móvil, revisa los resultados y gestiona los casos de adulteración y sus castigos.">
     </x-ui.page-header>
 
-    <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <x-ui.kpi label="Análisis de hoy" :value="$deHoy" icon="beaker" dark hint="Pruebas registradas hoy (hora de Perú), en la app o en el panel." />
+    @if ($pestana === 'incidencias')
+        <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <x-ui.kpi label="Casos por revisar" :value="$resumenIncidencias['pendientes']" icon="exclamation" color="yellow" hint="Reportados por el personal y pendientes de decisión administrativa." />
+            <x-ui.kpi label="Infracciones confirmadas" :value="$resumenIncidencias['confirmadas']" icon="check" dark hint="Una infracción por caso confirmado; las repeticiones del análisis no suman por sí solas." />
+            <x-ui.kpi label="Proveedores con 3 infracciones" :value="$resumenIncidencias['retirados']" icon="xMark" color="red" hint="El conteo de infracciones confirmadas es acumulado y no se reinicia." />
+        </div>
+    @else
+    <div class="mb-4 grid grid-cols-2 gap-4 xl:grid-cols-5">
+        <x-ui.kpi label="Análisis recibidos" :value="$total" icon="beaker" dark hint="Registros recibidos por la web con los filtros seleccionados. Una prueba sin sincronizar todavía no aparece aquí." />
         <x-ui.kpi label="Aprobados" :value="$conteos['aprobado']" icon="check" color="green" hint="Todos los parámetros medidos dentro de referencia." />
-        <x-ui.kpi label="Observados" :value="$conteos['observado']" icon="exclamation" color="yellow" hint="Algún parámetro fuera de referencia (incluye «repetir prueba»)." />
-        <x-ui.kpi label="Rechazados" :value="$conteos['rechazado']" icon="xMark" color="red" hint="Agua añadida mayor a 0 %: la leche no pasa a producción." />
+        <x-ui.kpi label="Observados" :value="$conteos['observado']" icon="exclamation" color="yellow" hint="Algún parámetro medido fuera de referencia. No equivale a una infracción confirmada." />
+        <x-ui.kpi label="Rechazados" :value="$conteos['rechazado']" icon="xMark" color="red" hint="Resultado técnico del análisis; el castigo requiere confirmar un caso de adulteración." />
+        <x-ui.kpi label="Por repetir" :value="$conteos['repetir'] ?? 0" icon="arrowPath" color="yellow" hint="Pruebas marcadas para repetir, separadas de los análisis observados." />
     </div>
+    @endif
 
     <x-ui.card>
-        <x-ui.tabs :tabs="$pestanas" :active="$pestana" class="mb-0 px-2" />
+        @if ($pestana !== 'incidencias')
+            <x-ui.tabs :tabs="$pestanas" :active="$pestana" class="mb-0 px-2" />
+        @elseif (auth('operador')->user()->puede('sanciones'))
+            <div class="p-4"><a class="text-sm text-eh-primary underline" href="{{ route('admin.sanciones.index') }}">Consultar sanciones históricas</a></div>
+        @endif
 
-        @if ($pestana === 'analisis')
-            <form method="GET" action="{{ route('admin.calidad.index') }}" data-live-filter class="flex flex-wrap items-end gap-2 border-b border-eh-border px-4 py-3">
-                <input type="hidden" name="tab" value="analisis">
+        @if ($pestana !== 'reglas')
+            <form method="GET" action="{{ route($pestana === 'incidencias' ? 'admin.calidad.casos' : 'admin.calidad.index') }}" data-live-filter class="flex flex-wrap items-end gap-2 border-b border-eh-border px-4 py-3">
+                <input type="hidden" name="tab" value="{{ $pestana }}">
                 <div class="w-56"><x-ui.field name="q" type="search" label="Proveedor o muestra" :value="$busqueda" placeholder="Nombre, código o AN-…" autocomplete="off" /></div>
                 <div class="w-48"><x-ui.select id="zona-filtro" name="zona" label="Zona" placeholder="Todas" :options="$zonas" :selected="$zonaActual" /></div>
                 <div class="w-44"><x-ui.select id="resultado-filtro" name="resultado" label="Estado" placeholder="Todos"
-                    :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado']" :selected="$filtroActual ? strtolower($filtroActual->value) : null" /></div>
+                    :options="['aprobado' => 'Aprobado', 'observado' => 'Observado', 'rechazado' => 'Rechazado', 'repetir' => 'Repetir prueba']" :selected="$filtroActual ? strtolower($filtroActual->value) : null" /></div>
+                <div class="w-48"><x-ui.select id="tecnico-filtro" name="tecnico" label="Técnico" placeholder="Todos" :options="$tecnicos ?? []" :selected="$tecnicoActual ?? null" /></div>
+                <div class="w-40"><x-ui.field name="desde" type="date" label="Desde" :value="$desde ?? null" /></div>
+                <div class="w-40"><x-ui.field name="hasta" type="date" label="Hasta" :value="$hasta ?? null" /></div>
                 <span class="ml-auto self-center text-xs text-eh-text-muted">
                     Tasa de aprobación: <strong class="mono text-eh-text">{{ $total > 0 ? round($conteos['aprobado'] / $total * 100, 1).'%' : '—' }}</strong>
                 </span>
             </form>
+        @endif
 
+        @if ($pestana === 'analisis')
             @if ($analisis->isEmpty())
                 <x-ui.empty icon="beaker"
                     :title="$filtros ? 'No hay análisis con esos filtros' : 'Aún no hay análisis de calidad'"
-                    :description="$filtros ? 'Prueba con otros filtros o límpialos.' : 'Registra el primero aquí con «Nueva prueba LactoScan» o desde la app de calidad.'" />
+                    :description="$filtros ? 'Prueba con otros filtros o límpialos.' : 'Los trabajadores registran los controles en la app móvil. Aquí aparecerán cuando se sincronicen.'" />
             @else
                 <x-ui.table :headers="['Fecha y hora', 'Muestra', 'Proveedor', 'Zona', 'Técnico', 'Parámetros', 'Estado', '']" caption="Análisis de calidad registrados">
                     @foreach ($analisis as $fila)
@@ -89,6 +100,8 @@
                     <div>{{ $analisis->onEachSide(1)->links() }}</div>
                 </div>
             @endif
+        @elseif ($pestana === 'incidencias')
+            @include('admin.calidad.incidencias-tabla')
         @else
             <div class="p-4">
                 <p class="mb-4 text-sm text-eh-text-muted">
@@ -98,6 +111,9 @@
                     <strong class="text-eh-red">rechazado</strong> si hay agua añadida. Los valores se guardan tal cual, sin corregirlos.
                     Referencias iniciales del proyecto; no constituyen una certificación de calidad.
                 </p>
+                <x-ui.alert type="info" class="mb-4" title="Resultado técnico y sanción son decisiones distintas">
+                    Un valor fuera de referencia no genera un descuento por sí solo. Administración confirma el caso de adulteración y elige entre S/ 0,20 y S/ 0,50 por litro para toda su semana. Si coinciden varios castigos, se usa el mayor, sin sumarlos. La tercera infracción confirmada retira al proveedor; el historial no se reinicia.
+                </x-ui.alert>
                 <x-ui.table :headers="['Parámetro', 'Unidad', 'Referencia', 'Si sale de la referencia']" caption="Parámetros del análisis LactoScan">
                     @foreach (ParametrosCalidad::PARAMETROS as $clave => $parametro)
                         <tr class="border-b border-eh-border last:border-0 hover:bg-eh-surface-alt">

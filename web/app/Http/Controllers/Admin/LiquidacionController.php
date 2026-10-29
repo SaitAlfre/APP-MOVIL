@@ -49,6 +49,8 @@ class LiquidacionController extends Controller
         return view('admin.liquidaciones.show', [
             'liquidacion' => $entidad,
             'importeBruto' => (float) $registro->monto_total + (float) $registro->descuento_sanciones,
+            'descuentoSanciones' => (float) $registro->descuento_sanciones,
+            'castigoCalidad' => $registro->detalle_castigo_calidad ?? [],
             'proveedor' => $proveedores->buscarPorId($entidad->proveedorId),
             'detalleDiario' => $registro->detalle_valorado ?? $entregas->litrosPorDiaDelProveedor($entidad->proveedorId, $entidad->periodoInicio, $entidad->periodoFin),
         ]);

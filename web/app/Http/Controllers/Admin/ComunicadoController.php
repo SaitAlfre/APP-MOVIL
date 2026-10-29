@@ -32,6 +32,7 @@ class ComunicadoController extends Controller
 
     public function update(Request $request, Comunicado $comunicado): RedirectResponse
     {
+        abort_if($comunicado->infraccion_calidad_id !== null, 409, 'Este aviso forma parte del historial de una infracción y se consulta desde Calidad.');
         $datos = $this->validar($request);
         $datos['publicado_en'] = $datos['estado'] === 'publicado' ? ($comunicado->publicado_en ?? now()) : null;
         $comunicado->update($datos);

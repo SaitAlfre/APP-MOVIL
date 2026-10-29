@@ -31,13 +31,24 @@
         @else
             <x-ui.table :headers="['Código', 'Título', 'Audiencia', 'Publicación', 'Estado', '']" caption="Comunicados registrados">
                 @foreach ($comunicados as $comunicado)
+                    @php
+                        $esAvisoCalidad = $comunicado->infraccion_calidad_id !== null;
+                        $etiquetaAudiencia = $comunicado->proveedor_id !== null ? 'Individual' : ($comunicado->zona_id !== null ? 'Proveedores de la zona' : ($opcionesAudiencia[$comunicado->audiencia] ?? ucfirst($comunicado->audiencia)));
+                    @endphp
                     <tr class="border-b border-eh-border align-top last:border-0 hover:bg-eh-surface-alt">
                         <td class="mono px-4 py-3 text-xs font-medium text-eh-text">{{ $comunicado->codigo }}</td>
                         <td class="px-4 py-3">
                             <p class="text-sm font-medium text-eh-text">{{ $comunicado->titulo }}</p>
-                            <p class="mt-0.5 max-w-md truncate text-xs text-eh-text-muted">{{ \Illuminate\Support\Str::limit($comunicado->contenido, 90) }}</p>
+                            @if ($esAvisoCalidad)
+                                <details class="mt-1 max-w-md text-xs text-eh-text-muted">
+                                    <summary class="cursor-pointer font-medium text-eh-primary">Leer aviso de calidad</summary>
+                                    <p class="mt-2 whitespace-pre-wrap break-words">{{ $comunicado->contenido }}</p>
+                                </details>
+                            @else
+                                <p class="mt-0.5 max-w-md truncate text-xs text-eh-text-muted">{{ \Illuminate\Support\Str::limit($comunicado->contenido, 90) }}</p>
+                            @endif
                         </td>
-                        <td class="px-4 py-3"><x-ui.badge :variant="$audiencias[$comunicado->audiencia] ?? 'gray'" :label="$opcionesAudiencia[$comunicado->audiencia] ?? ucfirst($comunicado->audiencia)" /></td>
+                        <td class="px-4 py-3"><x-ui.badge :variant="$audiencias[$comunicado->audiencia] ?? 'gray'" :label="$etiquetaAudiencia" /></td>
                         <td class="px-4 py-3 text-xs text-eh-text-muted">
                             {{ $comunicado->publicado_en?->format('d/m/Y H:i') ?? ($comunicado->publicar_en?->format('d/m/Y H:i') ?? '—') }}
                         </td>
@@ -46,7 +57,9 @@
                                 :label="$opcionesEstado[$comunicado->estado] ?? ucfirst($comunicado->estado)" />
                         </td>
                         <td class="px-4 py-3">
-                            @if ($puedeGestionar)
+                            @if ($esAvisoCalidad && auth('operador')->user()->puede('calidad', 'ver'))
+                                <a href="{{ route('admin.calidad.index', ['tab' => 'incidencias']) }}" class="text-xs font-medium text-eh-primary underline">Ver casos de calidad</a>
+                            @elseif ($puedeGestionar && ! $esAvisoCalidad)
                                 <div class="flex items-center justify-end">
                                     <button type="button" data-modal-open="comunicado-{{ $comunicado->id }}" aria-label="Editar comunicado {{ $comunicado->titulo }}"
                                         class="rounded-lg p-1.5 text-eh-text-muted hover:bg-eh-primary-soft hover:text-eh-primary">
@@ -92,6 +105,7 @@
         </x-ui.modal>
 
         @foreach ($comunicados as $comunicado)
+            @continue($comunicado->infraccion_calidad_id !== null)
             <x-ui.modal :id="'comunicado-'.$comunicado->id" title="Editar comunicado" size="lg">
                 <form method="POST" action="{{ route('admin.comunicados.update', $comunicado) }}" class="space-y-4" data-once>
                     @csrf

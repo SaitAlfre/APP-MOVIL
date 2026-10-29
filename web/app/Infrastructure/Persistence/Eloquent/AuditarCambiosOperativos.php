@@ -21,7 +21,7 @@ class AuditarCambiosOperativos
         ReclamoProveedor::class => ['reclamo_proveedor', ['proveedor_id', 'entrega_id', 'litros_originales', 'litros_solicitados', 'motivo', 'estado', 'respuesta', 'resuelto_en']],
         Cliente::class => ['cliente', ['codigo', 'tipo', 'nombre', 'documento', 'ciudad', 'activo']],
         Venta::class => ['venta', ['codigo', 'cliente_id', 'proveedor_id', 'tipo_comprador', 'subtotal', 'descuento', 'total', 'estado', 'vendida_en']],
-        Comunicado::class => ['comunicado', ['codigo', 'titulo', 'audiencia', 'estado', 'publicar_en', 'publicado_en']],
+        Comunicado::class => ['comunicado', ['codigo', 'titulo', 'audiencia', 'estado', 'publicar_en', 'publicado_en', 'infraccion_calidad_id', 'proveedor_id', 'zona_id', 'destinatarios_proveedor']],
         Importacion::class => ['importacion', ['tipo', 'archivo_original', 'estado', 'filas_total', 'filas_procesadas', 'filas_error', 'procesada_en']],
         Ruta::class => ['ruta', ['codigo', 'nombre', 'zona_id', 'activo', 'acopiador_id', 'paradas', 'trazado', 'indicaciones', 'mapa_version', 'resumen_recorrido']],
         Zona::class => ['zona', ['nombre', 'activo']],

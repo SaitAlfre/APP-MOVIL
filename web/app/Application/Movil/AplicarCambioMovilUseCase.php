@@ -287,6 +287,9 @@ class AplicarCambioMovilUseCase
     {
         $comunicado = $this->porServidorId(Comunicado::class, $datos)
             ?? Comunicado::query()->where('codigo', 'MOV-'.$datos['uuid'])->first();
+        if ($comunicado?->infraccion_calidad_id !== null) {
+            throw new CambioMovilRechazadoException('El aviso de una infracción de calidad no se modifica desde el celular.');
+        }
         if ($datos['eliminado'] ?? false) {
             $comunicado?->update(['estado' => 'borrador', 'publicado_en' => null]);
 

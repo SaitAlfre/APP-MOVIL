@@ -65,7 +65,7 @@ class AdminFigmaModulesTest extends TestCase
         $this->assertSame(0, MovimientoProducto::count());
     }
 
-    public function test_control_rechazado_genera_propuesta_de_sancion(): void
+    public function test_consultar_sanciones_no_inventa_castigos_a_partir_de_un_control_rechazado(): void
     {
         $entrega = Entrega::factory()->create();
         ControlCalidad::create([
@@ -73,8 +73,11 @@ class AdminFigmaModulesTest extends TestCase
             'observaciones' => 'Agua añadida', 'evaluado_en' => now(),
         ]);
 
-        $this->get('/admin/sanciones')->assertOk()->assertSee('Agua añadida');
-        $this->assertDatabaseHas('sanciones', ['proveedor_id' => $entrega->proveedor_id, 'estado' => 'pendiente', 'descuento' => 30.50]);
+        $this->get('/admin/sanciones')->assertOk()
+            ->assertSee('Calidad › Casos y sanciones')
+            ->assertSee(route('admin.calidad.index', ['tab' => 'incidencias']), false);
+        $this->assertDatabaseCount('sanciones', 0);
+        $this->assertDatabaseCount('comunicados', 0);
     }
 
     public function test_sancion_aprobada_se_descuenta_una_sola_vez_de_la_liquidacion(): void

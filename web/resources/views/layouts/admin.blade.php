@@ -45,8 +45,11 @@
                 ['ruta' => 'admin.recepcion.index', 'patron' => 'admin.recepcion.*', 'modulo' => 'recepcion', 'etiqueta' => 'Recepción en planta', 'icono' => 'recepcion'],
             ],
             'Calidad' => [
-                ['ruta' => 'admin.calidad.index', 'patron' => 'admin.calidad.*', 'modulo' => 'calidad', 'etiqueta' => 'Calidad', 'icono' => 'beaker'],
-                ['ruta' => 'admin.sanciones.index', 'patron' => 'admin.sanciones.*', 'modulo' => 'sanciones', 'etiqueta' => 'Sanciones', 'icono' => 'sancion'],
+                ['ruta' => 'admin.calidad.resumen', 'patron' => 'admin.calidad.resumen', 'modulo' => 'calidad', 'etiqueta' => 'Resumen de calidad', 'icono' => 'chartBar'],
+                ['ruta' => 'admin.calidad.personal', 'patron' => 'admin.calidad.personal', 'modulo' => 'calidad', 'etiqueta' => 'Personal de calidad', 'icono' => 'users'],
+                ['ruta' => 'admin.calidad.planes', 'patron' => 'admin.calidad.planes*', 'modulo' => 'calidad', 'etiqueta' => 'Plan de controles', 'icono' => 'jornada', 'plan_reservado' => true],
+                ['ruta' => 'admin.calidad.index', 'patron' => ['admin.calidad.index', 'admin.calidad.show', 'admin.calidad.create'], 'modulo' => 'calidad', 'etiqueta' => 'Análisis recibidos', 'icono' => 'beaker'],
+                ['ruta' => 'admin.calidad.casos', 'patron' => ['admin.calidad.casos', 'admin.calidad.incidencias.*', 'admin.sanciones.*'], 'modulo' => 'calidad', 'etiqueta' => 'Casos y sanciones', 'icono' => 'sancion'],
             ],
             'Planta' => [
                 ['ruta' => 'admin.produccion.productos.index', 'patron' => 'admin.produccion.productos.*', 'modulo' => 'productos', 'etiqueta' => 'Productos', 'icono' => 'cube'],
@@ -107,7 +110,7 @@
             <nav id="opciones-menu" aria-label="Secciones del panel" class="sidebar-nav -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-4 [scrollbar-color:rgba(255,255,255,.12)_transparent]">
                 @foreach ($navGroups as $grupo => $items)
                     @php
-                        $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']) && (! ($item['solo_admin'] ?? false) || ($operador->tieneRol('admin') && $operador->perfil_rol_id === null)));
+                        $itemsVisibles = collect($items)->filter(fn ($item) => $operador->puede($item['modulo']) && (! ($item['solo_admin'] ?? false) || ($operador->tieneRol('admin') && $operador->perfil_rol_id === null)) && (! ($item['plan_reservado'] ?? false) || ($operador->perfil_rol_id === null && ($operador->tieneRol('admin') || ($operador->tieneRol('calidad') && ! $operador->tieneRol('acopiador') && ! $operador->tieneRol('proveedor'))))));
                         $grupoActivo = $itemsVisibles->contains(fn ($item) => request()->routeIs(...(array) $item['patron']));
                     @endphp
                     @continue($itemsVisibles->isEmpty())

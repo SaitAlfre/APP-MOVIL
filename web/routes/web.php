@@ -10,11 +10,13 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DesignSystemController;
 use App\Http\Controllers\Admin\EntregaController;
 use App\Http\Controllers\Admin\ImportacionController;
+use App\Http\Controllers\Admin\InfraccionCalidadController;
 use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\JornadaController as AdminJornadaController;
 use App\Http\Controllers\Admin\JornadaEntregaController;
 use App\Http\Controllers\Admin\LiquidacionController;
 use App\Http\Controllers\Admin\MapaRutaController;
+use App\Http\Controllers\Admin\OrganizacionCalidadController;
 use App\Http\Controllers\Admin\OrganizacionController;
 use App\Http\Controllers\Admin\Produccion\AcopioController;
 use App\Http\Controllers\Admin\Produccion\HistorialController;
@@ -152,12 +154,20 @@ Route::middleware(['auth:operador', 'cuenta.activa'])->group(function () {
         });
 
         Route::middleware('permiso:calidad,ver')->group(function () {
+            Route::get('calidad/resumen', [OrganizacionCalidadController::class, 'resumen'])->name('calidad.resumen');
+            Route::get('calidad/personal', [OrganizacionCalidadController::class, 'personal'])->name('calidad.personal');
+            Route::get('calidad/planes', [OrganizacionCalidadController::class, 'planes'])->name('calidad.planes');
+            Route::post('calidad/planes', [OrganizacionCalidadController::class, 'guardarPlan'])->name('calidad.planes.store');
+            Route::post('calidad/planes/{plan}', [OrganizacionCalidadController::class, 'actualizarPlan'])->whereNumber('plan')->name('calidad.planes.update');
+            Route::get('calidad/casos', [CalidadController::class, 'casos'])->name('calidad.casos');
             Route::get('calidad', [CalidadController::class, 'index'])->name('calidad.index');
         });
         Route::middleware('permiso:calidad,gestionar')->group(function () {
             Route::get('calidad/nuevo', [CalidadController::class, 'create'])->name('calidad.create');
             Route::post('calidad', [CalidadController::class, 'store'])->name('calidad.store');
+            Route::post('calidad/{analisis}/incidencias', [InfraccionCalidadController::class, 'store'])->name('calidad.incidencias.store');
         });
+        Route::middleware('permiso:calidad,ver')->post('calidad/incidencias/{incidencia}/resolver', [InfraccionCalidadController::class, 'resolver'])->name('calidad.incidencias.resolver');
         // Después de «calidad/nuevo» para que esa ruta no se tome como un análisis.
         Route::middleware('permiso:calidad,ver')->group(function () {
             Route::get('calidad/{analisis}', [CalidadController::class, 'show'])->name('calidad.show');

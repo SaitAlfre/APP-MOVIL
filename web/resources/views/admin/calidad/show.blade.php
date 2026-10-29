@@ -11,9 +11,12 @@
         $unidad = $analisis->unidadCongelacion();
         $valores = $analisis->valores();
         $alertados = $visita['parametrosAlertados'] ?? [];
+        $medidos = collect($valores)->filter(fn ($valor) => $valor !== null)->count();
+        $enReferencia = collect($valores)->filter(fn ($valor, $clave) => $valor !== null && ! in_array($clave, $alertados, true))->count();
         [$tono, $texto] = match ($analisis->estado) {
-            EstadoAnalisis::Aprobado => ['success', 'Todos los parámetros medidos están dentro de referencia.'],
-            EstadoAnalisis::Rechazado => ['error', 'Se detectó agua añadida: la leche no pasa a producción.'],
+            EstadoAnalisis::Aprobado => ['success', 'Los parámetros medidos están dentro de las referencias iniciales del proyecto. Revisa también los campos no medidos.'],
+            EstadoAnalisis::Rechazado => ['error', 'El registro indica agua añadida. Revisa los valores y el comprobante antes de confirmar una infracción.'],
+            EstadoAnalisis::Repetir => ['warning', 'La prueba está marcada para repetirse. Repetirla no registra otra infracción por sí solo.'],
             default => ['warning', 'Hay parámetros fuera de referencia: revisar con el proveedor.'],
         };
         $registrado = $analisis->registrado_en->setTimezone('America/Lima');
@@ -25,11 +28,13 @@
 
     <x-ui.alert :type="$tono" class="mb-4" :title="$analisis->estado->etiqueta()">{{ $texto }}</x-ui.alert>
 
+    @include('admin.calidad.incidencia-detalle')
+
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <x-ui.card class="lg:col-span-2">
             <div class="flex items-center justify-between border-b border-eh-border px-4 py-3">
                 <h2 class="text-sm font-semibold text-eh-text">Resultados</h2>
-                <span class="text-xs text-eh-text-muted">{{ $visita['parametrosCorrectos'] ?? (count(ParametrosCalidad::PARAMETROS) - count($alertados)) }} de {{ count(ParametrosCalidad::PARAMETROS) }} en referencia</span>
+                <span class="text-xs text-eh-text-muted">{{ $enReferencia }} en referencia · {{ $medidos }} de {{ count(ParametrosCalidad::PARAMETROS) }} medidos</span>
             </div>
             <x-ui.table :headers="['Parámetro', 'Valor', 'Referencia', '']" caption="Resultados del análisis">
                 @foreach (ParametrosCalidad::PARAMETROS as $clave => $parametro)
@@ -105,7 +110,7 @@
                         @endforeach
                     </div>
                 @empty
-                    <p class="text-xs text-eh-text-muted">Ninguna todavía: se calificarán las entregas de este proveedor del {{ $registrado->format('d/m/Y') }} cuando se registren.</p>
+                    <p class="text-xs text-eh-text-muted">No hay entregas vinculadas a este análisis.</p>
                 @endforelse
             </x-ui.card>
 

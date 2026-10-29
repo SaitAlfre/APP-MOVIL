@@ -12,12 +12,13 @@ class Liquidacion extends Model
 
     protected $fillable = [
         'proveedor_id', 'periodo_inicio', 'periodo_fin', 'litros_totales', 'precio_litro',
-        'tarifas_aplicadas', 'detalle_valorado', 'monto_total', 'descuento_sanciones', 'estado', 'generada_en', 'pagada_en',
+        'tarifas_aplicadas', 'detalle_valorado', 'detalle_castigo_calidad', 'monto_total', 'descuento_sanciones', 'estado', 'generada_en', 'pagada_en',
     ];
 
     protected function casts(): array
     {
         return [
+            'detalle_castigo_calidad' => 'array',
             'tarifas_aplicadas' => 'array', 'detalle_valorado' => 'array',
             'periodo_inicio' => 'date',
             'periodo_fin' => 'date',

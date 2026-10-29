@@ -99,6 +99,21 @@ class ExportarDatosMovilQuery
         }
         $comunicados = Comunicado::query()
             ->where('estado', 'publicado')->whereIn('audiencia', $audiencias)
+            ->when(! $admin, function ($q) use ($miFicha) {
+                $q->where(function ($destinos) use ($miFicha) {
+                    $destinos->where(fn ($general) => $general->whereNull('proveedor_id')->whereNull('zona_id'));
+                    if ($miFicha !== null) {
+                        $destinos->orWhere('proveedor_id', $miFicha->id);
+                        $destinos->orWhere(function ($zona) use ($miFicha) {
+                            $zona->whereNull('proveedor_id')->whereNotNull('zona_id')
+                                ->where(function ($receptores) use ($miFicha) {
+                                    $receptores->whereJsonContains('destinatarios_proveedor', (int) $miFicha->id)
+                                        ->orWhere(fn ($sinLista) => $sinLista->whereNull('destinatarios_proveedor')->where('zona_id', $miFicha->zona_id));
+                                });
+                        });
+                    }
+                });
+            })
             ->orderByDesc('publicado_en')->limit(100)->get();
         $autores = Usuario::query()->whereIn('id', $comunicados->pluck('autor_id')->unique())->pluck('nombres', 'id');
 

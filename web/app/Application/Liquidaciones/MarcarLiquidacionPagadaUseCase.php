@@ -5,6 +5,7 @@ namespace App\Application\Liquidaciones;
 use App\Domain\Liquidaciones\Liquidacion;
 use App\Domain\Liquidaciones\LiquidacionRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion as LiquidacionEloquent;
+use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -18,6 +19,10 @@ final class MarcarLiquidacionPagadaUseCase
     public function ejecutar(int $liquidacionId): Liquidacion
     {
         return DB::transaction(function () use ($liquidacionId): Liquidacion {
+            $proveedorId = LiquidacionEloquent::whereKey($liquidacionId)->value('proveedor_id');
+            if ($proveedorId !== null) {
+                Proveedor::whereKey($proveedorId)->lockForUpdate()->first();
+            }
             LiquidacionEloquent::query()->whereKey($liquidacionId)->lockForUpdate()->first();
             $liquidacion = $this->liquidaciones->buscarPorId($liquidacionId);
 

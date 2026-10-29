@@ -12,6 +12,6 @@ class Comunicado extends Model
 
     protected function casts(): array
     {
-        return ['publicar_en' => 'datetime', 'publicado_en' => 'datetime'];
+        return ['publicar_en' => 'datetime', 'publicado_en' => 'datetime', 'destinatarios_proveedor' => 'array'];
     }
 }

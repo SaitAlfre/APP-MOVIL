@@ -151,21 +151,22 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
         $this->assertDatabaseMissing('controles_calidad', ['entrega_id' => $otroDia->id]);
     }
 
-    public function test_detalle_muestra_entregas_y_sanciones_del_analisis(): void
+    public function test_detalle_muestra_entregas_sin_crear_sanciones_por_el_resultado_tecnico(): void
     {
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
         $entrega = Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()]);
         $this->post('/admin/calidad', $this->analisis($proveedor->id, ['agua' => '4']))->assertSessionHasNoErrors();
         $analisis = AnalisisCalidad::query()->sole();
-        $sancion = Sancion::query()->sole();
 
         $this->get(route('admin.calidad.show', $analisis->uuid))->assertOk()
-            ->assertSee('Entrega #'.$entrega->id)->assertSee('Sanción: #'.$sancion->id)->assertSee('30.50');
-        $this->assertTrue($sancion->entrega->is($entrega));
+            ->assertSee('Entrega #'.$entrega->id)->assertSee('Reportar posible adulteración')
+            ->assertDontSee('Sanción: #');
+        $this->assertDatabaseCount('sanciones', 0);
+        $this->assertDatabaseCount('infracciones_calidad', 0);
     }
 
-    public function test_correccion_actualiza_solo_sanciones_pendientes_y_no_duplica(): void
+    public function test_correccion_del_analisis_conserva_las_sanciones_historicas_sin_actualizarlas_ni_duplicarlas(): void
     {
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
@@ -173,39 +174,56 @@ class AdminZonasVehiculosCalidadProduccionLiquidacionesTest extends TestCase
         $this->post('/admin/calidad', $this->analisis($proveedor->id, ['grasa' => '2.1']))->assertSessionHasNoErrors();
         $analisis = AnalisisCalidad::query()->sole();
         $calificar = app(CalificarEntregasConAnalisis::class);
-        $sancion = Sancion::query()->sole();
-        $this->assertSame('15.00', $sancion->descuento);
+        $this->assertDatabaseCount('sanciones', 0);
+        $sancion = Sancion::query()->create([
+            'control_calidad_id' => $analisis->controles()->sole()->id,
+            'proveedor_id' => $proveedor->id,
+            'severidad' => 'media', 'descuento' => 12.75,
+            'motivo' => 'Propuesta histórica conservada', 'estado' => 'pendiente',
+        ]);
 
         $analisis->update(['estado' => EstadoAnalisis::Rechazado]);
         $calificar->porAnalisis($analisis);
         $calificar->porAnalisis($analisis);
         $this->assertDatabaseCount('sanciones', 1);
-        $this->assertSame('30.50', $sancion->fresh()->descuento);
-        $this->assertSame('alta', $sancion->fresh()->severidad);
+        $this->assertSame('12.75', $sancion->fresh()->descuento);
+        $this->assertSame('media', $sancion->fresh()->severidad);
+        $this->assertSame('Propuesta histórica conservada', $sancion->fresh()->motivo);
 
         $analisis->update(['estado' => EstadoAnalisis::Observado]);
         $calificar->porAnalisis($analisis);
-        $this->assertSame('15.00', $sancion->fresh()->descuento);
+        $this->assertSame('12.75', $sancion->fresh()->descuento);
         $sancion->refresh()->update(['estado' => 'aplicada']);
         $analisis->update(['estado' => EstadoAnalisis::Rechazado]);
         $calificar->porAnalisis($analisis);
-        $this->assertSame('15.00', $sancion->fresh()->descuento);
+        $this->assertSame('12.75', $sancion->fresh()->descuento);
         $analisis->update(['estado' => EstadoAnalisis::Aprobado]);
         $calificar->porAnalisis($analisis);
         $this->assertDatabaseHas('sanciones', ['id' => $sancion->id, 'estado' => 'aplicada']);
+        $this->assertDatabaseCount('infracciones_calidad', 0);
     }
 
-    public function test_aprobar_analisis_retira_solo_la_propuesta_pendiente(): void
+    public function test_aprobar_analisis_no_elimina_una_propuesta_historica_pendiente(): void
     {
         $this->comoAdmin();
         $proveedor = Proveedor::factory()->create();
         Entrega::factory()->create(['proveedor_id' => $proveedor->id, 'registrado_en' => now()]);
         $this->post('/admin/calidad', $this->analisis($proveedor->id, ['agua' => '4']))->assertSessionHasNoErrors();
-        $this->assertDatabaseCount('sanciones', 1);
         $analisis = AnalisisCalidad::query()->sole();
+        $this->assertDatabaseCount('sanciones', 0);
+        $sancion = Sancion::query()->create([
+            'control_calidad_id' => $analisis->controles()->sole()->id,
+            'proveedor_id' => $proveedor->id,
+            'severidad' => 'alta', 'descuento' => 18.25,
+            'motivo' => 'Registro anterior al castigo por litro', 'estado' => 'pendiente',
+        ]);
         $analisis->update(['estado' => EstadoAnalisis::Aprobado]);
         app(CalificarEntregasConAnalisis::class)->porAnalisis($analisis);
-        $this->assertDatabaseCount('sanciones', 0);
+        $this->assertDatabaseCount('sanciones', 1);
+        $this->assertDatabaseHas('sanciones', [
+            'id' => $sancion->id, 'estado' => 'pendiente', 'descuento' => 18.25,
+            'motivo' => 'Registro anterior al castigo por litro',
+        ]);
         $this->assertDatabaseHas('controles_calidad', ['analisis_calidad_id' => $analisis->id, 'resultado' => 'aprobado']);
     }
 
