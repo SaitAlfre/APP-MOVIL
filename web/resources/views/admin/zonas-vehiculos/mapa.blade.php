@@ -126,11 +126,20 @@
                     <x-ui.btn type="submit" form="guardar-mapa" data-route-submit>{{ $ruta->exists ? 'Guardar cambios' : 'Crear ruta' }}</x-ui.btn>
                 </div>
                 <dialog data-stop-dialog aria-labelledby="titulo-parada" class="w-[calc(100%_-_2rem)] max-w-lg rounded-2xl border border-eh-border bg-eh-surface p-0 text-eh-text shadow-2xl backdrop:bg-black/45">
-                    <form data-stop-editor class="space-y-4 p-5">
-                        <div class="flex items-center justify-between"><h2 id="titulo-parada" data-stop-dialog-title class="text-lg font-semibold">Nueva parada</h2><button type="button" data-stop-close aria-label="Cerrar" class="rounded-lg p-2"><x-icon name="xMark" class="h-4 w-4" /></button></div>
+                    <form data-stop-editor autocomplete="off" class="space-y-4 p-5">
+                        <div class="flex items-center justify-between gap-3"><div class="flex min-w-0 items-center gap-3"><span data-stop-dialog-number aria-hidden="true" class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-eh-primary text-lg font-bold text-eh-on-primary">1</span><h2 id="titulo-parada" data-stop-dialog-title class="text-lg font-semibold">Nuevo punto 1</h2></div><button type="button" data-stop-close aria-label="Cerrar" class="rounded-lg p-2"><x-icon name="xMark" class="h-4 w-4" /></button></div>
                         <div data-provider-field><x-ui.select id="parada-proveedor" name="proveedor_id" label="¿A quién pertenece esta parada?" placeholder="Otro punto: planta, reunión o referencia" hint="El proveedor queda vinculado al guardar la ruta." /></div>
                         <x-ui.field id="parada-nombre" name="nombre" label="Nombre de la parada" required maxlength="120" placeholder="Ej. Casa de Juan o punto de reunión" />
-                        <div><x-ui.btn variant="secondary" icon="map" data-stop-pick-location>Elegir ubicación en el mapa</x-ui.btn><label for="parada-ubicacion" class="mb-1 mt-3 block text-xs font-semibold">Ubicación del recojo</label><input id="parada-ubicacion" name="ubicacion" required data-stop-location class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm" placeholder="Elige en el mapa o pega un enlace de Google Maps"><p class="mt-1 text-xs text-eh-text-muted">No necesitas saber coordenadas: usa el botón y pulsa donde se recoge la leche.</p></div>
+                        <div class="space-y-3">
+                            <x-ui.btn variant="secondary" icon="map" data-stop-pick-location>Elegir ubicación en el mapa</x-ui.btn>
+                            <div data-stop-location-presets hidden>
+                                <label for="parada-punto-existente" class="mb-1 block text-xs font-semibold">Usar ubicación de un punto de esta ruta</label>
+                                <select id="parada-punto-existente" data-stop-location-preset class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm">
+                                    <option value="">Elegir punto…</option>
+                                </select>
+                            </div>
+                            <div><label for="parada-ubicacion" data-stop-location-label class="mb-1 block text-xs font-semibold">Ubicación del punto 1</label><input id="parada-ubicacion" name="ubicacion" autocomplete="off" spellcheck="false" required data-stop-location aria-describedby="parada-ubicacion-coincidencia" class="w-full rounded-xl border border-eh-border-strong bg-eh-surface px-3 py-2 text-sm" placeholder="Latitud, longitud o enlace de Google Maps"><p id="parada-ubicacion-coincidencia" data-stop-location-match role="status" hidden class="mt-2 rounded-lg bg-eh-primary-soft px-3 py-2 text-xs font-medium text-eh-primary"></p></div>
+                        </div>
                         <x-ui.field id="parada-referencia" name="referencia" label="Referencia para llegar (opcional)" maxlength="500" placeholder="Ej. Portón azul junto al colegio" />
                         <p data-stop-error role="alert" hidden class="text-xs text-eh-red"></p>
                         <div class="flex flex-wrap items-center justify-end gap-2"><x-ui.btn variant="ghost" data-stop-close>Cancelar</x-ui.btn><x-ui.btn type="submit" data-stop-submit>Agregar parada</x-ui.btn></div>

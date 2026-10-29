@@ -284,6 +284,7 @@ export function iniciarMapasRutas(signal) {
         const dialog = root.querySelector('[data-stop-dialog]');
         const saveForm = root.querySelector('[data-route-save]');
         const fields = editor ? Object.fromEntries(['nombre', 'proveedor_id', 'ubicacion', 'referencia'].map((name) => [name, editor.elements.namedItem(name)])) : {};
+        const locationPreset = editor?.querySelector('[data-stop-location-preset]');
         const sectorField = saveForm?.elements.namedItem('zona_id');
         let sector = Number(sectorField?.value || config.zona_id || 0);
         const saveStatus = root.querySelector('[data-save-status]');
@@ -330,6 +331,26 @@ export function iniciarMapasRutas(signal) {
             fields.proveedor_id.value = value;
             root.querySelector('[data-provider-field]').hidden = options.length === 0 && !value;
         }
+        function updateLocationMatch() {
+            if (!locationPreset) return;
+            const point = leerUbicacion(fields.ubicacion.value);
+            const matches = stops.map((stop, index) => ({ stop, index })).filter(({ stop }) => point && Number(stop.latitud).toFixed(6) === point[0].toFixed(6) && Number(stop.longitud).toFixed(6) === point[1].toFixed(6));
+            const match = matches.find(({ index }) => index === editing) ?? matches[0];
+            locationPreset.value = match ? String(match.index) : '';
+            const status = editor.querySelector('[data-stop-location-match]');
+            status.hidden = !match;
+            status.textContent = match ? 'Ubicación del punto ' + (match.index + 1) + ' · ' + match.stop.nombre : '';
+        }
+        function fillLocationPresets() {
+            if (!locationPreset) return;
+            locationPreset.replaceChildren(new Option('Elegir punto…', ''));
+            stops.forEach((stop, index) => {
+                const coordinates = [stop.latitud, stop.longitud].map((value) => Number(value).toFixed(6)).join(', ');
+                locationPreset.add(new Option('Punto ' + (index + 1) + ' · ' + stop.nombre + ' · ' + coordinates, String(index)));
+            });
+            editor.querySelector('[data-stop-location-presets]').hidden = stops.length === 0;
+            updateLocationMatch();
+        }
         function openEditor(index = -1, point = null, providerId = null, draft = null) {
             if (!editor) return;
             if (pendingPlacement) { notify('Marca la ubicación en el mapa o pulsa Volver a los datos.'); return; }
@@ -349,8 +370,12 @@ export function iniciarMapasRutas(signal) {
             const location = stop ? [stop.latitud, stop.longitud] : point;
             fields.ubicacion.value = point ? point.map((value) => Number(value).toFixed(6)).join(', ') : draft?.ubicacion ?? (location ? location.map((value) => Number(value).toFixed(6)).join(', ') : '');
             root.querySelector('[data-stop-error]').hidden = true;
-            root.querySelector('[data-stop-dialog-title]').textContent = stop ? 'Editar parada ' + (index + 1) : 'Nueva parada';
-            root.querySelector('[data-stop-submit]').textContent = stop ? 'Guardar parada' : 'Agregar parada';
+            const number = stop ? index + 1 : stops.length + 1;
+            root.querySelector('[data-stop-dialog-number]').textContent = String(number);
+            root.querySelector('[data-stop-dialog-title]').textContent = (stop ? 'Editar punto ' : 'Nuevo punto ') + number;
+            root.querySelector('[data-stop-location-label]').textContent = 'Ubicación del punto ' + number;
+            root.querySelector('[data-stop-submit]').textContent = (stop ? 'Guardar punto ' : 'Agregar punto ') + number;
+            fillLocationPresets();
             draftSnapshot = snapshot();
             dialog.showModal();
             (location ? fields.nombre : root.querySelector('[data-stop-pick-location]')).focus();
@@ -561,7 +586,16 @@ export function iniciarMapasRutas(signal) {
             markDirty();
             refresh();
             map.focus(point);
-            notify('Parada guardada en el recorrido. Guarda la ruta para conservar los cambios.');
+            notify('Punto ' + (selected + 1) + ' guardado en el recorrido. Guarda la ruta para conservar los cambios.');
+        });
+        fields.ubicacion?.addEventListener('input', updateLocationMatch);
+        locationPreset?.addEventListener('change', () => {
+            if (locationPreset.value === '') return;
+            const stop = stops[Number(locationPreset.value)];
+            if (!stop) return;
+            fields.ubicacion.value = [stop.latitud, stop.longitud].map((value) => Number(value).toFixed(6)).join(', ');
+            updateLocationMatch();
+            map.focus([stop.latitud, stop.longitud]);
         });
         fields.proveedor_id?.addEventListener('change', () => {
             const provider = config.proveedores.find((item) => item.id === Number(fields.proveedor_id.value));
@@ -572,7 +606,7 @@ export function iniciarMapasRutas(signal) {
             pendingPlacement = { index: editing, fields: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, field.value])) };
             dialog.close();
             root.querySelector('[data-placement-banner]').hidden = false;
-            root.querySelector('[data-placement-message]').textContent = 'Pulsa en el mapa donde recogerás la leche de ' + fields.nombre.value + '.';
+            root.querySelector('[data-placement-message]').textContent = 'Ubicar punto ' + (editing < 0 ? stops.length + 1 : editing + 1) + ' · ' + fields.nombre.value;
             refreshControls();
             root.querySelector('[data-map-canvas]').scrollIntoView({ block: 'center', behavior: 'smooth' });
             root.querySelector('[data-map-canvas]').focus({ preventScroll: true });
