@@ -178,7 +178,7 @@ import pe.ecolecta.presentation.navegacion.Pantalla
     }
 }
 
-private fun fechaTarifa(valor: String): String = runCatching {
+internal fun fechaTarifa(valor: String): String = runCatching {
     val fecha = kotlinx.datetime.LocalDate.parse(valor)
     "${fecha.dayOfMonth.toString().padStart(2, '0')}/${fecha.monthNumber.toString().padStart(2, '0')}/${fecha.year}"
 }.getOrDefault(valor)

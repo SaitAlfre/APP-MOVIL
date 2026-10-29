@@ -1,0 +1,5 @@
+-- Orden de las rutas del panel para la lista de acopio. Solo agrega una tabla: no toca filas existentes.
+CREATE TABLE IF NOT EXISTS orden_ruta_proveedor (
+    proveedor_id TEXT NOT NULL PRIMARY KEY,
+    orden INTEGER NOT NULL
+);

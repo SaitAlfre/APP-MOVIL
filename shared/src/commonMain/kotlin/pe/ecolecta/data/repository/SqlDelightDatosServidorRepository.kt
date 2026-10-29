@@ -58,6 +58,8 @@ class SqlDelightDatosServidorRepository(
             val proveedores = datos.proveedores.mapNotNull { p ->
                 proveedor(p, zonas, usuarios, ahora)?.let { p.id to it }
             }.toMap()
+            db.ordenRutaProveedorQueries.limpiar()
+            datos.proveedores.forEach { p -> p.ordenRuta?.let { orden -> proveedores[p.id]?.let { db.ordenRutaProveedorQueries.guardar(it, orden.toLong()) } } }
             val jornadas = datos.jornadas.mapNotNull { j -> jornada(j, zonas, vehiculos, usuarios)?.let { j.id to it } }.toMap()
             datos.entregas.forEach { entrega(it, jornadas, proveedores, zonas, vehiculos, usuarios) }
             datos.sinRecojos?.forEach { marca ->
@@ -103,7 +105,8 @@ class SqlDelightDatosServidorRepository(
                     val valor = SolicitudProveedor(solicitud.id, proveedor, solicitud.tipo, referencia,
                         solicitud.litros, solicitud.motivo, solicitud.descripcion.ifBlank { anterior?.descripcion.orEmpty() },
                         evidencia = anterior?.evidencia, creadaEn = solicitud.creadaEn, estado = solicitud.estado,
-                        respuesta = solicitud.respuesta, resueltaEn = solicitud.resueltaEn, evidenciaDisponible = solicitud.evidenciaDisponible)
+                        respuesta = solicitud.respuesta, resueltaEn = solicitud.resueltaEn, evidenciaDisponible = solicitud.evidenciaDisponible,
+                        fechaEfectiva = solicitud.fechaEfectiva, aplicadoEn = solicitud.aplicadoEn)
                     db.portalProveedorQueries.recibir(solicitud.id, proveedor, "SOLICITUD", Json.encodeToString(valor), solicitud.creadaEn)
                 }
             }

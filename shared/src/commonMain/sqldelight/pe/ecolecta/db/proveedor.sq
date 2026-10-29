@@ -38,11 +38,16 @@ SELECT * FROM proveedor ORDER BY nombres ASC;
 selectPorId:
 SELECT * FROM proveedor WHERE id = :id;
 
+-- Las listas por zona siguen el orden de la ruta del panel; quien no está en ella va al final por nombre.
 selectPorZona:
-SELECT * FROM proveedor WHERE zona_id = :zona_id ORDER BY nombres ASC;
+SELECT proveedor.* FROM proveedor LEFT JOIN orden_ruta_proveedor ON orden_ruta_proveedor.proveedor_id = proveedor.id
+WHERE proveedor.zona_id = :zona_id
+ORDER BY orden_ruta_proveedor.orden IS NULL, orden_ruta_proveedor.orden, proveedor.nombres ASC;
 
 selectActivosPorZona:
-SELECT * FROM proveedor WHERE zona_id = :zona_id AND estado = 'ACTIVO' ORDER BY nombres ASC;
+SELECT proveedor.* FROM proveedor LEFT JOIN orden_ruta_proveedor ON orden_ruta_proveedor.proveedor_id = proveedor.id
+WHERE proveedor.zona_id = :zona_id AND proveedor.estado = 'ACTIVO'
+ORDER BY orden_ruta_proveedor.orden IS NULL, orden_ruta_proveedor.orden, proveedor.nombres ASC;
 
 existeCodigo:
 SELECT COUNT(*) FROM proveedor WHERE codigo = :codigo AND id != :idExcluido;

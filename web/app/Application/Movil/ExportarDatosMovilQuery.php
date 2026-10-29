@@ -2,6 +2,7 @@
 
 namespace App\Application\Movil;
 
+use App\Application\Proveedores\TrasladoZonaProveedor;
 use App\Infrastructure\Persistence\Eloquent\AnalisisCalidad;
 use App\Infrastructure\Persistence\Eloquent\Auditoria;
 use App\Infrastructure\Persistence\Eloquent\Comunicado;
@@ -10,6 +11,7 @@ use App\Infrastructure\Persistence\Eloquent\Jornada;
 use App\Infrastructure\Persistence\Eloquent\Liquidacion;
 use App\Infrastructure\Persistence\Eloquent\Proveedor;
 use App\Infrastructure\Persistence\Eloquent\ReclamoProveedor;
+use App\Infrastructure\Persistence\Eloquent\Ruta;
 use App\Infrastructure\Persistence\Eloquent\SinRecojo;
 use App\Infrastructure\Persistence\Eloquent\SolicitudTraslado;
 use App\Infrastructure\Persistence\Eloquent\TarifaLeche;
@@ -25,6 +27,8 @@ use App\Infrastructure\Persistence\Eloquent\Zona;
  */
 class ExportarDatosMovilQuery
 {
+    public function __construct(private readonly TrasladoZonaProveedor $traslados) {}
+
     /** Perfiles que existen en la app móvil; los demás roles del panel no se envían. */
     public const ROLES_MOVIL = ['admin', 'acopiador', 'calidad', 'proveedor'];
 
@@ -34,6 +38,8 @@ class ExportarDatosMovilQuery
     {
         Comunicado::query()->where('estado', 'programado')->where('publicar_en', '<=', now())
             ->update(['estado' => 'publicado', 'publicado_en' => now()]);
+        // Sin depender de la tarea diaria: la copia del celular nunca trae la zona anterior de un traslado ya vigente.
+        $this->traslados->aplicarProgramados();
         $admin = $usuario->tieneRol('admin');
         $desde = now()->subDays(self::DIAS_OPERACION)->startOfDay();
         $miFicha = Proveedor::query()->where('usuario_id', $usuario->id)->first();
@@ -134,7 +140,9 @@ class ExportarDatosMovilQuery
                 'motivo' => 'Traslado de zona', 'descripcion' => $t->motivo,
                 'creadaEn' => $t->created_at->getTimestampMs(), 'estado' => $t->estado,
                 'respuesta' => $t->respuesta, 'resueltaEn' => $t->resuelto_en?->getTimestampMs(),
+                'fechaEfectiva' => $t->fecha_efectiva?->toDateString(), 'aplicadoEn' => $t->aplicado_en?->getTimestampMs(),
             ]);
+        $ordenRuta = $this->ordenEnRutas($usuario);
 
         $cierresAdministrativos = Auditoria::query()->where('entidad', 'jornada')->where('accion', 'cerrar_jornada')->whereIn('entidad_id', $jornadas->pluck('id'))->pluck('entidad_id')->flip();
 
@@ -163,6 +171,7 @@ class ExportarDatosMovilQuery
                 'tachos' => (int) $p->tachos, 'capacidadTachoL' => (float) $p->capacidad_tacho_l,
                 'estado' => strtoupper($p->estado->value), 'usuarioId' => $p->usuario_id,
                 'dueno' => $p->dueno, 'responsableIncluido' => true,
+                'ordenRuta' => ($ordenRuta[$p->id]['zona'] ?? null) === $p->zona_id ? $ordenRuta[$p->id]['orden'] : null,
             ])->values(),
             'jornadas' => $jornadas->map(fn (Jornada $j) => [
                 'id' => $j->id, 'uuidMovil' => $j->uuid_movil, 'usuarioId' => $j->usuario_id,
@@ -230,6 +239,30 @@ class ExportarDatosMovilQuery
                 'publicadoEn' => ($c->publicado_en ?? $c->created_at)->getTimestampMs(),
             ])->values(),
         ];
+    }
+
+    /**
+     * Posición de cada proveedor en el recorrido que administración dibujó en el panel, para que la lista
+     * de acopio del celular siga ese orden. Si aparece en varias rutas, manda la asignada a esta cuenta.
+     *
+     * @return array<int, array{zona: int, orden: int}>
+     */
+    private function ordenEnRutas(Usuario $usuario): array
+    {
+        $orden = [];
+        Ruta::query()->where('activo', true)
+            ->orderByRaw('CASE WHEN acopiador_id = ? THEN 0 ELSE 1 END', [$usuario->id])->orderBy('id')
+            ->get(['zona_id', 'paradas'])
+            ->each(function (Ruta $ruta) use (&$orden): void {
+                foreach (array_values($ruta->paradas ?? []) as $posicion => $parada) {
+                    $proveedorId = $parada['proveedor_id'] ?? null;
+                    if (is_numeric($proveedorId) && ! isset($orden[(int) $proveedorId])) {
+                        $orden[(int) $proveedorId] = ['zona' => $ruta->zona_id, 'orden' => $posicion + 1];
+                    }
+                }
+            });
+
+        return $orden;
     }
 
     /** @return list<string> */

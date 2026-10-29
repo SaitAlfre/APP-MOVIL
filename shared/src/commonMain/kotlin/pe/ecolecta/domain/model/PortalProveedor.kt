@@ -36,6 +36,9 @@ data class SolicitudProveedor(
     val evidenciaDisponible: Boolean = false,
     val decisionPendiente: String? = null,
     val respuestaPendiente: String? = null,
+    /** Traslado aprobado: día en que el panel cambia la zona (aviso mínimo) y cuándo lo aplicó. */
+    val fechaEfectiva: String? = null,
+    val aplicadoEn: Long? = null,
 )
 
 /** Solo contiene liquidaciones recibidas de una fuente autorizada, nunca estimaciones de pago. */

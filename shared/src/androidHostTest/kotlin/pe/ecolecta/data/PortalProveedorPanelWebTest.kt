@@ -72,7 +72,8 @@ class PortalProveedorPanelWebTest {
                 single<SqlDriver> { driver }
                 single<DeviceIdProvider> { object : DeviceIdProvider { override fun obtenerId() = "coder4-qa" } }
                 single<RegistroAcopioRemotoRepository> { RegistroAcopioRemotoRepositoryPendiente() }
-                single<ServidorWebRepository> { Canal(ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO)) }
+                single<pe.ecolecta.domain.security.ProtectorSecretos> { ProtectorSecretosPrueba }
+                single<ServidorWebRepository> { Canal(ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO, protector = get())) }
             })
         }
         try {
@@ -164,11 +165,19 @@ class PortalProveedorPanelWebTest {
                     q.setString(1, traslado.id); q.executeQuery().use { rs -> assertTrue(rs.next()); rs.getLong(1) }
                 }
             }
-            panel.abrir("/admin/sanciones")
-            panel.enviar("/admin/sanciones/traslados/$trasladoId", mapOf("_method" to "PATCH", "estado" to "APROBADA", "respuesta" to "Ruta disponible; cambio autorizado."))
+            // Regla vigente: 3 días de aviso. Se simula una solicitud hecha hace 4 días para que la aprobación aplique hoy.
+            DriverManager.getConnection("jdbc:sqlite:$base").use { c ->
+                c.prepareStatement("UPDATE solicitudes_traslado SET created_at = datetime('now', '-4 days') WHERE id = ?").use { q ->
+                    q.setLong(1, trasladoId); q.executeUpdate()
+                }
+            }
+            panel.abrir("/admin/organizacion/traslados")
+            panel.enviar("/admin/organizacion/traslados/$trasladoId", mapOf("_method" to "PATCH", "estado" to "APROBADA", "respuesta" to "Ruta disponible; cambio autorizado."))
             assertEquals(destino.id, descargar().proveedores.single().zonaId)
             val resultado = portal.solicitudes(proveedor.id).first().single { it.id == traslado.id }
             assertEquals("APROBADA", resultado.estado)
+            assertEquals(fechaLima(System.currentTimeMillis()).toString(), resultado.fechaEfectiva)
+            assertNotNull(resultado.aplicadoEn)
             assertEquals("Ruta disponible; cambio autorizado.", resultado.respuesta)
         } finally {
             app.koin.get<io.ktor.client.HttpClient>().close()

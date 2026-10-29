@@ -292,4 +292,32 @@ class DatosPanelWebTest {
         assertEquals("PENDING", db.entregaQueries.selectPorId("web-entrega-40").executeAsOne().sync_state)
     }
 
+    @Test
+    fun `la lista de la zona sigue el orden de la ruta del panel y vuelve al alfabetico sin ruta`() = runBlocking {
+        val base = datos()
+        val conRuta = base.copy(proveedores = base.proveedores.map { if (it.id == 21L) it.copy(ordenRuta = 2) else it } + listOf(
+            ProveedorServidor(22, "PRV-RUTA-01", "Zulma Choque", "99005556", zonaId = 2, ordenRuta = 1),
+            ProveedorServidor(23, "PRV-RUTA-02", "Alberto Sin Ruta", "99005557", zonaId = 2),
+        ))
+        local.aplicar(conRuta)
+        val zona = db.proveedorQueries.selectPorCodigo("DEMO-PE-99").executeAsOne().zona_id
+        assertEquals(listOf("Zulma Choque", "Rosa Apaza Huanca", "Alberto Sin Ruta"),
+            db.proveedorQueries.selectActivosPorZona(zona).executeAsList().map { it.nombres })
+
+        local.aplicar(conRuta.copy(proveedores = conRuta.proveedores.map { it.copy(ordenRuta = null) }))
+        assertEquals(listOf("Alberto Sin Ruta", "Rosa Apaza Huanca", "Zulma Choque"),
+            db.proveedorQueries.selectActivosPorZona(zona).executeAsList().map { it.nombres })
+    }
+
+    @Test
+    fun `el traslado aprobado guarda la fecha en que el panel cambia la zona`() = runBlocking {
+        local.aplicar(datos().copy(solicitudes = listOf(pe.ecolecta.domain.repository.SolicitudServidor(
+            "traslado-1", 21, null, null, "Traslado de zona", creadaEn = 100, estado = "APROBADA",
+            tipo = "TRASLADO", zonaDestinoId = 1, fechaEfectiva = "2026-11-02",
+        ))))
+        val solicitud = kotlinx.serialization.json.Json.decodeFromString<pe.ecolecta.domain.model.SolicitudProveedor>(
+            db.portalProveedorQueries.porId("traslado-1").executeAsOne().contenido)
+        assertEquals("2026-11-02", solicitud.fechaEfectiva)
+        assertNull(solicitud.aplicadoEn)
+    }
 }

@@ -185,4 +185,53 @@ class OrganizacionAcopioTest extends TestCase
         $this->assertSame([], $rutaOrigen->fresh()->paradas);
         $this->assertSame($proveedor->id, $rutaDestino->fresh()->paradas[0]['proveedor_id']);
     }
+
+    public function test_el_celular_recibe_el_orden_de_la_ruta_de_su_acopiador(): void
+    {
+        $zona = Zona::factory()->create(['activo' => true]);
+        $otraZona = Zona::factory()->create(['activo' => true]);
+        $primero = Proveedor::factory()->create(['zona_id' => $zona->id, 'nombres' => 'Zenon Quispe']);
+        $segundo = Proveedor::factory()->create(['zona_id' => $zona->id, 'nombres' => 'Ana Ccama']);
+        $sinRuta = Proveedor::factory()->create(['zona_id' => $zona->id]);
+        $trasladado = Proveedor::factory()->create(['zona_id' => $otraZona->id]);
+        $acopiador = Usuario::factory()->create(['username' => 'acop_orden', 'pin_hash' => '2468', 'roles' => ['acopiador'], 'zona_id' => $zona->id]);
+        $parada = fn (Proveedor $proveedor) => ['nombre' => $proveedor->nombres, 'proveedor_id' => $proveedor->id, 'latitud' => -15.6, 'longitud' => -69.9, 'referencia' => ''];
+        Ruta::query()->create(['codigo' => 'R-OTRA', 'nombre' => 'Ruta de otro acopiador', 'zona_id' => $zona->id, 'activo' => true, 'mapa_version' => 1,
+            'paradas' => [$parada($segundo), $parada($primero)]]);
+        Ruta::query()->create(['codigo' => 'R-MIA', 'nombre' => 'Mi ruta', 'zona_id' => $zona->id, 'activo' => true, 'mapa_version' => 1, 'acopiador_id' => $acopiador->id,
+            'paradas' => [$parada($primero), $parada($trasladado), $parada($segundo)]]);
+        $token = $this->postJson('/api/movil/sesion', ['username' => 'acop_orden', 'pin' => '2468'])->assertOk()->json('token');
+
+        $proveedores = collect($this->withToken($token)->getJson('/api/movil/datos')->assertOk()->json('proveedores'))->keyBy('id');
+
+        $this->assertSame(1, $proveedores[$primero->id]['ordenRuta']);
+        $this->assertSame(3, $proveedores[$segundo->id]['ordenRuta']);
+        $this->assertNull($proveedores[$sinRuta->id]['ordenRuta']);
+        $this->assertNull($proveedores[$trasladado->id]['ordenRuta']);
+    }
+
+    public function test_la_copia_del_celular_aplica_el_traslado_vencido_y_muestra_su_fecha(): void
+    {
+        $origen = Zona::factory()->create(['activo' => true]);
+        $destino = Zona::factory()->create(['activo' => true]);
+        $cuenta = Usuario::factory()->create(['username' => 'prov_traslado', 'pin_hash' => '2468', 'roles' => ['proveedor']]);
+        $proveedor = Proveedor::factory()->create(['zona_id' => $origen->id, 'usuario_id' => $cuenta->id]);
+        $solicitud = SolicitudTraslado::query()->create(['uuid_movil' => 'tras-copia', 'proveedor_id' => $proveedor->id,
+            'zona_destino_id' => $destino->id, 'motivo' => 'Cambio de comunidad', 'estado' => 'PENDIENTE']);
+        $fecha = now('America/Lima')->addDays(4)->toDateString();
+        $this->patch(route('admin.organizacion.traslados.resolver', $solicitud), ['estado' => 'APROBADA', 'respuesta' => 'Autorizado', 'fecha_efectiva' => $fecha])
+            ->assertSessionHasNoErrors();
+        $token = $this->postJson('/api/movil/sesion', ['username' => 'prov_traslado', 'pin' => '2468'])->assertOk()->json('token');
+
+        $this->withToken($token)->getJson('/api/movil/datos')->assertOk()
+            ->assertJsonPath('proveedores.0.zonaId', $origen->id)
+            ->assertJsonPath('solicitudes.0.fechaEfectiva', $fecha)
+            ->assertJsonPath('solicitudes.0.aplicadoEn', null);
+
+        $this->travel(4)->days();
+        $token = $this->postJson('/api/movil/sesion', ['username' => 'prov_traslado', 'pin' => '2468'])->assertOk()->json('token');
+        $respuesta = $this->withToken($token)->getJson('/api/movil/datos')->assertOk()
+            ->assertJsonPath('proveedores.0.zonaId', $destino->id);
+        $this->assertNotNull($respuesta->json('solicitudes.0.aplicadoEn'));
+    }
 }

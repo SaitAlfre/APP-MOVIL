@@ -133,6 +133,13 @@ import pe.ecolecta.presentation.qr.rememberSolicitadorPermisoAlmacenamiento
             }
             solicitud.litros?.let { TextoProveedor("Litros solicitados: ${decimalProveedor(it)} L") }
             if(solicitud.tipo == "TRASLADO") TextoProveedor("Destino: ${s.zonas.firstOrNull { it.id == solicitud.referenciaId }?.nombre ?: solicitud.referenciaId}")
+            if(solicitud.tipo == "TRASLADO" && solicitud.estado == EstadoSolicitud.APROBADA) solicitud.fechaEfectiva?.let { fecha ->
+                TextoProveedor(
+                    if (solicitud.aplicadoEn != null) "Tu nueva zona rige desde el ${fechaTarifa(fecha)}."
+                    else "Tu zona cambiará el ${fechaTarifa(fecha)}. Hasta entonces sigues en tu ruta actual.",
+                    13, ProveedorVerde, true,
+                )
+            }
             if(solicitud.evidencia != null) {
                 var verFoto by remember(solicitud.id) { mutableStateOf(false) }
                 TextButton(onClick = { verFoto = !verFoto }) { Text(if(verFoto) "Ocultar fotografía" else "Ver fotografía adjunta") }

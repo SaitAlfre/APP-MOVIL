@@ -1,0 +1,11 @@
+-- Copia del panel: posición de cada proveedor en la ruta de su zona. Se reemplaza en cada descarga.
+CREATE TABLE IF NOT EXISTS orden_ruta_proveedor (
+    proveedor_id TEXT NOT NULL PRIMARY KEY,
+    orden INTEGER NOT NULL
+);
+
+limpiar:
+DELETE FROM orden_ruta_proveedor;
+
+guardar:
+INSERT OR REPLACE INTO orden_ruta_proveedor(proveedor_id, orden) VALUES (?, ?);

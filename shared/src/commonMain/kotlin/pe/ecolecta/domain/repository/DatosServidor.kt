@@ -48,6 +48,8 @@ data class ProveedorServidor(
     val revision: String? = null,
     val dueno: String? = null,
     val responsableIncluido: Boolean = false,
+    /** Posición en la ruta que administración dibujó en el panel; null si su zona no tiene ruta. */
+    val ordenRuta: Int? = null,
 )
 
 @Serializable
@@ -134,6 +136,7 @@ data class SolicitudServidor(
     val motivo: String, val descripcion: String = "", val creadaEn: Long, val estado: String,
     val tipo: String = "RECLAMO", val zonaDestinoId: Long? = null,
     val respuesta: String? = null, val resueltaEn: Long? = null, val evidenciaDisponible: Boolean = false,
+    val fechaEfectiva: String? = null, val aplicadoEn: Long? = null,
 )
 
 @Serializable

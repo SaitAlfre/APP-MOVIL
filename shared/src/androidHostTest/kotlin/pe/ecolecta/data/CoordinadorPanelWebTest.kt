@@ -32,7 +32,8 @@ class CoordinadorPanelWebTest {
             modules(dataModule, domainModule, module {
                 single<SqlDriver> { driver }
                 single<pe.ecolecta.domain.DeviceIdProvider> { object : pe.ecolecta.domain.DeviceIdProvider { override fun obtenerId() = "api-prueba" } }
-                single<ServidorWebRepository> { ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO) }
+                single<pe.ecolecta.domain.security.ProtectorSecretos> { ProtectorSecretosPrueba }
+                single<ServidorWebRepository> { ServidorWebRepositoryKtor(url, get(), get(), get(), get(), Dispatchers.IO, protector = get()) }
                 single<RegistroAcopioRemotoRepository> { pe.ecolecta.data.repository.RegistroAcopioRemotoRepositoryApi(
                     get(), get(), get(), get(), get(), get(), get(), get(), get(),
                     estado = { get<CoordinadorSync>().estado }) }
